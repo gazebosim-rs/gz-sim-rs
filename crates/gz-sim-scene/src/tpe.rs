@@ -13,6 +13,38 @@ use std::sync::Arc;
 pub enum PhysicsEngine {
     Rapier,
     Tpe,
+    MultiFidelity,
+    Distributed,
+    DistributedPool(u8),
+    /// Local worker count with adaptive primitive and ground contacts at 10 ms public barriers.
+    DistributedAdaptive(u8),
+    /// Local worker count with independent contact-island resolution at 10 ms public barriers.
+    DistributedIslands(u8),
+    GpuBatch,
+}
+
+impl PhysicsEngine {
+    /// Per-point contact constraints are available on local Rapier, multi-fidelity and negotiated worker pools.
+    pub fn supports_per_point_friction(self) -> bool {
+        matches!(
+            self,
+            Self::Rapier
+                | Self::MultiFidelity
+                | Self::DistributedPool(3..=8)
+                | Self::DistributedAdaptive(3..=8)
+                | Self::DistributedIslands(3..=8)
+        )
+    }
+
+    pub fn is_distributed(self) -> bool {
+        matches!(
+            self,
+            Self::Distributed
+                | Self::DistributedPool(_)
+                | Self::DistributedAdaptive(_)
+                | Self::DistributedIslands(_)
+        )
+    }
 }
 
 #[derive(Resource)]

@@ -65,6 +65,9 @@ fn native_short_names_and_plugin_aliases_fail_instead_of_falling_back() {
         assert!(result.stdout.is_empty());
         let error = String::from_utf8(result.stderr).unwrap();
         assert_eq!(result.status.code(), Some(2));
-        assert!(error.contains("expected rapier or tpe"), "{error}");
+        assert!(
+            error.contains("expected rapier, tpe, multifidelity, distributed, or gpu-batch"),
+            "{error}"
+        );
     }
 }

@@ -3,10 +3,116 @@
 //! Shared f64 construction and state values, and the dynamic backend contract.
 
 mod backend;
+mod damped_area_foundation;
+mod elastic_area_foundation;
+mod elastic_layers;
+pub mod flat_landing;
+pub mod sole_balance;
+pub mod sole_calibration;
+pub mod sole_contact;
+pub mod sole_supports;
+pub mod sole_turntable;
+pub use damped_area_foundation::{DampedAreaFoundation, DampedAreaSample};
+pub use elastic_area_foundation::{ElasticAreaFoundation, ElasticAreaIntegral, ElasticAreaSample};
+mod elastic_line_foundation;
+pub use elastic_line_foundation::{ElasticLineFoundation, ElasticLineIntegral, ElasticLineSample};
+mod normal_approach;
+pub use normal_approach::NormalApproach;
+mod interval;
+mod line_closure;
+pub use line_closure::{LineClosure, LineClosureSearch, exclude_closed_line};
+mod line_wrench;
+pub use line_wrench::LineWrench;
+mod line_sticking;
+pub use line_sticking::{LineStickingResponse, StickingLine};
+mod segment_transfer;
+pub use segment_transfer::{
+    SegmentPointImpact, generalized_segment_impact, generalized_segment_work_impact,
+};
+mod finite_feature_arc;
+pub use finite_feature_arc::{
+    BoundPointImpact, BoundPointPath, BoundPointPiece, FiniteArcEnd, FiniteArcResult,
+    FiniteFeatureArc, SlidingVertexSpan, SlipGrowth, StickingPointSpan,
+};
+mod finite_feature_track;
+pub use finite_feature_track::{
+    EdgeFaceFeature, FeatureLimit, FeatureMargin, FiniteContactSegment, FiniteFeatureSample,
+    FiniteFeatureTrack,
+};
+mod finite_point_load;
+pub use finite_point_load::{
+    FiniteLoadMode, FinitePointLoad, FinitePointSite, SphericalPointMaterial,
+};
+mod finite_box_flight;
+mod finite_edge_crossing;
+mod finite_face_vertex;
+mod fractional_point_path;
+pub use finite_box_flight::{
+    BoxCrossing, FiniteBoxArrival, FiniteBoxFlight, FlightBox, SeparatingFeature,
+};
+pub use finite_edge_crossing::{FiniteContactWitness, SkewEdgeCrossing};
+pub use finite_face_vertex::FaceVertexCrossing;
+pub use fractional_point_path::{FractionalPointPath, SphericalImpactState};
+mod planar_edge_arc;
+mod planar_edge_pivot;
+pub use planar_edge_arc::{DeckDirection, PlanarEdgeAdvance, PlanarEdgeArc};
+mod planar_edge;
+pub use planar_edge::{EdgeMotion, PlanarEdgeContact, PlanarEdgeReaction};
+mod planar_impact;
+pub use planar_impact::{Bearing, PlanarImpactResponse, PlanarPatchImpact};
+mod frictionless_edge_arc;
+pub use frictionless_edge_arc::{
+    BoundFrictionlessEdge, EdgeSupportEnvelope, EdgeSupportSample, EdgeSupportState,
+    EdgeSupportTrajectory, FrictionlessEdgeSupport,
+};
+mod coplanar_supports;
+mod deck_edge_support;
+pub use coplanar_supports::{
+    BeltCapture, BeltCaptureRange, BeltDualBound, BeltEquilibriumWitness, BeltVertexReaction,
+    CoplanarSlidingContact, SlidingAccelerationSet, SlidingAccelerationVertex, SlidingLoadChoice,
+    SlidingLoadSet, SupportLoadRange, coplanar_load_range,
+};
+pub use deck_edge_support::{BoundDeckEdge, DeckEdgeEnvelope, DeckEdgeSample, DeckEdgeTrajectory};
+mod frictionless_face_support;
+pub use frictionless_face_support::{
+    BoundFaceSupport, BoundSharedFace, ComovingSupportStop, CoplanarPad, FaceBearingAdvance,
+    FaceBearingSample, FaceOverlap, FacePressureExit, FrictionlessFaceSupport, SharedFaceStep,
+    SharedSiteLoad, UniformSlidingStep,
+};
+mod planar_sole_rocking;
+pub use planar_sole_rocking::{
+    PlanarRockingAdvance, PlanarRockingImpact, PlanarSoleRocking, RockingCycle, RockingLimit,
+    RockingSample,
+};
+mod frictionless_sole_arc;
+pub use frictionless_sole_arc::{
+    FrictionlessSoleArc, SoleBearingAdvance, SoleBearingSpan, SolePressureTransfer,
+};
+mod rectangular_normals;
+pub use rectangular_normals::{
+    NormalCornerEquivalents, RectangularNormalContact, RectangularNormalResponse,
+};
+mod two_normals;
+pub use two_normals::{NormalSiteState, TwoNormalContact, TwoNormalResponse};
+mod opening_edge;
+pub use opening_edge::{OpeningEdgeImpact, OpeningEdgeResponse};
+mod mixed_edge;
+pub use mixed_edge::{EdgeImpulseSet, EdgeStickMode, MixedEdgeImpact, MixedEdgeResponse};
+mod edge_impact;
+pub use edge_impact::{EdgeMobility, SlidingEdgeImpact, SlidingEdgeResponse};
+mod alternating_normals;
+pub use alternating_normals::{AlternatingNormalInput, AlternatingNormalLimit};
+mod point_impact;
+pub use point_impact::{PointImpact, PointImpactResponse, PointImpactSensitivity};
+mod substeps;
+pub use substeps::NativeStepGrid;
+pub mod joint_drive;
+pub mod posture;
+pub mod trajectory;
 pub use backend::{
-    BodyId, DynamicBackend, InitialPhysicsState, JointId, JointPositionServo, JointState,
-    JointVelocityMotor, PhysicsBackend, PhysicsError, PhysicsReset, PreparedPhysicsReset,
-    RestoredPhysics, install,
+    BodyId, BodyStateLookup, DynamicBackend, InitialPhysicsState, JointId, JointPositionServo,
+    JointState, JointVelocityMotor, PhysicsBackend, PhysicsError, PhysicsReset,
+    PreparedPhysicsReset, RestoredPhysics, install, install_with_step,
 };
 
 #[derive(Debug, Clone, Copy)]

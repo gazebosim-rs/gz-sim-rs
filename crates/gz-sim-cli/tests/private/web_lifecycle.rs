@@ -26,18 +26,27 @@ struct Fixture {
 }
 impl Fixture {
     fn new(enabled: bool) -> Self {
+        Self::load(
+            enabled,
+            XML,
+            "m10_world_lifecycle.sdf",
+            gz_sim_scene::PhysicsEngine::Rapier,
+        )
+    }
+    fn load(enabled: bool, xml: &str, fixture: &str, engine: gz_sim_scene::PhysicsEngine) -> Self {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../examples/m10_world_lifecycle.sdf");
+            .join("../../examples")
+            .join(fixture);
         let uri = url::Url::from_file_path(path.canonicalize().unwrap())
             .unwrap()
             .to_string();
-        let sdf = sdformat::load_str(XML, &uri, &sdformat::NoResources).unwrap();
+        let sdf = sdformat::load_str(xml, &uri, &sdformat::NoResources).unwrap();
         let mut sim = gz_sim_scene::load_world_with_sdf_step(
-            XML,
+            xml,
             &uri,
             "default",
             &sdformat::NoResources,
-            gz_sim_scene::PhysicsEngine::Rapier,
+            engine,
         )
         .unwrap();
         sim.set_paused(true);
@@ -1079,3 +1088,62 @@ mod recording_tests;
 
 #[path = "web_robot_sensors.rs"]
 mod robot_sensors_tests;
+
+#[test]
+fn multifidelity_named_template_and_prescribed_scanner_ownership_through_real_socket() {
+    let xml = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../examples/multifidelity_lidar_edits.sdf"
+    ));
+    let mut f = Fixture::load(
+        true,
+        xml,
+        "multifidelity_lidar_edits.sdf",
+        gz_sim_scene::PhysicsEngine::MultiFidelity,
+    );
+    let mut socket = f.connect("/?lifecycle=1");
+    let (initial, catalog) = f.bootstrap(&mut socket);
+    let world = initial["world_id"].as_u64().unwrap();
+    let scanner = catalog["models"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|m| m["name"] == "default::scanner")
+        .unwrap();
+    assert_eq!(scanner["can_set_state"], false);
+    assert_eq!(scanner["can_remove"], false);
+    let sphere = template(&catalog, "inspection_sphere");
+    let (_, after, created) = f.command(&mut socket, spawn(1, world, 0, sphere, [0., 0., 0.45]));
+    assert_eq!(created["ok"], true);
+    let id = created["model_id"].as_u64().unwrap();
+    assert_eq!(after["models"].as_array().unwrap().len(), 4);
+    let (_, _, reply) = f.command(&mut socket, target(2, world, 0, "get_state", id));
+    assert_eq!(reply["state"]["translation"], json!([0., 0., 0.45]));
+    let mut edit = target(3, world, 0, "set_state", id);
+    for (k, v) in [
+        ("translation", json!([0.15, 0., 0.45])),
+        ("rotation", json!([0., 0., 0., 1.])),
+        ("linear_velocity", json!([2., 0., 0.])),
+        ("angular_velocity", json!([0., 0., 0.])),
+    ] {
+        edit[k] = v;
+    }
+    let (_, _, reply) = f.command(&mut socket, edit);
+    assert_eq!(reply["ok"], true);
+    assert_eq!(
+        model_state(f.server.simulation(), id)
+            .unwrap()
+            .linear_velocity,
+        [2., 0., 0.]
+    );
+    let (_, after, reply) = f.command(&mut socket, target(4, world, 0, "remove", id));
+    assert_eq!(reply["ok"], true);
+    assert_eq!(after["models"], catalog["models"]);
+    let (_, reset, reply) = f.command(
+        &mut socket,
+        json!({"version":1,"kind":"control","request_id":5,"action":"reset"}),
+    );
+    assert_eq!(reply["ok"], true);
+    assert_eq!(reset["epoch"], 1);
+    assert_eq!(reset["models"], catalog["models"]);
+}

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!-- A free ankle lands 2,638,197.65 ns after startup with a two-call impact budget. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="fixed" type="ignored"><max_step_size>0.0005</max_step_size><real_time_factor>0.01</real_time_factor></physics>
+    <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
+      <native_steps>2</native_steps><solver_iterations>4</solver_iterations>
+      <pair><foot>default::rocker::foot</foot><support>default::lift::pad</support><project_corner>true</project_corner></pair>
+    </plugin>
+    <model name="rocker">
+      <pose>0 0 0.13187046111714029 -0.18 0.31 0.15</pose>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system"/>
+      <link name="foot">
+        <inertial><mass>1</mass><inertia><ixx>0.017</ixx><iyy>0.021</iyy><izz>0.026</izz></inertia></inertial>
+        <collision name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><surface><friction><ode><mu>0.6</mu><mu2>0.6</mu2></ode></friction></surface></collision>
+        <visual name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><material><diffuse>0.92 0.46 0.12 1</diffuse></material></visual>
+      </link>
+      <link name="upper">
+        <pose>0.08 0.015 0.17 0 0.28 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.006</ixx><iyy>0.011</iyy><izz>0.012</izz></inertia></inertial>
+        <collision name="c"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><surface><friction><ode><mu>0.6</mu><mu2>0.6</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><material><diffuse>0.90 0.73 0.21 1</diffuse></material></visual>
+      </link>
+      <joint name="hinge" type="revolute">
+        <parent>foot</parent><child>upper</child>
+        <pose relative_to="foot">-0.02 0.025 0.075 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0.2 1 0.25</xyz></axis>
+      </joint>
+    </model>
+    <model name="lift">
+      <pose>0 0 -0.06 0 0 0</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system">
+        <linear_velocity>1.1 -0.7 1.4</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="pad">
+        <collision name="platform"><geometry><box><size>0.66 0.36 0.12</size></box></geometry><surface><friction><ode><mu>0.6</mu><mu2>0.6</mu2></ode></friction></surface></collision>
+        <visual name="platform"><geometry><box><size>0.66 0.36 0.12</size></box></geometry><material><diffuse>0.15 0.48 0.73 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

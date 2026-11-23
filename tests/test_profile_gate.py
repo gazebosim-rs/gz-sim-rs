@@ -147,6 +147,8 @@ class FeatureProfiles(unittest.TestCase):
             self.assertIn("gz-sim-cli/rgb-camera", command[command.index("--features") + 1].split(","))
             self.assertIn("gz-sim-cli", plan[profile][0])
         self.assertIn("gz-renderer/gpu", plan["renderer"][1][plan["renderer"][1].index("--features") + 1].split(","))
+        headless = plan["headless"][1]
+        self.assertIn("gz-sim-cli/landing-audit", headless[headless.index("--features") + 1].split(","))
         self.assertNotIn("gz-sim-cli", verify.RENDER_PACKAGES)
         self.assertEqual(plan["headless"][1].count("--exclude"), len(verify.RENDER_PACKAGES) + 1)
         self.assertIn(verify.TEST_SUPPORT_PACKAGE, plan["renderer"][1])

@@ -14,6 +14,19 @@ pub(super) struct Stamp {
     pub nanoseconds: u32,
 }
 
+/// Physical time of the immutable first scene. A startup recording uses the zero origin.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct Origin {
+    pub epoch: u64,
+    pub seconds: u64,
+    pub nanoseconds: u32,
+}
+impl Origin {
+    pub fn version(self) -> u8 {
+        if self == Self::default() { 1 } else { 2 }
+    }
+}
 impl Stamp {
     fn time(self) -> Duration {
         Duration::new(self.seconds, self.nanoseconds)
@@ -43,13 +56,19 @@ fn invalid(message: &'static str) -> io::Error {
 }
 
 impl Clock {
-    pub fn new(stamps: Vec<Stamp>, now: Instant) -> io::Result<Self> {
+    #[cfg(test)]
+    fn new(stamps: Vec<Stamp>, now: Instant) -> io::Result<Self> {
+        Self::from_origin(stamps, Origin::default(), now)
+    }
+    pub fn from_origin(stamps: Vec<Stamp>, origin: Origin, now: Instant) -> io::Result<Self> {
         if stamps.is_empty() || stamps.len() > 4096 {
             return Err(invalid("playback needs 1–4096 frames"));
         }
-        if stamps[0].epoch != 0 || stamps[0].seconds != 0 || stamps[0].nanoseconds != 0 {
+        if (stamps[0].epoch, stamps[0].seconds, stamps[0].nanoseconds)
+            != (origin.epoch, origin.seconds, origin.nanoseconds)
+        {
             return Err(invalid(
-                "playback must begin at startup epoch and time zero",
+                "first playback stamp differs from its declared physical origin",
             ));
         }
         if stamps.iter().any(|s| s.nanoseconds >= 1_000_000_000) {

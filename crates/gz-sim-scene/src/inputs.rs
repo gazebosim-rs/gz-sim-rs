@@ -5,12 +5,39 @@ use bevy_ecs::prelude::*;
 use gz_physics::{BodyId, JointId, PhysicsBackend, PhysicsError};
 use gz_physics_tpe::{ModelBounds, Motion};
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo, entity_by_id};
+use std::time::Duration;
 
 type Pair = ([f64; 3], [f64; 3]);
+#[cfg(feature = "distributed-physics")]
+pub(super) type SavedInput = (u64, Option<Pair>, Option<Pair>);
 
 #[derive(Resource)]
 struct InputsInstalled;
 
+#[cfg(feature = "distributed-physics")]
+pub(super) fn has_pending_input(world: &World) -> bool {
+    world.component_id::<PendingInput>().is_some_and(|id| {
+        world
+            .archetypes()
+            .iter()
+            .any(|a| a.contains(id) && !a.is_empty())
+    })
+}
+
+#[cfg(feature = "distributed-physics")]
+pub(super) fn saved_inputs(world: &World) -> Vec<SavedInput> {
+    world
+        .iter_entities()
+        .filter_map(|e| {
+            let p = e.get::<PendingInput>()?;
+            Some((
+                e.get::<gz_sim_core::EntityId>()?.get(),
+                p.velocity,
+                p.wrench,
+            ))
+        })
+        .collect()
+}
 #[derive(Component, Clone, Copy, Default)]
 struct PendingInput {
     velocity: Option<Pair>,
@@ -41,7 +68,46 @@ pub enum InputError {
 
 enum Binding {
     Dynamic(BodyId),
+    Kinematic(BodyId),
     Tpe(Entity),
+}
+
+impl Binding {
+    fn require_wrench(&self) -> Result<(), InputError> {
+        match self {
+            Self::Dynamic(_) => Ok(()),
+            Self::Kinematic(_) => Err(InputError::Unsupported(
+                "prescribed kinematic external wrench",
+            )),
+            Self::Tpe(_) => Err(InputError::Unsupported("TPE external wrench")),
+        }
+    }
+
+    fn velocity_at_com(
+        &self,
+        world: &World,
+        entity: Entity,
+        (linear, angular): Pair,
+        dt: Duration,
+    ) -> Result<[f64; 3], InputError> {
+        let (Self::Dynamic(body) | Self::Kinematic(body)) = self else {
+            return Ok(linear);
+        };
+        let backend = world.resource::<PhysicsBackend>();
+        let linear = if let Some(center) = world.get::<LinkCenterOfMass>(entity) {
+            let state = backend.state(*body).ok_or(InputError::InvalidPhysics)?;
+            (glam::DVec3::from_array(linear) + center.velocity_shift(state.orientation, angular))
+                .to_array()
+        } else {
+            linear
+        };
+        if matches!(self, Self::Kinematic(_)) {
+            backend
+                .validate_kinematic_velocity(linear, angular, dt)
+                .map_err(input_error)?;
+        }
+        Ok(linear)
+    }
 }
 
 fn binding(world: &World, entity: Entity, id: u64) -> Result<Binding, InputError> {
@@ -67,24 +133,27 @@ fn binding(world: &World, entity: Entity, id: u64) -> Result<Binding, InputError
     {
         return Err(InputError::NotFreeLink(id));
     }
-    let rapier = world.get_resource::<PhysicsBackend>();
-    if rapier.is_some() == world.contains_resource::<tpe::TpeWorld>() {
+    let backend = world.get_resource::<PhysicsBackend>();
+    if backend.is_some() == world.contains_resource::<tpe::TpeWorld>() {
         return Err(InputError::InvalidPhysics);
     }
-    if let Some(backend) = rapier {
+    if let Some(backend) = backend {
         let id = world
             .get::<BodyHandle>(entity)
             .ok_or(InputError::InvalidPhysics)?
             .id();
-        if backend.is_dynamic(id) == Some(false) {
-            return Err(InputError::Unsupported("fixed-body input"));
-        }
+        let binding = match backend.is_dynamic(id) {
+            Some(true) => Binding::Dynamic(id),
+            Some(false) if backend.is_kinematic(id) == Some(true) => Binding::Kinematic(id),
+            Some(false) => return Err(InputError::Unsupported("fixed-body input")),
+            None => return Err(InputError::InvalidPhysics),
+        };
         if backend.is_jointed(id) == Some(true) {
             return Err(InputError::Unsupported("jointed-body input"));
         }
         return backend
             .state(id)
-            .map(|_| Binding::Dynamic(id))
+            .map(|_| binding)
             .ok_or(InputError::InvalidPhysics);
     }
     let bounds = world
@@ -106,18 +175,25 @@ fn binding(world: &World, entity: Entity, id: u64) -> Result<Binding, InputError
 }
 
 fn target(world: &World, id: u64, values: Pair) -> Result<(Entity, Binding), InputError> {
+    let entity = target_entity(world, id, values)?;
+    Ok((entity, binding(world, entity, id)?))
+}
+
+fn target_entity(world: &World, id: u64, values: Pair) -> Result<Entity, InputError> {
     if !values.0.into_iter().chain(values.1).all(f64::is_finite) {
         return Err(InputError::InvalidValue);
     }
-    let entity = entity_by_id(world, id).ok_or(InputError::MissingEntity(id))?;
-    Ok((entity, binding(world, entity, id)?))
+    entity_by_id(world, id).ok_or(InputError::MissingEntity(id))
 }
 
 /// Queues world-frame velocities for a free single-link body at the next advancing step.
 /// Dynamic backends interpret linear velocity at the link origin; TPE keeps
 /// its model-motion velocity. Replaces a prior request; paused ticks retain it.
 /// Reset/removal cancel it. Backend COM conversion happens at application.
-/// Fixed bodies reject input. TPE accepts rotated model/link frames in world axes.
+/// Fixed bodies reject input. A multi-worker body with retained native contact
+/// history rejects a twist before it replaces any queued input. Cold topology
+/// may change while paused and is checked at application. TPE accepts rotated
+/// model/link frames in world axes.
 pub fn queue_link_world_velocity(
     sim: &mut Simulation,
     id: u64,
@@ -126,7 +202,24 @@ pub fn queue_link_world_velocity(
 ) -> Result<(), InputError> {
     sim.validate_steps(1)?;
     let values = (linear, angular);
-    let (entity, _) = target(sim.world(), id, values)?;
+    let (entity, binding) = target(sim.world(), id, values)?;
+    #[cfg(feature = "distributed-physics")]
+    if let Binding::Dynamic(body) | Binding::Kinematic(body) = &binding
+        && let Some(scene) = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .downcast_ref::<gz_physics_distributed::SceneBackend>()
+    {
+        scene
+            .validate_deferred_velocity_target(*body)
+            .map_err(input_error)?;
+    }
+    if matches!(binding, Binding::Kinematic(_)) {
+        if crate::damped_sole::translating_support(sim.world(), id) && angular != [0.; 3] {
+            return Err(InputError::Unsupported("coated sole support rotation"));
+        }
+        binding.velocity_at_com(sim.world(), entity, values, sim.step_duration())?;
+    }
     let mut pending = sim
         .world()
         .get::<PendingInput>(entity)
@@ -137,7 +230,34 @@ pub fn queue_link_world_velocity(
     Ok(())
 }
 
+/// Queue a world-frame force at a point expressed in link-local coordinates.
+///
+/// The lever arm is measured from the authored center of mass at the committed
+/// pose. The resulting wrench follows the same one-advancing-step lifetime as
+/// [`queue_link_world_wrench`], including when queued while paused.
+pub fn queue_link_force_at_point(
+    sim: &mut Simulation,
+    id: u64,
+    point_in_link: [f64; 3],
+    world_force: [f64; 3],
+) -> Result<(), InputError> {
+    let world = sim.world();
+    let entity = target_entity(world, id, (point_in_link, world_force))?;
+    let pose = world
+        .get::<WorldPose>(entity)
+        .ok_or(InputError::InvalidPhysics)?;
+    let center = world
+        .get::<LinkCenterOfMass>(entity)
+        .map_or([0.; 3], |offset| offset.0);
+    let local_arm = glam::DVec3::from(point_in_link) - glam::DVec3::from(center);
+    let arm = glam::DQuat::from_array(pose.rotation) * local_arm;
+    let torque = arm.cross(glam::DVec3::from(world_force));
+    queue_link_world_wrench(sim, id, world_force, torque.to_array())
+}
+
 /// Accumulates world-frame force at the center of mass and world-frame torque.
+/// On a switchable articulation, its solver holds the wrench for one dynamic
+/// step. A prescribed assembly carries it through promotion; reset cancels it.
 /// Consumed by one advancing step. TPE has no wrench capability. Invalid admission
 /// preserves pending inputs. Runtime failures fault the run, without rollback.
 pub fn queue_link_world_wrench(
@@ -147,9 +267,63 @@ pub fn queue_link_world_wrench(
     torque: [f64; 3],
 ) -> Result<(), InputError> {
     sim.validate_steps(1)?;
-    let (entity, binding) = target(sim.world(), id, (force, torque))?;
-    if matches!(binding, Binding::Tpe(_)) {
-        return Err(InputError::Unsupported("TPE external wrench"));
+    let entity = target_entity(sim.world(), id, (force, torque))?;
+    let body = crate::articulation::wrench_body(sim.world(), entity, id)
+        .map_err(|_| InputError::InvalidPhysics)?
+        .or_else(|| {
+            let world = sim.world();
+            let model = world.get::<ChildOf>(entity)?.parent();
+            // Ordinary primitive inputs need no scan of the native joint registry.
+            if !world.get::<Children>(model)?.iter().any(|child| {
+                world.get::<crate::JointDefinition>(child).is_some_and(|j| {
+                    matches!(
+                        j.0.kind,
+                        sdformat::JointKind::Fixed
+                            | sdformat::JointKind::Prismatic
+                            | sdformat::JointKind::Screw
+                            | sdformat::JointKind::Universal
+                            | sdformat::JointKind::Revolute2
+                            | sdformat::JointKind::Ball
+                    )
+                })
+            }) {
+                return None;
+            }
+            let body = world.get::<BodyHandle>(entity)?.id();
+            let native = world
+                .get_resource::<PhysicsBackend>()?
+                .downcast_ref::<gz_physics_multifidelity::MultiFidelityBackend>()?;
+            ((native.is_welded_link(body) || native.is_robot_link(body))
+                && crate::initial::matches_physics_owner(world)
+                && crate::initial::owns_loaded_body(world, id, body))
+            .then_some(body)
+        });
+    if let Some(body) = body {
+        if !sim.world().contains_resource::<InputsInstalled>() {
+            return Err(InputError::InvalidPhysics);
+        }
+        return sim
+            .world_mut()
+            .resource_mut::<PhysicsBackend>()
+            .add_world_wrench(body, force, torque)
+            .map_err(input_error);
+    }
+    let target = binding(sim.world(), entity, id)?;
+    target.require_wrench()?;
+    #[cfg(feature = "distributed-physics")]
+    if let Binding::Dynamic(body) = target
+        && let Some(mut backend) = sim.world_mut().get_resource_mut::<PhysicsBackend>()
+        && (backend
+            .downcast_ref::<gz_physics_distributed::SceneBackend>()
+            .is_some()
+            || backend.engine() == "distributed-hinge")
+    {
+        // Let the worker-backed implementation check target/capability at admission.
+        // The coordinator accounts for this one-tick wrench during routing.
+        // Native force and torque act throughout all internal substeps.
+        return backend
+            .add_world_wrench(body, force, torque)
+            .map_err(input_error);
     }
     let mut pending = sim
         .world()
@@ -183,9 +357,7 @@ fn wrench_shadows(
     let mut shadows = std::collections::BTreeMap::new();
     for &(id, force, torque) in entries {
         let (entity, binding) = target(world, id, (force, torque))?;
-        if matches!(binding, Binding::Tpe(_)) {
-            return Err(InputError::Unsupported("TPE external wrench"));
-        }
+        binding.require_wrench()?;
         let pending = shadows.entry(entity).or_insert_with(|| {
             world
                 .get::<PendingInput>(entity)
@@ -248,7 +420,7 @@ fn joint_target(sim: &Simulation, id: u64, torque: f64) -> Result<(Entity, Joint
     Ok((entity, joint))
 }
 
-fn effort_error(error: PhysicsError) -> InputError {
+fn input_error(error: PhysicsError) -> InputError {
     match error {
         PhysicsError::InvalidValue => InputError::InvalidValue,
         error => InputError::Physics(error),
@@ -260,10 +432,17 @@ fn effort_error(error: PhysicsError) -> InputError {
 /// admission errors preserve the prior value. Combined inputs are checked at stepping.
 pub fn set_joint_force(sim: &mut Simulation, id: u64, torque: f64) -> Result<(), InputError> {
     let (entity, joint) = joint_target(sim, id, torque)?;
-    sim.world()
-        .resource::<PhysicsBackend>()
+    let backend = sim.world().resource::<PhysicsBackend>();
+    #[cfg(feature = "distributed-physics")]
+    if backend.engine() == "distributed-hinge" {
+        return Err(input_error(PhysicsError::Unsupported {
+            engine: backend.engine(),
+            capability: "persistent joint effort",
+        }));
+    }
+    backend
         .validate_joint_effort(joint, torque)
-        .map_err(effort_error)?;
+        .map_err(input_error)?;
     sim.world_mut()
         .entity_mut(entity)
         .insert(JointForceCommand(torque));
@@ -271,7 +450,7 @@ pub fn set_joint_force(sim: &mut Simulation, id: u64, torque: f64) -> Result<(),
     Ok(())
 }
 
-/// Accumulates one-step generalized effort for a loaded revolute's public entity ID.
+/// Accumulates a one-step torque (N·m) on a hinge or force (N) on a slider by public ID.
 /// Paused ticks retain commands; successful steps consume them. Reset and retirement
 /// discard them. Validation errors preserve admitted commands; runtime faults stop the run.
 pub fn queue_joint_effort(sim: &mut Simulation, id: u64, torque: f64) -> Result<(), InputError> {
@@ -279,7 +458,22 @@ pub fn queue_joint_effort(sim: &mut Simulation, id: u64, torque: f64) -> Result<
     sim.world_mut()
         .resource_mut::<PhysicsBackend>()
         .add_joint_effort(joint, torque)
-        .map_err(effort_error)
+        .map_err(input_error)
+}
+
+/// Accumulates one-step torques in N·m on the two moving universal axes.
+pub fn queue_universal_joint_effort(
+    sim: &mut Simulation,
+    id: u64,
+    efforts: [f64; 2],
+) -> Result<(), InputError> {
+    let (_, joint) = joint_target(sim, id, efforts[0])?;
+    sim.world_mut()
+        .resource_mut::<PhysicsBackend>()
+        .downcast_mut::<gz_physics_multifidelity::MultiFidelityBackend>()
+        .ok_or(InputError::InvalidPhysics)?
+        .add_universal_effort(joint, efforts)
+        .map_err(input_error)
 }
 
 pub(super) fn apply_joint_forces(
@@ -317,19 +511,22 @@ fn execute(world: &mut World, entity: Entity, input: PendingInput) -> Result<(),
         .get::<gz_sim_core::EntityId>(entity)
         .ok_or(InputError::InvalidPhysics)?
         .get();
-    match binding(world, entity, id)? {
-        Binding::Dynamic(body) => {
-            let center = world.get::<LinkCenterOfMass>(entity).copied();
+    let binding = binding(world, entity, id)?;
+    if input.wrench.is_some() {
+        binding.require_wrench()?;
+    }
+    let velocity = input
+        .velocity
+        .map(|values| {
+            binding
+                .velocity_at_com(world, entity, values, world.resource::<UpdateInfo>().dt)
+                .map(|linear| (linear, values.1))
+        })
+        .transpose()?;
+    match binding {
+        Binding::Dynamic(body) | Binding::Kinematic(body) => {
             let mut backend = world.resource_mut::<PhysicsBackend>();
-            if let Some((linear, angular)) = input.velocity {
-                let linear = if let Some(center) = center {
-                    let state = backend.state(body).ok_or(InputError::InvalidPhysics)?;
-                    (glam::DVec3::from_array(linear)
-                        + center.velocity_shift(state.orientation, angular))
-                    .to_array()
-                } else {
-                    linear
-                };
+            if let Some((linear, angular)) = velocity {
                 backend.set_world_velocity(body, linear, angular)?;
             }
             if let Some((force, torque)) = input.wrench {
@@ -337,10 +534,7 @@ fn execute(world: &mut World, entity: Entity, input: PendingInput) -> Result<(),
             }
         }
         Binding::Tpe(model) => {
-            if input.wrench.is_some() {
-                return Err(InputError::Unsupported("TPE external wrench"));
-            }
-            if let Some((linear, angular)) = input.velocity {
+            if let Some((linear, angular)) = velocity {
                 world
                     .get_mut::<Motion>(model)
                     .ok_or(InputError::InvalidPhysics)?

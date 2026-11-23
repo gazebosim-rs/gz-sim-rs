@@ -1,0 +1,205 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use super::*;
+
+/// A joint in a local rigid-body robot. Axis and orientation are in world coordinates
+/// at construction. Scalar coordinates and both universal coordinates start at zero.
+#[derive(Clone, Copy, Debug)]
+pub enum RobotJoint {
+    Fixed,
+    Revolute {
+        axis: [f64; 3],
+        limits: Option<[f64; 2]>,
+    },
+    /// Thread pitch in metres per revolution. The coordinate and stops are in radians.
+    Screw {
+        axis: [f64; 3],
+        pitch: f64,
+        effort_limit: f64,
+        limits: Option<[f64; 2]>,
+    },
+    Prismatic {
+        axis: [f64; 3],
+        limits: Option<[f64; 2]>,
+    },
+    Universal {
+        axes: [[f64; 3]; 2],
+        limits: [Option<[f64; 2]>; 2],
+        effort_limits: [f64; 2],
+    },
+    Ball {
+        orientation: [f64; 4],
+    },
+}
+
+/// Relative orientation (xyzw) and angular velocity in the parent joint frame.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BallJointState {
+    pub orientation: [f64; 4],
+    pub angular_velocity: [f64; 3],
+}
+
+impl RapierBackend {
+    /// Uses a single native impulse-joint graph for a mixed robot tree.
+    pub fn add_robot_joint(
+        &mut self,
+        parent: Option<BodyId>,
+        child: BodyId,
+        anchor: [f64; 3],
+        joint: RobotJoint,
+    ) -> Result<JointId, PhysicsError> {
+        let (axis, constraint) = match joint {
+            RobotJoint::Fixed => ([1., 0., 0.], AngularConstraint::Weld),
+            RobotJoint::Universal {
+                axes,
+                limits,
+                effort_limits,
+            } => (
+                axes[0],
+                universal::configuration(axes, limits, effort_limits)?,
+            ),
+            RobotJoint::Ball { orientation } => {
+                let rotation = Rotation::from_array(orientation);
+                if !rotation.is_finite() || (rotation.length_squared() - 1.).abs() > 1e-12 {
+                    return Err(PhysicsError::InvalidJoint);
+                }
+                ([1., 0., 0.], AngularConstraint::Ball(rotation))
+            }
+            RobotJoint::Screw {
+                axis,
+                pitch,
+                limits,
+                effort_limit,
+            } => {
+                let lead = pitch / std::f64::consts::TAU;
+                if (pitch != 0. && !lead.is_normal())
+                    || !(lead * lead).is_finite()
+                    || effort_limit.is_nan()
+                    || effort_limit < 0.
+                    || limits.is_some_and(|[lo, hi]| {
+                        !(lo <= 0. && hi >= 0.)
+                            || [lo, hi]
+                                .into_iter()
+                                .any(|q| q.is_finite() && !(q * lead).is_finite())
+                    })
+                {
+                    return Err(PhysicsError::InvalidValue);
+                }
+                (
+                    axis,
+                    AngularConstraint::Screw {
+                        lead,
+                        limits,
+                        effort_limit,
+                    },
+                )
+            }
+            RobotJoint::Prismatic { axis, limits } => {
+                if limits.is_some_and(|[lo, hi]| !(lo <= 0. && hi >= 0.)) {
+                    return Err(PhysicsError::InvalidValue);
+                }
+                // Use Rapier's own unbounded limit sentinels on open ends.
+                let limits = limits
+                    .filter(|[lo, hi]| lo.is_finite() || hi.is_finite())
+                    .map(|[lo, hi]| [lo.max(-f64::MAX), hi.min(f64::MAX)]);
+                (axis, AngularConstraint::Prismatic(limits))
+            }
+            RobotJoint::Revolute { axis, limits } => {
+                if limits.is_some_and(|[lo, hi]| {
+                    !lo.is_finite() || !hi.is_finite() || lo > 0. || hi < 0.
+                }) {
+                    return Err(PhysicsError::InvalidValue);
+                }
+                (axis, AngularConstraint::Revolute(limits))
+            }
+        };
+        let id =
+            self.insert_configured_joint(parent, child, anchor, axis, Solver::Impulse, constraint)?;
+        self.joints
+            .records
+            .get_mut(&id)
+            .expect("inserted robot joint")
+            .initial
+            .robot = true;
+        Ok(id)
+    }
+
+    /// Set the native island's inner velocity-constraint iteration budget on a
+    /// world-mounted rigid robot. Authored once, restored with the joint graph.
+    pub fn set_robot_root_iterations(
+        &mut self,
+        root: BodyId,
+        iterations: u8,
+    ) -> Result<(), PhysicsError> {
+        if !self.joints.open {
+            return Err(PhysicsError::JointConstructionClosed);
+        }
+        if iterations > 128 {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let joint = self
+            .joints
+            .records
+            .values_mut()
+            .find(|j| j.initial.robot && j.initial.parent.is_none() && j.initial.child == root)
+            .ok_or(PhysicsError::InvalidJoint)?;
+        joint.initial.additional_pgs_iterations = iterations;
+        self.world.bodies[self.bodies[&root].0]
+            .set_additional_pgs_iterations(usize::from(iterations));
+        Ok(())
+    }
+
+    pub fn is_robot_link(&self, body: BodyId) -> bool {
+        self.joints
+            .records
+            .values()
+            .any(|j| j.initial.robot && (j.initial.child == body || j.initial.parent == Some(body)))
+    }
+
+    pub fn ball_joint_state(&self, id: JointId) -> Option<BallJointState> {
+        let joint = self.joints.records.get(&id)?.initial;
+        if !matches!(joint.motion, JointMotion::Ball) {
+            return None;
+        }
+        let child = &self.world.bodies[self.bodies[&joint.child].0];
+        let parent = joint.parent.map(|p| &self.world.bodies[self.bodies[&p].0]);
+        let rotation = parent.map_or(Rotation::IDENTITY, |p| *p.rotation()) * joint.frame1.rotation;
+        let relative = rotation.inverse() * *child.rotation() * joint.frame2.rotation;
+        let velocity =
+            rotation.inverse() * (child.angvel() - parent.map_or(Vector::ZERO, |p| p.angvel()));
+        Some(BallJointState {
+            orientation: relative.normalize().to_array(),
+            angular_velocity: velocity.to_array(),
+        })
+    }
+}
+
+impl Construction {
+    pub(super) fn motor_axis(self) -> JointAxis {
+        if matches!(self.motion, JointMotion::Prismatic) {
+            JointAxis::LinX
+        } else {
+            JointAxis::AngX
+        }
+    }
+
+    pub(super) fn slider(
+        &self,
+        world: &PhysicsWorld,
+        bodies: &BTreeMap<BodyId, BodyEntry>,
+    ) -> JointState {
+        let parent = self.parent.map(|p| &world.bodies[bodies[&p].0]);
+        let child = &world.bodies[bodies[&self.child].0];
+        let parent_frame = parent.map_or(self.frame1, |p| *p.position() * self.frame1);
+        let point = *child.position() * self.frame2.translation;
+        let axis = parent_frame.rotation * Vector::X;
+        // Evaluating both twists at this same material point differentiates
+        // displacement in a rotating parent frame, including its axis motion.
+        JointState {
+            position: (point - parent_frame.translation).dot(axis),
+            velocity: (child.velocity_at_point(point)
+                - parent.map_or(Vector::ZERO, |p| p.velocity_at_point(point)))
+            .dot(axis),
+        }
+    }
+}

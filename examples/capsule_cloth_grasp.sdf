@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12"><world name="default">
+  <gravity>0 0 -9.81</gravity>
+  <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+  <model name="left"><pose>0 0.0225 0.081 1.5707963267948966 0 0</pose><link name="jaw">
+    <inertial><mass>0.010</mass><inertia><ixx>0.00000115</ixx><iyy>0.00000115</iyy><izz>0.00000030</izz></inertia></inertial>
+    <collision name="surface"><geometry><capsule><radius>0.008</radius><length>0.024</length></capsule></geometry></collision>
+    <visual name="finger"><geometry><capsule><radius>0.008</radius><length>0.024</length></capsule></geometry></visual>
+  </link></model>
+  <model name="right"><pose>0 -0.0225 0.081 1.5707963267948966 0 0</pose><link name="jaw">
+    <inertial><mass>0.010</mass><inertia><ixx>0.00000115</ixx><iyy>0.00000115</iyy><izz>0.00000030</izz></inertia></inertial>
+    <collision name="surface"><geometry><capsule><radius>0.008</radius><length>0.024</length></capsule></geometry></collision>
+    <visual name="finger"><geometry><capsule><radius>0.008</radius><length>0.024</length></capsule></geometry></visual>
+  </link></model>
+  <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+    <capsule link="default::left::jaw" coupling="two_way"/>
+    <capsule link="default::right::jaw" coupling="two_way"/>
+    <plane point="0 0 0" normal="0 0 1"/>
+    <cloth name="swatch" columns="2" radius="0.0025" substeps="4" iterations="8" stretch="0.00001" shear="0.00002" bend="0.01" self_contact="false" conserve_angular_momentum="true" capsule_contact="material" friction="0.65">
+      <particle position="-0.06 0 0.0025" mass="0.0005"/>
+      <particle position="0.06 0 0.0025" mass="0.0005"/>
+      <particle position="-0.06 0 0.1225" mass="0.0005"/>
+      <particle position="0.06 0 0.1225" mass="0.0005"/>
+    </cloth>
+  </plugin>
+</world></sdf>

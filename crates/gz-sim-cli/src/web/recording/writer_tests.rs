@@ -96,3 +96,22 @@ fn bounded_queue_busy_is_terminal_and_does_not_retry_or_increment_refused_captur
     assert!(recorder.record(scene, catalog, vec![]).is_err());
     assert_eq!(recorder.frames, 0);
 }
+
+#[test]
+fn offline_export_admits_more_frames_than_the_live_queue_capacity() {
+    let scratch = tempfile::tempdir().unwrap();
+    let output = scratch.path().join("export");
+    let frames = (1..=32).map(|sequence| {
+        let (scene, catalog) = empty();
+        let mut scene: serde_json::Value = serde_json::from_str(&scene).unwrap();
+        let mut catalog: serde_json::Value = serde_json::from_str(&catalog).unwrap();
+        scene["sequence"] = sequence.into();
+        catalog["scene_sequence"] = sequence.into();
+        (scene.to_string(), catalog.to_string())
+    });
+    super::super::export_archive(&output, BTreeMap::new(), frames).unwrap();
+    let archive = Archive::open(&output).unwrap();
+    assert_eq!(archive.stamps.len(), 32);
+    assert_eq!(archive.stamps[31].sequence, 32);
+    assert_eq!(archive.asset_prefix, super::super::EXPORT_ASSET_PREFIX);
+}

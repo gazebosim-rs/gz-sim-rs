@@ -30,6 +30,14 @@ pub enum WorldEditError {
     Identity(#[from] IdentityError),
 }
 
+pub(super) fn supports_model_edits(world: &World, backend: &PhysicsBackend) -> bool {
+    match backend.engine() {
+        "rapier" | "distributed" | "distributed-pool" => true,
+        "multifidelity" => !deformable::installed(world),
+        _ => false,
+    }
+}
+
 struct Binding {
     model: Entity,
     link: Entity,
@@ -59,6 +67,15 @@ fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
         return Err(unsupported());
     }
     let link = children[0];
+    #[cfg(feature = "distributed-physics")]
+    if let Some(handle) = world.get::<BodyHandle>(link)
+        && world
+            .get_resource::<PhysicsBackend>()
+            .and_then(|resource| resource.downcast_ref::<gz_physics_distributed::SceneBackend>())
+            .is_some_and(|backend| backend.is_shared_ground(handle.id()))
+    {
+        return Err(unsupported());
+    }
     let local = world.get::<LocalPose>(link).ok_or_else(unsupported)?.0;
     if world.get::<EntityKind>(link) != Some(&EntityKind::Link)
         || !identity(Transform {
@@ -152,7 +169,12 @@ fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
     let backend = world
         .get_resource::<PhysicsBackend>()
         .ok_or(WorldEditError::InvalidScene)?;
-    if backend.engine() != "rapier" || backend.is_jointed(body) != Some(false) {
+    // The template stores a free or fixed body. Cloning a prescribed body
+    // with its nominal mass would give the clone different motion semantics.
+    if !supports_model_edits(world, backend)
+        || backend.is_jointed(body) != Some(false)
+        || backend.engine() == "multifidelity" && backend.is_kinematic(body) != Some(false)
+    {
         return Err(unsupported());
     }
     if backend.is_dynamic(body) == Some(true) && world.get::<ModelAnchor>(model).is_none() {
@@ -345,6 +367,8 @@ pub fn set_model_state(
     // The validated native setter has no fallible stage after mutation. Read its
     // committed value directly rather than returning an ordinary admission error
     // after commit. Exclusive world access preserves these bindings throughout.
+    #[cfg(feature = "distributed-physics")]
+    crate::passive_checkpoint::note_live_replacement(sim, model_id);
     let actual = sim
         .world()
         .resource::<PhysicsBackend>()

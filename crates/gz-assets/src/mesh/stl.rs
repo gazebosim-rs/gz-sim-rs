@@ -148,6 +148,14 @@ pub fn visual_glb(bytes: &[u8]) -> Result<Vec<u8>, MeshError> {
 }
 
 pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>, MeshError> {
+    colored_visual_glb(mesh, kind, None)
+}
+
+pub(super) fn colored_visual_glb(
+    mesh: &TriangleMesh,
+    kind: &str,
+    diffuse: Option<[f32; 4]>,
+) -> Result<Vec<u8>, MeshError> {
     let mut sums = vec![DVec3::ZERO; mesh.vertices.len()];
     let mut first = vec![DVec3::ZERO; mesh.vertices.len()];
     for &triangle in &mesh.triangles {
@@ -186,7 +194,7 @@ pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>
             bin.extend(index.to_le_bytes());
         }
     }
-    let document = serde_json::json!({
+    let mut document = serde_json::json!({
         "asset":{"version":"2.0"}, "scene":0, "scenes":[{"nodes":[0]}],
         "nodes":[{"mesh":0}], "meshes":[{"primitives":[{"attributes":{"POSITION":0,"NORMAL":1},"indices":2}]}],
         "buffers":[{"byteLength":bin.len()}],
@@ -199,6 +207,11 @@ pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>
             {"bufferView":1,"componentType":5126,"count":mesh.vertices.len(),"type":"VEC3"},
             {"bufferView":2,"componentType":5125,"count":mesh.triangles.len()*3,"type":"SCALAR"}]
     });
+    if let Some(diffuse) = diffuse {
+        document["materials"] = serde_json::json!([{"pbrMetallicRoughness":
+            {"baseColorFactor": diffuse, "metallicFactor": 0.0, "roughnessFactor": 0.8}}]);
+        document["meshes"][0]["primitives"][0]["material"] = serde_json::json!(0);
+    }
     let mut json = serde_json::to_vec(&document).map_err(|error| invalid(error.to_string()))?;
     while !json.len().is_multiple_of(4) {
         json.push(b' ');

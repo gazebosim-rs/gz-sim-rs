@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="ten_ms" type="ignored"><max_step_size>0.01</max_step_size><real_time_factor>0.2</real_time_factor></physics>
+    <model name="ground"><static>true</static><link name="floor">
+      <collision name="plane"><geometry><plane><normal>0 0 1</normal><size>20 4</size></plane></geometry></collision>
+      <visual name="surface"><pose>0 0 -0.025 0 0 0</pose><geometry><box><size>20 4 0.05</size></box></geometry><material><diffuse>0.30 0.35 0.42 1</diffuse></material></visual>
+    </link></model>
+    <model name="supported"><pose>-7 0 0.252 0 0 0</pose><link name="sphere">
+      <inertial><mass>1</mass><inertia><ixx>0.025</ixx><iyy>0.025</iyy><izz>0.025</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.25</radius></sphere></geometry></collision>
+      <visual name="amber"><geometry><sphere><radius>0.25</radius></sphere></geometry><material><diffuse>1 0.46 0.09 1</diffuse></material></visual>
+    </link></model>
+    <model name="short_drop"><pose>0 0 1.5 0 0 0</pose><link name="sphere">
+      <inertial><mass>1</mass><inertia><ixx>0.025</ixx><iyy>0.025</iyy><izz>0.025</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.25</radius></sphere></geometry></collision>
+      <visual name="aqua"><geometry><sphere><radius>0.25</radius></sphere></geometry><material><diffuse>0.09 0.75 0.76 1</diffuse></material></visual>
+    </link></model>
+    <model name="high_drop"><pose>7 0 5 0 0 0</pose><link name="sphere">
+      <inertial><mass>1</mass><inertia><ixx>0.025</ixx><iyy>0.025</iyy><izz>0.025</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.25</radius></sphere></geometry></collision>
+      <visual name="blue"><geometry><sphere><radius>0.25</radius></sphere></geometry><material><diffuse>0.16 0.44 0.95 1</diffuse></material></visual>
+    </link></model>
+  </world>
+</sdf>

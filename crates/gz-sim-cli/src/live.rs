@@ -20,6 +20,23 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[cfg(feature = "distributed-physics")]
+mod capsule;
+#[cfg(feature = "distributed-physics")]
+pub use capsule::ConvoyCapsule;
+#[cfg(feature = "distributed-physics")]
+mod convoy;
+#[cfg(feature = "distributed-physics")]
+mod convoy_capture;
+#[cfg(feature = "distributed-physics")]
+pub use convoy_capture::ConvoyCaptureRequest;
+#[cfg(feature = "distributed-physics")]
+mod torque;
+#[cfg(feature = "distributed-physics")]
+pub use convoy::{ConvoyDeployment, run_recoverable_convoy, run_selected_convoy};
+#[cfg(feature = "distributed-physics")]
+pub use torque::JointTorqueDrive;
+
 const POLL_INTERVAL: Duration = Duration::from_millis(10);
 
 struct Termination {
@@ -212,36 +229,106 @@ impl Runtime {
 
 /// Playback uses the same termination owner and local viewer IO, without loading
 /// SDF or constructing Simulation, Server, Zenoh, physics or sensor resources.
-pub(super) fn replay(path: &std::path::Path, port: u16) -> Result<(), Box<dyn Error>> {
+pub fn replay(path: &std::path::Path, port: u16) -> Result<(), Box<dyn Error>> {
     let termination = Termination::install()?;
     super::web::replay(path, port, &termination.requested)?;
     Ok(())
 }
 
-pub(super) struct ViewerOptions {
+pub struct ViewerOptions {
     pub port: Option<u16>,
     pub lifecycle_sdf: Option<sdformat::Sdf>,
     pub recording_path: Option<PathBuf>,
 }
 
-pub(super) struct CameraOptions {
+#[derive(Default)]
+pub struct CameraOptions {
     pub worker: Option<PathBuf>,
     pub mixed_pair: bool,
 }
 
-pub(super) fn run(
-    mut simulation: Simulation,
+pub fn run(
+    simulation: Simulation,
+    world: &str,
+    running: bool,
+    iterations: u64,
+    camera_worker: Option<PathBuf>,
+    viewer: ViewerOptions,
+) -> Result<(Simulation, u64), Box<dyn Error>> {
+    run_with_operator(
+        simulation,
+        world,
+        running,
+        iterations,
+        CameraOptions {
+            worker: camera_worker,
+            mixed_pair: false,
+        },
+        viewer,
+        None,
+    )
+}
+
+pub fn run_with_operator(
+    simulation: Simulation,
     world: &str,
     running: bool,
     iterations: u64,
     camera: CameraOptions,
     viewer: ViewerOptions,
+    checkpoint: Option<crate::OperatorCheckpoint>,
 ) -> Result<(Simulation, u64), Box<dyn Error>> {
+    let termination = Termination::install()?;
+    run_session(
+        simulation,
+        world,
+        &termination,
+        RunOptions {
+            running,
+            iterations,
+            camera,
+            viewer,
+            checkpoint,
+            restored: None,
+        },
+        None,
+    )
+}
+
+struct RunOptions {
+    restored: Option<String>,
+    running: bool,
+    iterations: u64,
+    camera: CameraOptions,
+    viewer: ViewerOptions,
+    checkpoint: Option<crate::OperatorCheckpoint>,
+}
+
+fn run_session(
+    mut simulation: Simulation,
+    world: &str,
+    termination: &Termination,
+    options: RunOptions,
+    mut convoy_view: Option<&mut crate::web::ConvoyView>,
+) -> Result<(Simulation, u64), Box<dyn Error>> {
+    let RunOptions {
+        restored,
+        running,
+        iterations,
+        camera,
+        viewer,
+        checkpoint,
+    } = options;
     let ViewerOptions {
         port: web_viewer,
         lifecycle_sdf,
         recording_path,
     } = viewer;
+    #[cfg(feature = "distributed-physics")]
+    let live_capture = simulation
+        .world()
+        .get_resource::<convoy_capture::LiveCapture>()
+        .cloned();
     let factor = simulation
         .world()
         .get_resource::<WorldPhysics>()
@@ -252,8 +339,12 @@ pub(super) fn run(
     Instant::now()
         .checked_add(period)
         .ok_or_else(|| io::Error::other("real-time update period exceeds wall-clock range"))?;
-    let termination = Termination::install()?;
     simulation.set_paused(!running);
+    let recovery = if web_viewer.is_some() && lifecycle_sdf.is_none() && recording_path.is_none() {
+        super::web::recovery::Recovery::subscribe(&mut simulation, convoy_view.is_some(), restored)
+    } else {
+        None
+    };
     let mut runtime = Runtime::new(simulation, world, camera.worker, camera.mixed_pair)?;
     runtime.server_mut().prepare_run(Duration::from_secs(5))?;
     let mut viewer = web_viewer
@@ -273,13 +364,16 @@ pub(super) fn run(
                     sdf,
                 ),
             },
-            None => super::web::Bridge::new(runtime.server().simulation(), world, port),
+            None => super::web::Bridge::new(runtime.server().simulation(), world, port, recovery),
         })
         .transpose()?;
+    if let Some(request) = &checkpoint {
+        request.announce();
+    }
     let mut completed = 0_u64;
     while !termination.requested() && (iterations == 0 || completed < iterations) {
         let started = Instant::now();
-        let controls = viewer
+        let mut controls = viewer
             .as_mut()
             .map(|viewer| viewer.controls(runtime.server_mut()))
             .unwrap_or_default();
@@ -288,7 +382,33 @@ pub(super) fn run(
                 .as_ref()
                 .is_some_and(|viewer| viewer.scan_interested()),
         );
-        let info = runtime.tick()?;
+        if !controls.is_empty()
+            && let Some(viewer) = &mut viewer
+        {
+            viewer.publish_applied_resume(runtime.server().simulation(), world, &mut controls)?;
+        }
+        if let Some(view) = &mut convoy_view {
+            view.refresh(runtime.server().simulation())?;
+        }
+        let info = match runtime.tick() {
+            Ok(info) => info,
+            Err(err) => {
+                if let Some(viewer) = &viewer {
+                    viewer.flush_terminal_recovery();
+                }
+                return Err(err);
+            }
+        };
+        // The native/Bevy publication and admitted Zenoh operations precede
+        // this cut. This iteration's staged WebSocket lifecycle request follows.
+        #[cfg(feature = "distributed-physics")]
+        if let Some(capture) = &live_capture {
+            capture.poll(runtime.server().simulation());
+        }
+        if let Some(request) = &checkpoint {
+            request.poll(runtime.server_mut());
+        }
+
         if let Some(viewer) = &mut viewer {
             viewer.apply_lifecycle(runtime.server_mut(), world)?;
             viewer.publish(runtime.server().simulation(), world, controls)?;

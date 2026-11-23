@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="ten_ms" type="ignored"><max_step_size>0.01</max_step_size></physics>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <cloth name="rotor" columns="3" substeps="1" iterations="16" radius="0.018" self_contact="false" friction="0" stretch="0" shear="0" bend="0" conserve_angular_momentum="true">
+        <particle position="0 -0.27 0.64" velocity="0 0.96 -1.62" mass="0.05"/>
+        <particle position="0 0 0.64" velocity="0 0.96 0" mass="0.05"/>
+        <particle position="0 0.27 0.64" velocity="0 0.96 1.62" mass="0.05"/>
+        <particle position="0 -0.27 0.8" velocity="0 -0 -1.62" mass="0.05"/>
+        <particle position="0 0 0.8" velocity="0 -0 0" mass="0.05"/>
+        <particle position="0 0.27 0.8" velocity="0 -0 1.62" mass="0.05"/>
+        <particle position="0 -0.27 0.96" velocity="0 -0.96 -1.62" mass="0.05"/>
+        <particle position="0 0 0.96" velocity="0 -0.96 0" mass="0.05"/>
+        <particle position="0 0.27 0.96" velocity="0 -0.96 1.62" mass="0.05"/>
+      </cloth>
+    </plugin>
+  </world>
+</sdf>

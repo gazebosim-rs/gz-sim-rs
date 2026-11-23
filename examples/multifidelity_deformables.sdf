@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="payload">
+      <pose>0 0 1.25 0 0 0</pose>
+      <link name="ball">
+        <inertial><mass>1</mass><inertia><ixx>0.009</ixx><iyy>0.009</iyy><izz>0.009</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.15</radius></sphere></geometry></collision>
+        <visual name="ball"><geometry><sphere><radius>0.15</radius></sphere></geometry><material><diffuse>0.95 0.3 0.05 1</diffuse></material></visual>
+      </link>
+    </model>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <sphere link="default::payload::ball" coupling="two_way"/>
+      <plane point="0 0 0" normal="0 0 1"/>
+      <cable name="sling" substeps="4" iterations="12" stretch="0.00001" bend="0.05" radius="0.02" self_contact="true" friction="0.4">
+        <particle position="-0.5 0 1" mass="0.05" pinned="true"/>
+        <particle position="-0.4 0 1" mass="0.05"/>
+        <particle position="-0.3 0 1" mass="0.05"/>
+        <particle position="-0.2 0 1" mass="0.05"/>
+        <particle position="-0.1 0 1" mass="0.05"/>
+        <particle position="0 0 1" mass="0.05"/>
+        <particle position="0.1 0 1" mass="0.05"/>
+        <particle position="0.2 0 1" mass="0.05"/>
+        <particle position="0.3 0 1" mass="0.05"/>
+        <particle position="0.4 0 1" mass="0.05"/>
+        <particle position="0.5 0 1" mass="0.05" pinned="true"/>
+      </cable>
+      <cloth name="panel" columns="5" substeps="4" iterations="8" stretch="0.00001" shear="0.00002" bend="0.02" radius="0.014" self_contact="true" friction="0.3">
+        <particle position="0 0.9 1" mass="0.02" pinned="true"/>
+        <particle position="0.1 0.9 1" mass="0.02"/>
+        <particle position="0.2 0.9 1" mass="0.02"/>
+        <particle position="0.3 0.9 1" mass="0.02"/>
+        <particle position="0.4 0.9 1" mass="0.02" pinned="true"/>
+        <particle position="0 1 1" mass="0.02"/>
+        <particle position="0.1 1 1" mass="0.02"/>
+        <particle position="0.2 1 1" mass="0.02"/>
+        <particle position="0.3 1 1" mass="0.02"/>
+        <particle position="0.4 1 1" mass="0.02"/>
+        <particle position="0 1.1 1" mass="0.02"/>
+        <particle position="0.1 1.1 1" mass="0.02"/>
+        <particle position="0.2 1.1 1" mass="0.02"/>
+        <particle position="0.3 1.1 1" mass="0.02"/>
+        <particle position="0.4 1.1 1" mass="0.02"/>
+        <particle position="0 1.2 1" mass="0.02"/>
+        <particle position="0.1 1.2 1" mass="0.02"/>
+        <particle position="0.2 1.2 1" mass="0.02"/>
+        <particle position="0.3 1.2 1" mass="0.02"/>
+        <particle position="0.4 1.2 1" mass="0.02"/>
+        <particle position="0 1.3 1" mass="0.02"/>
+        <particle position="0.1 1.3 1" mass="0.02"/>
+        <particle position="0.2 1.3 1" mass="0.02"/>
+        <particle position="0.3 1.3 1" mass="0.02"/>
+        <particle position="0.4 1.3 1" mass="0.02"/>
+      </cloth>
+    </plugin>
+  </world>
+</sdf>

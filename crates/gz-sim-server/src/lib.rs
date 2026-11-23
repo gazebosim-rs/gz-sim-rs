@@ -14,6 +14,8 @@ mod diff_drive;
 mod diff_drive_io;
 mod force_io;
 mod forces;
+#[cfg(feature = "gpu-batch")]
+pub mod gpu_control;
 mod imu_io;
 mod joint_controller_io;
 mod joint_controllers;
@@ -55,6 +57,17 @@ use zenoh::Wait;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[cfg(feature = "distributed-physics")]
+    #[error(
+        "live checkpoint requires a paused barrier with no accepted steps, resets or removals outstanding"
+    )]
+    CheckpointBoundary,
+    #[cfg(feature = "distributed-physics")]
+    #[error(transparent)]
+    PassiveCheckpoint(#[from] gz_sim_scene::passive_checkpoint::Error),
+    #[cfg(feature = "distributed-physics")]
+    #[error(transparent)]
+    TrajectoryCheckpoint(#[from] gz_sim_scene::trajectory_workers::checkpoint::Error),
     #[error("configured camera Sensors execution requires a camera application owner")]
     CameraOutputRequired,
     #[error("external camera ownership must match the complete configured loaded camera set")]
@@ -1315,6 +1328,8 @@ fn clock(sim: Duration, real: Duration, system: SystemTime) -> Result<Clock, Err
 pub struct Server {
     simulation: Simulation,
     world_io: world_io::WorldIo,
+    #[cfg(feature = "gpu-batch")]
+    gpu_control: Option<gpu_control::Ingress>,
     network_config: ServerOptions,
     root_clock: Option<world_io::RootClock>,
     pose_rate: poses::PublicationRate,
@@ -1639,6 +1654,26 @@ impl Server {
             world_key(&format!("/world/{world_name}/remove"))?,
             world_key(&format!("/world/{world_name}/remove/blocking"))?,
         ])?);
+        #[cfg(feature = "gpu-batch")]
+        let gpu_control = if simulation
+            .world()
+            .contains_resource::<gz_sim_scene::gpu_scene::GpuSceneBindings>()
+        {
+            let keys = [
+                world_key(&format!("/world/{world_name}/gpu/link_impulse"))?,
+                world_key(&format!("/world/{world_name}/gpu/placement"))?,
+            ];
+            for key in &keys {
+                gpu_control::validate_key(&simulation, &config, key)?;
+            }
+            Some(
+                world_io
+                    .gpu_inputs(keys)
+                    .map_err(|error| Error::WorldNetwork(error.to_string()))?,
+            )
+        } else {
+            None
+        };
         validate_air_speed_and_pose_topics(&simulation, &world_io, &config)?;
         validate_new_system_topics(&simulation, &world_io, &config)?;
         validate_lidar_peer_topics(&simulation, &world_io, &config, None)?;
@@ -1811,6 +1846,8 @@ impl Server {
         Ok(Self {
             simulation,
             world_io,
+            #[cfg(feature = "gpu-batch")]
+            gpu_control,
             network_config: config,
             root_clock: None,
             pose_rate: poses::PublicationRate::default(),
@@ -1901,6 +1938,31 @@ impl Server {
 
     pub fn simulation(&self) -> &Simulation {
         &self.simulation
+    }
+
+    /// Seal the current committed worker-backed scene before the next applied request.
+    /// The operator provides the local destination. Incoming requests that have
+    /// not been admitted remain queued for a subsequent live barrier.
+    #[cfg(feature = "distributed-physics")]
+    pub fn save_paused_pool_checkpoint(&mut self, path: &std::path::Path) -> Result<(), Error> {
+        self.admit_world_edit()?;
+        if !self.simulation.is_paused() || self.pending_steps != 0 || self.removals.has_pending() {
+            return Err(Error::CheckpointBoundary);
+        }
+        if self
+            .simulation
+            .world()
+            .contains_resource::<gz_sim_scene::trajectory_workers::TrajectoryProcessPool>()
+        {
+            return Ok(gz_sim_scene::trajectory_workers::checkpoint::save(
+                &self.simulation,
+                path,
+            )?);
+        }
+        Ok(gz_sim_scene::passive_checkpoint::save_paused_runtime(
+            &mut self.simulation,
+            path,
+        )?)
     }
 
     fn admit_world_edit(&self) -> Result<(), Error> {
@@ -2307,6 +2369,15 @@ impl Server {
                 }
             };
             self.respond(request);
+        }
+        #[cfg(feature = "gpu-batch")]
+        if let Some(commands) = &mut self.gpu_control {
+            commands.poll(
+                &mut self.simulation,
+                self.command_budget,
+                &mut self.counters,
+                self.pending_reset,
+            )?;
         }
         if let Some(rates) = &mut self.rates {
             rates.poll(

@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -0.16</gravity>
+    <physics name="block" type="ignored">
+      <max_step_size>0.008</max_step_size>
+      <real_time_factor>0.16</real_time_factor>
+    </physics>
+    <plugin name="gz::sim::systems::GpuBatch" filename="gz-sim-gpu-batch-system">
+      <resident_block ticks="8" rotation="fourth-order"/>
+      <observe every="2"/>
+      <environment id="41" profile="sphere-pair" friction="0.4" restitution="0.6">
+        <a link="clear_a::body" linear="0 -0.95 0" angular="12 0 2"/>
+        <b link="clear_b::body" linear="0 0.95 0" angular="0 8 1"/>
+      </environment>
+      <environment id="7" profile="sphere-pair" friction="0.4" restitution="0.6">
+        <a link="impact_a::body" linear="0 -0.95 0" angular="12 0 2"/>
+        <b link="impact_b::body" linear="0 0.95 0" angular="0 8 1"/>
+      </environment>
+    </plugin>
+    <model name="impact_a">
+      <pose>0 0.3 0.58 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.1</radius></sphere></geometry></collision>
+        <visual name="shell"><geometry><sphere><radius>0.1</radius></sphere></geometry>
+          <material><diffuse>0.05 0.72 0.91 1</diffuse></material>
+        </visual>
+        <visual name="mark"><pose>0 0.07 0.07 0 0 0</pose>
+          <geometry><sphere><radius>0.018</radius></sphere></geometry>
+          <material><diffuse>0.98 0.98 0.98 1</diffuse></material>
+        </visual>
+        <sensor name="imu" type="imu"><always_on>true</always_on><update_rate>125</update_rate><topic>/resident/imu</topic><imu/></sensor>
+      </link>
+    </model>
+    <model name="impact_b">
+      <pose>0.05 -0.3 0.58 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.1</radius></sphere></geometry></collision>
+        <visual name="shell"><geometry><sphere><radius>0.1</radius></sphere></geometry>
+          <material><diffuse>0.98 0.56 0.13 1</diffuse></material>
+        </visual>
+        <visual name="mark"><pose>0 0.07 0.07 0 0 0</pose>
+          <geometry><sphere><radius>0.018</radius></sphere></geometry>
+          <material><diffuse>0.98 0.98 0.98 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="clear_a">
+      <pose>0 0.3 0.0 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.1</radius></sphere></geometry></collision>
+        <visual name="shell"><geometry><sphere><radius>0.1</radius></sphere></geometry>
+          <material><diffuse>0.05 0.72 0.91 1</diffuse></material>
+        </visual>
+        <visual name="mark"><pose>0 0.07 0.07 0 0 0</pose>
+          <geometry><sphere><radius>0.018</radius></sphere></geometry>
+          <material><diffuse>0.98 0.98 0.98 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="clear_b">
+      <pose>0.201 -0.3 0.0 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.1</radius></sphere></geometry></collision>
+        <visual name="shell"><geometry><sphere><radius>0.1</radius></sphere></geometry>
+          <material><diffuse>0.98 0.56 0.13 1</diffuse></material>
+        </visual>
+        <visual name="mark"><pose>0 0.07 0.07 0 0 0</pose>
+          <geometry><sphere><radius>0.018</radius></sphere></geometry>
+          <material><diffuse>0.98 0.98 0.98 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

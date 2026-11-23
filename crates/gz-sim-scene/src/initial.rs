@@ -1,5 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+#[cfg(feature = "distributed-physics")]
+mod passive_metadata;
 use super::*;
 use bevy_ecs::resource::IsResource;
 use bevy_ecs::{observer::Observer, system::SystemIdMarker};
@@ -31,7 +33,7 @@ pub enum SceneResetError {
     RuntimePhysics,
     #[error("resources and Bevy infrastructure must not belong to the scene hierarchy")]
     InfrastructureOwnership,
-    #[error("initial TPE scene belongs to a different backend")]
+    #[error("initial scene belongs to a different physics backend")]
     ForeignPhysics,
     #[error(transparent)]
     Identity(#[from] IdentityError),
@@ -58,6 +60,8 @@ struct Node {
     controller_configuration: Option<JointControllerConfiguration>,
     drive_configuration: Option<DiffDriveConfiguration>,
     joint_sample: Option<JointSample>,
+    ball_joint_sample: Option<BallJointSample>,
+    universal_joint_sample: Option<UniversalJointSample>,
     motion: Option<gz_physics_tpe::Motion>,
     tpe_link: Option<tpe::TpeLink>,
     tpe_bounds: Option<gz_physics_tpe::ModelBounds>,
@@ -98,11 +102,14 @@ struct Node {
 enum InitialPhysics {
     Dynamic(InitialPhysicsState),
     Tpe(Arc<()>),
+    #[cfg(feature = "gpu-batch")]
+    Gpu(gz_physics_gpu::MixedBatchOwner),
 }
 
 struct Blueprint {
     nodes: Vec<Node>,
     cameras: Vec<(u64, CameraSensor)>,
+    articulations: Vec<(u64, articulation::SwitchableArticulation)>,
     physics: InitialPhysics,
     gravity: [f64; 3],
     world_physics: Option<crate::WorldPhysics>,
@@ -111,6 +118,15 @@ struct Blueprint {
 #[derive(Resource)]
 pub(super) struct InitialScene(Arc<Blueprint>);
 impl InitialScene {
+    /// Change only the physical reset owner after a verified live handoff. Initial ECS
+    /// identities and poses remain bound to the original authored world.
+    #[cfg(feature = "distributed-physics")]
+    pub(super) fn rebindable_physics(&mut self) -> Option<&mut InitialPhysicsState> {
+        match &mut Arc::get_mut(&mut self.0)?.physics {
+            InitialPhysics::Dynamic(state) => Some(state),
+            _ => None,
+        }
+    }
     pub(super) fn owns_backend(&self, backend: &PhysicsBackend) -> bool {
         matches!(&self.0.physics, InitialPhysics::Dynamic(initial) if backend.owns_initial_state(initial))
     }
@@ -186,6 +202,10 @@ pub(super) fn matches_physics_owner(world: &World) -> bool {
         InitialPhysics::Dynamic(initial) => world
             .get_resource::<PhysicsBackend>()
             .is_some_and(|backend| backend.owns_initial_state(initial)),
+        #[cfg(feature = "gpu-batch")]
+        InitialPhysics::Gpu(owner) => {
+            crate::gpu_scene::physics_owner(world).as_ref() == Some(owner)
+        }
         InitialPhysics::Tpe(owner) => world
             .get_resource::<tpe::TpeWorld>()
             .is_some_and(|current| Arc::ptr_eq(owner, &current.0)),
@@ -208,10 +228,14 @@ pub(super) fn capture(sim: &mut Simulation) {
     let world = sim.world();
     let mut nodes = Vec::new();
     let mut cameras = Vec::new();
+    let mut articulations = Vec::new();
     for entity in world.iter_entities().filter(|e| e.contains::<EntityKind>()) {
         let id = reserve_id(world, entity.id()).expect("loader assigned every scene identity");
         if let Some(camera) = entity.get::<CameraSensor>() {
             cameras.push((id.get(), camera.clone()));
+        }
+        if let Some(assembly) = entity.get::<articulation::SwitchableArticulation>() {
+            articulations.push((id.get(), assembly.clone()));
         }
         nodes.push(Node {
             id,
@@ -247,6 +271,8 @@ pub(super) fn capture(sim: &mut Simulation) {
             controller_configuration: entity.get::<JointControllerConfiguration>().cloned(),
             drive_configuration: entity.get::<DiffDriveConfiguration>().cloned(),
             joint_sample: entity.get::<JointSample>().copied(),
+            universal_joint_sample: entity.get::<UniversalJointSample>().copied(),
+            ball_joint_sample: entity.get::<BallJointSample>().copied(),
             motion: entity.get::<gz_physics_tpe::Motion>().cloned(),
             tpe_link: entity.get::<tpe::TpeLink>().cloned(),
             tpe_bounds: entity.get::<gz_physics_tpe::ModelBounds>().cloned(),
@@ -296,10 +322,20 @@ pub(super) fn capture(sim: &mut Simulation) {
     let initial = Blueprint {
         nodes,
         cameras,
+        articulations,
         physics: if let Some(backend) = world.get_resource::<PhysicsBackend>() {
             InitialPhysics::Dynamic(backend.initial_state())
         } else {
-            InitialPhysics::Tpe(world.resource::<tpe::TpeWorld>().0.clone())
+            #[cfg(feature = "gpu-batch")]
+            if let Some(owner) = crate::gpu_scene::physics_owner(world) {
+                InitialPhysics::Gpu(owner)
+            } else {
+                InitialPhysics::Tpe(world.resource::<tpe::TpeWorld>().0.clone())
+            }
+            #[cfg(not(feature = "gpu-batch"))]
+            {
+                InitialPhysics::Tpe(world.resource::<tpe::TpeWorld>().0.clone())
+            }
         },
         gravity: world.resource::<Gravity>().0,
         world_physics: world.get_resource::<crate::WorldPhysics>().cloned(),
@@ -790,6 +826,7 @@ pub fn reset_loaded_world<R>(
                 || entity.contains::<tpe::TpeLink>()
                 || entity.contains::<gz_physics_tpe::ModelBounds>()
                 || entity.contains::<JointHandle>()
+                || entity.contains::<crate::articulation::SwitchableArticulation>()
                 || entity.contains::<Imu>()
                 || (!runtime_nodes.contains(&entity.id())
                     && (entity.contains::<BodyHandle>()
@@ -820,6 +857,16 @@ pub fn reset_loaded_world<R>(
                     .prepare_initial(initial)?,
             )
         }
+        #[cfg(feature = "gpu-batch")]
+        InitialPhysics::Gpu(owner) => {
+            if crate::gpu_scene::physics_owner(sim.world()).as_ref() != Some(owner)
+                || sim.world().contains_resource::<PhysicsBackend>()
+                || sim.world().contains_resource::<tpe::TpeWorld>()
+            {
+                return Err(SceneResetError::ForeignPhysics);
+            }
+            None
+        }
         InitialPhysics::Tpe(owner) => {
             let current = sim
                 .world()
@@ -834,6 +881,13 @@ pub fn reset_loaded_world<R>(
     };
     let previous_time = sim.elapsed();
     let world = sim.world_mut();
+    // Commit physics before replacing any public entities. Worker-backed resets
+    // can still fail at their durable commit after the scene preflight succeeds.
+    if let Some(prepared) = prepared {
+        world
+            .resource_mut::<PhysicsBackend>()
+            .apply_initial(prepared)?;
+    }
     // Detach first so replacing original parents cannot recursively delete additions.
     for entity in &current {
         world.entity_mut(*entity).remove::<ChildOf>();
@@ -890,6 +944,12 @@ pub fn reset_loaded_world<R>(
         }
         if let Some(configuration) = &node.drive_configuration {
             entity.insert(configuration.clone());
+        }
+        if let Some(sample) = node.universal_joint_sample {
+            entity.insert(sample);
+        }
+        if let Some(sample) = node.ball_joint_sample {
+            entity.insert(sample);
         }
         if let Some(sample) = node.joint_sample {
             entity.insert(sample);
@@ -1001,6 +1061,9 @@ pub fn reset_loaded_world<R>(
     for (id, camera) in &initial.cameras {
         world.entity_mut(restored[id]).insert(camera.clone());
     }
+    for (id, assembly) in &initial.articulations {
+        world.entity_mut(restored[id]).insert(assembly.clone());
+    }
     for node in &initial.nodes {
         if let Some(parent) = node.parent {
             world
@@ -1017,12 +1080,6 @@ pub fn reset_loaded_world<R>(
         }
         world.entity_mut(entity).insert(PendingResetRemoval);
     }
-    if let Some(prepared) = prepared {
-        world
-            .resource_mut::<PhysicsBackend>()
-            .apply_initial(prepared)
-            .expect("exclusive transaction retained the preflighted backend");
-    }
     world.insert_resource(Gravity(initial.gravity));
     if let Some(metadata) = &initial.world_physics {
         world.insert_resource(metadata.clone());
@@ -1037,6 +1094,9 @@ pub fn reset_loaded_world<R>(
         removed_ids,
     });
     world.insert_resource(RestoredPhysics { epoch });
+    for (id, assembly) in &initial.articulations {
+        crate::support_loss_promotion::bind(sim, *id, assembly.root_body);
+    }
     crate::imu_lifecycle::install(sim);
     crate::lidar::install(sim);
     crate::altimeter::install(sim);

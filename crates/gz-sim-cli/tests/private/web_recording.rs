@@ -17,6 +17,7 @@ fn real_native_browser_mutations_motion_reset_and_raw_outcomes_are_recorded_befo
         listener,
         Some(&fixture.sdf),
         Some(&path),
+        None,
     )
     .unwrap();
     drop(std::mem::replace(&mut fixture.bridge, bridge));

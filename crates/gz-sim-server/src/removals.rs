@@ -33,6 +33,11 @@ impl Removals {
         }
     }
 
+    #[cfg(feature = "distributed-physics")]
+    pub(crate) fn has_pending(&self) -> bool {
+        !self.pending.is_empty()
+    }
+
     pub(crate) fn poll(
         &mut self,
         io: &WorldIo,

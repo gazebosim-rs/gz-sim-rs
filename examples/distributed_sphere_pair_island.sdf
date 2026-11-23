@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="robot">
+      <allow_auto_disable>false</allow_auto_disable>
+      <pose>0 0 0.5 0 0 0</pose>
+      <plugin filename="gz-sim-switchable-articulation-system"
+              name="gz::sim::systems::SwitchableArticulation"/>
+      <link name="base">
+        <inertial>
+          <pose>0.07 -0.03 0 0 0 0</pose><mass>2</mass>
+          <inertia><ixx>0.12</ixx><iyy>0.12</iyy><izz>0.12</izz></inertia>
+        </inertial>
+        <collision name="base_shape"><geometry><sphere><radius>0.16</radius></sphere></geometry></collision>
+        <visual name="base_visual">
+          <geometry><sphere><radius>0.16</radius></sphere></geometry>
+          <material><diffuse>0.04 0.30 0.72 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="tool">
+        <pose>0.65 0 0 0 0 0</pose>
+        <inertial>
+          <pose>-0.04 0.02 0 0 0 0</pose><mass>0.8</mass>
+          <inertia><ixx>0.036</ixx><iyy>0.036</iyy><izz>0.036</izz></inertia>
+        </inertial>
+        <collision name="tool_shape"><geometry><sphere><radius>0.12</radius></sphere></geometry></collision>
+        <visual name="tool_visual">
+          <geometry><sphere><radius>0.12</radius></sphere></geometry>
+          <material><diffuse>0.95 0.25 0.04 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="hinge" type="revolute">
+        <parent>base</parent><child>tool</child>
+        <pose relative_to="base">0.33 0 0 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz></axis>
+      </joint>
+    </model>
+    <model name="ball">
+      <allow_auto_disable>false</allow_auto_disable>
+      <pose>1.090 0.060 0.5 0 0 0</pose>
+      <plugin filename="gz-sim-initial-velocity-system" name="gz::sim::systems::InitialVelocity">
+        <linear_velocity>-1.0 0 0</linear_velocity>
+        <angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="body">
+        <inertial>
+          <mass>1</mass>
+          <inertia><ixx>0.009</ixx><iyy>0.009</iyy><izz>0.009</izz></inertia>
+        </inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.15</radius></sphere></geometry></collision>
+        <visual name="ball_visual">
+          <geometry><sphere><radius>0.15</radius></sphere></geometry>
+          <material><diffuse>0.70 0.12 0.55 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="ball2">
+      <allow_auto_disable>false</allow_auto_disable>
+      <pose>1.53975 0.063 0.5 0 0 0</pose>
+      <plugin filename="gz-sim-initial-velocity-system" name="gz::sim::systems::InitialVelocity">
+        <linear_velocity>-2.0 0 0</linear_velocity>
+        <angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="body">
+        <inertial>
+          <mass>1</mass>
+          <inertia><ixx>0.009</ixx><iyy>0.009</iyy><izz>0.009</izz></inertia>
+        </inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.15</radius></sphere></geometry></collision>
+        <visual name="ball2_visual">
+          <geometry><sphere><radius>0.15</radius></sphere></geometry>
+          <material><diffuse>0.16 0.78 0.35 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

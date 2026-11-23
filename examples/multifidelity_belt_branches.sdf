@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!-- A sliding sole reaches the toe belt speed after a shared kinetic prehistory. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>1.75628011530733530 2.20032657903627182 -9.39734766315275927</gravity>
+    <physics name="fixed" type="ignored"><max_step_size>0.0005</max_step_size><real_time_factor>1</real_time_factor></physics>
+
+    <model name="rocker">
+      <pose>1.36939174373743122 -1.91948594224020574 0.62235178149917203 0.13433159132788713 -0.25901017938904497 0.41163225240418932</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0.51087014768968730 0.00683767791394289 0.32673859863500354</linear_velocity><angular_velocity>0.00000000000000000 0.00000000000000000 0.00000000000000000</angular_velocity>
+      </plugin>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system">
+        <exact_revolute_locks>true</exact_revolute_locks>
+      </plugin>
+      <link name="foot">
+        <inertial><mass>1.00000000000000000</mass><inertia><ixx>0.02010000000000000</ixx><iyy>0.02010000000000000</iyy><izz>0.02500000000000000</izz><ixy>0.00000000000000000</ixy><ixz>0.00000000000000000</ixz><iyz>0.00000000000000000</iyz></inertia></inertial>
+        <collision name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><surface><friction><ode><mu>1</mu><mu2>1</mu2></ode></friction></surface></collision>
+        <visual name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><material><diffuse>0.92 0.46 0.12 1</diffuse></material></visual>
+      </link>
+      <link name="upper">
+        <pose>0 0 0.14 0 0 0</pose>
+        <inertial><mass>1.00000000000000000</mass><inertia><ixx>0.02010000000000000</ixx><iyy>0.02010000000000000</iyy><izz>0.02500000000000000</izz><ixy>0.00000000000000000</ixy><ixz>0.00000000000000000</ixz><iyz>0.00000000000000000</iyz></inertia></inertial>
+        <collision name="c"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><surface><friction><ode><mu>1</mu><mu2>1</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><material><diffuse>0.90 0.73 0.21 1</diffuse></material></visual>
+      </link>
+      <joint name="hinge" type="revolute">
+        <parent>foot</parent><child>upper</child>
+        <axis><xyz>1 0 0</xyz><limit><lower>0</lower><upper>0</upper></limit></axis>
+      </joint>
+    </model>
+    <model name="lift"><pose>1.30446153785777597 -1.89886285901508378 0.48977627658384593 0.13955246259297913 -0.25627979250718164 0.39114318613809251</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system"><linear_velocity>-0.11798727120754568 -0.17331513761543704 0.16702919314444481</linear_velocity><angular_velocity>0 0 0</angular_velocity></plugin>
+      <link name="pad"><collision name="platform"><geometry><box><size>0.19600000000000001 0.29999999999999999 0.12</size></box></geometry><surface><friction><ode><mu>0.29</mu><mu2>0.29</mu2></ode></friction></surface></collision><visual name="platform"><geometry><box><size>0.19600000000000001 0.29999999999999999 0.12</size></box></geometry><material><diffuse>0.28 0.57 0.30 1</diffuse></material></visual></link></model>
+    <model name="toe"><pose>1.51795343393515991 -1.86847459310279129 0.53679121067742841 0.20519363965431475 -0.20792112238277313 0.10766885674109807</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system"><linear_velocity>0.48904726017593247 0.00058593545143353 0.32119629240441000</linear_velocity><angular_velocity>0 0 0</angular_velocity></plugin>
+      <link name="pad"><collision name="platform"><geometry><box><size>0.20999999999999999 0.29999999999999999 0.12</size></box></geometry><surface><friction><ode><mu>0.29</mu><mu2>0.29</mu2></ode></friction></surface></collision><visual name="platform"><geometry><box><size>0.20999999999999999 0.29999999999999999 0.12</size></box></geometry><material><diffuse>0.15 0.40 0.75 1</diffuse></material></visual></link></model>
+  </world>
+</sdf>

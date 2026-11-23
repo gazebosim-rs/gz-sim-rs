@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Both finite pads are force controlled by the garment_grasp Rust example. -->
+<sdf version="1.12"><world name="default">
+  <gravity>0 0 -9.81</gravity>
+  <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+  <model name="left"><pose>-0.012 0.054 0.0345 0 0 0</pose><link name="tip">
+    <inertial><mass>0.003</mass><inertia><ixx>1.3872000000000002e-06</ixx><iyy>1.3872000000000002e-06</iyy><izz>1.3872000000000002e-06</izz></inertia></inertial>
+    <collision name="surface"><geometry><sphere><radius>0.034</radius></sphere></geometry></collision>
+    <visual name="pad"><geometry><sphere><radius>0.034</radius></sphere></geometry><material><diffuse>0.9 0.4 0.12 1</diffuse></material></visual>
+  </link></model>
+  <model name="right"><pose>-0.012 -0.054 0.0345 0 0 0</pose><link name="tip">
+    <inertial><mass>0.003</mass><inertia><ixx>1.3872000000000002e-06</ixx><iyy>1.3872000000000002e-06</iyy><izz>1.3872000000000002e-06</izz></inertia></inertial>
+    <collision name="surface"><geometry><sphere><radius>0.034</radius></sphere></geometry></collision>
+    <visual name="pad"><geometry><sphere><radius>0.034</radius></sphere></geometry><material><diffuse>0.18 0.45 0.8 1</diffuse></material></visual>
+  </link></model>
+  <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+    <sphere link="default::left::tip" coupling="two_way"/><sphere link="default::right::tip" coupling="two_way"/>
+    <plane point="0 0 0" normal="0 0 1"/>
+    <cloth pad_contact="surface" name="swatch" columns="7" substeps="4" iterations="16" stretch="0.00001" shear="0.00002" bend="0.02" radius="0.003" self_contact="true" friction="0.65">
+      <particle position="-0.0375000 -0.0002000 0.0030000" mass="0.00005"/>
+      <particle position="-0.0250000 -0.0002000 0.0030000" mass="0.00005"/>
+      <particle position="-0.0125000 -0.0002000 0.0030000" mass="0.00005"/>
+      <particle position="0.0000000 -0.0002000 0.0030000" mass="0.00005"/>
+      <particle position="0.0125000 -0.0002000 0.0030000" mass="0.00005"/>
+      <particle position="0.0125000 0.0123000 0.0030000" mass="0.00005"/>
+      <particle position="0.0125000 0.0248000 0.0030000" mass="0.00005"/>
+      <particle position="-0.0375000 -0.0001000 0.0155000" mass="0.00005"/>
+      <particle position="-0.0250000 -0.0001000 0.0155000" mass="0.00005"/>
+      <particle position="-0.0125000 -0.0001000 0.0155000" mass="0.00005"/>
+      <particle position="0.0000000 -0.0001000 0.0155000" mass="0.00005"/>
+      <particle position="0.0125000 -0.0001000 0.0155000" mass="0.00005"/>
+      <particle position="0.0125000 0.0124000 0.0155000" mass="0.00005"/>
+      <particle position="0.0125000 0.0249000 0.0155000" mass="0.00005"/>
+      <particle position="-0.0375000 0.0000000 0.0280000" mass="0.00005"/>
+      <particle position="-0.0250000 0.0000000 0.0280000" mass="0.00005"/>
+      <particle position="-0.0125000 0.0000000 0.0280000" mass="0.00005"/>
+      <particle position="0.0000000 0.0000000 0.0280000" mass="0.00005"/>
+      <particle position="0.0125000 0.0000000 0.0280000" mass="0.00005"/>
+      <particle position="0.0125000 0.0125000 0.0280000" mass="0.00005"/>
+      <particle position="0.0125000 0.0250000 0.0280000" mass="0.00005"/>
+      <particle position="-0.0375000 0.0001000 0.0405000" mass="0.00005"/>
+      <particle position="-0.0250000 0.0001000 0.0405000" mass="0.00005"/>
+      <particle position="-0.0125000 0.0001000 0.0405000" mass="0.00005"/>
+      <particle position="0.0000000 0.0001000 0.0405000" mass="0.00005"/>
+      <particle position="0.0125000 0.0001000 0.0405000" mass="0.00005"/>
+      <particle position="0.0125000 0.0126000 0.0405000" mass="0.00005"/>
+      <particle position="0.0125000 0.0251000 0.0405000" mass="0.00005"/>
+      <particle position="-0.0375000 0.0002000 0.0530000" mass="0.00005"/>
+      <particle position="-0.0250000 0.0002000 0.0530000" mass="0.00005"/>
+      <particle position="-0.0125000 0.0002000 0.0530000" mass="0.00005"/>
+      <particle position="0.0000000 0.0002000 0.0530000" mass="0.00005"/>
+      <particle position="0.0125000 0.0002000 0.0530000" mass="0.00005"/>
+      <particle position="0.0125000 0.0127000 0.0530000" mass="0.00005"/>
+      <particle position="0.0125000 0.0252000 0.0530000" mass="0.00005"/>
+    </cloth>
+  </plugin>
+</world></sdf>

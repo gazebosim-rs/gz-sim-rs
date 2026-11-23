@@ -193,9 +193,10 @@ pub(super) fn spawn(
     let name = format!("{}::{}", parent.link.scoped_name, sensor.name);
     require(
         sensor.effective_type() == Some(sdformat::SensorType::Altimeter)
-            && backend.is_some_and(|backend| backend.engine() == "rapier"),
+            && (context.engine == crate::PhysicsEngine::GpuBatch
+                || backend.is_some_and(|backend| backend.engine() == "rapier")),
         &name,
-        "Rapier ideal altimeter",
+        "Rapier or GPU ideal altimeter",
     )?;
     require(
         sim.world()

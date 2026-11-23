@@ -10,6 +10,10 @@ pub enum ScheduleError {
     TimeOverflow,
 }
 
+#[cfg_attr(
+    feature = "distributed-physics",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 #[derive(Debug, Clone)]
 /// Native nanosecond sensor cadence, without callbacks or an executor.
 pub struct SampleSchedule {

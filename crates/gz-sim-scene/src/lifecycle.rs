@@ -12,6 +12,8 @@ pub enum RemoveError {
     MissingEntity(u64),
     #[error("entity {0} is not a model directly owned by the world")]
     NotWorldModel(u64),
+    #[error("the selected physics profile retains this model for the lifetime of the loaded world")]
+    ImmutableModel,
     #[error("scene physics bindings are incomplete or inconsistent")]
     InvalidPhysics,
     #[error("scene schedule initialization failed: {0}")]
@@ -29,7 +31,11 @@ pub enum RemoveError {
 /// CommittedSchedule reports teardown failure after removal and faults the run.
 /// This does not restore removed models during the existing core time reset.
 pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveError> {
-    remove_model_checked(sim, id, false)
+    let removed = remove_model_checked(sim, id, false)?;
+    crate::damped_sole::retire(sim.world_mut(), &removed);
+    #[cfg(feature = "distributed-physics")]
+    crate::passive_checkpoint::note_live_retirement(sim, id);
+    Ok(removed)
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -73,6 +79,9 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
             sim.world()
                 .contains_resource::<crate::apply_link_wrench::Installed>(),
         ];
+        crate::fidelity_zone::retire_if_unused(sim)?;
+        crate::contact_promotion::retire_if_unused(sim)?;
+        crate::support_loss_promotion::retire_if_unused(sim)?;
         crate::imu_lifecycle::retire_if_unused(sim)?;
         crate::lidar::retire_if_unused(sim)?;
         crate::altimeter::retire_if_unused(sim)?;
@@ -163,6 +172,61 @@ fn remove_model_checked(
         return Err(RemoveError::InvalidPhysics);
     }
     let backend = world.get_resource::<PhysicsBackend>();
+    #[cfg(feature = "distributed-physics")]
+    if let Some(backend) = backend {
+        use crate::distributed_hinge::{
+            DistributedFloatingTreeBackend, DistributedGraspTreeBackend,
+            DistributedGroundedTreeBackend, DistributedHingeBackend, DistributedMotorTreeBackend,
+            DistributedMovingHingeBackend, DistributedMultiSphereBackend,
+            DistributedPayloadTreeBackend, DistributedSplitGraspBackend,
+            DistributedStoppedTreeBackend,
+        };
+        let contains_link = |link_id| {
+            entity_by_id(world, link_id)
+                .and_then(|link| world.get::<ChildOf>(link))
+                .is_some_and(|parent| parent.parent() == root)
+        };
+        let immutable = if let Some(fleet) =
+            backend.downcast_ref::<crate::distributed_hinge::DistributedGraspFleetBackend>()
+        {
+            fleet
+                .pool()
+                .spec()
+                .assemblies
+                .iter()
+                .any(|a| id == a.payload.tree.model_id || contains_link(a.payload.payload.id))
+        } else if let Some(tree) = backend.downcast_ref::<DistributedHingeBackend>() {
+            let spec = tree.pool().spec();
+            id == spec.model_id || spec.ground.is_some_and(|g| contains_link(g.link_id))
+        } else if let Some(tree) = backend.downcast_ref::<DistributedFloatingTreeBackend>() {
+            id == tree.pool().spec().model_id
+        } else if let Some(tree) = backend.downcast_ref::<DistributedSplitGraspBackend>() {
+            id == tree.pool().topology().model_id || contains_link(tree.pool().payload_state().id)
+        } else if let Some(tree) = backend.downcast_ref::<DistributedGraspTreeBackend>() {
+            id == tree.pool().topology().model_id || contains_link(tree.pool().payload_state().id)
+        } else if let Some(tree) = backend.downcast_ref::<DistributedPayloadTreeBackend>() {
+            id == tree.pool().topology().model_id || contains_link(tree.pool().spec().payload.id)
+        } else if let Some(tree) = backend.downcast_ref::<DistributedGroundedTreeBackend>() {
+            id == tree.pool().topology().model_id
+                || contains_link(tree.pool().spec().ground.link_id)
+        } else if let Some(tree) = backend.downcast_ref::<DistributedMotorTreeBackend>() {
+            id == tree.pool().topology().model_id
+        } else if let Some(tree) = backend.downcast_ref::<DistributedStoppedTreeBackend>() {
+            id == tree.pool().topology().model_id
+        } else if let Some(moving) = backend.downcast_ref::<DistributedMovingHingeBackend>() {
+            let spec = moving.pool().spec();
+            id == spec.hinge.model_id || contains_link(spec.sphere.id)
+        } else if let Some(pair) = backend.downcast_ref::<DistributedMultiSphereBackend>() {
+            let spec = pair.pool().spec();
+            id == spec.hinge.model_id || spec.spheres.iter().any(|s| contains_link(s.id))
+        } else {
+            false
+        };
+        if immutable {
+            return Err(RemoveError::ImmutableModel);
+        }
+    }
+    let distributed_pool = backend.is_some_and(|b| b.engine() == "distributed-pool");
     if backend.is_some() == world.contains_resource::<crate::tpe::TpeWorld>() {
         return Err(RemoveError::InvalidPhysics);
     }
@@ -185,6 +249,14 @@ fn remove_model_checked(
         if let Some(id) = world.get::<EntityId>(entity) {
             ids.push(id.get());
         }
+        #[cfg(feature = "distributed-physics")]
+        if let Some(body) = world.get::<BodyHandle>(entity)
+            && backend
+                .and_then(|b| b.downcast_ref::<gz_physics_distributed::SceneBackend>())
+                .is_some_and(|scene| scene.is_shared_ground(body.id()))
+        {
+            return Err(RemoveError::ImmutableModel);
+        }
         if let Some(body) = world.get::<BodyHandle>(entity)
             && (backend.is_none_or(|backend| backend.state(body.id()).is_none())
                 || !bodies.insert(body.id()))
@@ -194,6 +266,11 @@ fn remove_model_checked(
         if let Some(children) = world.get::<Children>(entity) {
             pending.extend(children.iter());
         }
+    }
+    // Distributed SDF admits one primitive link per top-level model. Refuse
+    // externally mutated multi-body subtrees before issuing any worker command.
+    if distributed_pool && bodies.len() != 1 {
+        return Err(RemoveError::InvalidPhysics);
     }
     if world.iter_entities().any(|entity| {
         !subtree.contains(&entity.id())
@@ -283,10 +360,11 @@ fn remove_model_checked(
         crate::joints::removal_order(sim.world(), &bodies).ok_or(RemoveError::InvalidPhysics)?;
     if let Some(mut backend) = sim.world_mut().get_resource_mut::<PhysicsBackend>() {
         for body in body_order {
-            assert!(
-                backend.remove(body),
-                "preflighted bodies remain owned until commit"
-            );
+            let removed = backend.remove(body);
+            if distributed_pool && !removed {
+                return Err(RemoveError::InvalidPhysics);
+            }
+            assert!(removed, "preflighted bodies remain owned until commit");
         }
     }
     // ChildOf's linked-spawn relationship also removes descendants and ID hooks.

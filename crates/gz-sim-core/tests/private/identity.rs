@@ -19,7 +19,7 @@ fn allocation_preflight_is_read_only_and_retired_ids_are_never_reissued() {
     world.resource_mut::<IdIndex>().last = u64::MAX;
     assert_eq!(next_entity_id(&world), Err(IdentityError::Exhausted));
     assert_eq!(world.resource::<IdIndex>().last, u64::MAX);
-    assert!(world.resource::<IdIndex>().entities.is_empty());
+    assert!(world.resource::<IdIndex>().pages.is_empty());
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn identities_survive_reset_and_bevy_recycling_never_reuses_public_ids() {
     assert_eq!(entity_by_id(simulation.world(), id), Some(first));
     simulation.world_mut().despawn(first);
     assert_eq!(entity_by_id(simulation.world(), id), None);
-    assert!(simulation.world().resource::<IdIndex>().entities.is_empty());
+    assert!(simulation.world().resource::<IdIndex>().pages.is_empty());
     let next = simulation.world_mut().spawn_empty().id();
     assert_ne!(first, next);
     assert_eq!(assign_id(simulation.world_mut(), next), Ok(2));
@@ -110,7 +110,7 @@ fn exhaustion_is_checked_before_assignment_and_removed_ids_stay_retired() {
         Err(IdentityError::Exhausted)
     );
     assert!(world.get::<EntityId>(rejected).is_none());
-    assert!(world.resource::<IdIndex>().entities.is_empty());
+    assert!(world.resource::<IdIndex>().pages.is_empty());
 }
 
 fn scheduled_lookup(world: &mut World, id: u64) -> Option<Entity> {
@@ -149,22 +149,92 @@ fn scheduled_lookup_validates_index_entries_against_live_identity_components() {
     let first_id = assign_id(&mut world, first).unwrap();
     let second = world.spawn_empty().id();
     let second_id = assign_id(&mut world, second).unwrap();
-    world
-        .resource_mut::<IdIndex>()
-        .entities
-        .insert(first_id, second);
+    world.resource_mut::<IdIndex>().insert(first_id, second);
     assert_eq!(scheduled_lookup(&mut world, first_id), None);
     assert_eq!(scheduled_lookup(&mut world, second_id), Some(second));
-    world
-        .resource_mut::<IdIndex>()
-        .entities
-        .insert(first_id, first);
+    world.resource_mut::<IdIndex>().insert(first_id, first);
     assert_eq!(scheduled_lookup(&mut world, first_id), Some(first));
     world.despawn(first);
-    world
-        .resource_mut::<IdIndex>()
-        .entities
-        .insert(first_id, first);
+    world.resource_mut::<IdIndex>().insert(first_id, first);
     assert_eq!(scheduled_lookup(&mut world, first_id), None);
     assert_eq!(scheduled_lookup(&mut world, second_id), Some(second));
+}
+
+#[test]
+fn scoped_identity_reads_preserve_live_ownership_and_release_sparse_pages() {
+    use bevy_ecs::system::RunSystemOnce;
+    fn read<const N: usize>(world: &mut World, ids: [u64; N]) -> [Option<Entity>; N] {
+        world
+            .run_system_once(move |lookup: EntityLookup| {
+                let expected = ids.map(|id| lookup.get(id));
+                let found = ids.map(lookup.reader());
+                assert_eq!(expected, found);
+                found
+            })
+            .unwrap()
+    }
+    let mut world = World::new();
+    assert_eq!(read(&mut world, [0, 1, u64::MAX]), [None; 3]);
+    let entities: Vec<_> = (0..130)
+        .map(|_| {
+            let entity = world.spawn_empty().id();
+            assign_id(&mut world, entity).unwrap();
+            entity
+        })
+        .collect();
+    let reserved = reserve_id(&world, entities[63]).unwrap();
+    // IDs 64 through 127 occupy exactly one entire page.
+    for &entity in &entities[63..127] {
+        world.despawn(entity);
+    }
+    assert_eq!(world.resource::<IdIndex>().pages.len(), 2);
+    world.resource_mut::<IdIndex>().last = u64::MAX - 1;
+    let high = world.spawn_empty().id();
+    assert_eq!(assign_id(&mut world, high).unwrap(), u64::MAX);
+    assert_eq!(world.resource::<IdIndex>().pages.len(), 3);
+    let recovered = world.spawn_empty().id();
+    restore_id(&mut world, recovered, &reserved).unwrap();
+    let moved_reservation = reserve_id(&world, entities[128]).unwrap();
+    let moved = world.entity_mut(entities[128]).take::<EntityId>().unwrap();
+    let orphan = world.spawn(moved).id();
+    assert_eq!(
+        read(&mut world, [u64::MAX, 129, 64, 65, 1, 64, 128, 0]),
+        [
+            Some(high),
+            None,
+            Some(recovered),
+            None,
+            Some(entities[0]),
+            Some(recovered),
+            Some(entities[127]),
+            None
+        ]
+    );
+    // Removing the old owner's orphan component cannot retire a fresh binding.
+    let new_owner = world.spawn_empty().id();
+    restore_id(&mut world, new_owner, &moved_reservation).unwrap();
+    world.despawn(orphan);
+    assert_eq!(read(&mut world, [129]), [Some(new_owner)]);
+    world.despawn(high);
+    world.despawn(recovered);
+    assert_eq!(world.resource::<IdIndex>().pages.len(), 2);
+}
+
+#[test]
+fn scoped_reader_rejects_a_corrupt_binding_even_after_a_valid_lookup_in_the_same_page() {
+    use bevy_ecs::system::RunSystemOnce;
+    let mut world = World::new();
+    let a = world.spawn_empty().id();
+    let b = world.spawn_empty().id();
+    let first = assign_id(&mut world, a).unwrap();
+    let second = assign_id(&mut world, b).unwrap();
+    world.resource_mut::<IdIndex>().insert(second, a);
+    world
+        .run_system_once(move |lookup: EntityLookup| {
+            let mut read = lookup.reader();
+            assert_eq!(read(first), Some(a));
+            assert_eq!(read(second), None);
+            assert_eq!(read(first), Some(a));
+        })
+        .unwrap();
 }

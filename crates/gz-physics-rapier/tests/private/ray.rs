@@ -74,3 +74,25 @@ fn standalone_shapes_are_included_and_nonfinite_current_poses_are_refused() {
         Err(PhysicsError::InvalidValue)
     );
 }
+
+#[test]
+fn finite_cylinder_barrel_flat_caps_tangency_and_finite_ray_endpoints() {
+    let hit = |o: [f64; 3], d: [f64; 3], limit: f64| {
+        finite_cylinder_hit(
+            &Ray::new(Vector::from(o), Vector::from(d)),
+            0.5,
+            0.25,
+            limit,
+        )
+        .unwrap()
+    };
+    assert_eq!(hit([0.; 3], [1., 0., 0.], 2.), Some(0.));
+    assert_eq!(hit([0.1, 1., 0.], [0., -1., 0.], 0.75), Some(0.75));
+    assert_eq!(hit([0.1, 1., 0.], [0., -1., 0.], 0.749), None);
+    assert_eq!(hit([0.51, 1., 0.], [0., -1., 0.], 2.), None);
+    assert_eq!(hit([-2., 0.25, 0.5], [1., 0., 0.], 2.), Some(2.));
+    assert_eq!(hit([-2., 0.2501, 0.], [1., 0., 0.], 4.), None);
+    assert_eq!(hit([-2., 0., 0.501], [1., 0., 0.], 4.), None);
+    assert_eq!(hit([-1e8, 0., 0.3], [1., 0., 0.], 1e8), Some(1e8 - 0.4));
+    assert_eq!(hit([1., 0., 0.], [1., 0., 0.], 10.), None);
+}

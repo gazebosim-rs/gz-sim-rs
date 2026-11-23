@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="stopped_arm">
+      <pose>-0.55 0 0.7 0.12 -0.17 0.10</pose>
+      <self_collide>false</self_collide>
+      <plugin filename="gz-sim-switchable-articulation-system" name="gz::sim::systems::SwitchableArticulation"/>
+      <link name="base">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0.025 -0.014 0.009 0.19 0 0</pose><mass>1.6</mass>
+          <inertia><ixx>0.045</ixx><iyy>0.043</iyy><izz>0.040</izz><ixy>0.001</ixy></inertia>
+        </inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.145</radius></sphere></geometry></collision>
+        <visual name="base_hub">
+          <geometry><sphere><radius>0.145</radius></sphere></geometry>
+          <material><diffuse>0.045 0.30 0.78 1</diffuse></material>
+        </visual>
+        <visual name="base_to_shoulder">
+          <pose>0.155 0 0.02 0 -0.128323227686 0</pose>
+          <geometry><box><size>0.312569992162 0.075 0.075</size></box></geometry>
+          <material><diffuse>0.045 0.30 0.78 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="shoulder">
+        <pose>0.62 0 0.08 0 0 0</pose>
+        <inertial>
+          <pose>0.025 -0.014 0.009 0.19 0 0</pose><mass>1.48</mass>
+          <inertia><ixx>0.045</ixx><iyy>0.043</iyy><izz>0.040</izz><ixy>0.001</ixy></inertia>
+        </inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.136</radius></sphere></geometry></collision>
+        <visual name="shoulder_hub">
+          <geometry><sphere><radius>0.136</radius></sphere></geometry>
+          <material><diffuse>0.96 0.50 0.09 1</diffuse></material>
+        </visual>
+        <visual name="shoulder_to_base">
+          <pose>-0.155 0 -0.02 0 0.128323227686 3.14159265359</pose>
+          <geometry><box><size>0.312569992162 0.075 0.075</size></box></geometry>
+          <material><diffuse>0.96 0.50 0.09 1</diffuse></material>
+        </visual>
+        <visual name="shoulder_to_left">
+          <pose>0.0925 0.1175 0.025 0 -0.165646414224 0.903888122556</pose>
+          <geometry><box><size>0.303232584001 0.075 0.075</size></box></geometry>
+          <material><diffuse>0.96 0.50 0.09 1</diffuse></material>
+        </visual>
+        <visual name="shoulder_to_right">
+          <pose>0.1 -0.115 0.005 0 -0.0327971712101 -0.855052737126</pose>
+          <geometry><box><size>0.30495901364 0.075 0.075</size></box></geometry>
+          <material><diffuse>0.96 0.50 0.09 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="left">
+        <pose>0.99 0.47 0.18 0 0 0</pose>
+        <inertial>
+          <pose>0.025 -0.014 0.009 0.19 0 0</pose><mass>1.36</mass>
+          <inertia><ixx>0.045</ixx><iyy>0.043</iyy><izz>0.040</izz><ixy>0.001</ixy></inertia>
+        </inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.127</radius></sphere></geometry></collision>
+        <visual name="left_hub">
+          <geometry><sphere><radius>0.127</radius></sphere></geometry>
+          <material><diffuse>0.06 0.65 0.54 1</diffuse></material>
+        </visual>
+        <visual name="left_to_shoulder">
+          <pose>-0.0925 -0.1175 -0.025 0 0.165646414224 -2.23770453103</pose>
+          <geometry><box><size>0.303232584001 0.075 0.075</size></box></geometry>
+          <material><diffuse>0.06 0.65 0.54 1</diffuse></material>
+        </visual>
+        <visual name="left_to_wrist">
+          <pose>0.0975 0.0425 -0.025 0 0.230859577545 0.41106454739</pose>
+          <geometry><box><size>0.218517733834 0.075 0.075</size></box></geometry>
+          <material><diffuse>0.06 0.65 0.54 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="right">
+        <pose>1.02 -0.46 0.1 0 0 0</pose>
+        <inertial>
+          <pose>0.025 -0.014 0.009 0.19 0 0</pose><mass>1.24</mass>
+          <inertia><ixx>0.045</ixx><iyy>0.043</iyy><izz>0.040</izz><ixy>0.001</ixy></inertia>
+        </inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.118</radius></sphere></geometry></collision>
+        <visual name="right_hub">
+          <geometry><sphere><radius>0.118</radius></sphere></geometry>
+          <material><diffuse>0.66 0.14 0.55 1</diffuse></material>
+        </visual>
+        <visual name="right_to_shoulder">
+          <pose>-0.1 0.115 -0.005 0 0.0327971712101 2.28653991646</pose>
+          <geometry><box><size>0.30495901364 0.075 0.075</size></box></geometry>
+          <material><diffuse>0.66 0.14 0.55 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wrist">
+        <pose>1.38 0.64 0.08 0 0 0</pose>
+        <inertial>
+          <pose>0.025 -0.014 0.009 0.19 0 0</pose><mass>1.12</mass>
+          <inertia><ixx>0.045</ixx><iyy>0.043</iyy><izz>0.040</izz><ixy>0.001</ixy></inertia>
+        </inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.109</radius></sphere></geometry></collision>
+        <visual name="wrist_hub">
+          <geometry><sphere><radius>0.109</radius></sphere></geometry>
+          <material><diffuse>0.75 0.83 0.12 1</diffuse></material>
+        </visual>
+        <visual name="wrist_to_left">
+          <pose>-0.0975 -0.0425 0.025 0 -0.230859577545 -2.7305281062</pose>
+          <geometry><box><size>0.218517733834 0.075 0.075</size></box></geometry>
+          <material><diffuse>0.75 0.83 0.12 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="left_to_wrist" type="revolute">
+        <parent>left</parent><child>wrist</child>
+        <pose relative_to="left">0.195 0.085 -0.05 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 1 0</xyz><limit><lower>-0.035</lower><upper>0.055</upper></limit></axis>
+      </joint>
+      <joint name="shoulder_to_right" type="revolute">
+        <parent>shoulder</parent><child>right</child>
+        <pose relative_to="shoulder">0.2 -0.23 0.01 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">1 0 1</xyz><limit><lower>-0.07</lower><upper>0.04</upper></limit></axis>
+      </joint>
+      <joint name="base_to_shoulder" type="revolute">
+        <parent>base</parent><child>shoulder</child>
+        <pose relative_to="base">0.31 0 0.04 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz><limit><lower>-0.10</lower><upper>0.13</upper></limit></axis>
+      </joint>
+      <joint name="shoulder_to_left" type="revolute">
+        <parent>shoulder</parent><child>left</child>
+        <pose relative_to="shoulder">0.185 0.235 0.05 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 1 1</xyz></axis>
+      </joint>
+    </model>
+  </world>
+</sdf>

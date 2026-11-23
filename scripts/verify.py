@@ -268,15 +268,16 @@ def check_changed_coverage(lcov, changed, crates, executable_counts=None, zero_e
     return totals
 
 
-# Renderer-only ownership stays separate from shared CPU production crates.
+# Vulkan-only crates run on the renderer runner, including the optional physics accelerator.
 RENDER_PACKAGES = frozenset({
-    "gz-camera-output",
+    "gz-camera-output", "gz-physics-gpu",
     "gz-render-frame", "gz-renderer", "gz-render-protocol",
     "gz-render-client", "gz-render-worker", "gz-render-scene",
 })
 RENDER_SHARED_PACKAGES = frozenset({"gz-sim-core", "gz-sim-scene", "gz-sim-cli", proto_inputs.PACKAGE})
 RGB_FEATURE = "gz-sim-cli/rgb-camera"
-RENDER_FEATURES = ["gz-renderer/gpu", RGB_FEATURE]
+HEADLESS_FEATURES = [RGB_FEATURE, "gz-sim-cli/landing-audit"]
+RENDER_FEATURES = ["gz-renderer/gpu", RGB_FEATURE, "gz-sim-cli/gpu-batch"]
 
 
 def load_profile_contract():
@@ -289,7 +290,7 @@ def load_profile_contract():
         "native_reference": "gazebo-zenoh-client-v1",
         "profiles": {
             "headless": {"exclude_packages": sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}),
-                         "runner": "cpu", "features": [RGB_FEATURE]},
+                         "runner": "cpu", "features": HEADLESS_FEATURES},
             "renderer": {"packages": sorted(RENDER_PACKAGES | RENDER_SHARED_PACKAGES),
                          "features": RENDER_FEATURES, "runner": "vulkan"},
         },
@@ -320,7 +321,7 @@ def profile_plan(sources):
             if path in owners:
                 raise ValueError(f"production source has multiple owners: {path}")
             owners[path] = name
-    headless_command = ["cargo", "test", "--locked", "--no-fail-fast", "--workspace", "--all-targets", "--features", RGB_FEATURE]
+    headless_command = ["cargo", "test", "--locked", "--no-fail-fast", "--workspace", "--all-targets", "--features", ",".join(HEADLESS_FEATURES)]
     for name in sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}):
         headless_command += ["--exclude", name]
     render_command = ["cargo", "test", "--locked", "--no-fail-fast", "--all-targets"]

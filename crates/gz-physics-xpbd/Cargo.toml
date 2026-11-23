@@ -1,0 +1,24 @@
+[package]
+name = "gz-physics-xpbd"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Deterministic f64 particle constraints and contact for Gazebo cables and cloth"
+
+[features]
+prescribed-translation = ["dep:gz-physics"]
+one-way-checkpoint = ["dep:serde", "dep:sha2"]
+
+[dependencies]
+sha2 = { version = "=0.10.9", optional = true }
+gz-physics = { path = "../gz-physics", optional = true }
+serde = { version = "=1.0.229", features = ["derive"], optional = true }
+glam.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+parry3d-f64 = { version = "=0.31.1", features = ["enhanced-determinism"] }
+
+[lints]
+workspace = true

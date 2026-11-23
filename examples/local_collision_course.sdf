@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="swept" type="ignored"><max_step_size>0.01</max_step_size></physics>
+    <plugin filename="gz-sim-continuous-collision-system" name="gz::sim::systems::ContinuousCollision">
+      <linear_slop>0.0001</linear_slop>
+      <link>default::hit::carriage</link><link>default::clear::carriage</link>
+    </plugin>
+    <model name="hit">
+      <pose>-0.85 0 0.15 0 0 0</pose>
+      <plugin filename="gz-sim-initial-velocity-system" name="gz::sim::systems::InitialVelocity">
+        <linear_velocity>100 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="carriage">
+        <inertial><mass>2</mass><inertia><ixx>0.015</ixx><iyy>0.019</iyy><izz>0.024</izz></inertia></inertial>
+        <collision name="skew_body"><pose>-0.05 0 0 0 0 0.5235987755982988</pose><geometry><box><size>0.20 0.08 0.10</size></box></geometry></collision>
+        <visual name="skew_body_view"><pose>-0.05 0 0 0 0 0.5235987755982988</pose><geometry><box><size>0.20 0.08 0.10</size></box></geometry>
+          <material><diffuse>0.96 0.49 0.11 1</diffuse></material></visual>
+        <collision name="tip"><pose>0.15 0 0 0 0 0</pose><geometry><sphere><radius>0.06</radius></sphere></geometry></collision>
+        <visual name="tip_view"><pose>0.15 0 0 0 0 0</pose><geometry><sphere><radius>0.06</radius></sphere></geometry>
+          <material><diffuse>0.96 0.49 0.11 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="clear">
+      <pose>-0.85 0.45 0.15 0 0 0</pose>
+      <plugin filename="gz-sim-initial-velocity-system" name="gz::sim::systems::InitialVelocity">
+        <linear_velocity>100 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="carriage">
+        <inertial><mass>2</mass><inertia><ixx>0.015</ixx><iyy>0.019</iyy><izz>0.024</izz></inertia></inertial>
+        <collision name="skew_body"><pose>-0.05 0 0 0 0 0.5235987755982988</pose><geometry><box><size>0.20 0.08 0.10</size></box></geometry></collision>
+        <visual name="skew_body_view"><pose>-0.05 0 0 0 0 0.5235987755982988</pose><geometry><box><size>0.20 0.08 0.10</size></box></geometry>
+          <material><diffuse>0.10 0.78 0.68 1</diffuse></material></visual>
+        <collision name="tip"><pose>0.15 0 0 0 0 0</pose><geometry><sphere><radius>0.06</radius></sphere></geometry></collision>
+        <visual name="tip_view"><pose>0.15 0 0 0 0 0</pose><geometry><sphere><radius>0.06</radius></sphere></geometry>
+          <material><diffuse>0.10 0.78 0.68 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="fence"><pose>0 0 0.15 0 0 0</pose>
+      <link name="rail">
+        <inertial><mass>500</mass><inertia><ixx>24.1666666667</ixx><iyy>3.756</iyy><izz>20.4226666667</izz></inertia></inertial>
+        <collision name="face"><pose>0 0 0 0 0 0</pose><geometry><box><size>0.012 0.70 0.30</size></box></geometry></collision>
+        <visual name="face_view"><pose>0 0 0 0 0 0</pose><geometry><box><size>0.012 0.70 0.30</size></box></geometry>
+          <material><diffuse>0.34 0.48 0.83 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

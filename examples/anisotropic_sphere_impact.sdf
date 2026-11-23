@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="fixed" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="receiver">
+      <pose>0 0 0 0.2 -0.35 0.4</pose>
+      <link name="shell">
+        <inertial>
+          <pose>0 0 0 -0.3 0.15 0.5</pose>
+          <mass>2</mass>
+          <inertia><ixx>0.06</ixx><iyy>0.09</iyy><izz>0.11</izz></inertia>
+        </inertial>
+        <collision name="shell"><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>
+      </link>
+    </model>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <sphere link="default::receiver::shell" coupling="two_way"/>
+      <cable name="impactor" substeps="4" iterations="8" radius="0.04" self_contact="false"
+             friction="0.7" stretch="0.00001" bend="0">
+        <particle position="-1.25 0.29 0.03" velocity="3 0 0" mass="0.35"/>
+        <particle position="-1.25 0.29 0.17" velocity="3 0 0" mass="0.35"/>
+      </cable>
+    </plugin>
+  </world>
+</sdf>

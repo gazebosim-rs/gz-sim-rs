@@ -36,6 +36,7 @@ fn default_body_state_edits_refuse_before_id_or_numeric_validation() {
 struct Recorder {
     owner: Arc<()>,
     steps: Vec<Duration>,
+    sample: Option<(BodyId, BodyState)>,
     resets: u32,
     fail: bool,
 }
@@ -58,8 +59,10 @@ impl DynamicBackend for Recorder {
     fn is_dynamic(&self, _: BodyId) -> Option<bool> {
         None
     }
-    fn state(&self, _: BodyId) -> Option<BodyState> {
-        None
+    fn state(&self, id: BodyId) -> Option<BodyState> {
+        self.sample
+            .filter(|(key, _)| *key == id)
+            .map(|(_, state)| state)
     }
     fn remove(&mut self, _: BodyId) -> bool {
         false
@@ -189,6 +192,29 @@ impl DynamicBackend for Recorder {
     fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
+}
+
+#[test]
+fn default_scoped_reader_preserves_each_scalar_lookup() {
+    let known = BodyId::from_raw(8);
+    let unknown = BodyId::from_raw(7);
+    let state = BodyState {
+        position: [1.5, 2.0, 3.0],
+        velocity: [-4.0, 5.0, 0.0],
+        orientation: [0.0, 0.0, 0.0, 1.0],
+        angular_velocity: [0.0, -1.25, 0.0],
+    };
+    let backend = Recorder {
+        sample: Some((known, state)),
+        ..Default::default()
+    };
+    let mut visits = 0;
+    backend.read_states(&mut |states| {
+        visits += 1;
+        let samples = [unknown, known, unknown, known].map(|id| states.state(id));
+        assert_eq!(samples, [None, Some(state), None, Some(state)]);
+    });
+    assert_eq!(visits, 1);
 }
 
 fn recorder(sim: &Simulation) -> &Recorder {

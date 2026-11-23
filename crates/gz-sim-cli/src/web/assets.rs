@@ -3,7 +3,7 @@
 //! Immutable local glTF resources, including bounded STL/OBJ-to-GLB visuals.
 use bytes::Bytes;
 use gz_sim_core::{EntityId, Simulation};
-use gz_sim_scene::VisualGeometry;
+use gz_sim_scene::{VisualGeometry, VisualMaterial};
 use http_body_util::Full;
 use hyper::{Request, Response, StatusCode, body::Incoming, service::service_fn};
 use hyper_util::rt::TokioIo;
@@ -228,6 +228,7 @@ fn admit(
 pub(super) struct Assets {
     files: Arc<Files>,
     entries: BTreeMap<u64, (sdformat::Mesh, String)>,
+    cylinders: BTreeMap<[u32; 4], String>,
     aliases: Option<std::collections::BTreeSet<u64>>,
     port: u16,
     stop: Arc<AtomicBool>,
@@ -398,12 +399,31 @@ impl Assets {
     pub(super) fn new(sim: &Simulation) -> io::Result<Option<Self>> {
         let mut entries: BTreeMap<u64, (sdformat::Mesh, String)> = BTreeMap::new();
         let mut files = Files::new();
+        let mut cylinders = BTreeMap::new();
         let mut documents: BTreeMap<(PathBuf, PathBuf), String> = BTreeMap::new();
         let mut total = 0;
         for entity in sim.world().iter_entities() {
             let Some(geometry) = entity.get::<VisualGeometry>() else {
                 continue;
             };
+            if matches!(geometry.0.as_ref(), sdformat::Geometry::Cylinder { .. }) {
+                let diffuse = entity
+                    .get::<VisualMaterial>()
+                    .ok_or_else(|| invalid("gzweb visual has no material"))?
+                    .0
+                    .diffuse;
+                let scope = entries.len() + cylinders.len();
+                if let std::collections::btree_map::Entry::Vacant(entry) =
+                    cylinders.entry(diffuse.map(f32::to_bits))
+                {
+                    let route = format!("/assets/{scope}/cylinder.glb");
+                    let glb =
+                        gz_assets::mesh::cylinder_visual_glb(diffuse).map_err(io::Error::other)?;
+                    insert_file(&mut files, route.clone(), glb.into(), &mut total)?;
+                    entry.insert(route);
+                }
+                continue;
+            }
             let sdformat::Geometry::Mesh(mesh) = geometry.0.as_ref() else {
                 continue;
             };
@@ -420,13 +440,18 @@ impl Assets {
             let route = if let Some(route) = documents.get(&key) {
                 route.clone()
             } else {
-                let route = admit(mesh, entries.len(), &mut files, &mut total)?;
+                let route = admit(
+                    mesh,
+                    entries.len() + cylinders.len(),
+                    &mut files,
+                    &mut total,
+                )?;
                 documents.insert(key, route.clone());
                 route
             };
             entries.insert(id, (mesh.clone(), route));
         }
-        if entries.is_empty() {
+        if files.is_empty() {
             return Ok(None);
         }
         let files = Arc::new(files);
@@ -435,6 +460,7 @@ impl Assets {
         Ok(Some(Self {
             files,
             entries,
+            cylinders,
             aliases: None,
             port,
             stop,
@@ -449,6 +475,14 @@ impl Assets {
             prefix: format!("http://127.0.0.1:{}", self.port),
             files: self.files.clone(),
         }
+    }
+
+    pub(super) fn cylinder_uri(&self, color: [f32; 4]) -> io::Result<String> {
+        let route = self
+            .cylinders
+            .get(&color.map(f32::to_bits))
+            .ok_or_else(|| invalid("cylinder material is outside the admitted asset snapshot"))?;
+        Ok(format!("http://127.0.0.1:{}{route}", self.port))
     }
 
     pub(super) fn uri(&self, id: u64, mesh: &sdformat::Mesh) -> io::Result<String> {

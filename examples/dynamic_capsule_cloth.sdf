@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="two_ms" type="ignored"><max_step_size>0.002</max_step_size></physics>
+    <model name="roller">
+      <!-- A free receiver in zero gravity with its symmetry axis along world Y. -->
+      <pose>0 0 0.5 -1.5707963267948966 0 0</pose>
+      <link name="guide">
+        <inertial><mass>0.4</mass><inertia><ixx>0.055</ixx><iyy>0.055</iyy><izz>0.009</izz></inertia></inertial>
+        <collision name="capsule"><geometry><capsule><radius>0.2</radius><length>1.04</length></capsule></geometry></collision>
+        <visual name="blue"><geometry><capsule><radius>0.2</radius><length>1.04</length></capsule></geometry>
+          <material><diffuse>0.1 0.4 0.69 1</diffuse></material></visual>
+      </link>
+    </model>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <capsule link="default::roller::guide" coupling="two_way"/>
+      <cloth name="web" columns="5" substeps="4" iterations="16" radius="0.018" self_contact="false"
+             friction="0.15" stretch="0.0001" shear="0.00015" bend="0.002">
+        <particle position="-0.030 1.020 0.490" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.020 1.032 0.490" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.070 1.044 0.490" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.120 1.056 0.490" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.170 1.068 0.490" velocity="0 -2 0" mass="0.010"/>
+        <particle position="-0.030 1.020 0.555" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.020 1.032 0.555" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.070 1.044 0.555" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.120 1.056 0.555" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.170 1.068 0.555" velocity="0 -2 0" mass="0.010"/>
+        <particle position="-0.030 1.020 0.620" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.020 1.032 0.620" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.070 1.044 0.620" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.120 1.056 0.620" velocity="0 -2 0" mass="0.010"/>
+        <particle position="0.170 1.068 0.620" velocity="0 -2 0" mass="0.010"/>
+      </cloth>
+    </plugin>
+  </world>
+</sdf>

@@ -25,7 +25,12 @@ impl Capture {
     ) -> io::Result<Self> {
         let catalog = Catalog::decode(catalog, scene)?;
         let previous = (scene.recording_key()?, catalog.recording_key()?);
-        let mut recorder = Recorder::start(path, assets)?;
+        let origin = super::clock::Origin {
+            epoch: scene.epoch,
+            seconds: scene.seconds,
+            nanoseconds: scene.nanoseconds,
+        };
+        let mut recorder = Recorder::start_from(path, assets, origin)?;
         recorder.record(snapshot::encode(scene)?, catalog.replay_encode()?, vec![])?;
         Ok(Self { recorder, previous })
     }

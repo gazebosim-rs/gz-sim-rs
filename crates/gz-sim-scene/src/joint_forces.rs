@@ -74,7 +74,11 @@ pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadE
     let mut result = Vec::new();
     let mut seen = BTreeSet::new();
     for plugin in &model.plugins {
-        if diff_drive::is_plugin(plugin)
+        if crate::contact_material::is_plugin(plugin)
+            || diff_drive::is_plugin(plugin)
+            || prescribed_motion::is_plugin(plugin)
+            || prescribed_motion::is_initial_velocity(plugin)
+            || articulation::is_plugin(plugin)
             || joint_controller::is_plugin(plugin)
             || joint_state_publisher::is_plugin(plugin)
             || pose_publisher::is_plugin(plugin)

@@ -347,7 +347,7 @@ fn admission_refuses_invalid_noise_metadata_second_sensor_and_other_engines() {
             PhysicsEngine::Tpe
         ),
         Err(LoadError::Unsupported {
-            feature: "Rapier ideal altimeter",
+            feature: "Rapier or GPU ideal altimeter",
             ..
         })
     ));

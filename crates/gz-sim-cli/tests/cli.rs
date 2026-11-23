@@ -76,7 +76,7 @@ fn lifecycle_cli_is_explicit_rapier_only_and_refuses_camera_domain_expansion() {
     assert!(
         String::from_utf8(unsupported.stderr)
             .unwrap()
-            .contains("--web-lifecycle requires the Rapier physics engine")
+            .contains("--web-lifecycle requires the Rapier, multifidelity, distributed, or gpu-batch physics engine")
     );
     assert!(unsupported.stdout.is_empty());
 }
@@ -274,9 +274,19 @@ fn tpe_selection_preserves_headless_output_and_rejects_unknown_engines() {
     assert!(
         String::from_utf8(result.stderr)
             .unwrap()
-            .contains("expected rapier or tpe")
+            .contains("expected rapier, tpe, multifidelity, distributed, or gpu-batch")
     );
     assert!(result.stdout.is_empty());
+}
+
+#[test]
+fn a_worker_path_cannot_enable_distributed_physics_implicitly() {
+    let result = command(&[fixture(), "--physics-worker", "/missing/physics_worker"]);
+    assert!(!result.status.success());
+    assert!(result.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&result.stderr).contains(
+        "explicit physics worker requires a distributed, cubic multifidelity or resident GPU world"
+    ));
 }
 
 #[test]
@@ -640,4 +650,25 @@ fn viewer_opt_in_rejects_invalid_modes_and_releases_its_listener_on_exit() {
     );
     // Actual process exit must join its bridge and release the owned port.
     let _released = std::net::TcpListener::bind(address).unwrap();
+}
+
+#[test]
+fn local_worker_count_requires_a_distributed_engine_and_an_admitted_width() {
+    for width in ["1", "9"] {
+        let output = command(&[
+            fixture(),
+            "--physics-engine",
+            "distributed",
+            "--physics-workers",
+            width,
+        ]);
+        assert!(!output.status.success());
+        assert!(String::from_utf8_lossy(&output.stderr).contains("--physics-workers"));
+    }
+    let output = command(&[fixture(), "--physics-workers", "4"]);
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("--physics-workers requires --physics-engine distributed")
+    );
 }

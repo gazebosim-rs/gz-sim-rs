@@ -1157,3 +1157,62 @@ fn preview_8082_asset_origins_are_exact_and_keep_declared_route_restrictions() {
         );
     }
 }
+
+#[test]
+fn cylinder_visuals_share_recordable_geometry_per_material_and_keep_instance_scale() {
+    let visual = |name: &str, r: f64, h: f64, color: &str| {
+        format!(
+            "<visual name='{name}'><geometry><cylinder><radius>{r}</radius><length>{h}</length></cylinder></geometry><material><diffuse>{color}</diffuse></material></visual>"
+        )
+    };
+    let source = format!(
+        "<sdf version='1.12'><world name='default'><model name='table'><static>true</static><link name='link'><collision name='support'><geometry><box><size>1 1 1</size></box></geometry></collision>{}{}{}</link></model></world></sdf>",
+        visual("top", 0.75, 0.6, "0.75 0.25 0.125 1"),
+        visual("foot", 0.12, 0.4, "0.75 0.25 0.125 1"),
+        visual("post", 0.15, 0.7, "0.25 0.25 0.50 1")
+    );
+    let sim = gz_sim_scene::load_world(
+        &source,
+        "file:///cylinder.sdf",
+        "default",
+        Duration::from_millis(5),
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    let assets = Assets::new(&sim).unwrap().unwrap();
+    let snapshot =
+        super::super::snapshot::extract_with_assets(&sim, "default", 0, Some(&assets)).unwrap();
+    let scene: serde_json::Value =
+        serde_json::from_str(&super::super::snapshot::encode(&snapshot).unwrap()).unwrap();
+    let captured = assets.snapshot();
+    assert_eq!(captured.files().len(), 2);
+    let mut routes = BTreeMap::new();
+    for v in scene["visuals"].as_array().unwrap() {
+        let n = v["name"].as_str().unwrap().rsplit("::").next().unwrap();
+        let (scale, rgb) = match n {
+            "top" => ([0.75, 0.75, 0.6], [0.75, 0.25, 0.125, 1.0]),
+            "foot" => ([0.12, 0.12, 0.4], [0.75, 0.25, 0.125, 1.0]),
+            "post" => ([0.15, 0.15, 0.7], [0.25, 0.25, 0.50, 1.0]),
+            _ => panic!("unexpected visual"),
+        };
+        assert_eq!(v["shape"]["kind"], "mesh");
+        assert_eq!(v["shape"]["scale"], serde_json::json!(scale));
+        assert_eq!(v["color"], serde_json::json!([1.0, 1.0, 1.0, 1.0]));
+        let uri = v["shape"]["uri"].as_str().unwrap();
+        validate_recorded_document(uri, captured.prefix(), captured.files()).unwrap();
+        let route = uri.strip_prefix(captured.prefix()).unwrap();
+        assert!(route.ends_with("/cylinder.glb"));
+        let gltf = gltf::Gltf::from_slice(&captured.files()[route]).unwrap();
+        assert_eq!(
+            gltf.materials()
+                .next()
+                .unwrap()
+                .pbr_metallic_roughness()
+                .base_color_factor(),
+            rgb
+        );
+        routes.insert(n, route);
+    }
+    assert_eq!(routes["top"], routes["foot"]);
+    assert_ne!(routes["top"], routes["post"]);
+}

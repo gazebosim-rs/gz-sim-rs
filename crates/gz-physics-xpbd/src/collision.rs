@@ -1,0 +1,755 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+mod spatial;
+use super::oriented::{OrientedShape, Sweep};
+use super::{Boundary, BoundaryImpulse, Particle, XpbdError, correct};
+use glam::{DQuat, DVec3};
+use std::collections::{HashMap, HashSet};
+
+#[derive(Clone, Copy)]
+enum Shape {
+    Capsule(super::capsule::Capsule),
+    Sphere(f64, DVec3),
+    Oriented(OrientedShape),
+    Plane(DVec3),
+}
+
+#[derive(Clone)]
+pub(super) struct PreparedBoundary {
+    pub(super) receiver: Option<super::coupled::Receiver>,
+    pub(super) origin: DVec3,
+    pub(super) velocity: DVec3,
+    pub(super) path_endpoints: Option<(DVec3, DVec3)>,
+    shape: Shape,
+}
+
+impl PreparedBoundary {
+    pub fn new(value: Boundary) -> Result<Self, XpbdError> {
+        let (origin, velocity, shape) = match value {
+            Boundary::Capsule {
+                center,
+                axis,
+                radius,
+                half_length,
+                velocity,
+                angular_speed,
+            } => (
+                center,
+                velocity,
+                Shape::Capsule(super::capsule::Capsule::new(
+                    axis,
+                    half_length,
+                    radius,
+                    angular_speed,
+                )?),
+            ),
+            Boundary::DynamicCapsule {
+                center,
+                radius,
+                half_length,
+                velocity,
+                angular_velocity,
+            } => {
+                if !DVec3::from(angular_velocity).is_finite() {
+                    return Err(XpbdError::InvalidBoundary);
+                }
+                let geometry =
+                    super::capsule::Capsule::new(DVec3::Z.to_array(), half_length, radius, 0.)?;
+                (
+                    center,
+                    velocity,
+                    Shape::Oriented(OrientedShape::Capsule(geometry)),
+                )
+            }
+            Boundary::Sphere {
+                center,
+                radius,
+                velocity,
+                angular_velocity,
+            } => {
+                let spin = DVec3::from(angular_velocity);
+                if !radius.is_finite() || radius <= 0.0 || !spin.is_finite() {
+                    return Err(XpbdError::InvalidBoundary);
+                }
+                (center, velocity, Shape::Sphere(radius, spin))
+            }
+            Boundary::Cuboid {
+                center,
+                half_extents,
+                velocity,
+                angular_velocity,
+            } => {
+                let half = DVec3::from(half_extents);
+                if !half.is_finite()
+                    || half.min_element() <= 0.
+                    || !half.length().is_finite()
+                    || !DVec3::from(angular_velocity).is_finite()
+                {
+                    return Err(XpbdError::InvalidBoundary);
+                }
+                (
+                    center,
+                    velocity,
+                    Shape::Oriented(OrientedShape::Cuboid(half)),
+                )
+            }
+            Boundary::Plane {
+                point,
+                normal,
+                velocity,
+            } => {
+                let normal = DVec3::from(normal)
+                    .try_normalize()
+                    .ok_or(XpbdError::InvalidBoundary)?;
+                (point, velocity, Shape::Plane(normal))
+            }
+        };
+        let (origin, velocity) = (DVec3::from(origin), DVec3::from(velocity));
+        if !origin.is_finite() || !velocity.is_finite() {
+            return Err(XpbdError::InvalidBoundary);
+        }
+        Ok(Self {
+            receiver: None,
+            path_endpoints: None,
+            origin,
+            velocity,
+            shape,
+        })
+    }
+
+    fn centers(&self, interval: Interval) -> (DVec3, DVec3) {
+        self.path_endpoints.unwrap_or_else(|| {
+            (
+                self.origin + self.velocity * interval.t0,
+                self.origin + self.velocity * interval.t1,
+            )
+        })
+    }
+
+    pub(super) fn projection(
+        &self,
+        start: DVec3,
+        end: DVec3,
+        interval: Interval,
+        all_entries: bool,
+    ) -> Result<Option<Projection>, XpbdError> {
+        let (c0, c1) = self.centers(interval);
+        let mut a = start - c0;
+        let mut b = end - c1;
+        if let Some(receiver) = &self.receiver {
+            a -= receiver.start_offset;
+            b -= receiver.end_offset;
+        }
+        if !a.is_finite() || !b.is_finite() {
+            return Err(XpbdError::Numerical);
+        }
+        let (normal, depth, initial_overlap) = match self.shape {
+            Shape::Capsule(capsule) => {
+                return Ok(capsule.project(a, b, interval.radius)?.map(
+                    |(normal, depth, initial_overlap)| Projection {
+                        normal,
+                        depth,
+                        initial_overlap,
+                        event: None,
+                    },
+                ));
+            }
+            Shape::Plane(n) => (n, interval.radius - b.dot(n), interval.radius - a.dot(n)),
+            Shape::Oriented(geometry) => {
+                let (q0, q1) = self
+                    .receiver
+                    .as_ref()
+                    .and_then(|r| r.orientations())
+                    .ok_or(XpbdError::InvalidBoundary)?;
+                let sweep = Sweep {
+                    geometry,
+                    radius: interval.radius,
+                    start: a,
+                    end: b,
+                    q0,
+                    q1,
+                };
+                let Some(hit) = sweep.impact()? else {
+                    return Ok(None);
+                };
+                if hit.initial_overlap > interval.radius + 1e-9 * geometry.extent() {
+                    return Err(XpbdError::UnresolvedSweep);
+                }
+                let (normal, surface) = sweep.end_witness(&hit);
+                let depth = interval.radius - (b - surface).dot(normal);
+                // A rotating rounded feature can enter and leave before
+                // either endpoint overlaps. Its transported tangent plane can
+                // then create a fictitious normal impulse. Resolve the isolated
+                // frictionless impact at first contact and advance only for
+                // the remaining fraction of the substep.
+                let angular = sweep.angular_travel();
+                let rotates = sweep.shape_rotates(angular);
+                if hit.time > 0. && (all_entries || rotates) {
+                    let end_gap = geometry.witness(q1.conjugate() * b).0 - interval.radius;
+                    let rounded = geometry.rounded(hit.local_normal);
+                    let transient = rotates
+                        && end_gap > 1e-8 * (geometry.extent() + interval.radius)
+                        && (rounded || depth < 0.);
+                    if all_entries || transient {
+                        let orientation = sweep.rotation_at(hit.time);
+                        let normal = orientation * hit.local_normal;
+                        let arm = a.lerp(b, hit.time);
+                        let closing = -(b - a - angular.cross(arm)).dot(normal) / interval.h;
+                        if closing > 0. {
+                            return Ok(Some(Projection {
+                                normal,
+                                depth: 0.,
+                                initial_overlap: 0.,
+                                event: Some(SweptImpact {
+                                    time: hit.time,
+                                    transient,
+                                    orientation,
+                                    arm,
+                                    closing,
+                                }),
+                            }));
+                        }
+                    }
+                }
+                // Position error within floating-point resolution at the
+                // endpoint must not generate a velocity impulse on a tangent.
+                let spatial_floor = 64.
+                    * f64::EPSILON
+                    * (a.length() + b.length() + geometry.bound() + interval.radius);
+                let depth = if depth.abs() <= spatial_floor {
+                    0.
+                } else {
+                    depth
+                };
+                if matches!(geometry, OrientedShape::Capsule(_))
+                    && depth == 0.
+                    && hit.time > 0.
+                    && (geometry.witness(q1.conjugate() * b).0 - interval.radius).abs()
+                        <= spatial_floor
+                    && (b - a - angular.cross(b)).dot(normal) < -spatial_floor
+                {
+                    // A contact arriving on the last instant changes velocity
+                    // now and begins displacing the receiver on the next step.
+                    return Ok(Some(Projection {
+                        normal,
+                        depth: 0.,
+                        initial_overlap: hit.initial_overlap,
+                        event: None,
+                    }));
+                }
+                (normal, depth, hit.initial_overlap)
+            }
+            Shape::Sphere(radius, _) => {
+                let radius = radius + interval.radius;
+                let (d0, d1) = (a.length(), b.length());
+                if !radius.is_finite() || !d0.is_finite() || !d1.is_finite() {
+                    return Err(XpbdError::Numerical);
+                }
+                // Follow the relative segment to the first incident tangent plane.
+                // An endpoint-only overlap would miss a sphere crossed in one substep.
+                let travel = b - a;
+                let length = travel.length();
+                if !length.is_finite() {
+                    return Err(XpbdError::Numerical);
+                }
+                let mut normal = None;
+                if d0 >= radius && length > 0.0 {
+                    let dir = travel / length;
+                    let along = -a.dot(dir);
+                    if along >= 0.0 {
+                        let perpendicular = (a + dir * along).length();
+                        if perpendicular <= radius {
+                            let half_chord =
+                                ((radius - perpendicular) * (radius + perpendicular)).sqrt();
+                            let entry = along - half_chord;
+                            if entry <= length && entry >= -f64::EPSILON * d0 {
+                                normal = (a + dir * entry.max(0.0)).try_normalize();
+                            }
+                        }
+                    }
+                }
+                let normal = normal.unwrap_or_else(|| {
+                    b.try_normalize()
+                        .or_else(|| a.try_normalize())
+                        .unwrap_or(DVec3::X)
+                });
+                (normal, radius - b.dot(normal), radius - d0)
+            }
+        };
+        if !depth.is_finite() || !initial_overlap.is_finite() {
+            return Err(XpbdError::Numerical);
+        }
+        Ok((depth > 0.0).then_some(Projection {
+            event: None,
+            normal,
+            depth,
+            initial_overlap: initial_overlap.max(0.0),
+        }))
+    }
+
+    /// Other particles can move the same receiver later in the last projection
+    /// sweep. Refuse an unresolved endpoint before publishing any soft state.
+    pub fn check_oriented_endpoint(
+        &self,
+        particles: &[Particle],
+        radius: f64,
+    ) -> Result<(), XpbdError> {
+        let Shape::Oriented(geometry) = self.shape else {
+            return Ok(());
+        };
+        let r = self.receiver.as_ref().ok_or(XpbdError::InvalidBoundary)?;
+        let (_, q) = r.orientations().ok_or(XpbdError::InvalidBoundary)?;
+        let center = self.origin + self.velocity * r.end_time + r.end_offset;
+        for p in particles.iter().filter(|p| p.inverse_mass > 0.) {
+            let local = q.conjugate() * (DVec3::from(p.position) - center);
+            let tolerance = 1e-8 * (geometry.extent() + radius)
+                + 64. * f64::EPSILON * center.abs().max_element();
+            if geometry.witness(local).0 < radius - tolerance {
+                return Err(XpbdError::UnresolvedSweep);
+            }
+        }
+        Ok(())
+    }
+    pub(super) fn oriented_shape(&self) -> Option<OrientedShape> {
+        if let Shape::Oriented(geometry) = self.shape {
+            Some(geometry)
+        } else {
+            None
+        }
+    }
+    pub(super) fn end_plane(&self, t: f64) -> Option<(DVec3, DVec3)> {
+        if let Shape::Plane(n) = self.shape {
+            Some((self.origin + t * self.velocity, n))
+        } else {
+            None
+        }
+    }
+    pub(super) fn material_capsule(&self) -> bool {
+        matches!(
+            self.shape,
+            Shape::Capsule(_) | Shape::Oriented(OrientedShape::Capsule(_))
+        )
+    }
+    pub(super) fn prescribed_capsule(&self) -> Option<super::capsule::Capsule> {
+        if let Shape::Capsule(c) = self.shape {
+            Some(c)
+        } else {
+            None
+        }
+    }
+    pub(super) fn sphere_radius(&self) -> Option<f64> {
+        if let Shape::Sphere(radius, _) = self.shape {
+            Some(radius)
+        } else {
+            None
+        }
+    }
+    pub fn is_oriented(&self) -> bool {
+        matches!(self.shape, Shape::Oriented(_))
+    }
+
+    fn surface_velocity(&self, normal: DVec3) -> DVec3 {
+        match self.shape {
+            Shape::Capsule(c) => {
+                self.velocity + (c.axis * c.angular_speed).cross(normal * c.radius)
+            }
+            Shape::Sphere(r, angular) => self.velocity + angular.cross(normal * r),
+            Shape::Plane(_) => self.velocity,
+            Shape::Oriented(_) => unreachable!("oriented boundaries require a finite receiver"),
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub(super) struct Interval {
+    pub t0: f64,
+    pub t1: f64,
+    pub h: f64,
+    pub radius: f64,
+}
+
+pub(super) struct SweptImpact {
+    pub(super) transient: bool,
+    pub(super) time: f64,
+    orientation: DQuat,
+    arm: DVec3,
+    closing: f64,
+}
+pub(super) struct Projection {
+    pub(super) event: Option<SweptImpact>,
+    pub(super) normal: DVec3,
+    depth: f64,
+    initial_overlap: f64,
+}
+
+#[derive(Clone)]
+struct Contact {
+    particle: usize,
+    boundary: usize,
+    normal: DVec3,
+    correction: f64,
+    projected_impulse: f64,
+    remaining: Option<DVec3>,
+    initial_overlap: f64,
+}
+
+#[derive(Clone, Default)]
+pub(super) struct Contacts {
+    items: Vec<Contact>,
+    index: HashMap<(usize, usize), usize>,
+}
+
+impl Contacts {
+    pub fn clear(&mut self) {
+        self.items.clear();
+        self.index.clear();
+    }
+    fn record(
+        &mut self,
+        particle: usize,
+        boundary: usize,
+        hit: Projection,
+        impulse: f64,
+        remaining: Option<DVec3>,
+    ) {
+        let idx = *self.index.entry((particle, boundary)).or_insert_with(|| {
+            self.items.push(Contact {
+                particle,
+                boundary,
+                normal: hit.normal,
+                correction: 0.0,
+                projected_impulse: 0.,
+                remaining,
+                initial_overlap: hit.initial_overlap,
+            });
+            self.items.len() - 1
+        });
+        self.items[idx].normal = hit.normal;
+        self.items[idx].correction += hit.depth;
+        self.items[idx].projected_impulse += impulse;
+    }
+}
+
+impl BoundaryImpulse {
+    pub(super) fn react(&mut self, arm: DVec3, particle_impulse: DVec3) -> Result<(), XpbdError> {
+        let linear = DVec3::from(self.linear) - particle_impulse;
+        let angular = DVec3::from(self.angular) - arm.cross(particle_impulse);
+        if !linear.is_finite() || !angular.is_finite() {
+            return Err(XpbdError::Numerical);
+        }
+        self.linear = linear.to_array();
+        self.angular = angular.to_array();
+        Ok(())
+    }
+}
+
+pub(super) fn project_boundaries(
+    x: &mut [DVec3],
+    particles: &mut [Particle],
+    boundaries: &mut [PreparedBoundary],
+    contacts: &mut Contacts,
+    reactions: &mut [BoundaryImpulse],
+    time: Interval,
+    feature_contacts: (bool, bool),
+) -> Result<(), XpbdError> {
+    project_points::<true>(
+        x,
+        particles,
+        boundaries,
+        contacts,
+        reactions,
+        time,
+        feature_contacts,
+    )
+}
+fn project_points<const SPATIAL: bool>(
+    x: &mut [DVec3],
+    particles: &mut [Particle],
+    boundaries: &mut [PreparedBoundary],
+    contacts: &mut Contacts,
+    reactions: &mut [BoundaryImpulse],
+    time: Interval,
+    feature_contacts: (bool, bool),
+) -> Result<(), XpbdError> {
+    let (shell_pads, capsule_material) = feature_contacts;
+    if boundaries.is_empty()
+        || (capsule_material && boundaries.iter().all(PreparedBoundary::material_capsule))
+    {
+        return Ok(());
+    }
+    let field = if SPATIAL {
+        spatial::Field::new(x.len(), boundaries, time)
+    } else {
+        None
+    };
+    for (k, (xs, ps)) in x
+        .chunks_mut(spatial::BLOCK)
+        .zip(particles.chunks_mut(spatial::BLOCK))
+        .enumerate()
+    {
+        let block = field
+            .as_ref()
+            .map_or_else(spatial::Block::default, |f| f.block(xs, ps));
+        for (local, (x, p)) in xs.iter_mut().zip(ps).enumerate() {
+            let i = k * spatial::BLOCK + local;
+            let mut skip = block.skip;
+            if p.inverse_mass == 0.0 {
+                continue;
+            }
+            let start = DVec3::from(p.position);
+            for (j, boundary) in boundaries.iter_mut().enumerate() {
+                if skip != 0 && skip & (1u64 << j) != 0 {
+                    continue;
+                }
+                if (shell_pads && boundary.sphere_radius().is_some())
+                    || (capsule_material && boundary.material_capsule())
+                {
+                    continue;
+                }
+                if boundary.is_oriented()
+                    && contacts
+                        .index
+                        .get(&(i, j))
+                        .is_some_and(|&k| contacts.items[k].remaining.is_some())
+                {
+                    continue;
+                }
+                if let Some(hit) = boundary.projection(start, *x, time, false)? {
+                    let mut normal_impulse = 0.;
+                    let mut remaining = None;
+                    let mut dx = hit.normal * hit.depth;
+                    if let Some(receiver) = &mut boundary.receiver {
+                        let inverse_mass = p.inverse_mass + receiver.inverse_mass;
+                        if !inverse_mass.is_finite() {
+                            return Err(XpbdError::Numerical);
+                        }
+                        let start_center =
+                            boundary.origin + time.t0 * boundary.velocity + receiver.start_offset;
+                        let arm = start - start_center;
+                        let oriented = matches!(boundary.shape, Shape::Oriented(_));
+                        if let Some(event) = &hit.event {
+                            if !receiver.isolated_particle {
+                                return Err(XpbdError::UnresolvedSweep);
+                            }
+                            let inverse = receiver.inverse_mass_at(
+                                event.orientation,
+                                inverse_mass,
+                                event.arm,
+                                hit.normal,
+                            )?;
+                            let full = event.closing / inverse;
+                            normal_impulse = (1. - event.time) * full;
+                            remaining = Some(hit.normal * (event.time * full));
+                        } else {
+                            let inverse = if oriented {
+                                receiver.directional_inverse_mass(inverse_mass, arm, hit.normal)?
+                            } else {
+                                inverse_mass
+                            };
+                            normal_impulse = hit.depth / inverse / time.h;
+                        }
+                        let impulse = hit.normal * normal_impulse;
+                        dx = time.h * p.inverse_mass * impulse;
+                        if oriented {
+                            receiver.project_oriented(arm, -impulse, time.h)?;
+                        } else {
+                            receiver.project_normal(arm, -impulse, time.h);
+                        }
+                    }
+                    correct(x, p, dx, time.h);
+                    // A prior surface may push this point into an originally disjoint bound.
+                    if skip != 0 && !block.contains(*x) {
+                        skip = 0;
+                    }
+                    // With x1 = x0 + h*v1, a positional correction contributes
+                    // x0 cross (m*dx/h) to discrete orbital angular momentum.
+                    reactions[j].react(start - boundary.origin, dx / time.h / p.inverse_mass)?;
+                    contacts.record(i, j, hit, normal_impulse, remaining);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+pub(super) fn finish_contacts(
+    contacts: &Contacts,
+    x: &[DVec3],
+    particles: &mut [Particle],
+    boundaries: &mut [PreparedBoundary],
+    reactions: &mut [BoundaryImpulse],
+    mu: f64,
+    h: f64,
+) -> Result<(), XpbdError> {
+    for c in &contacts.items {
+        let p = &mut particles[c.particle];
+        let b = &mut boundaries[c.boundary];
+        if b.receiver.is_some() {
+            finish_receiver(c, x[c.particle], p, b, &mut reactions[c.boundary], mu, h)?;
+            continue;
+        }
+        let v = DVec3::from(p.velocity);
+        let relative = v - b.surface_velocity(c.normal);
+        let vn = relative.dot(c.normal);
+        // Remove residual closing speed. Resolving an initial overlap supplies
+        // no restitution: discard separating speed created by its correction.
+        let normal_change = if vn < 0.0 {
+            -vn
+        } else {
+            -vn.min(c.initial_overlap / h)
+        };
+        let tangent = relative - c.normal * vn;
+        let slip = tangent.length();
+        let cap = mu * (c.correction / h + normal_change).max(0.0);
+        if !slip.is_finite() || !cap.is_finite() {
+            return Err(XpbdError::Numerical);
+        }
+        let friction = if slip > 0.0 {
+            -tangent * (cap.min(slip) / slip)
+        } else {
+            DVec3::ZERO
+        };
+        let change = c.normal * normal_change + friction;
+        p.velocity = (v + change).to_array();
+        reactions[c.boundary].react(x[c.particle] - b.origin, change / p.inverse_mass)?;
+    }
+    Ok(())
+}
+
+fn finish_receiver(
+    c: &Contact,
+    x: DVec3,
+    p: &mut Particle,
+    b: &mut PreparedBoundary,
+    reaction: &mut BoundaryImpulse,
+    mu: f64,
+    h: f64,
+) -> Result<(), XpbdError> {
+    let r = b.receiver.as_mut().expect("finite receiver");
+    let arm = x - (b.origin + b.velocity * r.end_time + r.end_offset);
+    if let Some(impulse) = c.remaining {
+        p.velocity = (DVec3::from(p.velocity) + p.inverse_mass * impulse).to_array();
+        r.apply_velocity_impulse(arm, -impulse);
+        return reaction.react(x - b.origin, impulse);
+    }
+    let inverse_mass = p.inverse_mass + r.inverse_mass;
+    let relative = |v: DVec3, r: &super::coupled::Receiver| {
+        v - (b.velocity + r.linear + r.angular_velocity().cross(arm))
+    };
+    let mut v = DVec3::from(p.velocity);
+    let vn = relative(v, r).dot(c.normal);
+    let normal_change = if vn < 0.0 {
+        -vn
+    } else {
+        -vn.min(c.initial_overlap / h)
+    };
+    let normal_impulse = normal_change / r.directional_inverse_mass(inverse_mass, arm, c.normal)?;
+    let j = c.normal * normal_impulse;
+    v += p.inverse_mass * j;
+    r.apply_velocity_impulse(arm, -j);
+    let relative = relative(v, r);
+    let tangent = relative - c.normal * relative.dot(c.normal);
+    let slip = tangent.length();
+    let projected = if matches!(b.shape, Shape::Oriented(_)) {
+        c.projected_impulse
+    } else {
+        c.correction / h / inverse_mass
+    };
+    let cap = mu * (projected + normal_impulse).max(0.);
+    if !slip.is_finite() || !cap.is_finite() {
+        return Err(XpbdError::Numerical);
+    }
+    let mut friction = DVec3::ZERO;
+    if slip > 0.0 {
+        friction = r.friction(arm, c.normal, tangent, slip, inverse_mass, cap)?;
+        r.apply_velocity_impulse(arm, -friction);
+    }
+    p.velocity = (v + p.inverse_mass * friction).to_array();
+    reaction.react(x - b.origin, j + friction)
+}
+
+/// A hash lookup per neighbour cell with no dependence on hash iteration order.
+/// Each iteration rebuilds the grid. Constraint neighbours are excluded.
+#[derive(Clone)]
+pub(super) struct SelfContact {
+    edges: HashSet<(usize, usize)>,
+    heads: HashMap<[i64; 3], usize>,
+    next: Vec<Option<usize>>,
+}
+
+impl SelfContact {
+    pub fn new(edges: HashSet<(usize, usize)>, n: usize) -> Self {
+        Self {
+            edges,
+            heads: HashMap::with_capacity(n),
+            next: vec![None; n],
+        }
+    }
+
+    pub fn project(
+        &mut self,
+        x: &mut [DVec3],
+        p: &mut [Particle],
+        diameter: f64,
+        h: f64,
+    ) -> Result<(), XpbdError> {
+        self.heads.clear();
+        for i in 0..x.len() {
+            let coords = (x[i] / diameter).floor();
+            if !coords.is_finite() || coords.abs().max_element() >= i64::MAX as f64 {
+                return Err(XpbdError::Numerical);
+            }
+            let [a, b, c] = coords.to_array().map(|v| v as i64);
+            for da in -1..=1 {
+                for db in -1..=1 {
+                    for dc in -1..=1 {
+                        let mut head = self.heads.get(&[a + da, b + db, c + dc]).copied();
+                        while let Some(j) = head {
+                            if !self.edges.contains(&(j, i)) {
+                                separate(x, p, j, i, diameter, h)?;
+                            }
+                            head = self.next[j];
+                        }
+                    }
+                }
+            }
+            self.next[i] = self.heads.insert([a, b, c], i);
+        }
+        Ok(())
+    }
+}
+
+fn separate(
+    x: &mut [DVec3],
+    p: &mut [Particle],
+    a: usize,
+    b: usize,
+    diameter: f64,
+    h: f64,
+) -> Result<(), XpbdError> {
+    let delta = x[a] - x[b];
+    let len = delta.length();
+    let (wa, wb) = (p[a].inverse_mass, p[b].inverse_mass);
+    if !len.is_finite() || !(wa + wb).is_finite() {
+        return Err(XpbdError::Numerical);
+    }
+    if len >= diameter || wa + wb == 0.0 {
+        return Ok(());
+    }
+    let start = DVec3::from(p[a].position) - DVec3::from(p[b].position);
+    let n = if len > 0.0 {
+        delta / len
+    } else {
+        start.try_normalize().unwrap_or(DVec3::X)
+    };
+    let projection = n * ((diameter - len) / (wa + wb));
+    correct(&mut x[a], &mut p[a], wa * projection, h);
+    correct(&mut x[b], &mut p[b], -wb * projection, h);
+    let vn = (DVec3::from(p[a].velocity) - DVec3::from(p[b].velocity)).dot(n);
+    let overlap = (diameter - start.length()).max(0.0);
+    let dv = if vn < 0.0 { -vn } else { -vn.min(overlap / h) };
+    let impulse = n * (dv / (wa + wb));
+    p[a].velocity = (DVec3::from(p[a].velocity) + wa * impulse).to_array();
+    p[b].velocity = (DVec3::from(p[b].velocity) - wb * impulse).to_array();
+    Ok(())
+}

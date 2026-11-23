@@ -5,6 +5,10 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+distributed-physics = ["gz-sim-scene/distributed-physics"]
+gpu-batch = ["gz-sim-scene/gpu-batch"]
+
 [dependencies]
 crossbeam-channel = { version = "=0.5.17", default-features = false, features = ["std"] }
 uuid.workspace = true

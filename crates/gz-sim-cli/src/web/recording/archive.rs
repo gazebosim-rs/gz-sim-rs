@@ -241,6 +241,10 @@ pub(super) enum Record {
     Header {
         version: u8,
     },
+    CheckpointHeader {
+        version: u8,
+        origin: super::clock::Origin,
+    },
     Frame {
         ordinal: u32,
         scene: String,
@@ -262,6 +266,7 @@ pub(super) struct Archive {
     stream: Arc<[u8]>,
     index: Vec<Range<usize>>,
     pub stamps: Vec<Stamp>,
+    pub origin: super::clock::Origin,
     pub asset_prefix: String,
     pub assets: BTreeMap<String, Bytes>,
 }
@@ -317,7 +322,7 @@ impl Archive {
         let manifest: Manifest =
             serde_json::from_slice(&file(&root, "manifest.json", lines::LINE_BYTES as u64)?)
                 .map_err(io::Error::other)?;
-        if manifest.version != 1
+        if !(1..=2).contains(&manifest.version)
             || !manifest.complete
             || !(1..=4096).contains(&manifest.frames)
             || manifest.stream_bytes > lines::FILE_BYTES
@@ -364,12 +369,16 @@ impl Archive {
         {
             return Err(invalid("recorded stream changed"));
         }
-        Self::admit(
+        let archive = Self::admit(
             stream.into(),
             manifest.frames,
             manifest.asset_prefix,
             assets,
-        )
+        )?;
+        if manifest.version != archive.origin.version() {
+            return Err(invalid("recording version differs from stream origin"));
+        }
+        Ok(archive)
     }
 
     pub(super) fn admit(
@@ -382,12 +391,13 @@ impl Archive {
             return Err(invalid("recording needs 1–4096 frames"));
         }
         let mut lines = Lines::new(Cursor::new(stream.as_ref()), Limits::default())?;
-        if !matches!(
-            lines.next_record::<Record>()?,
-            Some(Record::Header { version: 1 })
-        ) {
-            return Err(invalid("recording header missing"));
-        }
+        let origin = match lines.next_record::<Record>()? {
+            Some(Record::Header { version: 1 }) => super::clock::Origin::default(),
+            Some(Record::CheckpointHeader { version: 2, origin }) if origin.version() == 2 => {
+                origin
+            }
+            _ => return Err(invalid("recording header missing or invalid")),
+        };
         let mut index = Vec::new();
         let mut stamps = Vec::new();
         let mut world = None;
@@ -470,10 +480,11 @@ impl Archive {
         {
             return Err(invalid("recording footer missing or trailing records"));
         }
-        Clock::new(stamps.clone(), Instant::now())?;
+        Clock::from_origin(stamps.clone(), origin, Instant::now())?;
         Ok(Self {
             stream,
             index,
+            origin,
             stamps,
             asset_prefix,
             assets,

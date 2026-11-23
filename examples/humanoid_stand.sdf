@@ -1,0 +1,327 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <plugin filename="gz-sim-joint-posture-system" name="gz::sim::systems::JointPosture">
+      <model>default::humanoid</model>
+      <balance position_gain="2.8" velocity_gain="0.58" max_x="0.24" max_y="0.20"/>
+      <actuator joint="spine_yaw" reference="0" stiffness="700" damping="22" max_effort="105"/>
+      <actuator joint="spine_roll" reference="0" stiffness="700" damping="22" max_effort="105"/>
+      <actuator joint="spine_pitch" reference="0" stiffness="700" damping="22" max_effort="105"/>
+      <actuator joint="neck_yaw" reference="0" stiffness="12" damping="0.35" max_effort="14"/>
+      <actuator joint="neck_roll" reference="0" stiffness="12" damping="0.35" max_effort="14"/>
+      <actuator joint="neck_pitch" reference="0" stiffness="12" damping="0.35" max_effort="14"/>
+      <actuator joint="left_hip_yaw" reference="0" stiffness="1000" damping="30" max_effort="105"/>
+      <actuator joint="left_hip_roll" reference="0" stiffness="1000" damping="30" max_effort="105"/>
+      <actuator joint="left_hip_pitch" reference="0" stiffness="1000" damping="30" max_effort="150"/>
+      <actuator joint="left_knee_pitch" reference="0" stiffness="1000" damping="30" max_effort="150"/>
+      <actuator joint="left_ankle_pitch" reference="0" stiffness="800" damping="16" max_effort="105" feedback="x"/>
+      <actuator joint="left_ankle_roll" reference="0" stiffness="800" damping="16" max_effort="105" feedback="-y"/>
+      <actuator joint="left_shoulder_yaw" reference="0" stiffness="80" damping="3" max_effort="45"/>
+      <actuator joint="left_shoulder_roll" reference="0" stiffness="80" damping="3" max_effort="45"/>
+      <actuator joint="left_shoulder_pitch" reference="0" stiffness="80" damping="3" max_effort="45"/>
+      <actuator joint="left_elbow_pitch" reference="0" stiffness="42" damping="2" max_effort="32"/>
+      <actuator joint="left_forearm_yaw" reference="0" stiffness="6" damping="0.12" max_effort="14"/>
+      <actuator joint="left_wrist_pitch" reference="0" stiffness="6" damping="0.12" max_effort="14"/>
+      <actuator joint="right_hip_yaw" reference="0" stiffness="1000" damping="30" max_effort="105"/>
+      <actuator joint="right_hip_roll" reference="0" stiffness="1000" damping="30" max_effort="105"/>
+      <actuator joint="right_hip_pitch" reference="0" stiffness="1000" damping="30" max_effort="150"/>
+      <actuator joint="right_knee_pitch" reference="0" stiffness="1000" damping="30" max_effort="150"/>
+      <actuator joint="right_ankle_pitch" reference="0" stiffness="800" damping="16" max_effort="105" feedback="x"/>
+      <actuator joint="right_ankle_roll" reference="0" stiffness="800" damping="16" max_effort="105" feedback="-y"/>
+      <actuator joint="right_shoulder_yaw" reference="0" stiffness="80" damping="3" max_effort="45"/>
+      <actuator joint="right_shoulder_roll" reference="0" stiffness="80" damping="3" max_effort="45"/>
+      <actuator joint="right_shoulder_pitch" reference="0" stiffness="80" damping="3" max_effort="45"/>
+      <actuator joint="right_elbow_pitch" reference="0" stiffness="42" damping="2" max_effort="32"/>
+      <actuator joint="right_forearm_yaw" reference="0" stiffness="6" damping="0.12" max_effort="14"/>
+      <actuator joint="right_wrist_pitch" reference="0" stiffness="6" damping="0.12" max_effort="14"/>
+    </plugin>
+    <model name="floor"><static>true</static><link name="ground">
+      <collision name="support"><geometry><plane><normal>0 0 1</normal><size>12 12</size></plane></geometry></collision>
+      <visual name="floor"><pose>0 0 -0.018 0 0 0</pose><geometry><box><size>5 5 0.036</size></box></geometry><material><diffuse>0.33 0.38 0.43 1</diffuse></material></visual>
+    </link></model>
+    <model name="humanoid">
+      <self_collide>false</self_collide>
+      <plugin filename="gz-sim-switchable-articulation-system" name="gz::sim::systems::SwitchableArticulation"/>
+      <link name="pelvis">
+        <pose>0.00000 0.00000 0.90000 0 0 0</pose>
+        <inertial><mass>10.5000</mass><inertia><ixx>0.090737500</ixx><iyy>0.052150000</iyy><izz>0.108587500</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.20000 0.29000 0.14000</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.20000 0.29000 0.14000</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="lumbar_yaw">
+        <pose>0.00000 0.00000 0.97300 0 0 0</pose>
+        <inertial><mass>1.0000</mass><inertia><ixx>0.001766667</ixx><iyy>0.001333333</iyy><izz>0.002833333</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.12000 0.14000 0.04000</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.12000 0.14000 0.04000</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="lumbar_roll">
+        <pose>0.00000 0.00000 1.00000 0 0 0</pose>
+        <inertial><mass>1.2000</mass><inertia><ixx>0.001850000</ixx><iyy>0.001850000</iyy><izz>0.003380000</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.13000 0.13000 0.04000</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.13000 0.13000 0.04000</size></box></geometry><material><diffuse>0.98 0.64 0.19 1</diffuse></material></visual>
+      </link>
+      <link name="chest">
+        <pose>0.00000 0.00000 1.19500 0 0 0</pose>
+        <inertial><mass>17.0000</mass><inertia><ixx>0.302046083</ixx><iyy>0.209170833</iyy><izz>0.211946083</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.20500 0.32800 0.32500</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.20500 0.32800 0.32500</size></box></geometry><material><diffuse>0.86 0.90 0.93 1</diffuse></material></visual>
+      </link>
+      <link name="neck_base">
+        <pose>0.00000 0.00000 1.37900 0 0 0</pose>
+        <inertial><mass>0.2200</mass><inertia><ixx>0.000130533</ixx><iyy>0.000115353</iyy><izz>0.000174900</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.06600 0.07200 0.04400</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.06600 0.07200 0.04400</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="neck_roll_housing">
+        <pose>0.00000 0.00000 1.41200 0 0 0</pose>
+        <inertial><mass>0.2200</mass><inertia><ixx>0.000119167</ixx><iyy>0.000091007</iyy><izz>0.000151507</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.05800 0.07000 0.04000</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.05800 0.07000 0.04000</size></box></geometry><material><diffuse>0.98 0.64 0.19 1</diffuse></material></visual>
+      </link>
+      <link name="head">
+        <pose>0.00900 0.00000 1.53100 0 0 0</pose>
+        <inertial><mass>4.3000</mass><inertia><ixx>0.022515517</ixx><iyy>0.023079892</iyy><izz>0.017782292</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.16000 0.15500 0.19700</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.16000 0.15500 0.19700</size></box></geometry><material><diffuse>0.86 0.90 0.93 1</diffuse></material></visual>
+      </link>
+      <link name="left_hip_yaw_housing">
+        <pose>0.00000 0.10300 0.85500 0 0 0</pose>
+        <inertial><mass>0.7000</mass><inertia><ixx>0.000655667</ixx><iyy>0.000739667</iyy><izz>0.000946867</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.09400 0.08600 0.06200</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.09400 0.08600 0.06200</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="left_hip_roll_housing">
+        <pose>0.00000 0.10300 0.85500 0 0 0</pose>
+        <inertial><mass>0.8000</mass><inertia><ixx>0.000922200</ixx><iyy>0.000793867</iyy><izz>0.001024867</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.08200 0.09300 0.07200</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.08200 0.09300 0.07200</size></box></geometry><material><diffuse>0.17 0.64 0.75 1</diffuse></material></visual>
+      </link>
+      <link name="left_thigh">
+        <pose>0.00000 0.10300 0.67000 0 0 0</pose>
+        <inertial><mass>7.8000</mass><inertia><ixx>0.083164250</ixx><iyy>0.083736250</iyy><izz>0.015735200</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.11200 0.10800 0.34100</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.11200 0.10800 0.34100</size></box></geometry><material><diffuse>0.86 0.90 0.93 1</diffuse></material></visual>
+      </link>
+      <link name="left_shank">
+        <pose>0.00000 0.10300 0.29500 0 0 0</pose>
+        <inertial><mass>3.8000</mass><inertia><ixx>0.037402767</ixx><iyy>0.037567117</iyy><izz>0.004740183</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.08800 0.08500 0.33300</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.08800 0.08500 0.33300</size></box></geometry><material><diffuse>0.17 0.64 0.75 1</diffuse></material></visual>
+      </link>
+      <link name="left_ankle_housing">
+        <pose>0.00000 0.10300 0.10500 0 0 0</pose>
+        <inertial><mass>0.5500</mass><inertia><ixx>0.000440917</ixx><iyy>0.000427167</iyy><izz>0.000515717</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.07400 0.07600 0.06200</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.07400 0.07600 0.06200</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="left_foot">
+        <pose>0.02500 0.10300 0.05200 0 0 0</pose>
+        <inertial><mass>1.3500</mass><inertia><ixx>0.002638800</ixx><iyy>0.008440313</iyy><izz>0.008829112</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.25500 0.11600 0.10000</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.25500 0.11600 0.10000</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="left_shoulder_yaw_housing">
+        <pose>0.00000 0.22200 1.29500 0 0 0</pose>
+        <inertial><mass>0.3800</mass><inertia><ixx>0.000393838</ixx><iyy>0.000323792</iyy><izz>0.000398367</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.07200 0.08600 0.07100</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.07200 0.08600 0.07100</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="left_shoulder_roll_housing">
+        <pose>0.00000 0.22200 1.29500 0 0 0</pose>
+        <inertial><mass>0.3800</mass><inertia><ixx>0.000366067</ixx><iyy>0.000400425</iyy><izz>0.000381172</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.08100 0.07400 0.07800</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.08100 0.07400 0.07800</size></box></geometry><material><diffuse>0.17 0.64 0.75 1</diffuse></material></visual>
+      </link>
+      <link name="left_upper_arm">
+        <pose>0.00000 0.22200 1.16000 0 0 0</pose>
+        <inertial><mass>2.4000</mass><inertia><ixx>0.013425800</ixx><iyy>0.013486600</iyy><izz>0.002310800</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.07700 0.07500 0.24800</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.07700 0.07500 0.24800</size></box></geometry><material><diffuse>0.86 0.90 0.93 1</diffuse></material></visual>
+      </link>
+      <link name="left_forearm">
+        <pose>0.00000 0.22200 0.92500 0 0 0</pose>
+        <inertial><mass>1.3000</mass><inertia><ixx>0.004064883</ixx><iyy>0.004021008</iyy><izz>0.000987675</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.06600 0.06900 0.18100</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.06600 0.06900 0.18100</size></box></geometry><material><diffuse>0.17 0.64 0.75 1</diffuse></material></visual>
+      </link>
+      <link name="left_wrist_housing">
+        <pose>0.00000 0.22200 0.81700 0 0 0</pose>
+        <inertial><mass>0.3200</mass><inertia><ixx>0.000176667</ixx><iyy>0.000161333</iyy><izz>0.000176667</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.05500 0.06000 0.05500</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.05500 0.06000 0.05500</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="left_hand">
+        <pose>0.00000 0.22200 0.73700 0 0 0</pose>
+        <inertial><mass>0.5000</mass><inertia><ixx>0.000563542</ixx><iyy>0.000646208</iyy><izz>0.000325667</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.07000 0.05400 0.10300</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.07000 0.05400 0.10300</size></box></geometry><material><diffuse>0.86 0.90 0.93 1</diffuse></material></visual>
+      </link>
+      <link name="right_hip_yaw_housing">
+        <pose>0.00000 -0.10300 0.85500 0 0 0</pose>
+        <inertial><mass>0.7000</mass><inertia><ixx>0.000655667</ixx><iyy>0.000739667</iyy><izz>0.000946867</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.09400 0.08600 0.06200</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.09400 0.08600 0.06200</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="right_hip_roll_housing">
+        <pose>0.00000 -0.10300 0.85500 0 0 0</pose>
+        <inertial><mass>0.8000</mass><inertia><ixx>0.000922200</ixx><iyy>0.000793867</iyy><izz>0.001024867</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.08200 0.09300 0.07200</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.08200 0.09300 0.07200</size></box></geometry><material><diffuse>0.91 0.42 0.27 1</diffuse></material></visual>
+      </link>
+      <link name="right_thigh">
+        <pose>0.00000 -0.10300 0.67000 0 0 0</pose>
+        <inertial><mass>7.8000</mass><inertia><ixx>0.083164250</ixx><iyy>0.083736250</iyy><izz>0.015735200</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.11200 0.10800 0.34100</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.11200 0.10800 0.34100</size></box></geometry><material><diffuse>0.86 0.90 0.93 1</diffuse></material></visual>
+      </link>
+      <link name="right_shank">
+        <pose>0.00000 -0.10300 0.29500 0 0 0</pose>
+        <inertial><mass>3.8000</mass><inertia><ixx>0.037402767</ixx><iyy>0.037567117</iyy><izz>0.004740183</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.08800 0.08500 0.33300</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.08800 0.08500 0.33300</size></box></geometry><material><diffuse>0.91 0.42 0.27 1</diffuse></material></visual>
+      </link>
+      <link name="right_ankle_housing">
+        <pose>0.00000 -0.10300 0.10500 0 0 0</pose>
+        <inertial><mass>0.5500</mass><inertia><ixx>0.000440917</ixx><iyy>0.000427167</iyy><izz>0.000515717</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.07400 0.07600 0.06200</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.07400 0.07600 0.06200</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="right_foot">
+        <pose>0.02500 -0.10300 0.05200 0 0 0</pose>
+        <inertial><mass>1.3500</mass><inertia><ixx>0.002638800</ixx><iyy>0.008440313</iyy><izz>0.008829112</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.25500 0.11600 0.10000</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.25500 0.11600 0.10000</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="right_shoulder_yaw_housing">
+        <pose>0.00000 -0.22200 1.29500 0 0 0</pose>
+        <inertial><mass>0.3800</mass><inertia><ixx>0.000393838</ixx><iyy>0.000323792</iyy><izz>0.000398367</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.07200 0.08600 0.07100</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.07200 0.08600 0.07100</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="right_shoulder_roll_housing">
+        <pose>0.00000 -0.22200 1.29500 0 0 0</pose>
+        <inertial><mass>0.3800</mass><inertia><ixx>0.000366067</ixx><iyy>0.000400425</iyy><izz>0.000381172</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.08100 0.07400 0.07800</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.08100 0.07400 0.07800</size></box></geometry><material><diffuse>0.91 0.42 0.27 1</diffuse></material></visual>
+      </link>
+      <link name="right_upper_arm">
+        <pose>0.00000 -0.22200 1.16000 0 0 0</pose>
+        <inertial><mass>2.4000</mass><inertia><ixx>0.013425800</ixx><iyy>0.013486600</iyy><izz>0.002310800</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.07700 0.07500 0.24800</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.07700 0.07500 0.24800</size></box></geometry><material><diffuse>0.86 0.90 0.93 1</diffuse></material></visual>
+      </link>
+      <link name="right_forearm">
+        <pose>0.00000 -0.22200 0.92500 0 0 0</pose>
+        <inertial><mass>1.3000</mass><inertia><ixx>0.004064883</ixx><iyy>0.004021008</iyy><izz>0.000987675</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.06600 0.06900 0.18100</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.06600 0.06900 0.18100</size></box></geometry><material><diffuse>0.91 0.42 0.27 1</diffuse></material></visual>
+      </link>
+      <link name="right_wrist_housing">
+        <pose>0.00000 -0.22200 0.81700 0 0 0</pose>
+        <inertial><mass>0.3200</mass><inertia><ixx>0.000176667</ixx><iyy>0.000161333</iyy><izz>0.000176667</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.05500 0.06000 0.05500</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.05500 0.06000 0.05500</size></box></geometry><material><diffuse>0.14 0.20 0.28 1</diffuse></material></visual>
+      </link>
+      <link name="right_hand">
+        <pose>0.00000 -0.22200 0.73700 0 0 0</pose>
+        <inertial><mass>0.5000</mass><inertia><ixx>0.000563542</ixx><iyy>0.000646208</iyy><izz>0.000325667</izz></inertia></inertial>
+        <collision name="body"><geometry><box><size>0.07000 0.05400 0.10300</size></box></geometry></collision>
+        <visual name="shell"><geometry><box><size>0.07000 0.05400 0.10300</size></box></geometry><material><diffuse>0.86 0.90 0.93 1</diffuse></material></visual>
+      </link>
+      <joint name="spine_yaw" type="revolute"><parent>pelvis</parent><child>lumbar_yaw</child>
+        <pose relative_to="lumbar_yaw">0.00000 0.00000 -0.01300 0 0 0</pose><axis><xyz>0.00000 0.00000 1.00000</xyz><limit><lower>-0.5</lower><upper>0.5</upper></limit></axis>
+      </joint>
+      <joint name="spine_roll" type="revolute"><parent>lumbar_yaw</parent><child>lumbar_roll</child>
+        <pose relative_to="lumbar_roll">0.00000 0.00000 -0.01200 0 0 0</pose><axis><xyz>1.00000 0.00000 0.00000</xyz><limit><lower>-0.35</lower><upper>0.35</upper></limit></axis>
+      </joint>
+      <joint name="spine_pitch" type="revolute"><parent>lumbar_roll</parent><child>chest</child>
+        <pose relative_to="chest">0.00000 0.00000 -0.18000 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-0.5</lower><upper>0.75</upper></limit></axis>
+      </joint>
+      <joint name="neck_yaw" type="revolute"><parent>chest</parent><child>neck_base</child>
+        <pose relative_to="neck_base">0.00000 0.00000 -0.01400 0 0 0</pose><axis><xyz>0.00000 0.00000 1.00000</xyz><limit><lower>-1.2</lower><upper>1.2</upper></limit></axis>
+      </joint>
+      <joint name="neck_roll" type="revolute"><parent>neck_base</parent><child>neck_roll_housing</child>
+        <pose relative_to="neck_roll_housing">0.00000 0.00000 -0.01200 0 0 0</pose><axis><xyz>1.00000 0.00000 0.00000</xyz><limit><lower>-0.4</lower><upper>0.4</upper></limit></axis>
+      </joint>
+      <joint name="neck_pitch" type="revolute"><parent>neck_roll_housing</parent><child>head</child>
+        <pose relative_to="head">-0.00900 0.00000 -0.10100 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-0.65</lower><upper>0.65</upper></limit></axis>
+      </joint>
+      <joint name="left_hip_yaw" type="revolute"><parent>pelvis</parent><child>left_hip_yaw_housing</child>
+        <pose relative_to="left_hip_yaw_housing">0.00000 0.00000 0.00000 0 0 0</pose><axis><xyz>0.00000 0.00000 1.00000</xyz><limit><lower>-0.65</lower><upper>0.65</upper></limit></axis>
+      </joint>
+      <joint name="left_hip_roll" type="revolute"><parent>left_hip_yaw_housing</parent><child>left_hip_roll_housing</child>
+        <pose relative_to="left_hip_roll_housing">0.00000 0.00000 0.00000 0 0 0</pose><axis><xyz>1.00000 0.00000 0.00000</xyz><limit><lower>-0.6</lower><upper>0.6</upper></limit></axis>
+      </joint>
+      <joint name="left_hip_pitch" type="revolute"><parent>left_hip_roll_housing</parent><child>left_thigh</child>
+        <pose relative_to="left_thigh">0.00000 0.00000 0.18500 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-1.55</lower><upper>1.35</upper></limit></axis>
+      </joint>
+      <joint name="left_knee_pitch" type="revolute"><parent>left_thigh</parent><child>left_shank</child>
+        <pose relative_to="left_shank">0.00000 0.00000 0.18300 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-0.16</lower><upper>2.1</upper></limit></axis>
+      </joint>
+      <joint name="left_ankle_pitch" type="revolute"><parent>left_shank</parent><child>left_ankle_housing</child>
+        <pose relative_to="left_ankle_housing">0.00000 0.00000 0.00200 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-0.65</lower><upper>0.65</upper></limit></axis>
+      </joint>
+      <joint name="left_ankle_roll" type="revolute"><parent>left_ankle_housing</parent><child>left_foot</child>
+        <pose relative_to="left_foot">-0.02500 0.00000 0.04700 0 0 0</pose><axis><xyz>1.00000 0.00000 0.00000</xyz><limit><lower>-0.4</lower><upper>0.4</upper></limit></axis>
+      </joint>
+      <joint name="left_shoulder_yaw" type="revolute"><parent>chest</parent><child>left_shoulder_yaw_housing</child>
+        <pose relative_to="left_shoulder_yaw_housing">0.00000 0.00000 0.00000 0 0 0</pose><axis><xyz>0.00000 0.00000 1.00000</xyz><limit><lower>-1.35</lower><upper>1.35</upper></limit></axis>
+      </joint>
+      <joint name="left_shoulder_roll" type="revolute"><parent>left_shoulder_yaw_housing</parent><child>left_shoulder_roll_housing</child>
+        <pose relative_to="left_shoulder_roll_housing">0.00000 0.00000 0.00000 0 0 0</pose><axis><xyz>1.00000 0.00000 0.00000</xyz><limit><lower>-1.35</lower><upper>1.35</upper></limit></axis>
+      </joint>
+      <joint name="left_shoulder_pitch" type="revolute"><parent>left_shoulder_roll_housing</parent><child>left_upper_arm</child>
+        <pose relative_to="left_upper_arm">0.00000 0.00000 0.13500 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-1.9</lower><upper>1.9</upper></limit></axis>
+      </joint>
+      <joint name="left_elbow_pitch" type="revolute"><parent>left_upper_arm</parent><child>left_forearm</child>
+        <pose relative_to="left_forearm">0.00000 0.00000 0.09700 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-1.85</lower><upper>0.18</upper></limit></axis>
+      </joint>
+      <joint name="left_forearm_yaw" type="revolute"><parent>left_forearm</parent><child>left_wrist_housing</child>
+        <pose relative_to="left_wrist_housing">0.00000 0.00000 0.00800 0 0 0</pose><axis><xyz>0.00000 0.00000 1.00000</xyz><limit><lower>-1.45</lower><upper>1.45</upper></limit></axis>
+      </joint>
+      <joint name="left_wrist_pitch" type="revolute"><parent>left_wrist_housing</parent><child>left_hand</child>
+        <pose relative_to="left_hand">0.00000 0.00000 0.04900 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-0.8</lower><upper>0.8</upper></limit></axis>
+      </joint>
+      <joint name="right_hip_yaw" type="revolute"><parent>pelvis</parent><child>right_hip_yaw_housing</child>
+        <pose relative_to="right_hip_yaw_housing">0.00000 0.00000 0.00000 0 0 0</pose><axis><xyz>0.00000 0.00000 1.00000</xyz><limit><lower>-0.65</lower><upper>0.65</upper></limit></axis>
+      </joint>
+      <joint name="right_hip_roll" type="revolute"><parent>right_hip_yaw_housing</parent><child>right_hip_roll_housing</child>
+        <pose relative_to="right_hip_roll_housing">0.00000 0.00000 0.00000 0 0 0</pose><axis><xyz>1.00000 0.00000 0.00000</xyz><limit><lower>-0.6</lower><upper>0.6</upper></limit></axis>
+      </joint>
+      <joint name="right_hip_pitch" type="revolute"><parent>right_hip_roll_housing</parent><child>right_thigh</child>
+        <pose relative_to="right_thigh">0.00000 0.00000 0.18500 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-1.55</lower><upper>1.35</upper></limit></axis>
+      </joint>
+      <joint name="right_knee_pitch" type="revolute"><parent>right_thigh</parent><child>right_shank</child>
+        <pose relative_to="right_shank">0.00000 0.00000 0.18300 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-0.16</lower><upper>2.1</upper></limit></axis>
+      </joint>
+      <joint name="right_ankle_pitch" type="revolute"><parent>right_shank</parent><child>right_ankle_housing</child>
+        <pose relative_to="right_ankle_housing">0.00000 0.00000 0.00200 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-0.65</lower><upper>0.65</upper></limit></axis>
+      </joint>
+      <joint name="right_ankle_roll" type="revolute"><parent>right_ankle_housing</parent><child>right_foot</child>
+        <pose relative_to="right_foot">-0.02500 0.00000 0.04700 0 0 0</pose><axis><xyz>1.00000 0.00000 0.00000</xyz><limit><lower>-0.4</lower><upper>0.4</upper></limit></axis>
+      </joint>
+      <joint name="right_shoulder_yaw" type="revolute"><parent>chest</parent><child>right_shoulder_yaw_housing</child>
+        <pose relative_to="right_shoulder_yaw_housing">0.00000 0.00000 0.00000 0 0 0</pose><axis><xyz>0.00000 0.00000 1.00000</xyz><limit><lower>-1.35</lower><upper>1.35</upper></limit></axis>
+      </joint>
+      <joint name="right_shoulder_roll" type="revolute"><parent>right_shoulder_yaw_housing</parent><child>right_shoulder_roll_housing</child>
+        <pose relative_to="right_shoulder_roll_housing">0.00000 0.00000 0.00000 0 0 0</pose><axis><xyz>1.00000 0.00000 0.00000</xyz><limit><lower>-1.35</lower><upper>1.35</upper></limit></axis>
+      </joint>
+      <joint name="right_shoulder_pitch" type="revolute"><parent>right_shoulder_roll_housing</parent><child>right_upper_arm</child>
+        <pose relative_to="right_upper_arm">0.00000 0.00000 0.13500 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-1.9</lower><upper>1.9</upper></limit></axis>
+      </joint>
+      <joint name="right_elbow_pitch" type="revolute"><parent>right_upper_arm</parent><child>right_forearm</child>
+        <pose relative_to="right_forearm">0.00000 0.00000 0.09700 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-1.85</lower><upper>0.18</upper></limit></axis>
+      </joint>
+      <joint name="right_forearm_yaw" type="revolute"><parent>right_forearm</parent><child>right_wrist_housing</child>
+        <pose relative_to="right_wrist_housing">0.00000 0.00000 0.00800 0 0 0</pose><axis><xyz>0.00000 0.00000 1.00000</xyz><limit><lower>-1.45</lower><upper>1.45</upper></limit></axis>
+      </joint>
+      <joint name="right_wrist_pitch" type="revolute"><parent>right_wrist_housing</parent><child>right_hand</child>
+        <pose relative_to="right_hand">0.00000 0.00000 0.04900 0 0 0</pose><axis><xyz>0.00000 1.00000 0.00000</xyz><limit><lower>-0.8</lower><upper>0.8</upper></limit></axis>
+      </joint>
+    </model>
+  </world>
+</sdf>

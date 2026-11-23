@@ -171,7 +171,7 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
                     assert_eq!(
                         feature,
                         if kind == "altimeter" {
-                            "Rapier ideal altimeter"
+                            "Rapier or GPU ideal altimeter"
                         } else if kind == "air_pressure" {
                             "Rapier ideal air_pressure"
                         } else if kind == "air_speed" {

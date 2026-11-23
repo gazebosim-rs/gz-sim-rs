@@ -24,7 +24,59 @@ impl EntityId {
 struct IdIndex {
     owner: Arc<()>,
     last: u64,
-    entities: BTreeMap<u64, Entity>,
+    pages: BTreeMap<u64, Box<IdPage>>,
+}
+
+// Public IDs are allocated in order but whole ranges may retire. Keep a dense
+// array within each occupied page and release the page when its last ID retires.
+const PAGE_SIZE: usize = 64;
+
+struct IdPage {
+    entries: [Option<Entity>; PAGE_SIZE],
+    live: usize,
+}
+
+impl Default for IdPage {
+    fn default() -> Self {
+        Self {
+            entries: [None; PAGE_SIZE],
+            live: 0,
+        }
+    }
+}
+
+fn location(id: u64) -> (u64, usize) {
+    (id / PAGE_SIZE as u64, (id % PAGE_SIZE as u64) as usize)
+}
+
+impl IdIndex {
+    fn entity(&self, id: u64) -> Option<Entity> {
+        let (key, slot) = location(id);
+        self.pages.get(&key)?.entries[slot]
+    }
+
+    fn insert(&mut self, id: u64, entity: Entity) {
+        let (key, slot) = location(id);
+        let page = self.pages.entry(key).or_default();
+        if page.entries[slot].replace(entity).is_none() {
+            page.live += 1;
+        }
+    }
+
+    fn forget(&mut self, id: u64, entity: Entity) {
+        let (key, slot) = location(id);
+        let std::collections::btree_map::Entry::Occupied(mut entry) = self.pages.entry(key) else {
+            return;
+        };
+        let page = entry.get_mut();
+        if page.entries[slot] == Some(entity) {
+            page.entries[slot] = None;
+            page.live -= 1;
+            if page.live == 0 {
+                entry.remove();
+            }
+        }
+    }
 }
 
 /// Read-only public-ID resolution for scheduled systems, checking the live owner.
@@ -36,7 +88,25 @@ pub struct EntityLookup<'w, 's> {
 
 impl EntityLookup<'_, '_> {
     pub fn get(&self, id: u64) -> Option<Entity> {
-        let entity = *self.index.as_ref()?.entities.get(&id)?;
+        self.live_owner(id, self.index.as_ref()?.entity(id)?)
+    }
+
+    /// A scoped resolver for many public IDs. Nearby lookups share a page
+    /// search, including when IDs repeat or arrive out of order. Each access
+    /// still checks the current ECS component against its authoritative owner.
+    pub fn reader(&self) -> impl FnMut(u64) -> Option<Entity> + '_ {
+        let index = self.index.as_deref();
+        let mut cached: Option<(u64, &IdPage)> = None;
+        move |id| {
+            let (key, slot) = location(id);
+            if cached.is_none_or(|(previous, _)| previous != key) {
+                cached = Some((key, index?.pages.get(&key)?));
+            }
+            self.live_owner(id, cached?.1.entries[slot]?)
+        }
+    }
+
+    fn live_owner(&self, id: u64, entity: Entity) -> Option<Entity> {
         (self.identities.get(entity).ok()?.get() == id).then_some(entity)
     }
 }
@@ -128,10 +198,10 @@ pub fn restore_id(
         };
     }
     let mut index = world.resource_mut::<IdIndex>();
-    if index.entities.contains_key(&reserved.id) {
+    if index.entity(reserved.id).is_some() {
         return Err(IdentityError::IdentityInUse(reserved.id));
     }
-    index.entities.insert(reserved.id, entity);
+    index.insert(reserved.id, entity);
     world.entity_mut(entity).insert(EntityId(reserved.id));
     Ok(reserved.id)
 }
@@ -154,7 +224,7 @@ pub fn assign_id(world: &mut World, entity: Entity) -> Result<u64, IdentityError
     let mut index = world.resource_mut::<IdIndex>();
     let id = index.last.checked_add(1).ok_or(IdentityError::Exhausted)?;
     index.last = id;
-    index.entities.insert(id, entity);
+    index.insert(id, entity);
     world.entity_mut(entity).insert(EntityId(id));
     Ok(id)
 }
@@ -170,9 +240,21 @@ pub fn next_entity_id(world: &World) -> Result<u64, IdentityError> {
         .ok_or(IdentityError::Exhausted)
 }
 
+/// Preserve a verified previously issued range while rebuilding a world in ascending
+/// public-ID order. Skipped IDs have no owner and allocate no pages. The floor can
+/// only move forward and never changes existing identities or reset reservations.
+pub fn advance_entity_id_floor(world: &mut World, next: u64) -> Result<(), IdentityError> {
+    if next < next_entity_id(world)? {
+        return Err(IdentityError::InvalidReservation);
+    }
+    world.init_resource::<IdIndex>();
+    world.resource_mut::<IdIndex>().last = next - 1;
+    Ok(())
+}
+
 /// Resolves only a live entity that still owns the requested identity.
 pub fn entity_by_id(world: &World, id: u64) -> Option<Entity> {
-    let entity = *world.get_resource::<IdIndex>()?.entities.get(&id)?;
+    let entity = world.get_resource::<IdIndex>()?.entity(id)?;
     (world.get::<EntityId>(entity)?.0 == id).then_some(entity)
 }
 
@@ -181,10 +263,8 @@ fn forget_id(mut world: DeferredWorld, context: HookContext) {
         .get::<EntityId>(context.entity)
         .expect("removal hook runs before the identity is removed")
         .0;
-    if let Some(mut index) = world.get_resource_mut::<IdIndex>()
-        && index.entities.get(&id) == Some(&context.entity)
-    {
-        index.entities.remove(&id);
+    if let Some(mut index) = world.get_resource_mut::<IdIndex>() {
+        index.forget(id, context.entity);
     }
 }
 

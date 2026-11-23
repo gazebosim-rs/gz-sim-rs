@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <plugin name="gz::sim::systems::ContactPromotion" filename="gz-sim-contact-promotion-system">
+      <model>default::rotor</model>
+      <obstacle>default::stop::head</obstacle>
+      <initial_tier>prescribed</initial_tier>
+    </plugin>
+    <gravity>0 0 0</gravity>
+    <physics name="measured" type="ignored"><max_step_size>0.004</max_step_size></physics>
+    <model name="rotor">
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system"/>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0.06 -0.02 0</linear_velocity>
+        <angular_velocity>0 0 7.5</angular_velocity>
+      </plugin>
+      <link name="base">
+        <pose>0 -0.325 0 0 0 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.00121</ixx><iyy>0.00121</iyy><izz>0.00121</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.055</radius></sphere></geometry></collision>
+        <visual name="surface"><geometry><sphere><radius>0.055</radius></sphere></geometry><material><diffuse>0.11 0.61 0.81 1</diffuse></material></visual>
+        <visual name="arm">
+          <pose>0 0.1625 0 0 0 0</pose><geometry><box><size>0.035 0.325 0.025</size></box></geometry>
+          <material><diffuse>0.11 0.61 0.81 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="tip">
+        <pose>0 0.325 0 0 0 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.00121</ixx><iyy>0.00121</iyy><izz>0.00121</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.055</radius></sphere></geometry></collision>
+        <visual name="surface"><geometry><sphere><radius>0.055</radius></sphere></geometry><material><diffuse>0.97 0.53 0.14 1</diffuse></material></visual>
+        <visual name="arm">
+          <pose>0 -0.1625 0 0 0 0</pose><geometry><box><size>0.035 0.325 0.025</size></box></geometry>
+          <material><diffuse>0.97 0.53 0.14 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="hinge" type="revolute">
+        <parent>base</parent><child>tip</child>
+        <pose relative_to="__model__">0 0 0 0 0 0</pose><axis><xyz>1 0 0</xyz></axis>
+      </joint>
+    </model>
+    <model name="stop">
+      <static>true</static><pose>-0.269 0.175 0 0 0 0</pose>
+      <link name="head">
+        <collision name="ball"><geometry><sphere><radius>0.035</radius></sphere></geometry></collision>
+        <visual name="surface"><geometry><sphere><radius>0.035</radius></sphere></geometry><material><diffuse>0.87 0.25 0.21 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

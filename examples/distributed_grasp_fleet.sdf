@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <plugin filename="gz-sim-grasp-fleet-system" name="gz::sim::systems::GraspFleet">
+      <assembly gripper="north" payload="north_part"/>
+      <assembly gripper="south" payload="south_part"/>
+    </plugin>
+    <model name="south">
+      <pose>-0.32 -0.95 0.58 0 0 0</pose>
+      <self_collide>false</self_collide>
+      <plugin filename="gz-sim-switchable-articulation-system" name="gz::sim::systems::SwitchableArticulation"/>
+      <link name="palm">
+        <inertial><mass>2.4</mass><inertia><ixx>0.10</ixx><iyy>0.09</iyy><izz>0.13</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.14</radius></sphere></geometry></collision>
+        <visual name="palm_hub"><geometry><sphere><radius>0.14</radius></sphere></geometry><material><diffuse>0.15 0.28 0.53 1</diffuse></material></visual>
+        <visual name="crossbar"><pose>0.02 0 0 0 0 0</pose><geometry><box><size>0.15 0.58 0.095</size></box></geometry><material><diffuse>0.2 0.36 0.58 1</diffuse></material></visual>
+      </link>
+      <link name="left_finger">
+        <pose>0.64 0.29 0 0 0 0</pose>
+        <inertial><mass>0.83</mass><inertia><ixx>0.026</ixx><iyy>0.031</iyy><izz>0.039</izz></inertia></inertial>
+        <collision name="pad"><geometry><sphere><radius>0.10</radius></sphere></geometry></collision>
+        <visual name="left_pad"><geometry><sphere><radius>0.10</radius></sphere></geometry><material><diffuse>0.08 0.73 0.65 1</diffuse></material></visual>
+        <visual name="left_shank"><pose>-0.30 0 0 0 0 0</pose><geometry><box><size>0.60 0.065 0.065</size></box></geometry><material><diffuse>0.12 0.58 0.55 1</diffuse></material></visual>
+      </link>
+      <link name="right_finger">
+        <pose>0.64 -0.29 0 0 0 0</pose>
+        <inertial><mass>0.83</mass><inertia><ixx>0.026</ixx><iyy>0.031</iyy><izz>0.039</izz></inertia></inertial>
+        <collision name="pad"><geometry><sphere><radius>0.10</radius></sphere></geometry></collision>
+        <visual name="right_pad"><geometry><sphere><radius>0.10</radius></sphere></geometry><material><diffuse>0.23 0.61 0.90 1</diffuse></material></visual>
+        <visual name="right_shank"><pose>-0.30 0 0 0 0 0</pose><geometry><box><size>0.60 0.065 0.065</size></box></geometry><material><diffuse>0.18 0.49 0.75 1</diffuse></material></visual>
+      </link>
+      <joint name="right_close" type="revolute">
+        <parent>palm</parent><child>right_finger</child><pose relative_to="palm">0.04 -0.29 0 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz><limit><lower>-0.42</lower><upper>0.42</upper></limit></axis>
+      </joint>
+      <joint name="left_close" type="revolute">
+        <parent>palm</parent><child>left_finger</child><pose relative_to="palm">0.04 0.29 0 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz><limit><lower>-0.42</lower><upper>0.42</upper></limit></axis>
+      </joint>
+    </model>
+    <model name="north_part">
+      <allow_auto_disable>false</allow_auto_disable>
+      <pose>0.317 0.954 0.58 0 0 0</pose>
+      <link name="part">
+        <inertial><mass>0.72</mass><inertia><ixx>0.010</ixx><iyy>0.010</iyy><izz>0.010</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.16</radius></sphere></geometry></collision>
+        <visual name="gold_workpiece"><geometry><sphere><radius>0.16</radius></sphere></geometry><material><diffuse>0.97 0.54 0.08 1</diffuse></material></visual>
+        <visual name="orientation_mark"><pose>0.10 0 0.10 0 0 0</pose><geometry><sphere><radius>0.035</radius></sphere></geometry><material><diffuse>0.93 0.83 0.54 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="north">
+      <pose>-0.32 0.95 0.58 0 0 0</pose>
+      <self_collide>false</self_collide>
+      <plugin filename="gz-sim-switchable-articulation-system" name="gz::sim::systems::SwitchableArticulation"/>
+      <link name="palm">
+        <inertial><mass>2.4</mass><inertia><ixx>0.10</ixx><iyy>0.09</iyy><izz>0.13</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.14</radius></sphere></geometry></collision>
+        <visual name="palm_hub"><geometry><sphere><radius>0.14</radius></sphere></geometry><material><diffuse>0.15 0.28 0.53 1</diffuse></material></visual>
+        <visual name="crossbar"><pose>0.02 0 0 0 0 0</pose><geometry><box><size>0.15 0.58 0.095</size></box></geometry><material><diffuse>0.2 0.36 0.58 1</diffuse></material></visual>
+      </link>
+      <link name="left_finger">
+        <pose>0.64 0.29 0 0 0 0</pose>
+        <inertial><mass>0.83</mass><inertia><ixx>0.026</ixx><iyy>0.031</iyy><izz>0.039</izz></inertia></inertial>
+        <collision name="pad"><geometry><sphere><radius>0.10</radius></sphere></geometry></collision>
+        <visual name="left_pad"><geometry><sphere><radius>0.10</radius></sphere></geometry><material><diffuse>0.63 0.46 0.79 1</diffuse></material></visual>
+        <visual name="left_shank"><pose>-0.30 0 0 0 0 0</pose><geometry><box><size>0.60 0.065 0.065</size></box></geometry><material><diffuse>0.56 0.39 0.71 1</diffuse></material></visual>
+      </link>
+      <link name="right_finger">
+        <pose>0.64 -0.29 0 0 0 0</pose>
+        <inertial><mass>0.83</mass><inertia><ixx>0.026</ixx><iyy>0.031</iyy><izz>0.039</izz></inertia></inertial>
+        <collision name="pad"><geometry><sphere><radius>0.10</radius></sphere></geometry></collision>
+        <visual name="right_pad"><geometry><sphere><radius>0.10</radius></sphere></geometry><material><diffuse>0.56 0.67 0.87 1</diffuse></material></visual>
+        <visual name="right_shank"><pose>-0.30 0 0 0 0 0</pose><geometry><box><size>0.60 0.065 0.065</size></box></geometry><material><diffuse>0.40 0.55 0.76 1</diffuse></material></visual>
+      </link>
+      <joint name="right_close" type="revolute">
+        <parent>palm</parent><child>right_finger</child><pose relative_to="palm">0.04 -0.29 0 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz><limit><lower>-0.42</lower><upper>0.42</upper></limit></axis>
+      </joint>
+      <joint name="left_close" type="revolute">
+        <parent>palm</parent><child>left_finger</child><pose relative_to="palm">0.04 0.29 0 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz><limit><lower>-0.42</lower><upper>0.42</upper></limit></axis>
+      </joint>
+    </model>
+    <model name="south_part">
+      <allow_auto_disable>false</allow_auto_disable>
+      <pose>0.317 -0.946 0.58 0 0 0</pose>
+      <link name="part">
+        <inertial><mass>0.72</mass><inertia><ixx>0.010</ixx><iyy>0.010</iyy><izz>0.010</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.16</radius></sphere></geometry></collision>
+        <visual name="gold_workpiece"><geometry><sphere><radius>0.16</radius></sphere></geometry><material><diffuse>0.97 0.54 0.08 1</diffuse></material></visual>
+        <visual name="orientation_mark"><pose>0.10 0 0.10 0 0 0</pose><geometry><sphere><radius>0.035</radius></sphere></geometry><material><diffuse>0.93 0.83 0.54 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>
