@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Test the live tactile recovery policy against identical unguarded pulls.
 use super::*;
+#[path = "fold_landing.rs"]
+mod landing;
 use gz_sim_scene::grasp_guard::{GraspRetention, PadReading, RetentionCommand};
+pub(crate) use landing::End;
 use std::time::Duration;
 
 const HORIZON: usize = 1200;
@@ -117,13 +120,7 @@ struct Branch {
     actions: Recovery,
 }
 
-fn branch(
-    columns: usize,
-    peak_mn: u32,
-    enabled: bool,
-    out: &Path,
-    follow_dropped: bool,
-) -> Result<Branch> {
+fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> Result<Branch> {
     let scene = closing_sheet_scene::scene(columns)?;
     let mut grasp = Grasp::pickup(&scene, columns)?;
     grasp.acquire(MAX_BLOCKS)?;
@@ -132,8 +129,14 @@ fn branch(
     let anchor = fold_hold::snapshot(&grasp.recording.sim)?;
     let mut actions = Recovery::default();
     let mut clearances = Vec::with_capacity(HORIZON);
+    let mut landing = None;
     for k in 1..=HORIZON {
         let (phase, force) = pulse(k, f64::from(peak_mn) * 0.001);
+        let incoming = if end != End::Escape && actions.escaped.is_some() && landing.is_none() {
+            Some(landing::particles(&grasp)?)
+        } else {
+            None
+        };
         actions.drive(k, &mut grasp, phase, force).map_err(|err| {
             format!("{columns}-point {peak_mn} mN guard={enabled} tick {k} stroke={} lower={:?} open={:?} last={:?}: {err} ({:?})", grasp.stroke, actions.lower, actions.open, grasp.trace.last(), grasp.recording.sim.fault())
         })?;
@@ -149,7 +152,21 @@ fn branch(
         let margins = jaw_clearances(&grasp)?;
         actions.confirm_escape(k, &grasp.trace[last], margins);
         clearances.push(margins);
-        if actions.escaped.is_some() && !follow_dropped {
+        if let Some(incoming) = incoming
+            && grasp.trace[last].bench_up_n > 1e-9
+        {
+            landing = Some(landing::impact(
+                k,
+                &incoming,
+                &landing::particles(&grasp)?,
+                &grasp.trace[last - 1],
+                &grasp.trace[last],
+                grasp.weight_n,
+            ));
+        }
+        if (actions.escaped.is_some() && end == End::Escape)
+            || (landing.is_some() && end == End::FirstLanding)
+        {
             if !k.is_multiple_of(STRIDE) {
                 arm_sheet::capture(&mut grasp.recording, &mut grasp.frames)?;
             }
@@ -177,6 +194,9 @@ fn branch(
         &dir.join("escape-clearance.json"),
         &serde_json::to_value(clearances)?,
     )?;
+    if let Some(impact) = &landing {
+        write_json(&dir.join("landing.json"), impact)?;
+    }
     let path = dir.join("frames.json");
     let mut manifest: Value = serde_json::from_slice(&fs::read(&path)?)?;
     let captures = &mut manifest["captures"];
@@ -190,6 +210,13 @@ fn branch(
         ("open", actions.open),
         ("lost_aloft", actions.lost_aloft),
         ("escaped", actions.escaped),
+        (
+            "first_landing",
+            landing
+                .as_ref()
+                .and_then(|v| v["tick"].as_u64())
+                .map(|v| v as usize),
+        ),
     ] {
         if let Some(tick) = event.filter(|tick| *tick <= observed) {
             captures[name] = json!(frame + tick.div_ceil(STRIDE));
@@ -242,9 +269,9 @@ fn metrics(b: &Branch) -> Value {
         "final_stroke_m":last.last().unwrap().command_stroke_m})
 }
 
-fn pair(columns: usize, peak_mn: u32, out: &Path, follow_dropped: bool) -> Result<Value> {
-    let guard = branch(columns, peak_mn, true, out, follow_dropped)?;
-    let control = branch(columns, peak_mn, false, out, follow_dropped)?;
+fn pair(columns: usize, peak_mn: u32, out: &Path, end: End) -> Result<Value> {
+    let guard = branch(columns, peak_mn, true, out, end)?;
+    let control = branch(columns, peak_mn, false, out, end)?;
     compare(columns, peak_mn, &guard, &control)
 }
 
@@ -272,7 +299,7 @@ fn compare(columns: usize, peak_mn: u32, guard: &Branch, control: &Branch) -> Re
 #[path = "fold_recovery_tests.rs"]
 mod tests;
 
-pub(crate) fn run(out: &Path, trial: Option<(usize, u32)>, follow_dropped: bool) -> Result<()> {
+pub(crate) fn run(out: &Path, trial: Option<(usize, u32)>, end: End) -> Result<()> {
     let mut cases = Vec::new();
     let sets = match trial {
         Some((columns @ (5 | 7), force)) => vec![vec![(columns, force)]],
@@ -289,9 +316,7 @@ pub(crate) fn run(out: &Path, trial: Option<(usize, u32)>, follow_dropped: bool)
         std::thread::scope(|scope| -> Result<()> {
             let workers = trials
                 .into_iter()
-                .map(|(c, n)| {
-                    scope.spawn(move || pair(c, n, out, follow_dropped).map_err(|e| e.to_string()))
-                })
+                .map(|(c, n)| scope.spawn(move || pair(c, n, out, end).map_err(|e| e.to_string())))
                 .collect::<Vec<_>>();
             for w in workers {
                 cases.push(w.join().map_err(|_| "recovery trial panicked")??);
@@ -299,8 +324,10 @@ pub(crate) fn run(out: &Path, trial: Option<(usize, u32)>, follow_dropped: bool)
             Ok(())
         })?;
     }
-    write_json(
-        &out.join("comparison.json"),
-        &json!({"dt_ns":1000000,"horizon_ticks":HORIZON,"extra_stroke_m":EXTRA_STROKE,"cases":cases}),
-    )
+    let mut comparison = json!({"dt_ns":1000000,"horizon_ticks":HORIZON,"extra_stroke_m":EXTRA_STROKE,"cases":cases});
+    if end != End::Escape {
+        comparison["follow_dropped"] = json!(true);
+        comparison["stop_at_first_landing"] = json!(end == End::FirstLanding);
+    }
+    write_json(&out.join("comparison.json"), &comparison)
 }

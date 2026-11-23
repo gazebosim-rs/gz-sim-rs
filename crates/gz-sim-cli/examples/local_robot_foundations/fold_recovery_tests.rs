@@ -101,7 +101,7 @@ fn escape_requires_continuous_clearance_of_both_jaws_and_the_bench() {
 fn admission_and_publication_errors_leave_no_partial_recovery_study() {
     let parent = tempfile::tempdir().unwrap();
     let out = parent.path().join("study");
-    assert!(write_new(&out, |p| run(p, Some((9, 1100)), false)).is_err());
+    assert!(write_new(&out, |p| run(p, Some((9, 1100)), End::Escape)).is_err());
     assert!(!out.exists());
 }
 
@@ -134,9 +134,29 @@ fn a_confirmed_supported_release_opens_the_real_actuator_over_300_ticks() {
 #[test]
 fn invalid_mesh_and_failed_archive_storage_propagate_through_the_pair() {
     let dir = tempfile::tempdir().unwrap();
-    assert!(pair(4, 1100, dir.path(), false).is_err());
+    assert!(pair(4, 1100, dir.path(), End::Escape).is_err());
     let dest = dir.path().join("file");
     fs::write(&dest, b"keep").unwrap();
-    assert!(run(&dest, Some((5, 1250)), false).is_err());
+    assert!(run(&dest, Some((5, 1250)), End::Escape).is_err());
     assert_eq!(fs::read(&dest).unwrap(), b"keep");
+}
+
+#[test]
+fn landing_balance_accounts_for_both_jaws_gravity_and_bench_friction() {
+    let mut prev = sample();
+    prev.momentum_y_kg_m_s = 0.01;
+    let mut now = prev.clone();
+    now.bench_up_n = 4.;
+    now.jaw_up_n = [0.1, -0.2];
+    now.force_y_n = 0.9;
+    now.bench_side_reaction_n = 0.6;
+    now.jaw_side_reaction_n = [0.1, 0.3];
+    now.momentum_y_kg_m_s = 0.0099;
+    let masses_before = [[0.01, -0.2], [0.02, -0.1]];
+    let masses_after = [[0.01, -0.03], [0.02, -0.005]];
+    let impact = landing::impact(27, &masses_before, &masses_after, &prev, &now, 0.3);
+    assert!(impact["vertical_balance_error_ns"].as_f64().unwrap().abs() < 1e-14);
+    assert!(impact["lateral_balance_error_ns"].as_f64().unwrap().abs() < 1e-14);
+    assert_eq!(impact["incoming_mass_kg_vz_m_s"], json!(masses_before));
+    assert_eq!(impact["outgoing_mass_kg_vz_m_s"], json!(masses_after));
 }
