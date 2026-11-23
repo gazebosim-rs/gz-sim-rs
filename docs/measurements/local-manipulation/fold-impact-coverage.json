@@ -1,0 +1,114 @@
+{
+  "landing": {
+    "commit": "7c06f43",
+    "scope": "changed executable source",
+    "files": {
+      "crates/gz-physics-xpbd/src/lib.rs": {
+        "lines": [
+          18,
+          18
+        ],
+        "regions": [
+          32,
+          32
+        ]
+      },
+      "crates/gz-physics-xpbd/src/collision.rs": {
+        "lines": [
+          40,
+          40
+        ],
+        "regions": [
+          68,
+          69
+        ]
+      },
+      "crates/gz-physics-xpbd/src/surface.rs": {
+        "lines": [
+          120,
+          122
+        ],
+        "regions": [
+          209,
+          217
+        ]
+      },
+      "crates/gz-physics-xpbd/src/coupled.rs": {
+        "lines": [
+          9,
+          9
+        ],
+        "regions": [
+          13,
+          13
+        ]
+      },
+      "crates/gz-physics-xpbd/src/surface/friction.rs": {
+        "lines": [
+          9,
+          10
+        ],
+        "regions": [
+          13,
+          15
+        ]
+      }
+    },
+    "totals": {
+      "lines": [
+        196,
+        199
+      ],
+      "regions": [
+        335,
+        346
+      ]
+    }
+  },
+  "landing-example": {
+    "commit": "5c60dae",
+    "scope": "changed executable source",
+    "files": {
+      "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+        "lines": [
+          7,
+          7
+        ],
+        "regions": [
+          13,
+          13
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/fold_recovery.rs": {
+        "lines": [
+          35,
+          36
+        ],
+        "regions": [
+          85,
+          91
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/fold_landing.rs": {
+        "lines": [
+          34,
+          34
+        ],
+        "regions": [
+          54,
+          55
+        ]
+      }
+    },
+    "totals": {
+      "lines": [
+        76,
+        77
+      ],
+      "regions": [
+        152,
+        159
+      ]
+    }
+  }
+}
