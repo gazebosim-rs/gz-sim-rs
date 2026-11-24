@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Ten local phases of catching a slipping parcel
+
+The rising gripper tightened when it sensed the parcel sliding. The 200 g parcel slipped 0.462 mm, compared with 10.090 mm with feedback off and 0.464 mm in continuously fine physics with feedback on. Two simulated tactile pads also caught it using relative motion at their loaded surfaces. Their estimate of slip stayed within 4.5 µm of the independently measured parcel displacement. [Ten phases, force balance and regression checks](measurements/local-manipulation/slip-catch.md) · [Watch in gz-web-rs](measurements/local-manipulation/slip-catch-view.md)
+
+The ten phases covered measuring slip, catching it, slower sensing, slower fingers, a squeeze limit, easing the lift, carrying a heavier parcel, changing friction and mass offset, catching a second slip, and releasing on command. A 2.55 N force ceiling alone let the parcel slide 5.928 mm. Reducing the lift effort once the applied squeeze reached its ceiling arrested that slip at 0.468 mm. All 14 scenarios ran with adaptive and continuously fine physics on the same actuator clock. All ten carry tests passed. LLVM covered every executable line and region of the three new scene modules, and the runnable example and fixture reached 98.81% line and 95.95% region coverage. The next local phase will test losing one tactile contact and setting the parcel down if contact cannot be regained. [Full measurements](measurements/local-manipulation/slip-catch.json)
+
 ## 2026-11-24 — Hold and slip during an accelerating off-center carry
 
 A force-driven vertical gripper lifted a 200 g parcel with its center of mass 4.5 mm off center. The predicted grip threshold was 2.762 N per finger. Both adaptive and continuously fine runs showed sustained slip at 2.76 N and a hold at 2.77 N. A 4.2 N grip carried the parcel 39.21 mm. Changing to 2.3 N during the lift let it slide 10.090 mm in 80 ms, within 0.275 µm of the continuously fine run. Mirroring the offset swapped the fingers’ measured shares of the weight. [Force balance, thresholds and cost](measurements/local-manipulation/offset-carry.md) · [Measured gz-web-rs recordings](measurements/local-manipulation/offset-carry-view.md)

@@ -1,0 +1,1269 @@
+{
+  "public_dt_us": 200,
+  "fine_native_dt_us": 1,
+  "armed_ms": 210,
+  "gravity_m_s2": 9.81,
+  "gripper_mass_kg": 0.56,
+  "lift_force_n": 10.4956,
+  "cases": {
+    "hold": {
+      "adaptive": {
+        "peak_slip_mm": 5.551115123125783e-14,
+        "final_slip_mm": -7.771561172376096e-13,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          }
+        ],
+        "force_at_end_n": 4.2,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          0.9652563375450306,
+          1.796743662454678
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 1.6653345369377348e-13,
+        "final_slip_mm": -6.661338147750939e-13,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          }
+        ],
+        "force_at_end_n": 4.2,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          0.9655099651058193,
+          1.7964900348641382
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 8.881784197001252e-10,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "open": {
+      "adaptive": {
+        "peak_slip_mm": 10.089907069143756,
+        "final_slip_mm": 10.089907069143756,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "OpenLoop",
+            "time_ns": 210000000
+          }
+        ],
+        "force_at_end_n": 2.3,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.1498701473782078,
+          1.149873981598029
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 10.089632306956641,
+        "final_slip_mm": 10.089632306956641,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "OpenLoop",
+            "time_ns": 210000000
+          }
+        ],
+        "force_at_end_n": 2.3,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.1499604787120756,
+          1.1498938725916932
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 0.27476218711353084,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "catch": {
+      "adaptive": {
+        "peak_slip_mm": 0.4618791936499833,
+        "final_slip_mm": 0.4618737987927002,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236200000
+          }
+        ],
+        "force_at_end_n": 3.9080000000000013,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.2463248295027187,
+          1.5156751704802316
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 0.4635282996020007,
+        "final_slip_mm": 0.46352829960166764,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236200000
+          }
+        ],
+        "force_at_end_n": 3.9080000000000013,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.2472034063466924,
+          1.514796593653589
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 1.6545030273040773,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "tactile": {
+      "adaptive": {
+        "peak_slip_mm": 0.4618791936499833,
+        "final_slip_mm": 0.4618739085164303,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236000000
+          }
+        ],
+        "force_at_end_n": 3.8840000000000012,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.24633790155112,
+          1.5156620984323999
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450,
+        "valid_bilateral_samples": 401,
+        "max_estimator_error_um": 4.407242779054022,
+        "estimated_final_drop_mm": 0.4574721221011373
+      },
+      "fine": {
+        "peak_slip_mm": 0.4635282996015566,
+        "final_slip_mm": 0.46352829960066844,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236000000
+          }
+        ],
+        "force_at_end_n": 3.8840000000000012,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.2472184335483751,
+          1.5147815664473057
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000,
+        "valid_bilateral_samples": 401,
+        "max_estimator_error_um": 4.41034441118831,
+        "estimated_final_drop_mm": 0.4591179551903687
+      },
+      "max_slip_trajectory_difference_um": 1.6543940729030204,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "delayed": {
+      "adaptive": {
+        "peak_slip_mm": 0.5338233019983041,
+        "final_slip_mm": 0.533817185536134,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 220000000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 235000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 240000000
+          }
+        ],
+        "force_at_end_n": 4.2,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.2575824182743705,
+          1.504417581703613
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 0.5355780997468584,
+        "final_slip_mm": 0.5355780997461368,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 220000000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 235000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 240000000
+          }
+        ],
+        "force_at_end_n": 4.2,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.2584689735059025,
+          1.5035310264840673
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 1.7610627376929422,
+      "sensor_period_ms": 5.0,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "slow": {
+      "adaptive": {
+        "peak_slip_mm": 1.6166727706213302,
+        "final_slip_mm": 1.6166668255461203,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 261200000
+          }
+        ],
+        "force_at_end_n": 3.451999999999958,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.36669045080701,
+          1.395309549177161
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 1.620204816849935,
+        "final_slip_mm": 1.6202048168488248,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 261200000
+          }
+        ],
+        "force_at_end_n": 3.451999999999958,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.3671739586785678,
+          1.3948260413085107
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 3.5380620435065957,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 30.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "limited": {
+      "adaptive": {
+        "peak_slip_mm": 5.928094293061403,
+        "final_slip_mm": 5.928094293061403,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 221000000
+          }
+        ],
+        "force_at_end_n": 2.55,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.2748975887306566,
+          1.2749009024939073
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 5.930772588028876,
+        "final_slip_mm": 5.930772588028876,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 221000000
+          }
+        ],
+        "force_at_end_n": 2.55,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.2748980142598232,
+          1.2749011127754757
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 2.6782949674730716,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 2.55,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "unload": {
+      "adaptive": {
+        "peak_slip_mm": 0.46848523563830513,
+        "final_slip_mm": 0.4684851983501881,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 221000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 233600000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 237400000
+          }
+        ],
+        "force_at_end_n": 2.55,
+        "lift_at_end_n": 7.4556000000000004,
+        "vertical_friction_at_end_n": [
+          0.9336713383491089,
+          1.0283286616670293
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450,
+        "backoff_decision_ns": 224000000,
+        "first_cap_applied_end_ns": 221200000
+      },
+      "fine": {
+        "peak_slip_mm": 0.4702306963869085,
+        "final_slip_mm": 0.47023069247337235,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 221000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 233600000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 237400000
+          }
+        ],
+        "force_at_end_n": 2.55,
+        "lift_at_end_n": 7.4556000000000004,
+        "vertical_friction_at_end_n": [
+          0.9342196986199096,
+          1.0277803013990372
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000,
+        "backoff_decision_ns": 224000000,
+        "first_cap_applied_end_ns": 221200000
+      },
+      "max_slip_trajectory_difference_um": 1.7455014219014409,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 2.55,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "delayed-unload": {
+      "adaptive": {
+        "peak_slip_mm": 0.54531999924462,
+        "final_slip_mm": 0.545319984865178,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 220000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 240000000
+          }
+        ],
+        "force_at_end_n": 2.55,
+        "lift_at_end_n": 7.4556000000000004,
+        "vertical_friction_at_end_n": [
+          0.943856587043354,
+          1.0181434129681746
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450,
+        "backoff_decision_ns": 225000000,
+        "first_cap_applied_end_ns": 222200000
+      },
+      "fine": {
+        "peak_slip_mm": 0.5472015459376256,
+        "final_slip_mm": 0.5472015459376256,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 220000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 240000000
+          }
+        ],
+        "force_at_end_n": 2.55,
+        "lift_at_end_n": 7.4556000000000004,
+        "vertical_friction_at_end_n": [
+          0.9443889241560706,
+          1.0176110758633026
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000,
+        "backoff_decision_ns": 225000000,
+        "first_cap_applied_end_ns": 222200000
+      },
+      "max_slip_trajectory_difference_um": 1.8816348588135412,
+      "sensor_period_ms": 5.0,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 2.55,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "heavy": {
+      "adaptive": {
+        "peak_slip_mm": 1.2403677742821584,
+        "final_slip_mm": 1.2403649087703306,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 216800000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 232600000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 242200000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 246000000
+          }
+        ],
+        "force_at_end_n": 4.2,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.589179938351883,
+          1.7386932326288878
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 1.2418945509155566,
+        "final_slip_mm": 1.241894550915501,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 216800000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 232600000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 242200000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 246000000
+          }
+        ],
+        "force_at_end_n": 4.2,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.589346739642386,
+          1.7385264311010973
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 1.5296434116018887,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.26,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "slick": {
+      "adaptive": {
+        "peak_slip_mm": 1.5490310571135701,
+        "final_slip_mm": 1.5490258575026061,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 216600000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 232400000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 247000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 250800000
+          }
+        ],
+        "force_at_end_n": 4.2,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.359965025001126,
+          1.402034975347093
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 1.551164064992283,
+        "final_slip_mm": 1.551164064991728,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 216600000
+          },
+          {
+            "state": "AtLimit",
+            "time_ns": 232400000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 247000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 250800000
+          }
+        ],
+        "force_at_end_n": 4.2,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.3604707830443312,
+          1.4015292169365963
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 2.1382466448005566,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.4,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "mirror": {
+      "adaptive": {
+        "peak_slip_mm": 0.46207707504364315,
+        "final_slip_mm": 0.4620726021964394,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236200000
+          }
+        ],
+        "force_at_end_n": 3.9080000000000013,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.515503193572032,
+          1.2464968064087885
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450
+      },
+      "fine": {
+        "peak_slip_mm": 0.46352839857594086,
+        "final_slip_mm": 0.4635283985750527,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236200000
+          }
+        ],
+        "force_at_end_n": 3.9080000000000013,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          1.5149206689726455,
+          1.2470793310202928
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000
+      },
+      "max_slip_trajectory_difference_um": 1.4558183679125314,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        -0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "repeat": {
+      "adaptive": {
+        "peak_slip_mm": 1.6508667801976018,
+        "final_slip_mm": 1.6508662749675218,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236200000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 276400000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 301200000
+          }
+        ],
+        "force_at_end_n": 6.4280000000000035,
+        "lift_at_end_n": 18.5,
+        "vertical_friction_at_end_n": [
+          2.340640547880538,
+          2.527780504743956
+        ],
+        "public_ticks": 1850,
+        "native_steps": 1850
+      },
+      "fine": {
+        "peak_slip_mm": 1.6513481949056996,
+        "final_slip_mm": 1.6513481949053666,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236200000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 276400000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 301400000
+          }
+        ],
+        "force_at_end_n": 6.4520000000000035,
+        "lift_at_end_n": 18.5,
+        "vertical_friction_at_end_n": [
+          2.3412955473716424,
+          2.5271255052357113
+        ],
+        "public_ticks": 1850,
+        "native_steps": 370000
+      },
+      "max_slip_trajectory_difference_um": 1.6545030273040773,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 6.5,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    },
+    "release": {
+      "adaptive": {
+        "peak_slip_mm": 6.306804710554504,
+        "final_slip_mm": 6.306804710554504,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236200000
+          },
+          {
+            "state": "Released",
+            "time_ns": 265000000
+          }
+        ],
+        "force_at_end_n": -2.3,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          0.0,
+          0.0
+        ],
+        "public_ticks": 1450,
+        "native_steps": 1450,
+        "free_acceleration_m_s2": -9.81000000000065
+      },
+      "fine": {
+        "peak_slip_mm": 6.288008542973178,
+        "final_slip_mm": 6.288008542973178,
+        "state_transitions": [
+          {
+            "state": "Preload",
+            "time_ns": 200000
+          },
+          {
+            "state": "Monitoring",
+            "time_ns": 210000000
+          },
+          {
+            "state": "Tightening",
+            "time_ns": 219000000
+          },
+          {
+            "state": "Caught",
+            "time_ns": 236200000
+          },
+          {
+            "state": "Released",
+            "time_ns": 265000000
+          }
+        ],
+        "force_at_end_n": -2.3,
+        "lift_at_end_n": 10.4956,
+        "vertical_friction_at_end_n": [
+          0.0,
+          0.0
+        ],
+        "public_ticks": 1450,
+        "native_steps": 290000,
+        "free_acceleration_m_s2": -9.810000000102237
+      },
+      "max_slip_trajectory_difference_um": 18.796167581325296,
+      "sensor_period_ms": 0.19999999999999998,
+      "jaw_force_rate_n_s": 120.0,
+      "squeeze_limit_n": 4.2,
+      "mass_kg": 0.2,
+      "mu": 0.5,
+      "offset_m": [
+        0.0045,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "force_balance": {
+    "minimum_finger_force_n": 2.762,
+    "open_relative_acceleration_m_s2": 3.135,
+    "ideal_trigger_ms": 218.98723063830872,
+    "ideal_motion_arrest_ms": 232.0037008376263,
+    "ideal_peak_drop_mm": 0.4596262787819709
+  },
+  "parallel_repeatability": {
+    "catch": {
+      "identical_ticks_excluding_wall_time": 1450,
+      "identical_archive_files_sha256": {
+        "frames.jsonl": "48060217d8a6de4373d5b441170a70ed49debaccab5a118567c96598cdc7622d",
+        "manifest.json": "d2137c0bf9420b58fbb157e3f6af7c379b6e09878109404e300647ae0ca4f50e"
+      }
+    },
+    "repeat": {
+      "identical_ticks_excluding_wall_time": 1850,
+      "identical_archive_files_sha256": {
+        "frames.jsonl": "a654e0ebaf0938259900dc253c35a4b166a2449a4c64e04038ba687ba790ffa0",
+        "manifest.json": "8a0f671713b0e25b47ce817bd562a1ffd43017b8d84d10ea8ec479b7253b2e99"
+      }
+    },
+    "unload": {
+      "identical_ticks_excluding_wall_time": 1450,
+      "identical_archive_files_sha256": {
+        "frames.jsonl": "963e8e534918a58d8ca58d31e805023f736a088216e43543baf2b6b9e782b351",
+        "manifest.json": "b2c61597506b5ab657f29d48f6598fd0f9a6d1091c5724b1443373a3fd9a2ce6"
+      }
+    },
+    "delayed-unload": {
+      "identical_ticks_excluding_wall_time": 1450,
+      "identical_archive_files_sha256": {
+        "frames.jsonl": "bc54555c884c4c033c1131eaa68fb7c0c0a44bf98baec922beaefb97bccca650",
+        "manifest.json": "b3b2f071d6790b97e1b079ce2c97f57841572deef7d6d8737d67dcbf2ff118fc"
+      }
+    },
+    "tactile": {
+      "identical_ticks_excluding_wall_time": 1450,
+      "identical_archive_files_sha256": {
+        "frames.jsonl": "b11eb51ba1e6110336fd303408fec1ef8b4734ad18a11ba309a9737a643ebad3",
+        "manifest.json": "9487d39185e86c3fcb7807f50e032235c5a95442d9334e151f93bc764611667b"
+      }
+    }
+  },
+  "timings": {
+    "catch-adaptive": {
+      "p95_us_by_batch": [
+        16.189999999999998,
+        16.09,
+        16.3
+      ],
+      "median_batch_p95_us": 16.189999999999998
+    },
+    "catch-fine": {
+      "p95_us_by_batch": [
+        2241.455,
+        2530.455,
+        2252.415
+      ],
+      "median_batch_p95_us": 2252.415
+    },
+    "unload-adaptive": {
+      "p95_us_by_batch": [
+        15.489999999999998,
+        15.75,
+        15.959999999999999
+      ],
+      "median_batch_p95_us": 15.75
+    },
+    "unload-fine": {
+      "p95_us_by_batch": [
+        2265.995,
+        2226.4849999999997,
+        2251.986
+      ],
+      "median_batch_p95_us": 2251.986
+    },
+    "tactile-adaptive": {
+      "p95_us_by_batch": [
+        16.14,
+        15.701,
+        16.55
+      ],
+      "median_batch_p95_us": 16.14
+    },
+    "tactile-fine": {
+      "p95_us_by_batch": [
+        2228.656,
+        2211.235,
+        2261.125
+      ],
+      "median_batch_p95_us": 2228.656
+    }
+  },
+  "local_verification": {
+    "matrix_passed_including_full_fine": 10,
+    "scene_library_tests_passed": 363,
+    "local_cpu_replay_tests_passed": 23,
+    "two_finger_load_tests_passed": 18,
+    "two_finger_load_benchmarks_ignored": 2,
+    "thread_comparison_excludes": [
+      "step_us"
+    ],
+    "llvm_coverage": {
+      "crates/gz-sim-cli/examples/closed_loop_carry.rs": {
+        "lines": {
+          "covered": 198,
+          "total": 202
+        },
+        "regions": {
+          "covered": 376,
+          "total": 394
+        }
+      },
+      "crates/gz-sim-cli/examples/closed_loop_carry/rig.rs": {
+        "lines": {
+          "covered": 135,
+          "total": 135
+        },
+        "regions": {
+          "covered": 240,
+          "total": 248
+        }
+      },
+      "crates/gz-sim-cli/tests/closed_loop_carry.rs": {
+        "lines": {
+          "covered": 223,
+          "total": 223
+        },
+        "regions": {
+          "covered": 475,
+          "total": 475
+        }
+      },
+      "crates/gz-sim-scene/src/grasp_guard/slip_lift_interlock.rs": {
+        "lines": {
+          "covered": 27,
+          "total": 27
+        },
+        "regions": {
+          "covered": 19,
+          "total": 19
+        }
+      },
+      "crates/gz-sim-scene/src/grasp_guard/slip_catch.rs": {
+        "lines": {
+          "covered": 87,
+          "total": 87
+        },
+        "regions": {
+          "covered": 91,
+          "total": 91
+        }
+      },
+      "crates/gz-sim-scene/src/grasp_guard/contact_slip.rs": {
+        "lines": {
+          "covered": 70,
+          "total": 70
+        },
+        "regions": {
+          "covered": 118,
+          "total": 118
+        }
+      }
+    },
+    "timing_scope": "Three rotated batches on logical CPU 5 of an AMD Ryzen 9 9950X3D. Duration of the public Bevy simulation step; external sensor sampling, control and file I/O excluded.",
+    "webgpu": {
+      "recordings_played_and_rewound": 15,
+      "frames": 4445,
+      "poses_and_shapes": 17780,
+      "portable_archive_sha256": "c82dba4ba3c64b25252d3e0b5833e17e4b9143e545c3cd95a8be5b46934dbc8d"
+    }
+  }
+}

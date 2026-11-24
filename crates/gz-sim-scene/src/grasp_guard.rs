@@ -143,10 +143,16 @@ impl GraspRetention {
     }
 }
 
+mod contact_slip;
 mod deck_margin;
 mod setdown;
+mod slip_catch;
+mod slip_lift_interlock;
+pub use contact_slip::bilateral_slip_velocity;
 pub use deck_margin::FiniteDeckMargin;
 pub use setdown::{SetdownCommand, SupportedSetdown};
+pub use slip_catch::{SlipCatch, SlipCatchConfig, SlipCatchState};
+pub use slip_lift_interlock::SlipLiftInterlock;
 
 #[cfg(test)]
 #[path = "../tests/private/grasp_guard.rs"]
