@@ -7,6 +7,10 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — A sliding material stops without reversing downhill
+
+On a 30% incline the upstream strip stopped after the predicted 2.5 µm. The previous solver sent it 500 mm downhill within one second. The downstream control and four full folded-sheet simulations reproduced their prior trajectories. Older material checkpoints preserve their original equations. All 234 active solver tests passed and every changed executable line and region was covered. [Measurements, resolution limits and native before-and-after recordings](measurements/local-manipulation/uphill-slip-arrest.md)
+
 ## 2026-11-23 — The gripper retains the sheet when a loaded receiver drops during early opening
 
 When the finite bench dropped 50 mm eight milliseconds into opening, the robot paused the jaws on the next actuator tick. They retained the 8.4 g folded sheet through the 4 mm search limit. After 40 ms of opening the fingers were already unloaded. The sheet then hit the lower bench after 101 ms, matching free fall at both solver rates. Its later bouncing and final opening time still varied with the solver interval. [Experiment, replays and remaining limitation](measurements/local-manipulation/sheet-receiver-drop.md)
