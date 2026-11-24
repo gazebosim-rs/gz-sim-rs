@@ -13,6 +13,7 @@
 //! 96 contact responses. Each pair may advance at most 128 times. An unresolved
 //! grazing interval, ambiguous coincidence, conflicting prescribed motion or
 //! exhausted budget returns an error before the public step publishes.
+mod clearance;
 mod friction;
 pub(super) mod geometry;
 mod interval;
@@ -113,6 +114,7 @@ pub(super) struct Surface {
     one_ring: OneRing,
     loose: Vec<bool>,
     bounds: Vec<Bound>,
+    clearance: Option<clearance::Clearance>,
     friction: Option<friction::Friction>,
     pub(super) impulse: crate::SelfContactImpulse,
     loads: Option<Box<loads::Loads>>,
@@ -129,6 +131,12 @@ fn edge(a: usize, b: usize) -> [usize; 2] {
 }
 
 impl Surface {
+    pub(super) fn begin_clearance_step(&mut self) {
+        if let Some(clearance) = &mut self.clearance {
+            clearance.may_rebuild = true;
+        }
+    }
+
     pub fn set_friction(&mut self, coefficient: f64) -> Result<(), XpbdError> {
         if !coefficient.is_finite() || coefficient < 0.0 {
             return Err(XpbdError::InvalidConfig);
@@ -210,6 +218,7 @@ impl Surface {
             one_ring: OneRing::new(particles.len(), connected),
             loose,
             bounds: Vec::new(),
+            clearance: None,
             friction: None,
             impulse: crate::SelfContactImpulse::default(),
             loads: None,
@@ -223,6 +232,7 @@ impl Surface {
             .map(|p| DVec3::from(p.position))
             .collect::<Vec<_>>();
         surface.check_intersections(&positions)?;
+        surface.clearance = clearance::Clearance::new(&surface);
         Ok(surface)
     }
 
@@ -477,6 +487,15 @@ impl Surface {
         search: Search,
     ) -> Result<Option<Hit>, XpbdError> {
         let (candidates, queries) = budget;
+        if *candidates == 0
+            && *queries == 0
+            && self
+                .clearance
+                .as_mut()
+                .is_some_and(|c| c.clear(x, p, gap, eps))
+        {
+            return Ok(None);
+        }
         let mode = if self.friction.is_none() {
             SweepMode::Geometric
         } else if search != Search::Ordinary {

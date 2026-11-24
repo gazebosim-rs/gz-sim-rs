@@ -442,6 +442,7 @@ impl SoftBody {
             m.begin_step();
         }
         if let Some(s) = &mut self.surface {
+            s.begin_clearance_step();
             s.impulse = SelfContactImpulse::default();
             s.begin_loads();
         }
