@@ -18,10 +18,13 @@ use serde::Serialize;
 
 #[path = "serial_transfer/obstacle.rs"]
 mod obstacle;
+#[path = "serial_transfer/payload.rs"]
+mod payload;
 use obstacle::{Passage, PassageOutcome};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const XML: &str = include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf");
+#[cfg(test)]
 const WEIGHT: f64 = 0.2 * 9.81;
 const MOVE_START: usize = 3700;
 const MOVE_END: usize = 7700;
@@ -34,6 +37,8 @@ enum Trial {
     OpenJaws,
     MissedShelf,
     ClearObstacle,
+    /// Keep the native recycled contact geometry as a comparison control.
+    CachedObstacle,
     LowClearance,
     ContactStop,
 }
@@ -41,7 +46,7 @@ impl Trial {
     fn obstacle(self) -> bool {
         matches!(
             self,
-            Self::ClearObstacle | Self::LowClearance | Self::ContactStop
+            Self::ClearObstacle | Self::CachedObstacle | Self::LowClearance | Self::ContactStop
         )
     }
     fn xml(self) -> &'static str {
@@ -57,6 +62,9 @@ struct Args {
     #[arg(value_enum)]
     trial: Trial,
     output: PathBuf,
+    /// Load a self-contained serial-transfer workcell with the same named parts.
+    #[arg(long)]
+    world: Option<PathBuf>,
 }
 
 #[derive(Clone, Copy)]
@@ -95,6 +103,8 @@ impl Part {
 struct Outcome {
     #[serde(skip_serializing_if = "Option::is_none")]
     obstacle: Option<PassageOutcome>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    payload: Option<payload::Loads>,
     lift_mm: f64,
     lateral_payload_at_arrival_mm: f64,
     lateral_carriage_at_arrival_mm: f64,
@@ -137,12 +147,14 @@ fn run(
     trial: Trial,
     capture: impl FnMut(&Simulation) -> Result<()>,
 ) -> Result<Outcome> {
-    drive(sim, trial, None, capture)
+    drive(sim, trial, None, WEIGHT, false, capture)
 }
 fn drive(
     sim: &mut Simulation,
     trial: Trial,
     mut passage: Option<Passage>,
+    weight: f64,
+    measure_payload: bool,
     mut capture: impl FnMut(&Simulation) -> Result<()>,
 ) -> Result<Outcome> {
     let parcel = part(sim, "parcel::box")?;
@@ -162,10 +174,13 @@ fn drive(
     let body = parcel.body(sim)?;
     let shelf = part(sim, "receiver::shelf")?;
     let tray = part(sim, "stand::post")?;
-    let c = SupportCriteria::for_weight(WEIGHT, Duration::from_millis(30));
+    let c = SupportCriteria::for_weight(weight, Duration::from_millis(30));
     let mut receiver = ReceivingSupport::new(sim.world(), parcel.id, shelf.id, c)?;
     let mut pickup = ReceivingSupport::new(sim.world(), parcel.id, tray.id, c)?;
-    let mut out = Outcome::default();
+    let mut out = Outcome {
+        payload: measure_payload.then(|| payload::Loads::new(weight)),
+        ..Default::default()
+    };
     let initial = parcel.pose(sim)?.translation;
     let start_car = car.pose(sim)?.translation[1];
     let mut start_offset = glam::DVec3::ZERO;
@@ -199,6 +214,11 @@ fn drive(
         if tick == LOWER && !passage.as_ref().is_some_and(Passage::aborted) {
             set_joint_controller_command(sim, spindle.id, -0.018)?;
         }
+        if trial != Trial::CachedObstacle
+            && let Some(route) = &mut passage
+        {
+            route.recheck(sim)?;
+        }
         sim.step_exact(1)?;
         let p = parcel.pose(sim)?.translation;
         let carriage = car.pose(sim)?.translation[1];
@@ -227,6 +247,7 @@ fn drive(
                 dt,
             )?;
             route.record_grip(
+                tick,
                 carriage - start_car,
                 pad,
                 source.face_loaded || target.face_loaded,
@@ -237,6 +258,9 @@ fn drive(
         }
         if (MOVE_START..=MOVE_END).contains(&tick) {
             out.traverse_ticks += 1;
+            if let Some(loads) = &mut out.payload {
+                loads.observe(tick, pad, source.face_loaded, target.face_loaded);
+            }
             out.parcel_carried_on_both_pads_ticks += usize::from(
                 pad.iter().all(|n| *n > 0.1) && !source.face_loaded && !target.face_loaded,
             );
@@ -268,7 +292,7 @@ fn drive(
                 && (source.face_loaded || target.face_loaded || hold.is_some())
             {
                 let demand = hold.get_or_insert(q);
-                *demand += (0.003 * (target.normal_force_n + source.normal_force_n - WEIGHT))
+                *demand += (0.003 * (target.normal_force_n + source.normal_force_n - weight))
                     .clamp(-0.008, 0.008)
                     * dt;
                 set_joint_controller_command(sim, spindle.id, *demand)?;
@@ -325,21 +349,34 @@ fn record(args: Args, xml: &str) -> Result<Outcome> {
         .obstacle()
         .then(|| Passage::bind(&sim, &sdf))
         .transpose()?;
-    let outcome = drive(&mut sim, args.trial, passage, |s| {
-        frames.push(gz_sim_cli::primitive_frame(
-            s,
-            &sdf,
-            "default",
-            frames.len() as u64 + 1,
-        )?);
-        Ok(())
-    })?;
+    let weight = payload::weight(&sdf)?;
+    let outcome = drive(
+        &mut sim,
+        args.trial,
+        passage,
+        weight,
+        args.world.is_some(),
+        |s| {
+            frames.push(gz_sim_cli::primitive_frame(
+                s,
+                &sdf,
+                "default",
+                frames.len() as u64 + 1,
+            )?);
+            Ok(())
+        },
+    )?;
     gz_sim_cli::export_archive(&args.output, Default::default(), frames)?;
     Ok(outcome)
 }
 fn main() -> Result<()> {
     let args = Args::parse();
-    let xml = args.trial.xml();
+    let xml = args
+        .world
+        .as_ref()
+        .map(std::fs::read_to_string)
+        .transpose()?;
+    let xml = xml.as_deref().unwrap_or(args.trial.xml());
     println!("{}", serde_json::to_string_pretty(&record(args, xml)?)?);
     Ok(())
 }
@@ -595,6 +632,7 @@ mod tests {
         let args = || Args {
             trial: Trial::Transfer,
             output: path.clone(),
+            world: None,
         };
         assert!(record(args(), "<sdf").is_err());
         assert!(

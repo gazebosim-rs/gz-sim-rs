@@ -74,15 +74,7 @@ impl Witness {
             return false;
         }
         // Never request replacement geometry on a loaded patch or erase a retained multiplier.
-        if m.points.iter().any(|p| {
-            let c = &p.data;
-            c.impulse != 0.
-                || c.warmstart_impulse != 0.
-                || c.tangent_impulse.iter().any(|v| *v != 0.)
-                || c.warmstart_tangent_impulse.iter().any(|v| *v != 0.)
-                || c.warmstart_tangent_world != Vector::ZERO
-                || c.warmstart_twist_impulse != 0.
-        }) {
+        if has_load(m) {
             return false;
         }
         self.unloaded.fetch_add(1, Ordering::Relaxed);
@@ -114,6 +106,18 @@ impl Witness {
         self.mode == ReturnFeatureMode::WhileStale || !self.consumed.swap(true, Ordering::Relaxed)
     }
 }
+pub(super) fn has_load(m: &ContactManifold) -> bool {
+    m.points.iter().any(|p| {
+        let c = &p.data;
+        c.impulse != 0.
+            || c.warmstart_impulse != 0.
+            || c.tangent_impulse.iter().any(|v| *v != 0.)
+            || c.warmstart_tangent_impulse.iter().any(|v| *v != 0.)
+            || c.warmstart_tangent_world != Vector::ZERO
+            || c.warmstart_twist_impulse != 0.
+    })
+}
+
 // Every projection gap is a lower bound on the separation of the two finite boxes.
 // Return on the first axis that proves a worse-than-tolerance cached witness.
 // No preference among ties is needed and a separating corner-to-corner normal can pass.
@@ -124,6 +128,17 @@ fn stronger_plane(
     n: Vector,
     tol: f64,
 ) -> Option<(Vector, f64, f64)> {
+    separating_plane(p, a, b, n, tol, f64::NEG_INFINITY)
+}
+
+pub(super) fn separating_plane(
+    p: &Pose,
+    a: Vector,
+    b: Vector,
+    n: Vector,
+    tol: f64,
+    minimum: f64,
+) -> Option<(Vector, f64, f64)> {
     let local = p.rotation.inverse();
     let support = |d: Vector| a.dot(d.abs()) + b.dot((local * d).abs());
     let old = p.translation.dot(n) - support(n);
@@ -131,7 +146,7 @@ fn stronger_plane(
         let sign = if p.translation.dot(d) < 0. { -1. } else { 1. };
         let axis = sign * d;
         let gap = p.translation.dot(axis) - support(axis);
-        (gap > old + tol).then_some((axis, old, gap))
+        (gap > old + tol && gap > minimum).then_some((axis, old, gap))
     };
     let basis = [Vector::Z, Vector::X, Vector::Y];
     let other = basis.map(|d| p.rotation * d);

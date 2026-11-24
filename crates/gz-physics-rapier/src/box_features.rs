@@ -11,6 +11,7 @@ use std::sync::{
 };
 
 mod return_witness;
+mod separated;
 pub use return_witness::{ReturnFeatureCounts, ReturnFeatureMode, ReturnPlaneEvidence};
 
 /// The named pair and the actual unloaded-manifold queries made inside this interval.

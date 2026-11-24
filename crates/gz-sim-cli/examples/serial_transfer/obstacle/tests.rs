@@ -7,7 +7,7 @@ type Run = (Outcome, Vec<(u128, Visuals)>);
 fn measured(sim: &mut Simulation, sdf: &sdformat::Sdf, trial: Trial) -> Result<Run> {
     let route = Passage::bind(sim, sdf)?;
     let mut frames = Vec::new();
-    let result = drive(sim, trial, Some(route), |sim| {
+    let result = drive(sim, trial, Some(route), WEIGHT, false, |sim| {
         let actual = sim
             .world()
             .iter_entities()
@@ -201,7 +201,8 @@ fn incompletely_observed_obstacle_routes_never_issue_the_next_rail_command() -> 
         record(
             Args {
                 trial,
-                output: output.clone()
+                output: output.clone(),
+                world: None,
             },
             XML
         )
@@ -247,11 +248,30 @@ fn incompletely_observed_obstacle_routes_never_issue_the_next_rail_command() -> 
         },
     );
     assert_eq!(
-        drive(&mut sim, trial, Some(route), |_| Ok(()))
+        drive(&mut sim, trial, Some(route), WEIGHT, false, |_| Ok(()))
             .unwrap_err()
             .to_string(),
         "missing obstacle-route collision pose"
     );
     assert_eq!(sim.elapsed(), Duration::from_millis(1));
+    Ok(())
+}
+
+#[test]
+fn stale_obstacle_body_binding_prevents_advancing_the_controller() -> Result<()> {
+    let trial = Trial::ClearObstacle;
+    let xml = trial.xml();
+    let sdf = sdformat::load_str(xml, "route.sdf", &sdformat::NoResources)?;
+    let mut sim = load_world_with_sdf_step(
+        xml,
+        "route.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )?;
+    let mut route = Passage::bind(&sim, &sdf)?;
+    route.wall.body = BodyId::from_raw(u64::MAX);
+    assert!(drive(&mut sim, trial, Some(route), WEIGHT, false, |_| Ok(())).is_err());
+    assert_eq!(sim.elapsed(), Duration::ZERO);
     Ok(())
 }

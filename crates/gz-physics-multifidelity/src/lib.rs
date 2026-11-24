@@ -1152,6 +1152,19 @@ impl MultiFidelityBackend {
         self.solver.partition_friction(id)
     }
 
+    /// Revalidate an unloaded finite-box pair when its retained contact plane
+    /// predicts a constraint and the current boxes have a stronger separating axis.
+    pub fn recheck_separated_boxes(
+        &mut self,
+        moving: BodyId,
+        fixed: BodyId,
+        dt: Duration,
+    ) -> Result<bool, PhysicsError> {
+        self.solver
+            .recheck_separated_boxes(moving, fixed, dt)
+            .map_err(engine_error)
+    }
+
     /// Effective per-pair warm start, separate from impulses delivered during a step.
     /// A pair marked for discard has no seeds for its next solve.
     pub fn contact_warmstart(

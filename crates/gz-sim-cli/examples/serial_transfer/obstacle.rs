@@ -53,14 +53,22 @@ pub(super) struct PartClearance {
 }
 #[derive(Debug, Default, PartialEq, Serialize)]
 pub(super) struct PassageOutcome {
+    #[serde(skip_serializing_if = "is_zero")]
+    pub(super) separated_box_rechecks: usize,
     pub(super) parts: BTreeMap<String, PartClearance>,
     pub(super) first_sweep_hit: Option<SweepHit>,
     pub(super) first_obstacle_reaction_tick: Option<usize>,
     pub(super) abort_tick: Option<usize>,
     pub(super) abort_on_measured_contact: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(super) unsecured_dispatch_tick: Option<usize>,
     pub(super) post_abort_ticks: usize,
     pub(super) both_pads_supporting_after_abort_ticks: usize,
     pub(super) peak_carriage_travel_m: f64,
+}
+
+fn is_zero(value: &usize) -> bool {
+    *value == 0
 }
 
 pub(super) struct Passage {
@@ -145,16 +153,39 @@ impl Passage {
             outcome,
         })
     }
+    pub(super) fn recheck(&mut self, sim: &mut Simulation) -> Result<()> {
+        let dt = sim.step_duration();
+        let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
+        let solver = backend
+            .downcast_mut::<MultiFidelityBackend>()
+            .ok_or("missing local solver")?;
+        for part in &self.moving {
+            self.outcome.separated_box_rechecks +=
+                usize::from(solver.recheck_separated_boxes(part.body, self.wall.body, dt)?);
+        }
+        Ok(())
+    }
+
     pub(super) fn aborted(&self) -> bool {
         self.outcome.abort_tick.is_some()
     }
 
-    pub(super) fn record_grip(&mut self, travel: f64, pad: [f64; 2], on_support: bool) {
+    pub(super) fn record_grip(
+        &mut self,
+        tick: usize,
+        travel: f64,
+        pad: [f64; 2],
+        on_support: bool,
+    ) {
+        let carried = !on_support && pad.iter().all(|n| *n > 0.1);
+        if tick == MOVE_START && !carried {
+            self.outcome.unsecured_dispatch_tick = Some(tick);
+            self.outcome.abort_tick.get_or_insert(tick);
+        }
         self.outcome.peak_carriage_travel_m = self.outcome.peak_carriage_travel_m.max(travel);
         if self.aborted() {
             self.outcome.post_abort_ticks += 1;
-            self.outcome.both_pads_supporting_after_abort_ticks +=
-                usize::from(!on_support && pad.iter().all(|n| *n > 0.1));
+            self.outcome.both_pads_supporting_after_abort_ticks += usize::from(carried);
         }
     }
     pub(super) fn observe(
