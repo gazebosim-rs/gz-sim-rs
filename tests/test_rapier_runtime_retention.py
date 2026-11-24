@@ -62,6 +62,12 @@ class AuxiliaryRetention(unittest.TestCase):
                 (self.directory / saved).chmod(0o755)
             objects.append({"original_path": str(original), "retained_path": saved,
                             "sha256": QUALIFIER.digest(self.directory / saved), "cargo_artifact": artifact})
+        self.cpu_companion = {
+            "reason": "compiler-artifact", "features": [], "profile": {"test": False},
+            "executable": str(self.root / "target/rapier-runtime-fixture" / QUALIFIER.CPU_REPLAY),
+            "target": {"name": QUALIFIER.CPU_REPLAY, "kind": ["bin"],
+                       "src_path": str(self.root / QUALIFIER.CPU_REPLAY_SOURCE)}}
+        events.append(self.cpu_companion)
         self.write_json("cargo-events.json", events)
         self.write_json("objects.json", objects)
         report = {"data": [{"functions": [{"filenames": [str(self.root / QUALIFIER.SCENE)],
@@ -276,7 +282,7 @@ class AuxiliaryRetention(unittest.TestCase):
                    if item["cargo_artifact"]["target"]["name"] != "no_native_backends"]
         self.report["objects_bound_after_execution"] = objects
         self.write_json("objects.json", objects)
-        self.write_json("cargo-events.json", [item["cargo_artifact"] for item in objects])
+        self.write_json("cargo-events.json", [self.cpu_companion, *(item["cargo_artifact"] for item in objects)])
         (self.directory / "objects/no_native_backends").unlink()
         self.finish_manifest()
         with self.assertRaisesRegex(ValueError, "missing retained CLI or targeted test object"):
@@ -314,7 +320,7 @@ class AuxiliaryRetention(unittest.TestCase):
             objects[0]["cargo_artifact"]["executable"] = str(Path(original))
             self.report["objects_bound_after_execution"] = objects
             self.write_json("objects.json", objects)
-            self.write_json("cargo-events.json", [item["cargo_artifact"] for item in objects])
+            self.write_json("cargo-events.json", [self.cpu_companion, *(item["cargo_artifact"] for item in objects)])
             self.finish_manifest()
             with self.assertRaises(ValueError):
                 QUALIFIER.validate_evidence(self.root, self.directory)

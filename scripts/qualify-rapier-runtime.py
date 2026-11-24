@@ -298,7 +298,9 @@ RGB_SOURCES = {"gz-sim-rs": EXECUTABLE_SOURCES["gz-sim-rs"],
                "rgb_camera": "crates/gz-sim-cli/tests/rgb_camera.rs"}
 # Cargo builds ordinary sibling binaries while compiling the CLI integration test.
 # Attest their feature, source and role separately from the two exercised RGB objects.
-RGB_CARGO_SOURCES = {**RGB_SOURCES, "gz-sim-local-replay": "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs"}
+CPU_REPLAY = "gz-sim-local-replay"
+CPU_REPLAY_SOURCE = "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs"
+RGB_CARGO_SOURCES = {**RGB_SOURCES, CPU_REPLAY: CPU_REPLAY_SOURCE}
 GPU_PACKAGES = {"gz-renderer", "gz-render-worker", "bevy_render", "bevy_window", "bevy_winit",
                 "bevy_core_pipeline", "bevy_pbr", "bevy_shader", "ash", "naga", "vulkano",
                 "winit", "raw-window-handle"}
@@ -625,6 +627,7 @@ def validate_evidence(root, directory, report=None):
     if not objects or json.loads((directory / "objects.json").read_text()) != objects:
         raise ValueError("missing native-off retained objects")
     events = json.loads((directory / "cargo-events.json").read_text())
+    native_off_companion(events, observed_root, target_root)
     object_names, retained_names = set(), set()
     for item in objects:
         name = item.get("retained_path", "")
@@ -658,12 +661,30 @@ def validate_evidence(root, directory, report=None):
     return report
 
 
+def native_off_companion(events, root, target):
+    """Bind the binary Cargo builds for CLI tests independently of the exercised proof objects."""
+    rows = [row for row in events if row.get("reason") == "compiler-artifact"
+            and row.get("executable") and row.get("target", {}).get("name") == CPU_REPLAY]
+    if len(rows) != 1:
+        raise ValueError("expected one native-off CPU replay companion")
+    row = rows[0]
+    path = Path(row["executable"])
+    if (not path.is_absolute() or str(path) != row["executable"] or ".." in path.parts
+            or not path.is_relative_to(target) or row.get("features") != []
+            or row.get("profile", {}).get("test") is not False
+            or row["target"].get("kind") != ["bin"]
+            or row["target"].get("src_path") != str(root / CPU_REPLAY_SOURCE)):
+        raise ValueError("invalid native-off CPU replay companion identity")
+    return row
+
+
 def checked_artifacts(events, target):
     artifacts = [event for event in events if event.get("reason") == "compiler-artifact"]
     for item in artifacts:
         name = item["target"]["name"].replace("_", "-")
         if name in {"gz-physics-dart", "gz-physics-mujoco"} or "native-backends" in item["features"]:
             raise ValueError("native backend or enabled native feature in actual Cargo artifacts")
+    companion = native_off_companion(artifacts, ROOT, target)
     executables = {}
     for item in artifacts:
         if (not item.get("executable")
@@ -675,7 +696,8 @@ def checked_artifacts(events, target):
         source = Path(item["target"]["src_path"]).resolve()
         if not source.is_relative_to(ROOT / "crates"):
             raise ValueError("Cargo executable source outside the workspace")
-        executables[str(path)] = item
+        if item is not companion:
+            executables[str(path)] = item
     names = {item["target"]["name"] for item in executables.values()}
     if not set(EXECUTABLE_SOURCES) <= names:
         raise ValueError("missing actual CLI or no-native test executable")

@@ -44,6 +44,11 @@ class DisabledBackendProof(unittest.TestCase):
                                "executable": str(binary),
                                "target": {"name": name, "src_path": str(root / source),
                                           "kind": ["bin" if name == "gz-sim-rs" else "test"]}})
+            sibling = target / MODULE.CPU_REPLAY
+            sibling.write_bytes(b"compiler artifact fixture")
+            events.append({"reason": "compiler-artifact", "features": [], "executable": str(sibling),
+                           "profile": {"test": False}, "target": {"name": MODULE.CPU_REPLAY,
+                           "kind": ["bin"], "src_path": str(root / MODULE.CPU_REPLAY_SOURCE)}})
             with patch.object(MODULE, "ROOT", root):
                 self.assertEqual(len(MODULE.checked_artifacts(events, target)), 3)
                 for missing in MODULE.EXECUTABLE_SOURCES:
@@ -131,6 +136,17 @@ class DisabledBackendProof(unittest.TestCase):
         ] + current_bad:
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
+
+    def test_native_off_companion_rejects_a_replaced_or_duplicate_cargo_target(self):
+        target = self.root / "target" / "private"
+        event = {"reason": "compiler-artifact", "features": [], "executable": str(target / MODULE.CPU_REPLAY),
+                 "profile": {"test": False}, "target": {"name": MODULE.CPU_REPLAY, "kind": ["bin"],
+                 "src_path": str(self.root / MODULE.CPU_REPLAY_SOURCE)}}
+        for wrong in [[event, event], [{**event, "executable": "/outside/replay"}],
+                      [{**event, "profile": {"test": True}}], [{**event, "features": ["rgb-camera"]}],
+                      [{**event, "target": {**event["target"], "src_path": str(self.root / "wrong.rs")}}]]:
+            with self.assertRaises(ValueError):
+                MODULE.native_off_companion(wrong, self.root, target)
 
     def test_rgb_executables_bind_feature_source_and_the_tested_pair_and_companion(self):
         target = Path("/source/target/rapier-rgb-fixture")
