@@ -9,7 +9,7 @@ Each new development phase includes visual output from the measured simulation a
 
 ## 2026-11-23 — Design review and implementation roadmap
 
-**The serial arm clears the barrier with loads up to 1.245 kg at the tested friction. Work is now measuring unbalanced loads and faster carries.** [Payload limits](measurements/local-manipulation/serial-payload.md) [Barrier crossing and forced-contact control](measurements/local-manipulation/serial-obstacle.md) The serial arm already completes a straight pickup, carry and placement with a free parcel. The folded-sheet gripper detects and sometimes recovers a slipping grasp. The open local questions are when each recovery succeeds, whether tier switching preserves the loads throughout the transfer, and how the complete port passes its release gates. The [approved technical design](../../physics_tdd.md) defines five acceptance milestones. The table records the evidence for each, and the phases below give the proposed implementation order.
+The serial arm clears the barrier with loads up to 1.245 kg at the tested friction. It safely set down all eight diagonally weighted parcels that slipped, with no alarms in eight undisturbed controls. The folded-sheet arm now has measured timestep and individual jaw-force limits on light grippers. Current local work covers low-friction set-down, a freely moving load-bearing ankle and release qualification across the shared scene and CLI. [Payload limits](measurements/local-manipulation/serial-payload.md) · [Slip recovery](measurements/local-manipulation/serial-receiver.md) · [Light gripper](measurements/local-manipulation/sheet-jaw-convergence.md) The [approved technical design](../../physics_tdd.md) defines five acceptance milestones. The table records the evidence for each, and the phases below give the proposed implementation order.
 
 | TDD milestone | What works today | What is still open |
 |---|---|---|
@@ -2069,3 +2069,8 @@ A floating fixed joint now carries the mass, inertia and pending loads of both l
 ## 2026-11-23 — A welded upper link striking a finite ledge
 
 The new corner spring and the loaded sole now act on the same floating foot. The oblique strike delivered 2.302634 N·s, and the displaced ledge delivered zero. Reducing the time step cut the largest upper impulse error against an independent trajectory from 754 to 1.76 µN·s. Reset, moving supports and refusal of ambiguous edge or multi-corner contact passed with 98.26% changed line and 97.25% region coverage. Rigid frictional multi-point upper contact and a freely moving ankle remain open. [Measurements and gz-web-rs replays](measurements/local-manipulation/compliant-upper.md)
+
+
+## 2026-11-23 — Checking stiff cloth grasps against both jaw loads
+
+Two 2.8125 g fingers lifted an 8.4 g folded sheet with mass-scaled damping. With the stiffest qualified pads, eight native exchanges per controller update put the correct total weight on the jaws while the two individual forces pointed in opposite directions. Sixteen exchanges resolved both jaw loads to about 0.0412 N and the full recorded trajectory to 23 µm against 32 exchanges, at 5.12 versus 9.61 ms p95. All completed runs used the same 1 ms actuator clock. The solver also reports its actual accepted material intervals after uneven local subdivision. Exact native tests and examples at 238c269 exercised 171/173 changed production lines and 313/327 regions. [Measurements, reproduction and four native replays](measurements/local-manipulation/sheet-jaw-convergence.md)
