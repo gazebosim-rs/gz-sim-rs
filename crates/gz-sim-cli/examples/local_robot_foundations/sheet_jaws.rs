@@ -251,6 +251,56 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
 mod tests {
     use super::*;
     #[test]
+    fn public_and_reference_audits_refuse_inconsistent_clocks_and_missing_gripper() -> Result<()> {
+        let case = Case {
+            substeps: 1,
+            ..Default::default()
+        };
+        let base = scene(1., 0.001, case, true, 0.001)?;
+        let internal = base.replace(
+            "filename=\"gz-sim-deformables-system\"",
+            "filename=\"gz-sim-deformables-system\" rigid_exchanges=\"4\"",
+        );
+        let dir = tempfile::tempdir()?;
+        let e = exchange_audit::check(&internal, &base, 4, 12., dir.path()).unwrap_err();
+        assert!(e.to_string().contains("exchange clocks disagree"));
+        assert!(exchange_audit::check("<broken/>", &base, 4, 12., dir.path()).is_err());
+        assert!(exchange_audit::check(&internal, "<broken/>", 4, 12., dir.path()).is_err());
+        let empty = "<sdf version=\"1.10\"><world name=\"default\"><physics name=\"p\" type=\"ignored\"><max_step_size>0.001</max_step_size></physics></world></sdf>";
+        assert!(exchange_audit::check(empty, &base, 4, 12., dir.path()).is_err());
+        assert!(exchange_audit::check(&internal, empty, 4, 12., dir.path()).is_err());
+        let fine = timed_scene(1., 0.001, case, 4, true, 0.001)?;
+        let different_payload = fine.replace("mass=\"0.0007\"", "mass=\"0.00075\"");
+        assert_ne!(fine, different_payload);
+        let wrong =
+            exchange_audit::check(&internal, &different_payload, 4, 12., dir.path()).unwrap_err();
+        assert!(
+            wrong
+                .to_string()
+                .contains("diverged from independent native reference"),
+            "{wrong}"
+        );
+        let mut settings = Settings {
+            jaw_mass_scale: 1.,
+            pad_compliance: 0.001,
+            substeps: 1,
+            tune_damping: false,
+            exchanges_per_ms: 4,
+            public_exchange_clock: true,
+            panel_balance: true,
+            bend_damping: 0.,
+            pad_damping: 0.,
+        };
+        assert!(study(dir.path(), settings, Some((0, 2))).is_err());
+        settings.exchanges_per_ms = 3;
+        assert!(study(dir.path(), settings, None).is_err());
+        settings.exchanges_per_ms = 4;
+        settings.jaw_mass_scale = -1.;
+        assert!(study(dir.path(), settings, None).is_err());
+        assert!(!dir.path().join("exchange-audit.json").exists());
+        Ok(())
+    }
+    #[test]
     fn density_changes_both_full_tensors_and_only_the_two_pads() -> Result<()> {
         let nominal =
             arm_sheet::scene_with_loads(arm::SCENE, Case::default(), NOMINAL_FLARE, false)?;

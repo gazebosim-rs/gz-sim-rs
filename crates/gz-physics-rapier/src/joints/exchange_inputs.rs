@@ -33,7 +33,7 @@ impl RapierBackend {
             });
         }
         Ok(ExchangeInputs {
-            owner: self.owner.clone(),
+            owner: self.exchange_epoch.clone(),
             observed: 0,
             count,
             contacts: BTreeMap::new(),
@@ -51,7 +51,7 @@ impl RapierBackend {
     }
     /// Reapply only after the previous positive native interval consumed its inputs.
     pub fn repeat_exchange_inputs(&mut self, held: &ExchangeInputs) -> Result<(), PhysicsError> {
-        if !Arc::ptr_eq(&self.owner, &held.owner)
+        if !Arc::ptr_eq(&self.exchange_epoch, &held.owner)
             || held.observed == 0
             || held.observed == held.count
             || !self.joints.efforts.is_empty()
@@ -78,7 +78,7 @@ impl RapierBackend {
 impl RapierBackend {
     /// Accumulate actual solved rigid-pair loads before the next material exchange.
     pub fn observe_exchange(&self, held: &mut ExchangeInputs) -> Result<(), PhysicsError> {
-        if !Arc::ptr_eq(&self.owner, &held.owner) || held.observed == held.count {
+        if !Arc::ptr_eq(&self.exchange_epoch, &held.owner) || held.observed == held.count {
             return Err(PhysicsError::InvalidValue);
         }
         held.observed += 1;
@@ -108,7 +108,7 @@ impl RapierBackend {
         Ok(())
     }
     pub fn finish_exchanges(&mut self, held: ExchangeInputs) -> Result<(), PhysicsError> {
-        if !Arc::ptr_eq(&self.owner, &held.owner) || held.observed != held.count {
+        if !Arc::ptr_eq(&self.exchange_epoch, &held.owner) || held.observed != held.count {
             return Err(PhysicsError::InvalidValue);
         }
         self.exchange_reactions = Some(held.contacts);

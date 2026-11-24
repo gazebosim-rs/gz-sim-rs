@@ -220,6 +220,7 @@ fn native_exchange_receipts_belong_to_a_single_owner_and_complete_interval() {
     let b = pb.downcast_mut::<MultiFidelityBackend>().unwrap();
     let h = Duration::from_micros(20);
     assert!(a.exchange_inputs(Duration::ZERO, 2).is_err());
+    assert!(a.exchange_inputs(h, 0).is_err());
     let mut first = a.exchange_inputs(h * 2, 2).unwrap();
     assert!(a.repeat_exchange_inputs(&first).is_err());
     assert!(b.observe_exchange(&mut first).is_err());
@@ -234,6 +235,12 @@ fn native_exchange_receipts_belong_to_a_single_owner_and_complete_interval() {
     assert!(a.observe_exchange(&mut last).is_err());
     assert!(b.repeat_exchange_inputs(&last).is_err());
     a.finish_exchanges(last).unwrap();
+    let mut stale = a.exchange_inputs(h * 2, 2).unwrap();
+    a.step(h).unwrap();
+    a.observe_exchange(&mut stale).unwrap();
+    a.reset().unwrap();
+    assert!(a.repeat_exchange_inputs(&stale).is_err());
+    assert!(a.observe_exchange(&mut stale).is_err());
 }
 
 #[test]
@@ -297,4 +304,59 @@ fn odd_nanosecond_grid_delivers_the_complete_force_once() {
     sim.step_exact(1).unwrap();
     assert_eq!(read(&sim, probe).velocity[0], ifirst.velocity[0]);
     assert_eq!(bodies(&sim).next().unwrap().1.rigid_material_exchanges(), 3);
+}
+
+#[test]
+fn remote_owner_and_free_two_way_spheres_cannot_share_the_material_grid() {
+    let xml = clock("4");
+    let remote = load_world_configured(
+        &xml,
+        "grasp.sdf",
+        "default",
+        &sdformat::NoResources,
+        WorldLoadOptions {
+            engine: PhysicsEngine::MultiFidelity,
+            noise_seed: [0; 32],
+            step: None,
+            distributed_worker: Some(std::path::Path::new("unused-worker")),
+        },
+    );
+    let remote_error = remote
+        .err()
+        .expect("conflicting solver ownership")
+        .to_string();
+    let expected = if cfg!(feature = "distributed-physics") {
+        "local material ownership"
+    } else {
+        "explicit physics worker requires"
+    };
+    assert!(remote_error.contains(expected), "{remote_error}");
+    let sphere = PROBE.replace(
+        "<box><size>0.04 0.04 0.12</size></box>",
+        "<sphere><radius>0.025</radius></sphere>",
+    );
+    let moving = xml
+        .replace("</world>", &format!("{sphere}</world>"))
+        .replace(
+            "<cable name=\"cable\"",
+            "<sphere link=\"default::probe::box\" coupling=\"two_way\"/><cable name=\"cable\"",
+        );
+    let error = load(&moving).err().unwrap();
+    assert!(
+        error
+            .to_string()
+            .contains("articulated pads and optional fixed supports"),
+        "{error}"
+    );
+}
+
+#[test]
+fn unresolved_material_step_keeps_the_last_committed_public_measurements() {
+    let mut sim = load(&clock("4")).unwrap();
+    sim.step_exact(1).unwrap();
+    let before = bodies(&sim).next().unwrap().1.particles().to_vec();
+    set_material_force(&mut sim, "cable", [0., 0., 1e175]).unwrap();
+    assert!(sim.step_exact(1).is_err());
+    assert_eq!(bodies(&sim).next().unwrap().1.particles(), before);
+    assert!(sim.is_faulted());
 }

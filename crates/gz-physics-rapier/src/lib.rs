@@ -173,6 +173,7 @@ pub struct RapierBackend {
     translation_epochs: std::collections::HashMap<RigidBodyHandle, Duration>,
     translation_rows: std::sync::OnceLock<Vec<fleet::TranslationRow>>,
     owner: Arc<()>,
+    exchange_epoch: Arc<()>,
     world: PhysicsWorld,
     bodies: BTreeMap<BodyId, BodyEntry>,
     joints: joints::Joints,
@@ -414,6 +415,7 @@ impl RapierBackend {
             translation_epochs: Default::default(),
             translation_rows: Default::default(),
             owner: Arc::new(()),
+            exchange_epoch: Arc::new(()),
             world: PhysicsWorld {
                 gravity: Vector::from(gravity),
                 ..PhysicsWorld::new()
@@ -1094,6 +1096,7 @@ impl DynamicBackend for RapierBackend {
         }
         self.pending_wrenches.clear();
         self.exchange_reactions = None;
+        self.exchange_epoch = Arc::new(());
         self.release_welded_projection();
         self.held_wrenches.clear();
         self.spinning_assemblies.clear();
