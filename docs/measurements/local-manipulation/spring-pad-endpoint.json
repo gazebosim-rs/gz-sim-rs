@@ -1,0 +1,166 @@
+{
+  "before": {
+    "actuator_period_ns": 1000000,
+    "jaw_damping_ns_per_m": 1.5,
+    "jaw_density_scale": 0.015625,
+    "native_step_ns": 15625,
+    "pad_compliance_m_per_n": 1.5625e-05,
+    "substeps": 1,
+    "trial": {
+      "completed": false,
+      "diagnostic": "a simulation system failed Some(Xpbd(UnresolvedSurface)) at native step 40926",
+      "refused_at_tick": 640
+    }
+  },
+  "after": {
+    "64": {
+      "completed": true,
+      "actuator_updates": 3400,
+      "meets_grasp_tolerances": false,
+      "mean_hold_jaw_up_n": [
+        0.11366012896949065,
+        -0.03131557833338335
+      ],
+      "mean_hold_self_contact_n": 0.02464979479387437,
+      "max_linear_impulse_residual_ns": 2.409937498369968e-18,
+      "max_pad_attribution_residual_ns": 1.0843635899359014e-19,
+      "mean_hold_lift_m": [
+        0.1486494046408409,
+        0.14860053150985045
+      ],
+      "step_p95_ns": 27047742,
+      "mean_released_bench_up_n": 0.08240399999999587
+    },
+    "100": {
+      "completed": true,
+      "actuator_updates": 3400,
+      "meets_grasp_tolerances": false,
+      "mean_hold_jaw_up_n": [
+        0.02184746409544088,
+        0.06017657173219378
+      ],
+      "mean_hold_self_contact_n": 0.013215047567640024,
+      "max_linear_impulse_residual_ns": 2.3720685565503967e-18,
+      "max_pad_attribution_residual_ns": 6.58074282714366e-20,
+      "mean_hold_lift_m": [
+        0.14875466798565123,
+        0.14877718212171642
+      ],
+      "step_p95_ns": 38792296,
+      "mean_released_bench_up_n": 0.08240400000002222
+    },
+    "125": {
+      "completed": true,
+      "actuator_updates": 3400,
+      "meets_grasp_tolerances": true,
+      "mean_hold_jaw_up_n": [
+        0.042891426832575276,
+        0.03952241847250945
+      ],
+      "mean_hold_self_contact_n": 0.0,
+      "max_linear_impulse_residual_ns": 2.618187643226609e-18,
+      "max_pad_attribution_residual_ns": 6.446499489918956e-20,
+      "mean_hold_lift_m": [
+        0.1494825592184212,
+        0.1495216524986405
+      ],
+      "step_p95_ns": 42156147,
+      "mean_released_bench_up_n": 0.08240400000002196
+    },
+    "160": {
+      "completed": true,
+      "actuator_updates": 3400,
+      "meets_grasp_tolerances": false,
+      "mean_hold_jaw_up_n": [
+        0.020623028457255062,
+        0.06183703126742193
+      ],
+      "mean_hold_self_contact_n": 0.010412245268429937,
+      "max_linear_impulse_residual_ns": 2.5429677018314284e-18,
+      "max_pad_attribution_residual_ns": 3.8972721366046875e-20,
+      "mean_hold_lift_m": [
+        0.14848720838058949,
+        0.1485209750135236
+      ],
+      "step_p95_ns": 48574786,
+      "mean_released_bench_up_n": 0.08240400000000826
+    },
+    "200": {
+      "completed": true,
+      "actuator_updates": 3400,
+      "meets_grasp_tolerances": false,
+      "mean_hold_jaw_up_n": [
+        0.0625377921299566,
+        0.019539213245401414
+      ],
+      "mean_hold_self_contact_n": 0.010381181606588812,
+      "max_linear_impulse_residual_ns": 2.5555017730979454e-18,
+      "max_pad_attribution_residual_ns": 3.9593694169772277e-20,
+      "mean_hold_lift_m": [
+        0.14861821893203128,
+        0.14856977963283857
+      ],
+      "step_p95_ns": 61401770,
+      "mean_released_bench_up_n": 0.08240399999998213
+    },
+    "250": {
+      "completed": true,
+      "actuator_updates": 3400,
+      "meets_grasp_tolerances": false,
+      "mean_hold_jaw_up_n": [
+        0.07395579607509546,
+        0.008330243249215333
+      ],
+      "mean_hold_self_contact_n": 0.01495874510889621,
+      "max_linear_impulse_residual_ns": 2.61279815500543e-18,
+      "max_pad_attribution_residual_ns": 3.058715608077246e-20,
+      "mean_hold_lift_m": [
+        0.1486876357908053,
+        0.14867787979763603
+      ],
+      "step_p95_ns": 73229515,
+      "mean_released_bench_up_n": 0.08240399999998188
+    }
+  },
+  "endpoint_coverage": {
+    "crates/gz-physics-xpbd/src/collision.rs": {
+      "lines": {
+        "hit": 16,
+        "total": 16,
+        "missing": []
+      },
+      "regions": {
+        "hit": 27,
+        "total": 27,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": {
+        "hit": 2,
+        "total": 2,
+        "missing": []
+      },
+      "regions": {
+        "hit": 7,
+        "total": 7,
+        "missing": []
+      }
+    }
+  },
+  "native_tests_passed": 190,
+  "browser": {
+    "64": {
+      "frames": 137,
+      "body_poses_and_shapes_checked": 3425,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    },
+    "125": {
+      "frames": 137,
+      "body_poses_and_shapes_checked": 3425,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    }
+  }
+}

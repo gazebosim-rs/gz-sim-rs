@@ -2107,3 +2107,7 @@ The 400 g parcel that jammed under 13.25 N of shelf reaction now clears the edge
 ## 2026-11-23 — Checking the native arm's rebound from a matched landing
 
 Four native stabilization passes reduced the unwanted upward velocity at the end of the landing tick from 56.38 to 0.0121 mm/s. The GPU and independent native impulses then agreed within 0.00335% from the same incoming state. A 600 ms continuous replay shows all nine native arms touching at 65 ms and unloading after 307 ms. The study keeps the ordinary runtime defaults. [Measurements and gz-web-rs comparison](measurements/local-manipulation/native-landing-passes.md)
+
+## 2026-11-23 — Resolving self-contact inside a stiff folded-sheet grasp
+
+The stiff spring jaws now continue past the 640 ms pickup state where a closing cloth edge used to stop the simulation. Six exchange rates completed the full pickup and release with the same actuator clock. The measured force split between the two jaws still varies considerably, so this extreme compliance remains outside the qualified range. The exact failed state passed at four material resolutions, all 190 XPBD tests passed and the solver change reached 100% executable line and region coverage. [Signed forces, native replays and regression](measurements/local-manipulation/spring-pad-endpoint.md)
