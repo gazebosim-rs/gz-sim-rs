@@ -23,6 +23,13 @@ pub(super) fn configure_clock(
             return Err("carry duration must be 1 to 4000 ms".into());
         }
         let cadence = cycle::Cadence::new(sim.step_duration(), control_ms)?;
+        let period = Duration::from_millis(control_ms);
+        let ids = [
+            part(sim, "gripper::spindle")?.id,
+            part(sim, "gripper::wrist")?.id,
+        ];
+        let response = (period != sim.step_duration()).then_some(period);
+        gz_sim_scene::set_joint_position_response_period(sim, &ids, response)?;
         sim.world_mut().insert_resource(cadence);
         sim.world_mut()
             .insert_resource(Travel(usize::try_from(ms)?));
@@ -223,14 +230,18 @@ impl Supervisor {
             .expect("active carry reading")
             .station_ns[1];
         let both_pads = reading.both_pads_loaded;
-        if !lifting
-            && (impulse_ns <= 0.
+        if !lifting {
+            if impulse_ns <= 0. || !both_pads {
+                return Ok(());
+            }
+            let aligned = reading.target.face_loaded
                 || reading.target.normal_force_n * self.control_dt.as_secs_f64()
-                    >= self.criteria.minimum_alignment * impulse_ns
-                || reading.target.face_loaded
-                || !both_pads)
-        {
-            return Ok(());
+                    >= self.criteria.minimum_alignment * impulse_ns;
+            // A vertical reaction from one overhanging corner cannot support the
+            // parcel's weight by itself when its gravity line misses the shelf.
+            if aligned && passage.receiver_below_com(sim, self.links.body)? {
+                return Ok(());
+            }
         }
         let gaps = passage.receiver_gaps(sim, self.links.body)?;
         let q = spindle_position(sim, self.links.spindle)?;
@@ -463,7 +474,8 @@ impl Supervisor {
             };
             if self.trial == Trial::GuardedCarry
                 && self.stable_ms as u128 >= SUPPORT_DWELL.as_millis()
-                && support.sustained < SUPPORT_DWELL
+                && support.mean_force_n.unwrap_or(support.normal_force_n)
+                    < self.criteria.mean_weight_fraction[0] * self.weight
                 && !support.ready
             {
                 // Return only the additional slip response to its nominal spring preload.

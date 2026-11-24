@@ -2104,6 +2104,10 @@ The toe overhung the finite deck by 28.89 mm while its coated sole stayed loaded
 
 The 400 g parcel that jammed under 13.25 N of shelf reaction now clears the edge by 19.77 mm and settles at its measured 3.924 N weight. All 57 cold/reset trials reproduced every recorded pose. The 12 N overloads withheld release. The 8 N transfer succeeded with 0.5, 1 and 2 ms physics, although opening times differed by 4.85 seconds. Changed production coverage reached 99.30% of lines and 96.09% of regions. [Measured loads, timings and four native replays](measurements/local-manipulation/serial-pressure.md)
 
+## 2026-11-23 — Consistent release of a parcel over a shelf edge
+
+Keeping the parcel's center of mass over the shelf before set-down narrowed the 8 N release-time spread from 4.85 seconds to 134 ms across 0.5, 1 and 2 ms physics. The 1 and 2 ms trajectories came within 0.73 and 2.73 mm of the 0.5 ms run, formerly 37.75 and 45.76 mm. A finer 0.25 ms holdout released 408 ms later than the 0.5 ms run. All 16 resets reproduced their trajectories, and every 12 N trial withheld opening after losing its grasp. Changed production coverage reached 98.94% of lines and 97.65% of regions. [Matched native impulses, force convergence and three replays](measurements/local-manipulation/serial-convergence.md)
+
 ## 2026-11-23 — Checking the native arm's rebound from a matched landing
 
 Four native stabilization passes reduced the unwanted upward velocity at the end of the landing tick from 56.38 to 0.0121 mm/s. The GPU and independent native impulses then agreed within 0.00335% from the same incoming state. A 600 ms continuous replay shows all nine native arms touching at 65 ms and unloading after 307 ms. The study keeps the ordinary runtime defaults. [Measurements and gz-web-rs comparison](measurements/local-manipulation/native-landing-passes.md)

@@ -40,7 +40,7 @@ pub use apply_link_wrench::{
 pub use joint_controller::{
     JointControllerCommandError, JointControllerConfiguration, JointControllerMode,
     joint_controller_binding_matches, joint_controller_binding_matches_configuration,
-    set_joint_controller_command,
+    set_joint_controller_command, set_joint_position_response_period,
 };
 pub use joint_state_publisher::{
     JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,

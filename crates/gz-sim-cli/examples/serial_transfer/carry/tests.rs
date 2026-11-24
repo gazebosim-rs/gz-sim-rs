@@ -536,3 +536,6 @@ fn serial_receiver_slip_trace() -> Result<()> {
 
 #[path = "pressure_tests.rs"]
 mod pressure_tests;
+
+#[path = "convergence_tests.rs"]
+mod convergence_tests;

@@ -341,7 +341,7 @@ pub fn set_joint_controller_command(
             coordinate,
             controller.max_velocity,
             controller.max_force,
-            sim.step_duration(),
+            position_response(world, id, sim.step_duration()),
         )
         .map_err(command_error)?;
     motor.validate(backend, controller.joint, sim.step_duration())?;
@@ -354,6 +354,62 @@ pub fn set_joint_controller_command(
         .get_mut::<Controller>(entity)
         .expect("preflighted controller")
         .target = desired;
+    Ok(())
+}
+
+#[derive(Resource, Default)]
+struct PositionResponses(BTreeMap<u64, Duration>);
+
+fn position_response(world: &World, id: u64, native: Duration) -> Duration {
+    world
+        .get_resource::<PositionResponses>()
+        .and_then(|policy| policy.0.get(&id))
+        .copied()
+        .unwrap_or(native)
+}
+
+/// Set the physical period used to turn position error into target velocity on
+/// local screws and universal axes. Native updates and actuator limits retain
+/// their authored timing. The period must span at least one physics step.
+/// Configuration survives loaded-world reset. Passing `None` restores the
+/// native one-step response. All named joints are validated before mutation.
+pub fn set_joint_position_response_period(
+    sim: &mut Simulation,
+    ids: &[u64],
+    period: Option<Duration>,
+) -> Result<(), JointControllerCommandError> {
+    if period.is_some_and(|p| p < sim.step_duration()) {
+        return Err(JointControllerCommandError::InvalidCommand);
+    }
+    for &id in ids {
+        if !joint_controller_binding_matches(sim, id) {
+            return Err(JointControllerCommandError::MissingController(id));
+        }
+        let controller = gz_sim_core::entity_by_id(sim.world(), id)
+            .and_then(|e| sim.world().get::<Controller>(e))
+            .ok_or(JointControllerCommandError::MissingController(id))?;
+        if controller.publication.mode != JointControllerMode::Position
+            || !matches!(
+                controller.actuation,
+                Actuation::Screw | Actuation::Universal(_)
+            )
+        {
+            return Err(JointControllerCommandError::InvalidCommand);
+        }
+        // The native position law requires its maximum travel per response to
+        // remain representable, even for a very long requested period.
+        if period.is_some_and(|dt| !(controller.max_velocity * dt.as_secs_f64()).is_finite()) {
+            return Err(JointControllerCommandError::InvalidCommand);
+        }
+    }
+    if let Some(value) = period {
+        let mut policy = sim.world_mut().get_resource_or_init::<PositionResponses>();
+        policy.0.extend(ids.iter().map(|id| (*id, value)));
+    } else if let Some(mut policy) = sim.world_mut().get_resource_mut::<PositionResponses>() {
+        for id in ids {
+            policy.0.remove(id);
+        }
+    }
     Ok(())
 }
 
@@ -592,7 +648,7 @@ fn apply(world: &mut World) {
                         coordinate,
                         controller.max_velocity,
                         controller.max_force,
-                        time.dt,
+                        position_response(world, controller.owner, time.dt),
                     )
                     .map_err(|error| fail(error.to_string()))?;
                 entries[index] = Some((entity.id(), controller.joint, motor));

@@ -55,6 +55,14 @@ impl BoxPart {
     }
 }
 
+// Project the line of gravity through the parcel COM onto the entire oriented shelf.
+fn inside_gravity_footprint(shape: &Cuboid, pose: &Pose, mut center: Vector) -> bool {
+    use parry3d_f64::query::{Ray, RayCast};
+    let radius = shape.half_extents.length();
+    center.z = pose.translation.z + radius;
+    shape.intersects_ray(pose, &Ray::new(center, -Vector::Z), 2. * radius)
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub(super) struct SweepHit {
     tick: usize,
@@ -92,6 +100,7 @@ fn is_zero(value: &usize) -> bool {
 pub(super) struct Passage {
     wall: BoxPart,
     shelf: Option<BoxPart>,
+    parcel_center: [f64; 3],
     moving: Vec<BoxPart>,
     pub(super) outcome: PassageOutcome,
 }
@@ -107,6 +116,7 @@ impl Passage {
             .ok_or("missing obstacle route world")?;
         let mut wall = None;
         let mut shelf = None;
+        let mut parcel_center = [0.; 3];
         let mut moving = Vec::new();
         for model in &world.models {
             let obstacle = model.name == "obstacle";
@@ -114,6 +124,16 @@ impl Passage {
                 continue;
             }
             for link in &model.links {
+                if model.name == "parcel" && link.name == "box" {
+                    parcel_center = sdf
+                        .resolve_pose(
+                            &link.inertial.pose,
+                            &model.scoped_name,
+                            &link.scoped_name,
+                            &link.scoped_name,
+                        )?
+                        .translation;
+                }
                 for c in &link.collisions {
                     let receiver = model.name == "receiver";
                     if receiver && (link.name != "shelf" || c.name != "top" || !model.is_static) {
@@ -182,6 +202,7 @@ impl Passage {
         Ok(Self {
             wall,
             shelf,
+            parcel_center,
             moving,
             outcome,
         })
@@ -210,6 +231,24 @@ impl Passage {
             above - height(&p, &parcel.shape),
             above - parcel.shape.half_extents.length(),
         ])
+    }
+    pub(super) fn receiver_below_com(&self, sim: &Simulation, body: BodyId) -> Result<bool> {
+        let shelf = self
+            .shelf
+            .as_ref()
+            .ok_or("missing fixed receiving shelf box")?;
+        let parcel = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .state(body)
+            .ok_or("missing carried body")?;
+        let center = Vector::from_array(parcel.position)
+            + Rotation::from_array(parcel.orientation) * Vector::from_array(self.parcel_center);
+        Ok(inside_gravity_footprint(
+            &shelf.shape,
+            &shelf.pose(sim)?,
+            center,
+        ))
     }
     pub(super) fn path_clear(&self, sim: &Simulation, span: f64) -> Result<bool> {
         let wall = self.wall.pose(sim)?;

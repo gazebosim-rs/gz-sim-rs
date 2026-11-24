@@ -335,3 +335,63 @@ fn missing_return_geometry_refuses_an_unobserved_route() -> Result<()> {
     assert!(route.path_clear(&sim, 0.1).is_err());
     Ok(())
 }
+
+#[test]
+fn gravity_projection_includes_a_tilted_shelf_and_refuses_missing_geometry() -> Result<()> {
+    let shape = Cuboid::new(Vector::new(0.3, 0.1, 0.01));
+    let pose = Pose::from_parts(
+        Vector::new(0.2, -0.4, 1.),
+        Rotation::from_rotation_y(0.4) * Rotation::from_rotation_z(0.6),
+    );
+    assert!(inside_gravity_footprint(
+        &shape,
+        &pose,
+        Vector::new(0.2, -0.4, 2.)
+    ));
+    assert!(!inside_gravity_footprint(
+        &shape,
+        &pose,
+        Vector::new(0.8, -0.4, 2.)
+    ));
+    let xml = Trial::GuardedCarry.xml();
+    let sdf = sdformat::load_str(xml, "gravity.sdf", &sdformat::NoResources)?;
+    let sim = load_world_with_sdf_step(
+        xml,
+        "gravity.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )?;
+    let mut route = Passage::bind(&sim, &sdf)?;
+    let body = part(&sim, "parcel::box")?.body(&sim)?;
+    assert!(!route.receiver_below_com(&sim, body)?);
+    route.shelf = None;
+    assert!(route.receiver_below_com(&sim, body).is_err());
+    Ok(())
+}
+
+#[test]
+fn invalid_inertial_frame_or_missing_shelf_pose_cannot_authorize_a_gravity_test() -> Result<()> {
+    let xml = Trial::GuardedCarry.xml();
+    let mut sdf = sdformat::load_str(xml, "gravity.sdf", &sdformat::NoResources)?;
+    let mut sim = load_world_with_sdf_step(
+        xml,
+        "gravity.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )?;
+    let route = Passage::bind(&sim, &sdf)?;
+    let parcel = part(&sim, "parcel::box")?.body(&sim)?;
+    let collision = route.shelf.as_ref().unwrap().collision;
+    sim.world_mut().entity_mut(collision).remove::<WorldPose>();
+    assert!(route.receiver_below_com(&sim, parcel).is_err());
+    let model = sdf.worlds[0]
+        .models
+        .iter_mut()
+        .find(|m| m.name == "parcel")
+        .unwrap();
+    model.links[0].inertial.pose.relative_to = "absent_mount".into();
+    assert!(Passage::bind(&sim, &sdf).is_err());
+    Ok(())
+}

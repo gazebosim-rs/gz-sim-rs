@@ -18,11 +18,11 @@ impl Cadence {
         let ns = dt.as_nanos();
         let period = control_ms as u128 * 1_000_000;
         if !matches!(control_ms, 1 | 2)
-            || !matches!(ns, 500_000 | 1_000_000 | 2_000_000)
+            || !matches!(ns, 250_000 | 500_000 | 1_000_000 | 2_000_000)
             || !period.is_multiple_of(ns)
         {
             return Err(
-                "use a 1 or 2 ms control period divisible by a 0.5, 1 or 2 ms SDF physics step"
+                "use a 1 or 2 ms control period divisible by a 0.25, 0.5, 1 or 2 ms SDF physics step"
                     .into(),
             );
         }

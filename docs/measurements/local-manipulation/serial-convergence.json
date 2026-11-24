@@ -1,0 +1,6968 @@
+{
+  "original_vs_500": {
+    "1000": [
+      {
+        "interval_ms": [
+          3600,
+          6200
+        ],
+        "max_center_error_mm": 2.2319300552067145,
+        "worst_center_ms": 6200,
+        "last_center_error_mm": 2.2319300552067145,
+        "peak_angle_error_rad": 0.0008599478214085573,
+        "max_cumulative_up_impulse_error_ns": 0,
+        "final_signed_up_impulse_error_ns": 0.0
+      },
+      {
+        "interval_ms": [
+          6200,
+          18000
+        ],
+        "max_center_error_mm": 37.745418997502625,
+        "worst_center_ms": 7280,
+        "last_center_error_mm": 3.284121697751885,
+        "peak_angle_error_rad": 0.2549066947466181,
+        "max_cumulative_up_impulse_error_ns": 21.004436644061617,
+        "final_signed_up_impulse_error_ns": 18.82888460183935
+      },
+      {
+        "interval_ms": [
+          6202,
+          6800
+        ],
+        "max_center_error_mm": 20.388484943484784,
+        "worst_center_ms": 6690,
+        "last_center_error_mm": 20.198809218235684,
+        "peak_angle_error_rad": 0.2549066947466181,
+        "max_cumulative_up_impulse_error_ns": 2.892154046642903,
+        "final_signed_up_impulse_error_ns": 2.892154046642903
+      },
+      {
+        "interval_ms": [
+          8102,
+          13000
+        ],
+        "max_center_error_mm": 33.106478423445324,
+        "worst_center_ms": 8568,
+        "last_center_error_mm": 7.798728571016118,
+        "peak_angle_error_rad": 0.25420086514215956,
+        "max_cumulative_up_impulse_error_ns": 10.846605717698303,
+        "final_signed_up_impulse_error_ns": 10.109701607635392
+      }
+    ],
+    "2000": [
+      {
+        "interval_ms": [
+          3600,
+          6200
+        ],
+        "max_center_error_mm": 4.952354607114548,
+        "worst_center_ms": 6200,
+        "last_center_error_mm": 4.952354607114548,
+        "peak_angle_error_rad": 0.0017356503169784828,
+        "max_cumulative_up_impulse_error_ns": 0,
+        "final_signed_up_impulse_error_ns": 0.0
+      },
+      {
+        "interval_ms": [
+          6200,
+          18000
+        ],
+        "max_center_error_mm": 45.75520819913486,
+        "worst_center_ms": 7552,
+        "last_center_error_mm": 3.1094118991218904,
+        "peak_angle_error_rad": 0.2555601519723039,
+        "max_cumulative_up_impulse_error_ns": 7.359161581965532,
+        "final_signed_up_impulse_error_ns": 7.34938022285112
+      },
+      {
+        "interval_ms": [
+          6202,
+          6800
+        ],
+        "max_center_error_mm": 20.097193841651944,
+        "worst_center_ms": 6800,
+        "last_center_error_mm": 20.097193841651944,
+        "peak_angle_error_rad": 0.2555222062428311,
+        "max_cumulative_up_impulse_error_ns": 2.556409341508247,
+        "final_signed_up_impulse_error_ns": 2.556409341508247
+      },
+      {
+        "interval_ms": [
+          8102,
+          13000
+        ],
+        "max_center_error_mm": 26.25730495276979,
+        "worst_center_ms": 8102,
+        "last_center_error_mm": 3.1094118991218904,
+        "peak_angle_error_rad": 0.2555601519723039,
+        "max_cumulative_up_impulse_error_ns": 4.557448957760544,
+        "final_signed_up_impulse_error_ns": 4.547671042808864
+      }
+    ]
+  },
+  "corrected_vs_500": {
+    "250": [
+      {
+        "interval_ms": [
+          3600,
+          6200
+        ],
+        "max_center_error_mm": 0.18799183271502612,
+        "worst_center_ms": 6200,
+        "last_center_error_mm": 0.18799183271502612,
+        "peak_angle_error_rad": 0.0012119580983777417,
+        "max_cumulative_up_impulse_error_ns": 0,
+        "final_signed_up_impulse_error_ns": 0.0
+      },
+      {
+        "interval_ms": [
+          6200,
+          18000
+        ],
+        "max_center_error_mm": 0.295812457587508,
+        "worst_center_ms": 6308,
+        "last_center_error_mm": 0.059796810150079,
+        "peak_angle_error_rad": 0.00799979146946472,
+        "max_cumulative_up_impulse_error_ns": 0.2223586196240755,
+        "final_signed_up_impulse_error_ns": -0.06050246313471977
+      },
+      {
+        "interval_ms": [
+          6202,
+          6800
+        ],
+        "max_center_error_mm": 0.295812457587508,
+        "worst_center_ms": 6308,
+        "last_center_error_mm": 0.07403166523035612,
+        "peak_angle_error_rad": 0.0013068965535176058,
+        "max_cumulative_up_impulse_error_ns": 0.008716842403120928,
+        "final_signed_up_impulse_error_ns": -0.008716842403120928
+      },
+      {
+        "interval_ms": [
+          8102,
+          13000
+        ],
+        "max_center_error_mm": 0.27358611525562576,
+        "worst_center_ms": 11010,
+        "last_center_error_mm": 0.059796810150079,
+        "peak_angle_error_rad": 0.00799979146946472,
+        "max_cumulative_up_impulse_error_ns": 0.23107546202719642,
+        "final_signed_up_impulse_error_ns": -0.05178447265130473
+      }
+    ],
+    "1000": [
+      {
+        "interval_ms": [
+          3600,
+          6200
+        ],
+        "max_center_error_mm": 0.41273729124224534,
+        "worst_center_ms": 3600,
+        "last_center_error_mm": 0.3644861938544128,
+        "peak_angle_error_rad": 0.0008513071076204992,
+        "max_cumulative_up_impulse_error_ns": 0,
+        "final_signed_up_impulse_error_ns": 0.0
+      },
+      {
+        "interval_ms": [
+          6200,
+          18000
+        ],
+        "max_center_error_mm": 0.7334331764388959,
+        "worst_center_ms": 6304,
+        "last_center_error_mm": 0.6500866665640364,
+        "peak_angle_error_rad": 0.007866269723140253,
+        "max_cumulative_up_impulse_error_ns": 0.32709270433510085,
+        "final_signed_up_impulse_error_ns": -0.25827808704069316
+      },
+      {
+        "interval_ms": [
+          6202,
+          6800
+        ],
+        "max_center_error_mm": 0.7334331764388959,
+        "worst_center_ms": 6304,
+        "last_center_error_mm": 0.4509698448508071,
+        "peak_angle_error_rad": 0.002967009337491954,
+        "max_cumulative_up_impulse_error_ns": 0.11379037658421474,
+        "final_signed_up_impulse_error_ns": 0.016346210632085273
+      },
+      {
+        "interval_ms": [
+          8102,
+          13000
+        ],
+        "max_center_error_mm": 0.6888569344925803,
+        "worst_center_ms": 9350,
+        "last_center_error_mm": 0.6500866665640364,
+        "peak_angle_error_rad": 0.007866269723140253,
+        "max_cumulative_up_impulse_error_ns": 0.34343891496718615,
+        "final_signed_up_impulse_error_ns": -0.27462293071650806
+      }
+    ],
+    "2000": [
+      {
+        "interval_ms": [
+          3600,
+          6200
+        ],
+        "max_center_error_mm": 1.7273346227623263,
+        "worst_center_ms": 3614,
+        "last_center_error_mm": 1.5883846343137527,
+        "peak_angle_error_rad": 0.0023946263824565395,
+        "max_cumulative_up_impulse_error_ns": 0,
+        "final_signed_up_impulse_error_ns": 0.0
+      },
+      {
+        "interval_ms": [
+          6200,
+          18000
+        ],
+        "max_center_error_mm": 2.7334936039996873,
+        "worst_center_ms": 6298,
+        "last_center_error_mm": 0.8436244506776845,
+        "peak_angle_error_rad": 0.016688231390471056,
+        "max_cumulative_up_impulse_error_ns": 0.5689631540921495,
+        "final_signed_up_impulse_error_ns": -0.5478219146080436
+      },
+      {
+        "interval_ms": [
+          6202,
+          6800
+        ],
+        "max_center_error_mm": 2.7334936039996873,
+        "worst_center_ms": 6298,
+        "last_center_error_mm": 1.1048679264155696,
+        "peak_angle_error_rad": 0.008204510196673821,
+        "max_cumulative_up_impulse_error_ns": 0.14558606409481434,
+        "final_signed_up_impulse_error_ns": 0.048141898142684866
+      },
+      {
+        "interval_ms": [
+          8102,
+          13000
+        ],
+        "max_center_error_mm": 0.9242182849528736,
+        "worst_center_ms": 10620,
+        "last_center_error_mm": 0.8436244506776845,
+        "peak_angle_error_rad": 0.016688231390471056,
+        "max_cumulative_up_impulse_error_ns": 0.6171050522348346,
+        "final_signed_up_impulse_error_ns": -0.5959617579063785
+      }
+    ]
+  },
+  "corrected_vs_250": {
+    "500": [
+      {
+        "interval_ms": [
+          3600,
+          6200
+        ],
+        "max_center_error_mm": 0.18799183271502612,
+        "worst_center_ms": 6200,
+        "last_center_error_mm": 0.18799183271502612,
+        "peak_angle_error_rad": 0.0012119580983777417,
+        "max_cumulative_up_impulse_error_ns": 0,
+        "final_signed_up_impulse_error_ns": 0.0
+      },
+      {
+        "interval_ms": [
+          6200,
+          18000
+        ],
+        "max_center_error_mm": 0.295812457587508,
+        "worst_center_ms": 6308,
+        "last_center_error_mm": 0.059796810150079,
+        "peak_angle_error_rad": 0.00799979146946472,
+        "max_cumulative_up_impulse_error_ns": 0.2223586196240755,
+        "final_signed_up_impulse_error_ns": 0.06050246313471977
+      },
+      {
+        "interval_ms": [
+          6202,
+          6800
+        ],
+        "max_center_error_mm": 0.295812457587508,
+        "worst_center_ms": 6308,
+        "last_center_error_mm": 0.07403166523035612,
+        "peak_angle_error_rad": 0.0013068965535176058,
+        "max_cumulative_up_impulse_error_ns": 0.008716842403120928,
+        "final_signed_up_impulse_error_ns": 0.008716842403120928
+      },
+      {
+        "interval_ms": [
+          8102,
+          13000
+        ],
+        "max_center_error_mm": 0.27358611525562576,
+        "worst_center_ms": 11010,
+        "last_center_error_mm": 0.059796810150079,
+        "peak_angle_error_rad": 0.00799979146946472,
+        "max_cumulative_up_impulse_error_ns": 0.23107546202719642,
+        "final_signed_up_impulse_error_ns": 0.05178447265130473
+      }
+    ],
+    "1000": [
+      {
+        "interval_ms": [
+          3600,
+          6200
+        ],
+        "max_center_error_mm": 0.41554570981723365,
+        "worst_center_ms": 3606,
+        "last_center_error_mm": 0.3719682282778191,
+        "peak_angle_error_rad": 0.0019759991643989324,
+        "max_cumulative_up_impulse_error_ns": 0,
+        "final_signed_up_impulse_error_ns": 0.0
+      },
+      {
+        "interval_ms": [
+          6200,
+          18000
+        ],
+        "max_center_error_mm": 1.0039511151340794,
+        "worst_center_ms": 6306,
+        "last_center_error_mm": 0.6942283668742917,
+        "peak_angle_error_rad": 0.007998025637444553,
+        "max_cumulative_up_impulse_error_ns": 0.5445629856662583,
+        "final_signed_up_impulse_error_ns": -0.19777562390595113
+      },
+      {
+        "interval_ms": [
+          6202,
+          6800
+        ],
+        "max_center_error_mm": 1.0039511151340794,
+        "worst_center_ms": 6306,
+        "last_center_error_mm": 0.5066294350682975,
+        "peak_angle_error_rad": 0.0031485283811423332,
+        "max_cumulative_up_impulse_error_ns": 0.11379037658421474,
+        "final_signed_up_impulse_error_ns": 0.0250630530352062
+      },
+      {
+        "interval_ms": [
+          8102,
+          13000
+        ],
+        "max_center_error_mm": 0.7184466896189325,
+        "worst_center_ms": 11010,
+        "last_center_error_mm": 0.6942283668742917,
+        "peak_angle_error_rad": 0.007998025637444553,
+        "max_cumulative_up_impulse_error_ns": 0.5696260387014646,
+        "final_signed_up_impulse_error_ns": -0.2228384580651986
+      }
+    ],
+    "2000": [
+      {
+        "interval_ms": [
+          3600,
+          6200
+        ],
+        "max_center_error_mm": 1.6180090696145761,
+        "worst_center_ms": 3614,
+        "last_center_error_mm": 1.426923776227682,
+        "peak_angle_error_rad": 0.0035323027120554547,
+        "max_cumulative_up_impulse_error_ns": 0,
+        "final_signed_up_impulse_error_ns": 0.0
+      },
+      {
+        "interval_ms": [
+          6200,
+          18000
+        ],
+        "max_center_error_mm": 2.928685810448144,
+        "worst_center_ms": 6298,
+        "last_center_error_mm": 0.8716201529887088,
+        "peak_angle_error_rad": 0.013704861824925845,
+        "max_cumulative_up_impulse_error_ns": 0.7810692677671581,
+        "final_signed_up_impulse_error_ns": -0.4873194514734009
+      },
+      {
+        "interval_ms": [
+          6202,
+          6800
+        ],
+        "max_center_error_mm": 2.928685810448144,
+        "worst_center_ms": 6298,
+        "last_center_error_mm": 1.1461754336334844,
+        "peak_angle_error_rad": 0.008272587348800813,
+        "max_cumulative_up_impulse_error_ns": 0.14558606409481434,
+        "final_signed_up_impulse_error_ns": 0.056858740545805794
+      },
+      {
+        "interval_ms": [
+          8102,
+          13000
+        ],
+        "max_center_error_mm": 0.9303603822289507,
+        "worst_center_ms": 11010,
+        "last_center_error_mm": 0.8716201529887088,
+        "peak_angle_error_rad": 0.013704861824925845,
+        "max_cumulative_up_impulse_error_ns": 0.8379280083129637,
+        "final_signed_up_impulse_error_ns": -0.5441772852550992
+      }
+    ]
+  },
+  "cases": {
+    "p250-n0": {
+      "first_alarm_ms": null,
+      "repeat_ms": null,
+      "edge_lifts": [],
+      "lowering_ms": null,
+      "normal_open_ms": 9874,
+      "supported_open_ms": null,
+      "open_window": {
+        "max_up_n": 3.8300679164642903,
+        "mean_up_n": 3.688593372710148,
+        "min_up_n": 3.533407900325369,
+        "ms": 9874,
+        "solves": 120
+      },
+      "final_shelf_n": 3.9240000000000155,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "313871e1fd8d293cd6cc7d38108712a7931e8191e65dd4468bc8675b29708f66",
+      "replay_sha256": "8087fdc96212b14327c22c1d8d150f07ce945a13b40420c4364c1ecf64180aae",
+      "outcome_sha256": "0d5e6c97484a168d17addcecaa02c402db3979bb7f59bf951370b31b9a8dfdd7",
+      "sdf_sha256": "ab07f06dfa313d0f028e0bd7fd135f9ff6e39da74a32aad63376248867507460"
+    },
+    "p250-n6": {
+      "first_alarm_ms": 6206,
+      "repeat_ms": 6256,
+      "edge_lifts": [],
+      "lowering_ms": 8326,
+      "normal_open_ms": null,
+      "supported_open_ms": 10874,
+      "open_window": {
+        "max_up_n": 3.8083801816843255,
+        "mean_up_n": 3.688606476380314,
+        "min_up_n": 3.539729986208014,
+        "ms": 10874,
+        "solves": 120
+      },
+      "final_shelf_n": 3.9240000000000155,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "313871e1fd8d293cd6cc7d38108712a7931e8191e65dd4468bc8675b29708f66",
+      "replay_sha256": "235314ea35de6a1f281194b104ecf581917d9c9b050d932b32934aed2702885b",
+      "outcome_sha256": "286782224ed0d9c3041308d517d91703fc7966618e53d513317c87737a061af1",
+      "sdf_sha256": "ab07f06dfa313d0f028e0bd7fd135f9ff6e39da74a32aad63376248867507460"
+    },
+    "p250-n8": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [
+        {
+          "first_contact_ms": 6310,
+          "start_gaps_m": [
+            -0.0001655765426886585,
+            -0.018449380958880518
+          ],
+          "initial_mean_upward_force_n": 44.36366177450427,
+          "initial_mean_total_normal_force_n": 44.363661774504266,
+          "resume_ms": 6708,
+          "resume_gaps_m": [
+            0.019974593082940605,
+            0.0014866862547775195
+          ],
+          "clear_for_ms": 30,
+          "peak_spindle_position_rad": 1.8551470857771815
+        }
+      ],
+      "lowering_ms": 8744,
+      "normal_open_ms": null,
+      "supported_open_ms": 11010,
+      "open_window": {
+        "max_up_n": 3.797173191948647,
+        "mean_up_n": 3.688677074203615,
+        "min_up_n": 3.5398462018897274,
+        "ms": 11010,
+        "solves": 120
+      },
+      "final_shelf_n": 3.924000262394283,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "313871e1fd8d293cd6cc7d38108712a7931e8191e65dd4468bc8675b29708f66",
+      "replay_sha256": "b3c94bcdda796ed777c3948a76eb96fd261ecf53df4e04e693d5a5a0fe8731ac",
+      "outcome_sha256": "60a7564f88de479a22b8b6034191fb5eb81e2bb924f409bec44525e3b144c5d6",
+      "sdf_sha256": "ab07f06dfa313d0f028e0bd7fd135f9ff6e39da74a32aad63376248867507460",
+      "first_edge_com_outside_mm": 15.772958047927998
+    },
+    "p250-n12": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [],
+      "lowering_ms": 8256,
+      "normal_open_ms": null,
+      "supported_open_ms": null,
+      "open_window": null,
+      "final_shelf_n": 0.8961230305183424,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "313871e1fd8d293cd6cc7d38108712a7931e8191e65dd4468bc8675b29708f66",
+      "replay_sha256": "f1847165462468379aa1bd2a8454e0246db3775a04137addaff8b516313bb15d",
+      "outcome_sha256": "512b400aaa4108f565b9e3e80602179055baa1d98e593cfbd671adb9e7df7b95",
+      "sdf_sha256": "ab07f06dfa313d0f028e0bd7fd135f9ff6e39da74a32aad63376248867507460"
+    },
+    "p500-n0": {
+      "first_alarm_ms": null,
+      "repeat_ms": null,
+      "edge_lifts": [],
+      "lowering_ms": null,
+      "normal_open_ms": 9810,
+      "supported_open_ms": null,
+      "open_window": {
+        "max_up_n": 3.746606309246212,
+        "mean_up_n": 3.688827041793134,
+        "min_up_n": 3.6249066848386926,
+        "ms": 9810,
+        "solves": 60
+      },
+      "final_shelf_n": 3.9240000000000155,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "382c22628a59860d8e7864b93a72f8b2fd3023bfd72bcb9a40186e0fd2db6df3",
+      "replay_sha256": "09d19a5e15eba5f2bfdc515ec5e5d0de696cb38bf52417e645e514591e12f292",
+      "outcome_sha256": "224b47a45f0d1e33c58d8464b6e43f66a459a3f89cde6f6a6496bd6eb3d6732a",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb"
+    },
+    "p500-n6": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [],
+      "lowering_ms": 8326,
+      "normal_open_ms": null,
+      "supported_open_ms": 10500,
+      "open_window": {
+        "max_up_n": 3.727459645902779,
+        "mean_up_n": 3.6893056107734075,
+        "min_up_n": 3.635463738370527,
+        "ms": 10500,
+        "solves": 60
+      },
+      "final_shelf_n": 3.9240000000000155,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "382c22628a59860d8e7864b93a72f8b2fd3023bfd72bcb9a40186e0fd2db6df3",
+      "replay_sha256": "a29e5bcfc0f35fbfaece4e6f311cd53be7adc8a757ed530dafbcfa4d392227f8",
+      "outcome_sha256": "5feccdb84e98d159871b67f3720fa47749d1037a9d8bb74ef2a3cdb4cf232381",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb"
+    },
+    "p500-n8": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [
+        {
+          "first_contact_ms": 6310,
+          "start_gaps_m": [
+            -0.00013685642108684365,
+            -0.018460300925776024
+          ],
+          "initial_mean_upward_force_n": 48.722082976064726,
+          "initial_mean_total_normal_force_n": 48.7220829760647,
+          "resume_ms": 6710,
+          "resume_gaps_m": [
+            0.019999558623465974,
+            0.0014935175381057542
+          ],
+          "clear_for_ms": 30,
+          "peak_spindle_position_rad": 1.855076562508792
+        }
+      ],
+      "lowering_ms": 8746,
+      "normal_open_ms": null,
+      "supported_open_ms": 10602,
+      "open_window": {
+        "max_up_n": 3.7238580557366308,
+        "mean_up_n": 3.689422808772985,
+        "min_up_n": 3.636127881711229,
+        "ms": 10602,
+        "solves": 60
+      },
+      "final_shelf_n": 3.9240004920103604,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "382c22628a59860d8e7864b93a72f8b2fd3023bfd72bcb9a40186e0fd2db6df3",
+      "replay_sha256": "6e8cdb2baed2d884e14b8f0084e510c8e605a26277c1f9261222591ea3015a6e",
+      "outcome_sha256": "bc2fb1059df508727210f89e671ae5505740bdd7ff2e1d604a080d2b09f0b54e",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "first_edge_com_outside_mm": 15.840277773342514
+    },
+    "p500-n12": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [],
+      "lowering_ms": 8256,
+      "normal_open_ms": null,
+      "supported_open_ms": null,
+      "open_window": null,
+      "final_shelf_n": 0.8971060804502312,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "382c22628a59860d8e7864b93a72f8b2fd3023bfd72bcb9a40186e0fd2db6df3",
+      "replay_sha256": "b7f43f68d2f06ee36e530d9b732d3deedf80fcd5c4bca61d8fad6db56964eb45",
+      "outcome_sha256": "1f7b9635ff9a117b17a6b21bf5ba43efafa7d0ed808c7845d19851900434799e",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb"
+    },
+    "p1000-n0": {
+      "first_alarm_ms": null,
+      "repeat_ms": null,
+      "edge_lifts": [],
+      "lowering_ms": null,
+      "normal_open_ms": 9796,
+      "supported_open_ms": null,
+      "open_window": {
+        "max_up_n": 3.6957354555549844,
+        "mean_up_n": 3.6889576661953356,
+        "min_up_n": 3.682012131250541,
+        "ms": 9796,
+        "solves": 30
+      },
+      "final_shelf_n": 3.9240000000000155,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "ceb2b0f2180155a49763fb273e4159ceaddb75fdb5802879c76ac730436a5508",
+      "replay_sha256": "37108b33c096348742400529821cc5c2607514757f3d0c24ce1db9414aa4a081",
+      "outcome_sha256": "5181810e7aaa3651d492c00b2ba0e2e88de3c3cd5429b5eca7af0797ca951154",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc"
+    },
+    "p1000-n6": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [],
+      "lowering_ms": 8326,
+      "normal_open_ms": null,
+      "supported_open_ms": 10218,
+      "open_window": {
+        "max_up_n": 3.7021928868288247,
+        "mean_up_n": 3.689045855980454,
+        "min_up_n": 3.675363018659921,
+        "ms": 10218,
+        "solves": 30
+      },
+      "final_shelf_n": 3.924000000000016,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "ceb2b0f2180155a49763fb273e4159ceaddb75fdb5802879c76ac730436a5508",
+      "replay_sha256": "81601bc2d56f0e099c6bce0bb8955e844301476f706b0dab9c54121e334cbb5d",
+      "outcome_sha256": "7f02e402e188d61e958fd125914b6a4d2f3f438c49e582b678bde73234008b0f",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc"
+    },
+    "p1000-n8": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [
+        {
+          "first_contact_ms": 6306,
+          "start_gaps_m": [
+            -0.00019762215421420537,
+            -0.018395343232608635
+          ],
+          "initial_mean_upward_force_n": 55.63782935834513,
+          "initial_mean_total_normal_force_n": 55.63782935834514,
+          "resume_ms": 6710,
+          "resume_gaps_m": [
+            0.01985302770456665,
+            0.00141885929801841
+          ],
+          "clear_for_ms": 30,
+          "peak_spindle_position_rad": 1.8549803207381692
+        }
+      ],
+      "lowering_ms": 8748,
+      "normal_open_ms": null,
+      "supported_open_ms": 10486,
+      "open_window": {
+        "max_up_n": 3.704203362739522,
+        "mean_up_n": 3.6887950112703827,
+        "min_up_n": 3.672646697544586,
+        "ms": 10486,
+        "solves": 30
+      },
+      "final_shelf_n": 3.9240002186191334,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "ceb2b0f2180155a49763fb273e4159ceaddb75fdb5802879c76ac730436a5508",
+      "replay_sha256": "2f02598cc07acf8d849122bf8575bd035c33663363e099dd482a8d1456e524a3",
+      "outcome_sha256": "98b58d27d0dc10c0ac59f236ee79bad99d557c7ad11afa2ec245ffbebaa287de",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "first_edge_com_outside_mm": 16.316498646736065
+    },
+    "p1000-n12": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [],
+      "lowering_ms": 8258,
+      "normal_open_ms": null,
+      "supported_open_ms": null,
+      "open_window": null,
+      "final_shelf_n": 0.8826754476212113,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "ceb2b0f2180155a49763fb273e4159ceaddb75fdb5802879c76ac730436a5508",
+      "replay_sha256": "7b7e2331cebd242ab986b2409c876d149ce9027208437a6475d18d6653a940fb",
+      "outcome_sha256": "f0657a44ca0bd60e3d1a07e85546daf4acd3d9c7cc71a046f2f82abc73a882de",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc"
+    },
+    "p2000-n0": {
+      "first_alarm_ms": null,
+      "repeat_ms": null,
+      "edge_lifts": [],
+      "lowering_ms": null,
+      "normal_open_ms": 9992,
+      "supported_open_ms": null,
+      "open_window": {
+        "max_up_n": 3.691846234427322,
+        "mean_up_n": 3.6886264419725623,
+        "min_up_n": 3.685323772956348,
+        "ms": 9992,
+        "solves": 15
+      },
+      "final_shelf_n": 3.9240000000000155,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "replay_sha256": "a0d22b69872c1772dce9d8bcd1753e0b9bf251f8369cd911f1f92245f59d7309",
+      "outcome_sha256": "0779a5829bc5942e46493d4735b3908767ec6bf4c3178f58e9b9b5228a017766",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39"
+    },
+    "p2000-n6": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [],
+      "lowering_ms": 8328,
+      "normal_open_ms": null,
+      "supported_open_ms": 10346,
+      "open_window": {
+        "max_up_n": 3.6914639071530573,
+        "mean_up_n": 3.6887036726500795,
+        "min_up_n": 3.6858567023526123,
+        "ms": 10346,
+        "solves": 15
+      },
+      "final_shelf_n": 3.924000000000016,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "replay_sha256": "4a789f742a0d65e7bc9d7ee3b8d76a0518dca93fdc35289617ffa40b2804f746",
+      "outcome_sha256": "18aa14e57dcc518f616f4354f0c64978e29ba6ccebadc5b128aba445e3501241",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39"
+    },
+    "p2000-n8": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [
+        {
+          "first_contact_ms": 6300,
+          "start_gaps_m": [
+            -0.00011748718270197106,
+            -0.018222757339964174
+          ],
+          "initial_mean_upward_force_n": 72.79303204740717,
+          "initial_mean_total_normal_force_n": 72.79303204740715,
+          "resume_ms": 6708,
+          "resume_gaps_m": [
+            0.01971917007011474,
+            0.001409393164845757
+          ],
+          "clear_for_ms": 30,
+          "peak_spindle_position_rad": 1.8521545073720285
+        }
+      ],
+      "lowering_ms": 8750,
+      "normal_open_ms": null,
+      "supported_open_ms": 10620,
+      "open_window": {
+        "max_up_n": 3.6921024593135647,
+        "mean_up_n": 3.6886933219109026,
+        "min_up_n": 3.6851584452069046,
+        "ms": 10620,
+        "solves": 15
+      },
+      "final_shelf_n": 3.924000081041457,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "replay_sha256": "2da3b2cdd45c8640c08ed9e25875cd14344dc8fb3fc3510d9d961bd5f6b7c7a4",
+      "outcome_sha256": "15bb0819e079253b54f1011ef02c429dc2fae1291092a0271b9de0f13f2f77b2",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "first_edge_com_outside_mm": 17.25445994375918
+    },
+    "p2000-n12": {
+      "first_alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "edge_lifts": [],
+      "lowering_ms": 8258,
+      "normal_open_ms": null,
+      "supported_open_ms": null,
+      "open_window": null,
+      "final_shelf_n": 0.7181487375044501,
+      "final_pads_n": 0.0,
+      "barrier_impulse_ns": 0.0,
+      "incoming_fingerprint": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "replay_sha256": "679b0a3209450e059d8736515fbc0f42355d4348c75abaa4cf9386e2c75317f9",
+      "outcome_sha256": "2b69372edef29dd3878678fc8438dd102e53a1a7741fb45a4f1daaa9a4271372",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39"
+    }
+  },
+  "baseline_commit": "7112eec",
+  "qualification_base": "3ab61de2b99cd2df7499d61cca2a7ad7b7f65abd",
+  "signals": {
+    "impulse_ns": [
+      "Upward shelf",
+      "upward tray",
+      "total compressive shelf",
+      "left jaw normal",
+      "right jaw normal"
+    ],
+    "unit": "N\u00b7s, positive upward on the parcel",
+    "trajectory_frequency_hz": 500,
+    "reference": "Simulated 0.25 and 0.5 ms trajectories and held-input native solves",
+    "force_windows": "Common 2 ms end boundaries inclusive, time-integrated from the first boundary in the displayed interval",
+    "actual_disturbance": "6200 \u2264 t < 6264 ms, 0.4 kg mass, mu=0.28, COM offset [10,8,0] mm"
+  },
+  "matched_complete_prefixes": [
+    {
+      "anchor_ms": 6200,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.01421154500415946,
+        0.014406210783138146
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0007917838068772828,
+          0.335139385255448,
+          0.65997526751517
+        ],
+        "rotation": [
+          -0.005715118884250663,
+          0.0006412645182717521,
+          0.7166615464489245,
+          0.6973974147051254
+        ],
+        "rotation_rad_s": [
+          -3.836105275254466e-05,
+          -0.00023392839291672254,
+          1.3298508891528952e-05
+        ],
+        "velocity_m_s": [
+          2.4546780840400187e-05,
+          0.1953395889115182,
+          1.4224301125623341e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.2965601548527316
+      },
+      "native_us": 250,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "e59f90d236e968417f7b2bad972f859a0bc6a5a5b5af3a28137f829c9e03d5bb",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017744410218227219,
+            0.0018027537252276737
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007917938483234018,
+              0.335188220917453,
+              0.6599745860290887
+            ],
+            "rotation": [
+              -0.005715237978498786,
+              0.0006411895252017827,
+              0.7166618393923501,
+              0.6973971127626035
+            ],
+            "rotation_rad_s": [
+              0.0004567182723077003,
+              -0.00043403496127650796,
+              0.006021143622079456
+            ],
+            "velocity_m_s": [
+              1.2530250554944024e-05,
+              0.19528895510718985,
+              -0.004942300459847528
+            ]
+          }
+        },
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017770601315774959,
+            0.0018003846098560497
+          ],
+          "parcel": {
+            "position_m": [
+              0.000791814595624692,
+              0.3352370521335536,
+              0.6599726543855473
+            ],
+            "rotation": [
+              -0.005715283871523228,
+              0.0006410626048459012,
+              0.716662395581721,
+              0.6973965409493179
+            ],
+            "rotation_rad_s": [
+              0.00024327141540833106,
+              0.0003253354938630766,
+              0.005202990658395385
+            ],
+            "velocity_m_s": [
+              2.5091423432220596e-05,
+              0.19525152826663503,
+              -0.009898156891494533
+            ]
+          }
+        },
+        {
+          "end_us": 750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017766575345257436,
+            0.0018005152075104118
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918371334929486,
+              0.3352858733053011,
+              0.6599694821965617
+            ],
+            "rotation": [
+              -0.005715259972437701,
+              0.0006410216436671794,
+              0.716662934456122,
+              0.697395987421379
+            ],
+            "rotation_rad_s": [
+              0.00032317639691576837,
+              -0.00031979396506670344,
+              0.005794661165440596
+            ],
+            "velocity_m_s": [
+              3.404725429903473e-05,
+              0.19521266078238833,
+              -0.01485407334723993
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.001776758419912709,
+            0.0018004671102588685
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918625496931807,
+              0.33533468534339467,
+              0.6599650710295547
+            ],
+            "rotation": [
+              -0.005715236254940444,
+              0.0006409755233328472,
+              0.7166634930850597,
+              0.6973954135955077
+            ],
+            "rotation_rad_s": [
+              0.00029977560589052705,
+              -0.00011294107295370551,
+              0.005811874020165337
+            ],
+            "velocity_m_s": [
+              4.310621136857032e-05,
+              0.19517416922009453,
+              -0.019809945974138994
+            ]
+          }
+        },
+        {
+          "end_us": 1250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017767274348579176,
+            0.0018004781134236007
+          ],
+          "parcel": {
+            "position_m": [
+              0.000791890375725612,
+              0.3353834878603714,
+              0.659959420821221
+            ],
+            "rotation": [
+              -0.005715209344783958,
+              0.0006409331489603029,
+              0.7166640564668099,
+              0.6973948349073007
+            ],
+            "rotation_rad_s": [
+              0.000300404383522016,
+              -3.2570564893119465e-05,
+              0.005858100322191052
+            ],
+            "velocity_m_s": [
+              5.224880781932851e-05,
+              0.19513557482461552,
+              -0.02476582332592619
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017766826357760253,
+            0.0018005061764275383
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919205897849481,
+              0.3354322807871489,
+              0.6599525314964286
+            ],
+            "rotation": [
+              -0.005715176092655232,
+              0.0006408969444578814,
+              0.7166646232126409,
+              0.6973942528074204
+            ],
+            "rotation_rad_s": [
+              0.00029952402331097377,
+              4.0368015238538354e-05,
+              0.005881371578954417
+            ],
+            "velocity_m_s": [
+              6.144147872788487e-05,
+              0.19509679935812746,
+              -0.029721706566839468
+            ]
+          }
+        },
+        {
+          "end_us": 1750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017766341851093725,
+            0.0018005367911694441
+          ],
+          "parcel": {
+            "position_m": [
+              0.000791953171327733,
+              0.33548106404738387,
+              0.6599444030567131
+            ],
+            "rotation": [
+              -0.005715136643247617,
+              0.0006408668008317761,
+              0.7166651921240885,
+              0.6973936685263469
+            ],
+            "rotation_rad_s": [
+              0.00029921978717880113,
+              0.0001102426212289234,
+              0.005897497758019127
+            ],
+            "velocity_m_s": [
+              7.068762463280335e-05,
+              0.19505782737932267,
+              -0.034677598032568875
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017765836405774728,
+            0.001800569049264559
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919881152015458,
+              0.33552983757524235,
+              0.6599350354993071
+            ],
+            "rotation": [
+              -0.005715090975592264,
+              0.0006408427161710426,
+              0.7166657625523916,
+              0.6973930827309325
+            ],
+            "rotation_rad_s": [
+              0.000299017755388965,
+              0.00017931574604459084,
+              0.005908933229312161
+            ],
+            "velocity_m_s": [
+              7.998479092361149e-05,
+              0.1950186494546717,
+              -0.039633498890513166
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6200,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.01421319921114483,
+        0.014404587176583002
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0007917838068772828,
+          0.335139385255448,
+          0.65997526751517
+        ],
+        "rotation": [
+          -0.005715118884250663,
+          0.0006412645182717521,
+          0.7166615464489245,
+          0.6973974147051254
+        ],
+        "rotation_rad_s": [
+          -3.836105275254466e-05,
+          -0.00023392839291672254,
+          1.3298508891528952e-05
+        ],
+        "velocity_m_s": [
+          2.4546780840400187e-05,
+          0.1953395889115182,
+          1.4224301125623341e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.2965601548527316
+      },
+      "native_us": 500,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "e59f90d236e968417f7b2bad972f859a0bc6a5a5b5af3a28137f829c9e03d5bb",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0035532601853671794,
+            0.0036013706743800986
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918102427072844,
+              0.33523704674681754,
+              0.6599724844264576
+            ],
+            "rotation": [
+              -0.005715072386580728,
+              0.0006411265744303345,
+              0.7166619605422787,
+              0.6973969896809344
+            ],
+            "rotation_rad_s": [
+              0.000540410265556028,
+              -9.920376683546873e-05,
+              0.0029925715785495276
+            ],
+            "velocity_m_s": [
+              3.479291864383625e-05,
+              0.195260634963383,
+              -0.009898195637915575
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003553322166786585,
+            0.0036011117224559325
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918528402152897,
+              0.3353346768415867,
+              0.6599647446050194
+            ],
+            "rotation": [
+              -0.0057149684934849135,
+              0.0006409919798716945,
+              0.716662722495959,
+              0.697396207653211
+            ],
+            "rotation_rad_s": [
+              0.0005214906849761177,
+              -3.249710419881826e-05,
+              0.0036905911845803484
+            ],
+            "velocity_m_s": [
+              4.938957915703516e-05,
+              0.19518261570751344,
+              -0.01981002735520951
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003553379169845574,
+            0.003601014075781865
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919056422185031,
+              0.3354322700032933,
+              0.6599520484845488
+            ],
+            "rotation": [
+              -0.00571484685605198,
+              0.0006408788588106704,
+              0.7166635650095219,
+              0.6973953429637617
+            ],
+            "rotation_rad_s": [
+              0.0005154403531204796,
+              0.00010433486889313577,
+              0.0039028627470093047
+            ],
+            "velocity_m_s": [
+              6.592164015197357e-05,
+              0.19510503903865656,
+              -0.0297218189355735
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0035532376891454914,
+            0.0036010907039651053
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919678107519874,
+              0.3355298249600611,
+              0.6599343959107155
+            ],
+            "rotation": [
+              -0.0057147011411926105,
+              0.0006407897633646226,
+              0.7166644371127457,
+              0.697394448040144
+            ],
+            "rotation_rad_s": [
+              0.0005155638529145013,
+              0.00023822597829685878,
+              0.003994876016203192
+            ],
+            "velocity_m_s": [
+              8.330257270995652e-05,
+              0.19502693999000206,
+              -0.03963362633471924
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6200,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.014217338694877062,
+        0.014400714481237822
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0007917838068772828,
+          0.335139385255448,
+          0.65997526751517
+        ],
+        "rotation": [
+          -0.005715118884250663,
+          0.0006412645182717521,
+          0.7166615464489245,
+          0.6973974147051254
+        ],
+        "rotation_rad_s": [
+          -3.836105275254466e-05,
+          -0.00023392839291672254,
+          1.3298508891528952e-05
+        ],
+        "velocity_m_s": [
+          2.4546780840400187e-05,
+          0.1953395889115182,
+          1.4224301125623341e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.2965601548527316
+      },
+      "native_us": 1000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "e59f90d236e968417f7b2bad972f859a0bc6a5a5b5af3a28137f829c9e03d5bb",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.007111462264734123,
+            0.0071980685627526225
+          ],
+          "parcel": {
+            "position_m": [
+              0.000791839577644832,
+              0.3353346627060046,
+              0.6599640480328761
+            ],
+            "rotation": [
+              -0.005715502128045533,
+              0.0006397029099527294,
+              0.7166614675020702,
+              0.6973974941261193
+            ],
+            "rotation_rad_s": [
+              0.0006038605378355636,
+              0.002608663974574967,
+              -0.0031772285388201394
+            ],
+            "velocity_m_s": [
+              6.702090019391738e-05,
+              0.1952062996415132,
+              -0.019821045688707406
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0071058764301429374,
+            0.007202645918485201
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919151901300495,
+              0.3355297880453777,
+              0.6599330594275574
+            ],
+            "rotation": [
+              -0.005714857090491556,
+              0.0006396542462539343,
+              0.7166613433566434,
+              0.6973976270314747
+            ],
+            "rotation_rad_s": [
+              0.0008689326905409182,
+              9.722110969650903e-05,
+              -0.0006825511067818056
+            ],
+            "velocity_m_s": [
+              9.285102191819965e-05,
+              0.1950471697895739,
+              -0.039644804320751396
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6200,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.014231438449224665,
+        0.014388405616607407
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0007917838068772828,
+          0.335139385255448,
+          0.65997526751517
+        ],
+        "rotation": [
+          -0.005715118884250663,
+          0.0006412645182717521,
+          0.7166615464489245,
+          0.6973974147051254
+        ],
+        "rotation_rad_s": [
+          -3.836105275254466e-05,
+          -0.00023392839291672254,
+          1.3298508891528952e-05
+        ],
+        "velocity_m_s": [
+          2.4546780840400187e-05,
+          0.1953395889115182,
+          1.4224301125623341e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.2965601548527316
+      },
+      "native_us": 2000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "e59f90d236e968417f7b2bad972f859a0bc6a5a5b5af3a28137f829c9e03d5bb",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.014231438449224665,
+            0.014388405616607407
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918135458305255,
+              0.33552973625806803,
+              0.6599291344969692
+            ],
+            "rotation": [
+              -0.0057170711338040475,
+              0.000633271181843811,
+              0.7166561372450843,
+              0.697402964586627
+            ],
+            "rotation_rad_s": [
+              0.0006574881243340716,
+              0.007842023297373326,
+              -0.01718047660146339
+            ],
+            "velocity_m_s": [
+              0.00010659163933362833,
+              0.1951091136977288,
+              -0.04019797981174142
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6308,
+      "force_n": 8,
+      "impulse_ns": [
+        0.09676498305561788,
+        0.0,
+        0.09676498305561781,
+        0.03314394107460186,
+        0.02419429055868783
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0017711235847625859,
+          0.35420494451768597,
+          0.6154193180163957
+        ],
+        "rotation": [
+          -0.005172678523399891,
+          -0.001319245031910848,
+          0.7167173700125793,
+          0.6973433261397795
+        ],
+        "rotation_rad_s": [
+          0.09130354840858494,
+          -0.026119124591810556,
+          -0.002906954470515754
+        ],
+        "velocity_m_s": [
+          0.016446100668649953,
+          0.12106302559280221,
+          -0.2719781150416253
+        ]
+      },
+      "input_efforts": {
+        "49": -3.6056698154233415,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 250,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "a9885c60689d59cee2d4407e6ccca3837a84bc9fdc69121509b5473f1dbf2863",
+        "warm_points": 15
+      },
+      "samples": [
+        {
+          "end_us": 250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003614995916136295,
+            0.0037849583991282757
+          ],
+          "parcel": {
+            "position_m": [
+              0.001775230737450003,
+              0.3542351634880913,
+              0.6153515974571518
+            ],
+            "rotation": [
+              -0.00516815574221297,
+              -0.0013290188068854868,
+              0.7167172388474086,
+              0.6973434759242981
+            ],
+            "rotation_rad_s": [
+              0.08875608943652698,
+              -0.026106182043121512,
+              0.0018811955780316555
+            ],
+            "velocity_m_s": [
+              0.01644569581438125,
+              0.12065193875412486,
+              -0.2693012330087794
+            ]
+          }
+        },
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0034092408371292904,
+            0.003601790474029343
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017793485465801024,
+              0.35426528049636097,
+              0.6152844749906798
+            ],
+            "rotation": [
+              -0.0051637181979132946,
+              -0.0013385012314606414,
+              0.7167174713789236,
+              0.697343251669526
+            ],
+            "rotation_rad_s": [
+              0.08572926667715534,
+              -0.026186282043188826,
+              0.0018888034801320128
+            ],
+            "velocity_m_s": [
+              0.016448108694926238,
+              0.12018354697687536,
+              -0.2668937275152345
+            ]
+          }
+        },
+        {
+          "end_us": 750,
+          "impulse_ns": [
+            0.09676498305561788,
+            0.0,
+            0.09676498305561781,
+            0.011305896371377916,
+            0.0008988151979080067
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017809782407458797,
+              0.3542847217670011,
+              0.6152547709574788
+            ],
+            "rotation": [
+              -0.005012519269113721,
+              -0.0013714489165057623,
+              0.7166814332889664,
+              0.6973813282253255
+            ],
+            "rotation_rad_s": [
+              1.5979281239094836,
+              0.8862250795715071,
+              -0.19639343154094852
+            ],
+            "velocity_m_s": [
+              0.008749037272847753,
+              0.07908618265060693,
+              -0.019069636409744618
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0024318310578718156,
+            0.0012064501941967281
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017828632707274266,
+              0.35430483528184364,
+              0.6152447415440344
+            ],
+            "rotation": [
+              -0.004815727264280026,
+              -0.0014268014537901054,
+              0.7166734525549188,
+              0.697390805367794
+            ],
+            "rotation_rad_s": [
+              1.282828826813462,
+              0.7350592380133052,
+              -0.010207056093430549
+            ],
+            "velocity_m_s": [
+              0.007618380321505404,
+              0.08212689506946726,
+              -0.019827890684237272
+            ]
+          }
+        },
+        {
+          "end_us": 1250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.002949917158882967,
+            0.00357899000893695
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017844713836986563,
+              0.3543251821019915,
+              0.6152357331019987
+            ],
+            "rotation": [
+              -0.004661694924078475,
+              -0.0014812217335423566,
+              0.7166750588119193,
+              0.6973900878701554
+            ],
+            "rotation_rad_s": [
+              1.061425267964326,
+              0.45397469350821057,
+              0.02254855923574601
+            ],
+            "velocity_m_s": [
+              0.005174152562189973,
+              0.08049202629516523,
+              -0.019452046106073578
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003099798543205644,
+            0.003705045803872237
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017856669564992244,
+              0.3543451376895448,
+              0.6152281354156244
+            ],
+            "rotation": [
+              -0.0045497045235237225,
+              -0.0015408712588734534,
+              0.7166769206851591,
+              0.6973887848694948
+            ],
+            "rotation_rad_s": [
+              0.8673416139034648,
+              0.20819664857041964,
+              0.008870092305433001
+            ],
+            "velocity_m_s": [
+              0.0044683151357525356,
+              0.07896543383627508,
+              -0.017396609043494604
+            ]
+          }
+        },
+        {
+          "end_us": 1750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0031490170154256387,
+            0.003717392499955653
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017868683167172553,
+              0.3543646953284961,
+              0.615221995036517
+            ],
+            "rotation": [
+              -0.004473003762006481,
+              -0.0016031465666409364,
+              0.7166770096729544,
+              0.6973890492147571
+            ],
+            "rotation_rad_s": [
+              0.6984019824168752,
+              0.0044867130315465985,
+              -0.002149629741876124
+            ],
+            "velocity_m_s": [
+              0.005103707497235967,
+              0.07756890820256655,
+              -0.015148885511907951
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0031832441745722963,
+            0.0037008479806606358
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017882191804446052,
+              0.3543839149172266,
+              0.6152170227228161
+            ],
+            "rotation": [
+              -0.004419590032970185,
+              -0.0016598247038484366,
+              0.7166766739255552,
+              0.6973896022001592
+            ],
+            "rotation_rad_s": [
+              0.5467089134312418,
+              -0.0008156653675255417,
+              0.0010188703072050531
+            ],
+            "velocity_m_s": [
+              0.005472814259904919,
+              0.07629078766325419,
+              -0.01287059932767588
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6308,
+      "force_n": 8,
+      "impulse_ns": [
+        0.09744416594093787,
+        0.0,
+        0.0974441659409378,
+        0.03318787387516141,
+        0.023690932998702556
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0017711235847625859,
+          0.35420494451768597,
+          0.6154193180163957
+        ],
+        "rotation": [
+          -0.005172678523399891,
+          -0.001319245031910848,
+          0.7167173700125793,
+          0.6973433261397795
+        ],
+        "rotation_rad_s": [
+          0.09130354840858494,
+          -0.026119124591810556,
+          -0.002906954470515754
+        ],
+        "velocity_m_s": [
+          0.016446100668649953,
+          0.12106302559280221,
+          -0.2719781150416253
+        ]
+      },
+      "input_efforts": {
+        "49": -3.6056698154233415,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 500,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "a9885c60689d59cee2d4407e6ccca3837a84bc9fdc69121509b5473f1dbf2863",
+        "warm_points": 15
+      },
+      "samples": [
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006802654660391115,
+            0.007172523990730005
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017793363005517504,
+              0.354265268481326,
+              0.6152844221174123
+            ],
+            "rotation": [
+              -0.005164521411295605,
+              -0.0013372799240087415,
+              0.7167170355648005,
+              0.6973436959865642
+            ],
+            "rotation_rad_s": [
+              0.08960003229432925,
+              -0.0264341744772794,
+              -0.003023979440989051
+            ],
+            "velocity_m_s": [
+              0.016448511366700728,
+              0.12016439676884545,
+              -0.26719568679849237
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.09744416594093787,
+            0.0,
+            0.0974441659409378,
+            0.013893365556986012,
+            0.0020917356130662045
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017825171031697219,
+              0.3543022782320606,
+              0.6152454256017502
+            ],
+            "rotation": [
+              -0.004828099076932031,
+              -0.0014094355341079034,
+              0.7166669695705267,
+              0.6973974173148165
+            ],
+            "rotation_rad_s": [
+              1.2994445659769198,
+              0.7027498789363729,
+              -0.012076804825467167
+            ],
+            "velocity_m_s": [
+              0.007707457286550664,
+              0.08204370999727567,
+              -0.01849560200605923
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006024379396219299,
+            0.007130778079834876
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017852455551655485,
+              0.3543426513514077,
+              0.615228966691522
+            ],
+            "rotation": [
+              -0.0045636799041743935,
+              -0.001535749961851279,
+              0.7166719481480235,
+              0.6973938148818811
+            ],
+            "rotation_rad_s": [
+              0.9368288502689515,
+              0.19274948914278037,
+              0.011990294063167253
+            ],
+            "velocity_m_s": [
+              0.0042964013556177055,
+              0.07919744501023811,
+              -0.018033411612050312
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0064674742615649814,
+            0.007295895315071471
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017880315811259102,
+              0.3543816630126414,
+              0.615216973594538
+            ],
+            "rotation": [
+              -0.004418315365720346,
+              -0.001675854527085789,
+              0.7166693584851768,
+              0.6973970896192342
+            ],
+            "rotation_rad_s": [
+              0.6926648449564626,
+              -0.012974730177648563,
+              -0.009619080262057636
+            ],
+            "velocity_m_s": [
+              0.006242158989796382,
+              0.07719685914383662,
+              -0.014217623187683872
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6308,
+      "force_n": 8,
+      "impulse_ns": [
+        0.09903792161011384,
+        0.0,
+        0.09903792161011377,
+        0.032962466334356205,
+        0.023166338068791585
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0017711235847625859,
+          0.35420494451768597,
+          0.6154193180163957
+        ],
+        "rotation": [
+          -0.005172678523399891,
+          -0.001319245031910848,
+          0.7167173700125793,
+          0.6973433261397795
+        ],
+        "rotation_rad_s": [
+          0.09130354840858494,
+          -0.026119124591810556,
+          -0.002906954470515754
+        ],
+        "velocity_m_s": [
+          0.016446100668649953,
+          0.12106302559280221,
+          -0.2719781150416253
+        ]
+      },
+      "input_efforts": {
+        "49": -3.6056698154233415,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 1000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "a9885c60689d59cee2d4407e6ccca3837a84bc9fdc69121509b5473f1dbf2863",
+        "warm_points": 15
+      },
+      "samples": [
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.09903792161011384,
+            0.0,
+            0.09903792161011377,
+            0.02022178606783867,
+            0.008838698166110768
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017804597640752075,
+              0.35429712848188827,
+              0.6152475886913841
+            ],
+            "rotation": [
+              -0.004862329945522966,
+              -0.0013489385355847103,
+              0.7166192582469478,
+              0.6974463254057062
+            ],
+            "rotation_rad_s": [
+              1.3959891309444399,
+              0.7293394160675984,
+              -0.10779338734785296
+            ],
+            "velocity_m_s": [
+              0.007419602150281849,
+              0.08085845405133596,
+              -0.015318163470703857
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.012740680266517531,
+            0.014327639902680815
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017845320962276943,
+              0.3543760234282553,
+              0.6152180074294489
+            ],
+            "rotation": [
+              -0.004442149624503639,
+              -0.0016339860385245766,
+              0.7166171543989438,
+              0.697450680276032
+            ],
+            "rotation_rad_s": [
+              0.7623722761717194,
+              -0.044957876736054975,
+              -0.02411067882838932
+            ],
+            "velocity_m_s": [
+              0.0049386999370661,
+              0.07686401022766376,
+              -0.01910252765372234
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6308,
+      "force_n": 8,
+      "impulse_ns": [
+        0.10077076101377785,
+        0.0,
+        0.10077076101377778,
+        0.03276092333710639,
+        0.022635431028938214
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0017711235847625859,
+          0.35420494451768597,
+          0.6154193180163957
+        ],
+        "rotation": [
+          -0.005172678523399891,
+          -0.001319245031910848,
+          0.7167173700125793,
+          0.6973433261397795
+        ],
+        "rotation_rad_s": [
+          0.09130354840858494,
+          -0.026119124591810556,
+          -0.002906954470515754
+        ],
+        "velocity_m_s": [
+          0.016446100668649953,
+          0.12106302559280221,
+          -0.2719781150416253
+        ]
+      },
+      "input_efforts": {
+        "49": -3.6056698154233415,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 2000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "a9885c60689d59cee2d4407e6ccca3837a84bc9fdc69121509b5473f1dbf2863",
+        "warm_points": 15
+      },
+      "samples": [
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.10077076101377785,
+            0.0,
+            0.10077076101377778,
+            0.03276092333710639,
+            0.022635431028938214
+          ],
+          "parcel": {
+            "position_m": [
+              0.0017833688146056473,
+              0.3543676537050819,
+              0.6152252484848556
+            ],
+            "rotation": [
+              -0.004526594595843036,
+              -0.001575722958727269,
+              0.7166156983252636,
+              0.6974517674737924
+            ],
+            "rotation_rad_s": [
+              0.8266824907163703,
+              -0.06987991549260078,
+              -0.0037352263495905383
+            ],
+            "velocity_m_s": [
+              0.004113268028687986,
+              0.07645236436645299,
+              -0.01877382938530698
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6710,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.027188323814102376,
+        0.026730155190272366
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0010688641927700613,
+          0.35745412054331277,
+          0.6351707939220654
+        ],
+        "rotation": [
+          -0.0019076162200678192,
+          -0.002189474784666833,
+          0.7992324873511099,
+          0.6010149734932422
+        ],
+        "rotation_rad_s": [
+          0.006154929415497972,
+          0.003900900227788453,
+          0.6418047475619237
+        ],
+        "velocity_m_s": [
+          -0.005322383343940561,
+          -0.022592939634503952,
+          0.050922247649662945
+        ]
+      },
+      "input_efforts": {
+        "49": 0.450235043261026,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 250,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "ae5be2e50f106c48c450c87e4e3c7099873227fb63ecde4064fce92d2eeed931",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0034929740814403365,
+            0.0033610208079498816
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010686476673515896,
+              0.35745010394653104,
+              0.6351830533421551
+            ],
+            "rotation": [
+              -0.0019054878274959658,
+              -0.0021904161332876844,
+              0.7992787162775564,
+              0.6009534964529317
+            ],
+            "rotation_rad_s": [
+              0.027079873445364867,
+              0.01078399717356896,
+              0.5929425533288329
+            ],
+            "velocity_m_s": [
+              -0.005450955011265841,
+              -0.022281333968604766,
+              0.04641345326231837
+            ]
+          }
+        },
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033346937688750484,
+            0.003364544664302219
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010683355523437126,
+              0.35744599343207123,
+              0.6351939105456995
+            ],
+            "rotation": [
+              -0.0019038486352354136,
+              -0.0021910770565800957,
+              0.7993206400398745,
+              0.6008977358485817
+            ],
+            "rotation_rad_s": [
+              0.002530193107743353,
+              0.008596840791858728,
+              0.5207087564162858
+            ],
+            "velocity_m_s": [
+              -0.005345676449853242,
+              -0.022316533690553593,
+              0.04140701920478972
+            ]
+          }
+        },
+        {
+          "end_us": 750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003391301810371979,
+            0.0033358600646484723
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010679091484776127,
+              0.3574417089366508,
+              0.6352035000217053
+            ],
+            "rotation": [
+              -0.001902888636214672,
+              -0.002190602735517222,
+              0.7993570359160683,
+              0.6008493233798061
+            ],
+            "rotation_rad_s": [
+              0.0009779949033878656,
+              0.009320146342487599,
+              0.456518335124844
+            ],
+            "velocity_m_s": [
+              -0.005263636844452209,
+              -0.022138099874640188,
+              0.03629707460213669
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033956433346819695,
+            0.003333295633372201
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010673691027532854,
+              0.3574373001747422,
+              0.6352118609282669
+            ],
+            "rotation": [
+              -0.0019017032375606832,
+              -0.0021898420461918373,
+              0.7993887025654981,
+              0.6008071989642422
+            ],
+            "rotation_rad_s": [
+              0.001421778760306358,
+              0.012182599898560109,
+              0.39495571414880876
+            ],
+            "velocity_m_s": [
+              -0.005261821304050911,
+              -0.021965981479243602,
+              0.031383754281336995
+            ]
+          }
+        },
+        {
+          "end_us": 1250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033915001422477093,
+            0.0033350936319122846
+          ],
+          "parcel": {
+            "position_m": [
+              0.001066720233042032,
+              0.3574327717169867,
+              0.6352189838416239
+            ],
+            "rotation": [
+              -0.001900421095671428,
+              -0.00218883819491296,
+              0.7994157335889133,
+              0.6007712395558855
+            ],
+            "rotation_rad_s": [
+              0.0004161124142272154,
+              0.014480185712916554,
+              0.33282052773604526
+            ],
+            "velocity_m_s": [
+              -0.005248920819638336,
+              -0.02180591722822336,
+              0.026467611383523926
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003393764694762427,
+            0.003333868225863613
+          ],
+          "parcel": {
+            "position_m": [
+              0.001065960384004288,
+              0.3574281228939661,
+              0.635224872141407
+            ],
+            "rotation": [
+              -0.0018989489296556343,
+              -0.002187603823076404,
+              0.7994381006286341,
+              0.6007414848716192
+            ],
+            "rotation_rad_s": [
+              -0.0002353425431511693,
+              0.016636139678575957,
+              0.2707457008670336
+            ],
+            "velocity_m_s": [
+              -0.005231469460437317,
+              -0.02163546456185326,
+              0.021544886241532633
+            ]
+          }
+        },
+        {
+          "end_us": 1750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003393995563036974,
+            0.003333474890723609
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010650902719685808,
+              0.3574233542355156,
+              0.6352295255030316
+            ],
+            "rotation": [
+              -0.0018973313012500092,
+              -0.0021861165028255964,
+              0.7994558088860023,
+              0.6007179293703471
+            ],
+            "rotation_rad_s": [
+              -0.0008455933452114878,
+              0.018855889308859147,
+              0.20873155216431694
+            ],
+            "velocity_m_s": [
+              -0.005214255820414602,
+              -0.021463464137377188,
+              0.016624271130987526
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033944504186859325,
+            0.003332997271500088
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010641101698788593,
+              0.35741846666182936,
+              0.6352329440255924
+            ],
+            "rotation": [
+              -0.0018955551345964062,
+              -0.002184387493690171,
+              0.7994688581162659,
+              0.6007005745163585
+            ],
+            "rotation_rad_s": [
+              -0.0015102772753472003,
+              0.021047630971413513,
+              0.14668565419089377
+            ],
+            "velocity_m_s": [
+              -0.005195951516111103,
+              -0.021288713314840647,
+              0.011702863157072722
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6710,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.027122464807110763,
+        0.026666343861876912
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0010688641927700613,
+          0.35745412054331277,
+          0.6351707939220654
+        ],
+        "rotation": [
+          -0.0019076162200678192,
+          -0.002189474784666833,
+          0.7992324873511099,
+          0.6010149734932422
+        ],
+        "rotation_rad_s": [
+          0.006154929415497972,
+          0.003900900227788453,
+          0.6418047475619237
+        ],
+        "velocity_m_s": [
+          -0.005322383343940561,
+          -0.022592939634503952,
+          0.050922247649662945
+        ]
+      },
+      "input_efforts": {
+        "49": 0.450235043261026,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 500,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "ae5be2e50f106c48c450c87e4e3c7099873227fb63ecde4064fce92d2eeed931",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006830106088394188,
+            0.006646560936951404
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010682881043752937,
+              0.35744597742738615,
+              0.6351938896007531
+            ],
+            "rotation": [
+              -0.001901425338142988,
+              -0.002190813143628301,
+              0.7993203408312493,
+              0.6008981424941073
+            ],
+            "rotation_rad_s": [
+              0.0276660872863868,
+              0.011914564083936275,
+              0.5339973557150213
+            ],
+            "velocity_m_s": [
+              -0.00544739935643234,
+              -0.022136680429448195,
+              0.04131358088105441
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006709795920800935,
+            0.006700783266555796
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010673331178040046,
+              0.35743733946544276,
+              0.6352116325162293
+            ],
+            "rotation": [
+              -0.0018989756693632046,
+              -0.002190401349667312,
+              0.7993893080348943,
+              0.6008063999599437
+            ],
+            "rotation_rad_s": [
+              -0.0017949432200476678,
+              0.012182464162905207,
+              0.3931593988596333
+            ],
+            "velocity_m_s": [
+              -0.005273750329760402,
+              -0.02204065030484618,
+              0.03126147371140894
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006804600754108365,
+            0.00665305776283629
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010659063670723935,
+              0.35742813493870645,
+              0.6352244284614335
+            ],
+            "rotation": [
+              -0.0018957642216098243,
+              -0.0021885203739989245,
+              0.7994378841632043,
+              0.6007417796534946
+            ],
+            "rotation_rad_s": [
+              0.003881858140437637,
+              0.018130024593575333,
+              0.2700370859427763
+            ],
+            "velocity_m_s": [
+              -0.005243986455670305,
+              -0.021619988996975124,
+              0.02148395176968819
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006777962043807272,
+            0.0066659418955334225
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010640368897770428,
+              0.35741846117327014,
+              0.6352322898687592
+            ],
+            "rotation": [
+              -0.0018921176801717954,
+              -0.0021854311597105302,
+              0.7994680076556365,
+              0.6007017134289344
+            ],
+            "rotation_rad_s": [
+              0.0010053470821166737,
+              0.021530848692571273,
+              0.14663023863518718
+            ],
+            "velocity_m_s": [
+              -0.005195531966467563,
+              -0.02129537370774647,
+              0.011592169044377541
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6710,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.027025314545280253,
+        0.026595065136661718
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0010688641927700613,
+          0.35745412054331277,
+          0.6351707939220654
+        ],
+        "rotation": [
+          -0.0019076162200678192,
+          -0.002189474784666833,
+          0.7992324873511099,
+          0.6010149734932422
+        ],
+        "rotation_rad_s": [
+          0.006154929415497972,
+          0.003900900227788453,
+          0.6418047475619237
+        ],
+        "velocity_m_s": [
+          -0.005322383343940561,
+          -0.022592939634503952,
+          0.050922247649662945
+        ]
+      },
+      "input_efforts": {
+        "49": 0.450235043261026,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 1000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "ae5be2e50f106c48c450c87e4e3c7099873227fb63ecde4064fce92d2eeed931",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.013544374773643864,
+            0.013241400875050954
+          ],
+          "parcel": {
+            "position_m": [
+              0.001067224657350721,
+              0.3574374018731317,
+              0.6352115318211243
+            ],
+            "rotation": [
+              -0.0018919975881003391,
+              -0.0021929193749722505,
+              0.7993907298229579,
+              0.6008045210572738
+            ],
+            "rotation_rad_s": [
+              0.03068404496446192,
+              0.013293044176913963,
+              0.4127039791068538
+            ],
+            "velocity_m_s": [
+              -0.005353731703804181,
+              -0.021780458107835677,
+              0.031085209800588393
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.013480939771636388,
+            0.013353664261610762
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010639709548606602,
+              0.3574185313509755,
+              0.6352313395935
+            ],
+            "rotation": [
+              -0.0018878056889539592,
+              -0.002187067470690789,
+              0.7994694663958616,
+              0.6006997796123084
+            ],
+            "rotation_rad_s": [
+              0.00035286429835233355,
+              0.023379801396327088,
+              0.14500772769138753
+            ],
+            "velocity_m_s": [
+              -0.0052221265039858545,
+              -0.021372301063985185,
+              0.011540558907024231
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6710,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.02702382414003937,
+        0.026480081346775243
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0010688641927700613,
+          0.35745412054331277,
+          0.6351707939220654
+        ],
+        "rotation": [
+          -0.0019076162200678192,
+          -0.002189474784666833,
+          0.7992324873511099,
+          0.6010149734932422
+        ],
+        "rotation_rad_s": [
+          0.006154929415497972,
+          0.003900900227788453,
+          0.6418047475619237
+        ],
+        "velocity_m_s": [
+          -0.005322383343940561,
+          -0.022592939634503952,
+          0.050922247649662945
+        ]
+      },
+      "input_efforts": {
+        "49": 0.450235043261026,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 2000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "ae5be2e50f106c48c450c87e4e3c7099873227fb63ecde4064fce92d2eeed931",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.02702382414003937,
+            0.026480081346775243
+          ],
+          "parcel": {
+            "position_m": [
+              0.0010636355947957078,
+              0.3574188741871906,
+              0.6352308853814719
+            ],
+            "rotation": [
+              -0.0018622471312955936,
+              -0.0021936784775156808,
+              0.7994768441495876,
+              0.6006900161305957
+            ],
+            "rotation_rad_s": [
+              0.03095795942832215,
+              0.019603624504101722,
+              0.17319162323451884
+            ],
+            "velocity_m_s": [
+              -0.00521533738823206,
+              -0.0210781642767561,
+              0.010708296056153432
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 8746,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.026741554236104977,
+        0.02631495528551452
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0012459102689242312,
+          0.46337918238581327,
+          0.6351208246514158
+        ],
+        "rotation": [
+          -0.0023571158090251363,
+          -0.0024296898449925144,
+          0.7991360805907476,
+          0.601140636881569
+        ],
+        "rotation_rad_s": [
+          -0.0015180799513401144,
+          0.004219817610910323,
+          9.934920242328476e-06
+        ],
+        "velocity_m_s": [
+          -0.0008915211022142458,
+          -0.009116802338497208,
+          5.2518591705132226e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.06940426362644611,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 250,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "a2e8c338fdc4b950a836fc08ed516401beda9f0d40fddc00b8db58227f2ec50c",
+        "warm_points": 14
+      },
+      "samples": [
+        {
+          "end_us": 250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003385068823204566,
+            0.0032714981578636465
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012456184072375687,
+              0.4633768492478457,
+              0.6351203372745673
+            ],
+            "rotation": [
+              -0.002355474155475505,
+              -0.002429791384461075,
+              0.7991340922369716,
+              0.6011432861472565
+            ],
+            "rotation_rad_s": [
+              0.017597312748852477,
+              0.010553962637495752,
+              -0.049276289145564575
+            ],
+            "velocity_m_s": [
+              -0.000999094633888957,
+              -0.008848257534827425,
+              -0.004657310440891025
+            ]
+          }
+        },
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003284242644957894,
+            0.0033177872310313538
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012452337264259698,
+              0.4633744091590804,
+              0.6351184203143103
+            ],
+            "rotation": [
+              -0.0023545128291284343,
+              -0.002429495114559662,
+              0.7991276174205734,
+              0.6011518983572653
+            ],
+            "rotation_rad_s": [
+              -0.007580450342449017,
+              0.008326364712708572,
+              -0.12484196748444155
+            ],
+            "velocity_m_s": [
+              -0.0008633648582561472,
+              -0.008886188252713248,
+              -0.009719682947369879
+            ]
+          }
+        },
+        {
+          "end_us": 750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033586984337663187,
+            0.0032816752062688605
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012447293399532097,
+              0.46337179650364324,
+              0.6351152648855354
+            ],
+            "rotation": [
+              -0.002353774944020325,
+              -0.0024284561664283414,
+              0.7991156062806494,
+              0.6011678718485136
+            ],
+            "rotation_rad_s": [
+              -0.0019339015349289436,
+              0.011416763493436894,
+              -0.18543342232648902
+            ],
+            "velocity_m_s": [
+              -0.0008459485800270135,
+              -0.008674137824205652,
+              -0.01463708211784606
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033376729114933685,
+            0.0032917717272916607
+          ],
+          "parcel": {
+            "position_m": [
+              0.001244113231604775,
+              0.46336906681493123,
+              0.6351108793742507
+            ],
+            "rotation": [
+              -0.0023528139984822435,
+              -0.0024271552706036635,
+              0.7990990491991541,
+              0.6011898890971048
+            ],
+            "rotation_rad_s": [
+              -0.0040889153748337554,
+              0.012760463710343123,
+              -0.2472090153729461
+            ],
+            "velocity_m_s": [
+              -0.0008209742669696243,
+              -0.00853991632322476,
+              -0.019610851835574282
+            ]
+          }
+        },
+        {
+          "end_us": 1250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033449022423392037,
+            0.0032879176032066027
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012433885195436058,
+              0.46336621202286127,
+              0.6351052568618225
+            ],
+            "rotation": [
+              -0.0023517066655256405,
+              -0.0024256332573512436,
+              0.7990778295613111,
+              0.6012181035885767
+            ],
+            "rotation_rad_s": [
+              -0.0042039769134559184,
+              0.015432874685126228,
+              -0.30949433302630663
+            ],
+            "velocity_m_s": [
+              -0.0008101628159327368,
+              -0.008381435598521395,
+              -0.02451469330631245
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033426505099526855,
+            0.003288845161046455
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012425537635824477,
+              0.4633632340226307,
+              0.6350983983644762
+            ],
+            "rotation": [
+              -0.0023504569545392392,
+              -0.002423863278040175,
+              0.7990519399936871,
+              0.6012525238460453
+            ],
+            "rotation_rad_s": [
+              -0.005067575337339736,
+              0.017477345496683276,
+              -0.3715169707350749
+            ],
+            "velocity_m_s": [
+              -0.000788642057931279,
+              -0.008227953352152116,
+              -0.029444203730310627
+            ]
+          }
+        },
+        {
+          "end_us": 1750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033441625326453483,
+            0.003287861652286627
+          ],
+          "parcel": {
+            "position_m": [
+              0.001241609211058559,
+              0.4633601330465536,
+              0.6350903044323514
+            ],
+            "rotation": [
+              -0.0023490460228670867,
+              -0.0024218512170667227,
+              0.799021386101995,
+              0.6012931407983229
+            ],
+            "rotation_rad_s": [
+              -0.005621260409490318,
+              0.01966427629865513,
+              -0.4336064142645546
+            ],
+            "velocity_m_s": [
+              -0.0007678101733525432,
+              -0.008068245220673212,
+              -0.03436778668762235
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003344156137745591,
+            0.003287598546519311
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012405552429526501,
+              0.4633569098360303,
+              0.6350809748016015
+            ],
+            "rotation": [
+              -0.0023474891524138046,
+              -0.0024195938590638308,
+              0.7989861640233239,
+              0.6013399575610545
+            ],
+            "rotation_rad_s": [
+              -0.006263913999535953,
+              0.021824396479951418,
+              -0.4956692790715124
+            ],
+            "velocity_m_s": [
+              -0.0007458313584007658,
+              -0.00790753361720674,
+              -0.0392924684967627
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 8746,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.02673892556900774,
+        0.02631791991747386
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0012459102689242312,
+          0.46337918238581327,
+          0.6351208246514158
+        ],
+        "rotation": [
+          -0.0023571158090251363,
+          -0.0024296898449925144,
+          0.7991360805907476,
+          0.601140636881569
+        ],
+        "rotation_rad_s": [
+          -0.0015180799513401144,
+          0.004219817610910323,
+          9.934920242328476e-06
+        ],
+        "velocity_m_s": [
+          -0.0008915211022142458,
+          -0.009116802338497208,
+          5.2518591705132226e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.06940426362644611,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 500,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "a2e8c338fdc4b950a836fc08ed516401beda9f0d40fddc00b8db58227f2ec50c",
+        "warm_points": 14
+      },
+      "samples": [
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.00672777199355816,
+            0.006563256851212975
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012451854639605082,
+              0.46337440041447625,
+              0.6351184676818211
+            ],
+            "rotation": [
+              -0.0023517026017465126,
+              -0.002429537993406646,
+              0.799127484518575,
+              0.6011520858543421
+            ],
+            "rotation_rad_s": [
+              0.016293393637069026,
+              0.011440012978614612,
+              -0.10849828251956552
+            ],
+            "velocity_m_s": [
+              -0.000991363030445661,
+              -0.008706025047724539,
+              -0.009682824075929606
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006619528371890471,
+            0.006609671739567191
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012440910440677296,
+              0.4633690910500118,
+              0.6351107482652782
+            ],
+            "rotation": [
+              -0.002350668692767074,
+              -0.00242734641627646,
+              0.799099750096828,
+              0.6011889650860696
+            ],
+            "rotation_rad_s": [
+              -0.008786460171284828,
+              0.012656109557983412,
+              -0.24898075731624789
+            ],
+            "velocity_m_s": [
+              -0.0008268994102937883,
+              -0.008615544402472588,
+              -0.019581491237574803
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006708841325734037,
+            0.006566580764566097
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012425155308059994,
+              0.4633632290523742,
+              0.635098112282541
+            ],
+            "rotation": [
+              -0.0023477242666606916,
+              -0.002424399403374287,
+              0.799051846721842,
+              0.6012526563173877
+            ],
+            "rotation_rad_s": [
+              -0.004258546590673214,
+              0.017736732877888142,
+              -0.3719372922635408
+            ],
+            "velocity_m_s": [
+              -0.0007875127053150786,
+              -0.008220242216629226,
+              -0.029425006434830623
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006682783877825076,
+            0.006578410562127598
+          ],
+          "parcel": {
+            "position_m": [
+              0.001240505552716339,
+              0.4633568778690694,
+              0.6350805325014413
+            ],
+            "rotation": [
+              -0.002344836624597198,
+              -0.0024200205433029154,
+              0.7989854902772269,
+              0.6013408613824885
+            ],
+            "rotation_rad_s": [
+              -0.006200860908365526,
+              0.02173424854111222,
+              -0.49536622720850204
+            ],
+            "velocity_m_s": [
+              -0.0007401860773518951,
+              -0.00792033742490855,
+              -0.03929497341953179
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 8746,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.026721775664982406,
+        0.02632809679174392
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0012459102689242312,
+          0.46337918238581327,
+          0.6351208246514158
+        ],
+        "rotation": [
+          -0.0023571158090251363,
+          -0.0024296898449925144,
+          0.7991360805907476,
+          0.601140636881569
+        ],
+        "rotation_rad_s": [
+          -0.0015180799513401144,
+          0.004219817610910323,
+          9.934920242328476e-06
+        ],
+        "velocity_m_s": [
+          -0.0008915211022142458,
+          -0.009116802338497208,
+          5.2518591705132226e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.06940426362644611,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 1000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "a2e8c338fdc4b950a836fc08ed516401beda9f0d40fddc00b8db58227f2ec50c",
+        "warm_points": 14
+      },
+      "samples": [
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.013411597194486945,
+            0.013144833440542219
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012439961230021595,
+              0.4633691498396749,
+              0.6351107811863076
+            ],
+            "rotation": [
+              -0.0023437609750552564,
+              -0.002429643484616493,
+              0.7991015626197258,
+              0.6011865735657628
+            ],
+            "rotation_rad_s": [
+              0.01546287978752529,
+              0.011834959779401803,
+              -0.2297966361769017
+            ],
+            "velocity_m_s": [
+              -0.0008749677871366618,
+              -0.008391053862008994,
+              -0.019797552022245493
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.01331017847049546,
+            0.0131832633512017
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012404813226843583,
+              0.4633568924346949,
+              0.6350798307724438
+            ],
+            "rotation": [
+              -0.0023420111872858172,
+              -0.0024205387248364342,
+              0.7989871245217562,
+              0.6013386989246041
+            ],
+            "rotation_rad_s": [
+              -0.009063778234915396,
+              0.023526824496254106,
+              -0.4968241674239941
+            ],
+            "velocity_m_s": [
+              -0.0007668228990486755,
+              -0.007999037151948957,
+              -0.03917866625582357
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 8746,
+      "force_n": 8,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.02678333022627334,
+        0.02630564527186093
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0012459102689242312,
+          0.46337918238581327,
+          0.6351208246514158
+        ],
+        "rotation": [
+          -0.0023571158090251363,
+          -0.0024296898449925144,
+          0.7991360805907476,
+          0.601140636881569
+        ],
+        "rotation_rad_s": [
+          -0.0015180799513401144,
+          0.004219817610910323,
+          9.934920242328476e-06
+        ],
+        "velocity_m_s": [
+          -0.0008915211022142458,
+          -0.009116802338497208,
+          5.2518591705132226e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.06940426362644611,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 2000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "a2e8c338fdc4b950a836fc08ed516401beda9f0d40fddc00b8db58227f2ec50c",
+        "warm_points": 14
+      },
+      "samples": [
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.02678333022627334,
+            0.02630564527186093
+          ],
+          "parcel": {
+            "position_m": [
+              0.0012401882668697344,
+              0.46335719237076045,
+              0.635079609662549
+            ],
+            "rotation": [
+              -0.002317543562444244,
+              -0.0024259600628624384,
+              0.7989952282153145,
+              0.6013280045023409
+            ],
+            "rotation_rad_s": [
+              0.013469162265631671,
+              0.01675672583602837,
+              -0.4680508503897549
+            ],
+            "velocity_m_s": [
+              -0.0007266423220194674,
+              -0.0077691000696802045,
+              -0.040018688861088746
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 9128,
+      "force_n": 8,
+      "impulse_ns": [
+        0.03031259660812951,
+        0.0,
+        0.030312596608129502,
+        0.028578742633961624,
+        0.025062602385323443
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0011660829250219103,
+          0.4603861618994782,
+          0.6152286937994059
+        ],
+        "rotation": [
+          -0.0024806094963058505,
+          -0.0018979967325928227,
+          0.7179307903936932,
+          0.6961074804867543
+        ],
+        "rotation_rad_s": [
+          -0.0001957748946453917,
+          -0.001071341136884677,
+          -0.6568711427043936
+        ],
+        "velocity_m_s": [
+          0.006643848837436027,
+          0.0017245585743270798,
+          -0.0522617072411098
+        ]
+      },
+      "input_efforts": {
+        "49": 0.045862480352392154,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 250,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "c300ffa8f8f521392662a5b4ff6f3a3f939dacc5a3794a656cb0131e9725ece0",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0033148656577258366,
+            0.003309330042996019
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011661544430379084,
+              0.46038522643849045,
+              0.6152158138905683
+            ],
+            "rotation": [
+              -0.0024816105548228344,
+              -0.0018974195755436048,
+              0.7178742206218844,
+              0.6961658170109549
+            ],
+            "rotation_rad_s": [
+              0.0052552961526636886,
+              0.0013707844753858634,
+              -0.6489931399320676
+            ],
+            "velocity_m_s": [
+              0.006571945104089332,
+              0.0017274007892194186,
+              -0.05187742920624392
+            ]
+          }
+        },
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003299968916196779,
+            0.003320322312077019
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011662276289032096,
+              0.4603843063653588,
+              0.6152027245737999
+            ],
+            "rotation": [
+              -0.0024819325795604192,
+              -0.0018975215668112565,
+              0.7178174130835854,
+              0.696224389759913
+            ],
+            "rotation_rad_s": [
+              -0.006167197263251778,
+              -0.0022603199524113262,
+              -0.6559376177689656
+            ],
+            "velocity_m_s": [
+              0.006676971950979633,
+              0.0016743372663250594,
+              -0.052113684681755326
+            ]
+          }
+        },
+        {
+          "end_us": 750,
+          "impulse_ns": [
+            0.014884225700398147,
+            0.0,
+            0.01488422570039814,
+            0.004657323542319696,
+            0.0026963280252781632
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011678765001511453,
+              0.46038306027566933,
+              0.6151933500846928
+            ],
+            "rotation": [
+              -0.002437664173330921,
+              -0.0018962684202471216,
+              0.7177836734269585,
+              0.6962593339562194
+            ],
+            "rotation_rad_s": [
+              0.4200628439965849,
+              0.4810599747379041,
+              -0.45202720216842945
+            ],
+            "velocity_m_s": [
+              0.011611821980655903,
+              -0.001143718252158746,
+              -0.018829724653824327
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0033392346998375524,
+            0.0,
+            0.003339234699837551,
+            0.0035314183321285206,
+            0.0029300275080995984
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011695490754000844,
+              0.4603816764634647,
+              0.6151868612780114
+            ],
+            "rotation": [
+              -0.0023581716993106103,
+              -0.001896113143713761,
+              0.7177386657280409,
+              0.6963060042108747
+            ],
+            "rotation_rad_s": [
+              0.4313157349610237,
+              0.4430268685971382,
+              -0.5787855322462688
+            ],
+            "velocity_m_s": [
+              0.011830456698721289,
+              -0.001232763583927686,
+              -0.01714780138287403
+            ]
+          }
+        },
+        {
+          "end_us": 1250,
+          "impulse_ns": [
+            0.0030521858546615106,
+            0.0,
+            0.0030521858546615093,
+            0.0034553492767638036,
+            0.0031863194486676984
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011711542037144322,
+              0.46038002888577123,
+              0.6151806556330491
+            ],
+            "rotation": [
+              -0.002281710415069234,
+              -0.0019002384967050849,
+              0.7176882404917305,
+              0.6963582212849371
+            ],
+            "rotation_rad_s": [
+              0.4376890059777006,
+              0.4052672663694305,
+              -0.596166062274545
+            ],
+            "velocity_m_s": [
+              0.012242164611316856,
+              -0.0020457418787923837,
+              -0.01647880349628807
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0030297227330770217,
+            0.0,
+            0.0030297227330770204,
+            0.0034421996490062875,
+            0.003206771741657998
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011728592255725928,
+              0.46037814137250493,
+              0.6151746513508549
+            ],
+            "rotation": [
+              -0.002207885296918259,
+              -0.001907623216325148,
+              0.717637179196066,
+              0.6964110605466384
+            ],
+            "rotation_rad_s": [
+              0.44064897109784473,
+              0.3760477940595747,
+              -0.5977808037546744
+            ],
+            "velocity_m_s": [
+              0.012740320372012616,
+              -0.0030003940491030523,
+              -0.01592432762664925
+            ]
+          }
+        },
+        {
+          "end_us": 1750,
+          "impulse_ns": [
+            0.003011267319449285,
+            0.0,
+            0.0030112673194492836,
+            0.0034391767763771834,
+            0.0032075156485031116
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011746905649683047,
+              0.46037600494646647,
+              0.6151688223122876
+            ],
+            "rotation": [
+              -0.002136338977052556,
+              -0.0019173571231683344,
+              0.7175860654186141,
+              0.6964639247760575
+            ],
+            "rotation_rad_s": [
+              0.44062063477960867,
+              0.3528214684580376,
+              -0.5977154074996014
+            ],
+            "velocity_m_s": [
+              0.01325687420788831,
+              -0.004015704604334071,
+              -0.01543988136280662
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.002995960300705995,
+            0.0,
+            0.0029959603007059937,
+            0.0034384404834435205,
+            0.0032059876580438364
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011766501780344106,
+              0.4603736089599719,
+              0.615163150495669
+            ],
+            "rotation": [
+              -0.0020668191619352123,
+              -0.0019287744660203907,
+              0.7175349461217512,
+              0.6965167687727745
+            ],
+            "rotation_rad_s": [
+              0.43843957875965534,
+              0.33395796202753264,
+              -0.5976674961442074
+            ],
+            "velocity_m_s": [
+              0.01376720083970915,
+              -0.005069372432455631,
+              -0.015006833072019676
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 9128,
+      "force_n": 8,
+      "impulse_ns": [
+        0.029607851809336058,
+        0.0,
+        0.029607851809336044,
+        0.028860715005044744,
+        0.024869295567182426
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0011660829250219103,
+          0.4603861618994782,
+          0.6152286937994059
+        ],
+        "rotation": [
+          -0.0024806094963058505,
+          -0.0018979967325928227,
+          0.7179307903936932,
+          0.6961074804867543
+        ],
+        "rotation_rad_s": [
+          -0.0001957748946453917,
+          -0.001071341136884677,
+          -0.6568711427043936
+        ],
+        "velocity_m_s": [
+          0.006643848837436027,
+          0.0017245585743270798,
+          -0.0522617072411098
+        ]
+      },
+      "input_efforts": {
+        "49": 0.045862480352392154,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 500,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "c300ffa8f8f521392662a5b4ff6f3a3f939dacc5a3794a656cb0131e9725ece0",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006629969734392027,
+            0.006621702914174848
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011662022959615503,
+              0.46038429878491666,
+              0.6152025684820176
+            ],
+            "rotation": [
+              -0.0024811470332216728,
+              -0.0018977377456634787,
+              0.7178164682144635,
+              0.6962253661430058
+            ],
+            "rotation_rad_s": [
+              -0.0001965481054893001,
+              -0.0010576067023599844,
+              -0.6568712011955073
+            ],
+            "velocity_m_s": [
+              0.006642016353332651,
+              0.0017306233638031032,
+              -0.052261623173023256
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.018318223077091748,
+            0.0,
+            0.01831822307709174,
+            0.008190421975648546,
+            0.005611487246408075
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011699957478961626,
+              0.46038162259140164,
+              0.6151866188257945
+            ],
+            "rotation": [
+              -0.0023551507169107815,
+              -0.0019016260226057337,
+              0.7177509245793096,
+              0.6962933629937291
+            ],
+            "rotation_rad_s": [
+              0.46952055922672303,
+              0.4415760273121943,
+              -0.5188517683346808
+            ],
+            "velocity_m_s": [
+              0.011354484214333693,
+              -0.0012158640065027318,
+              -0.017777925553515903
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.005663844032743655,
+            0.0,
+            0.005663844032743653,
+            0.007041882397572738,
+            0.006294810545450592
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011730872471447783,
+              0.4603783255377341,
+              0.6151734705627936
+            ],
+            "rotation": [
+              -0.002193178587151012,
+              -0.0019284614851233497,
+              0.717656698866496,
+              0.6963909344441733
+            ],
+            "rotation_rad_s": [
+              0.5343601980520974,
+              0.370537613628624,
+              -0.5734253348010365
+            ],
+            "velocity_m_s": [
+              0.011539788355716426,
+              -0.002505132041954389,
+              -0.017532715404353215
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.005625784699500654,
+            0.0,
+            0.005625784699500651,
+            0.006998440897431433,
+            0.00634129486114891
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011762050030023133,
+              0.4603741535394199,
+              0.6151602694299892
+            ],
+            "rotation": [
+              -0.002031371879220485,
+              -0.001973769912855256,
+              0.7175587433927691,
+              0.6964922307830932
+            ],
+            "rotation_rad_s": [
+              0.5771904374216721,
+              0.33283258140339067,
+              -0.5776924891238003
+            ],
+            "velocity_m_s": [
+              0.011806310777010155,
+              -0.00425260574298898,
+              -0.0175353180779987
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 9128,
+      "force_n": 8,
+      "impulse_ns": [
+        0.031277616769624816,
+        0.0,
+        0.03127761676962481,
+        0.029041174006375202,
+        0.024686042355063456
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0011660829250219103,
+          0.4603861618994782,
+          0.6152286937994059
+        ],
+        "rotation": [
+          -0.0024806094963058505,
+          -0.0018979967325928227,
+          0.7179307903936932,
+          0.6961074804867543
+        ],
+        "rotation_rad_s": [
+          -0.0001957748946453917,
+          -0.001071341136884677,
+          -0.6568711427043936
+        ],
+        "velocity_m_s": [
+          0.006643848837436027,
+          0.0017245585743270798,
+          -0.0522617072411098
+        ]
+      },
+      "input_efforts": {
+        "49": 0.045862480352392154,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 1000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "c300ffa8f8f521392662a5b4ff6f3a3f939dacc5a3794a656cb0131e9725ece0",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.019130393209767678,
+            0.0,
+            0.01913039320976767,
+            0.014746850011461036,
+            0.01220214868997247
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011710341817191558,
+              0.4603812268588803,
+              0.615186500922434
+            ],
+            "rotation": [
+              -0.002353629610137289,
+              -0.001903537439806322,
+              0.7177699919734377,
+              0.6962737073847645
+            ],
+            "rotation_rad_s": [
+              0.5101920896863783,
+              0.44221846626829664,
+              -0.4991640384464298
+            ],
+            "velocity_m_s": [
+              0.011150104786209954,
+              -0.0017394538208292984,
+              -0.01821567539827646
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.012147223559857142,
+            0.0,
+            0.012147223559857137,
+            0.014294323994914164,
+            0.012483893665090985
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011765464336984102,
+              0.4603738965379487,
+              0.6151581440223024
+            ],
+            "rotation": [
+              -0.0020039828334030493,
+              -0.00201415980208417,
+              0.7175865563623578,
+              0.696463539132601
+            ],
+            "rotation_rad_s": [
+              0.3839057417445534,
+              0.3386000699866592,
+              -0.4836691557529234
+            ],
+            "velocity_m_s": [
+              0.011509116445657441,
+              -0.004266832943589572,
+              -0.015631956938037404
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 9128,
+      "force_n": 8,
+      "impulse_ns": [
+        0.03420844462582434,
+        0.0,
+        0.03420844462582433,
+        0.029071991430026627,
+        0.024566464961273175
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0011660829250219103,
+          0.4603861618994782,
+          0.6152286937994059
+        ],
+        "rotation": [
+          -0.0024806094963058505,
+          -0.0018979967325928227,
+          0.7179307903936932,
+          0.6961074804867543
+        ],
+        "rotation_rad_s": [
+          -0.0001957748946453917,
+          -0.001071341136884677,
+          -0.6568711427043936
+        ],
+        "velocity_m_s": [
+          0.006643848837436027,
+          0.0017245585743270798,
+          -0.0522617072411098
+        ]
+      },
+      "input_efforts": {
+        "49": 0.045862480352392154,
+        "52": 7.154138498898332,
+        "53": 7.154138498898332
+      },
+      "native_us": 2000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "c300ffa8f8f521392662a5b4ff6f3a3f939dacc5a3794a656cb0131e9725ece0",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.03420844462582434,
+            0.0,
+            0.03420844462582433,
+            0.029071991430026627,
+            0.024566464961273175
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011768526326741838,
+              0.46037279292674704,
+              0.6151574618875608
+            ],
+            "rotation": [
+              -0.0019951926233507727,
+              -0.002039818179686151,
+              0.7176138666147225,
+              0.6964353500436756
+            ],
+            "rotation_rad_s": [
+              0.09714362931325948,
+              0.30618202719059506,
+              -0.2676446547488086
+            ],
+            "velocity_m_s": [
+              0.013172188672852393,
+              -0.001346592376035185,
+              -0.009635836848554262
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 9400,
+      "force_n": 8,
+      "impulse_ns": [
+        0.005495455793331989,
+        0.0,
+        0.0054954557933319876,
+        0.01288833831123545,
+        0.012857716720495637
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0015630133749978134,
+          0.4604388383662639,
+          0.6152271118614633
+        ],
+        "rotation": [
+          -0.0031944672491866326,
+          -0.001085457273777423,
+          0.7173285380363122,
+          0.6967269089680603
+        ],
+        "rotation_rad_s": [
+          -0.02492569710492447,
+          0.0017818619127594473,
+          -4.0956631369695585e-05
+        ],
+        "velocity_m_s": [
+          6.636366725435293e-05,
+          0.0009233501899735026,
+          0.00041696335738895075
+        ]
+      },
+      "input_efforts": {
+        "49": -0.07022078838422666,
+        "52": 0.0,
+        "53": 0.0
+      },
+      "native_us": 250,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "7248b0036243b9713d5c3e69da6913fc55d31b772ace5c64d176c42111f87ea2",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 250,
+          "impulse_ns": [
+            0.0004991149542473074,
+            0.0,
+            0.0004991149542473072,
+            0.0014940690958777198,
+            0.0014864418261103293
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015630220694802946,
+              0.4604390619941178,
+              0.6152272271693247
+            ],
+            "rotation": [
+              -0.003195969739252564,
+              -0.0010837195593175327,
+              0.7173284020726636,
+              0.6967270447666158
+            ],
+            "rotation_rad_s": [
+              -0.007379010889648132,
+              0.004785515982349845,
+              -0.0005564800897898657
+            ],
+            "velocity_m_s": [
+              8.25952214622144e-05,
+              0.0008864624965552303,
+              3.351691162127415e-05
+            ]
+          }
+        },
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0009343599985048581,
+            0.0,
+            0.0009343599985048576,
+            0.0016612094003227522,
+            0.0015920699191498474
+          ],
+          "parcel": {
+            "position_m": [
+              0.001563034503990036,
+              0.4604392140540545,
+              0.615227175141804
+            ],
+            "rotation": [
+              -0.0031961184657413057,
+              -0.001083625519025788,
+              0.717328097593424,
+              0.6967273577128192
+            ],
+            "rotation_rad_s": [
+              -0.01014803443004556,
+              0.002049451730193092,
+              -0.006944287993138816
+            ],
+            "velocity_m_s": [
+              0.000129748251647201,
+              0.00045130982122870315,
+              0.0001493063916170008
+            ]
+          }
+        },
+        {
+          "end_us": 750,
+          "impulse_ns": [
+            0.0006439730752552348,
+            0.0,
+            0.0006439730752552345,
+            0.0016350730698839232,
+            0.0016172446827260644
+          ],
+          "parcel": {
+            "position_m": [
+              0.001563059439402957,
+              0.46043929406277423,
+              0.6152271902806578
+            ],
+            "rotation": [
+              -0.003196699855213355,
+              -0.0010830993947336266,
+              0.7173275697754201,
+              0.6967278992876824
+            ],
+            "rotation_rad_s": [
+              -0.008451740180960392,
+              0.003453278043589969,
+              -0.00436174624624282
+            ],
+            "velocity_m_s": [
+              0.00016860807561109916,
+              0.00035217323494215346,
+              9.068089262206907e-05
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.000660409390481938,
+            0.0,
+            0.0006604093904819376,
+            0.0016208221212249863,
+            0.001630676950578836
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015630867634063208,
+              0.46043936824416226,
+              0.6152271948650005
+            ],
+            "rotation": [
+              -0.0031971646708908847,
+              -0.0010826396401560864,
+              0.7173271779848798,
+              0.696728301243552
+            ],
+            "rotation_rad_s": [
+              -0.008736895401675443,
+              0.0026108246828421707,
+              -0.004700064093181557
+            ],
+            "velocity_m_s": [
+              0.00014057222595720826,
+              0.00036577372868563815,
+              0.00010412322411947201
+            ]
+          }
+        },
+        {
+          "end_us": 1250,
+          "impulse_ns": [
+            0.0006846555984841762,
+            0.0,
+            0.0006846555984841759,
+            0.001613585330663895,
+            0.0016368129249222409
+          ],
+          "parcel": {
+            "position_m": [
+              0.001563113860547121,
+              0.460439453631034,
+              0.6152272055527697
+            ],
+            "rotation": [
+              -0.0031977672795546956,
+              -0.0010820639340563697,
+              0.7173267824242541,
+              0.6967287066275762
+            ],
+            "rotation_rad_s": [
+              -0.009451556920266337,
+              0.0032487679819690825,
+              -0.004844802250130664
+            ],
+            "velocity_m_s": [
+              0.00016554658976726265,
+              0.0003935383264899094,
+              0.00010557934483379825
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0006975904204712578,
+            0.0,
+            0.0006975904204712575,
+            0.0016233306386206116,
+            0.001629968242372432
+          ],
+          "parcel": {
+            "position_m": [
+              0.001563142434246008,
+              0.46043953626372836,
+              0.6152272133027563
+            ],
+            "rotation": [
+              -0.003198346637744658,
+              -0.0010814994541279259,
+              0.7173263467075208,
+              0.6967291534426826
+            ],
+            "rotation_rad_s": [
+              -0.008927470367264323,
+              0.002939368813835882,
+              -0.004896969352908813
+            ],
+            "velocity_m_s": [
+              0.00015457694632394688,
+              0.0003746007177423671,
+              0.000102524673239441
+            ]
+          }
+        },
+        {
+          "end_us": 1750,
+          "impulse_ns": [
+            0.0006868275729326782,
+            0.0,
+            0.0006868275729326779,
+            0.00162115841267643,
+            0.001631381704291612
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015631691200574602,
+              0.4604396162690435,
+              0.6152272208690439
+            ],
+            "rotation": [
+              -0.0031989068265720465,
+              -0.001080981212552606,
+              0.7173259366088622,
+              0.696729573897184
+            ],
+            "rotation_rad_s": [
+              -0.008937140256596499,
+              0.003008440220736076,
+              -0.004745278255271943
+            ],
+            "velocity_m_s": [
+              0.00015571793195203384,
+              0.00037359512561968035,
+              0.00010191669498668481
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0006885247829545391,
+            0.0,
+            0.0006885247829545388,
+            0.0016190902419651301,
+            0.0016331204703442731
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015631970338643468,
+              0.46043969844358373,
+              0.6152272290339916
+            ],
+            "rotation": [
+              -0.003199476893608516,
+              -0.0010804284660278019,
+              0.7173255179561776,
+              0.6967300031653859
+            ],
+            "rotation_rad_s": [
+              -0.009114949220443902,
+              0.003034891727695676,
+              -0.004867814951702998
+            ],
+            "velocity_m_s": [
+              0.00015784181580364538,
+              0.0003812808449632101,
+              0.00010362489480721758
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 9400,
+      "force_n": 8,
+      "impulse_ns": [
+        0.003938951557146866,
+        0.0,
+        0.003938951557146865,
+        0.013040598700195615,
+        0.013064526999860378
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0015630133749978134,
+          0.4604388383662639,
+          0.6152271118614633
+        ],
+        "rotation": [
+          -0.0031944672491866326,
+          -0.001085457273777423,
+          0.7173285380363122,
+          0.6967269089680603
+        ],
+        "rotation_rad_s": [
+          -0.02492569710492447,
+          0.0017818619127594473,
+          -4.0956631369695585e-05
+        ],
+        "velocity_m_s": [
+          6.636366725435293e-05,
+          0.0009233501899735026,
+          0.00041696335738895075
+        ]
+      },
+      "input_efforts": {
+        "49": -0.07022078838422666,
+        "52": 0.0,
+        "53": 0.0
+      },
+      "native_us": 500,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "7248b0036243b9713d5c3e69da6913fc55d31b772ace5c64d176c42111f87ea2",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0009501513143690766,
+            0.0,
+            0.0009501513143690761,
+            0.0032940681704451374,
+            0.0032395870988856834
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015630671524506983,
+              0.4604392085944206,
+              0.615227237766924
+            ],
+            "rotation": [
+              -0.0031965437098847188,
+              -0.0010831869960844704,
+              0.7173278655886307,
+              0.6967275953084547
+            ],
+            "rotation_rad_s": [
+              -0.01478276001495211,
+              0.004237434306653472,
+              -0.00664715484421957
+            ],
+            "velocity_m_s": [
+              0.00020044216966190793,
+              0.0006420671814529389,
+              0.00018303233616881844
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0009480267729236079,
+            0.0,
+            0.0009480267729236074,
+            0.003262521218496038,
+            0.0032617101833049946
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015631257958927643,
+              0.4604394438349652,
+              0.6152272952008114
+            ],
+            "rotation": [
+              -0.00319776899227807,
+              -0.0010820797487733468,
+              0.7173265615432166,
+              0.6967289340062427
+            ],
+            "rotation_rad_s": [
+              -0.015049181710898585,
+              0.002690770101484271,
+              -0.006392204955797377
+            ],
+            "velocity_m_s": [
+              0.00015933589596124883,
+              0.000614725382281889,
+              0.0002222114101975004
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0009853875702612914,
+            0.0,
+            0.000985387570261291,
+            0.0032245759657373043,
+            0.0032940202496578937
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015631878135482415,
+              0.46043976092376193,
+              0.6152273960015318
+            ],
+            "rotation": [
+              -0.0031997160125588273,
+              -0.001080132653329961,
+              0.7173255651299216,
+              0.6967299539577216
+            ],
+            "rotation_rad_s": [
+              -0.018106907909043454,
+              0.003996437692810809,
+              -0.006408444782627554
+            ],
+            "velocity_m_s": [
+              0.0002078355672420805,
+              0.0007280969432057119,
+              0.0002442869110497743
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0010553858995928905,
+            0.0,
+            0.00105538589959289,
+            0.003259433345517135,
+            0.003269209468011807
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015632581666158458,
+              0.4604400685059973,
+              0.6152274822434283
+            ],
+            "rotation": [
+              -0.0032016546301141934,
+              -0.0010781850608903819,
+              0.7173243506209784,
+              0.6967311984767119
+            ],
+            "rotation_rad_s": [
+              -0.016297273013788978,
+              0.0034509134537073533,
+              -0.0068467993670944145
+            ],
+            "velocity_m_s": [
+              0.00019172907480594217,
+              0.0006650280539698022,
+              0.0002282167376669362
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 9400,
+      "force_n": 8,
+      "impulse_ns": [
+        0.004539617299176659,
+        0.0,
+        0.004539617299176657,
+        0.013209731022351335,
+        0.013338557793297194
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0015630133749978134,
+          0.4604388383662639,
+          0.6152271118614633
+        ],
+        "rotation": [
+          -0.0031944672491866326,
+          -0.001085457273777423,
+          0.7173285380363122,
+          0.6967269089680603
+        ],
+        "rotation_rad_s": [
+          -0.02492569710492447,
+          0.0017818619127594473,
+          -4.0956631369695585e-05
+        ],
+        "velocity_m_s": [
+          6.636366725435293e-05,
+          0.0009233501899735026,
+          0.00041696335738895075
+        ]
+      },
+      "input_efforts": {
+        "49": -0.07022078838422666,
+        "52": 0.0,
+        "53": 0.0
+      },
+      "native_us": 1000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "7248b0036243b9713d5c3e69da6913fc55d31b772ace5c64d176c42111f87ea2",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0026378284727537884,
+            0.0,
+            0.002637828472753787,
+            0.0067732171416050365,
+            0.006689617126872707
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015633779253371172,
+              0.4604393815140301,
+              0.6152268901633313
+            ],
+            "rotation": [
+              -0.00319674815225905,
+              -0.0010818282478758806,
+              0.7173283047516822,
+              0.6967271443333976
+            ],
+            "rotation_rad_s": [
+              -0.013770515565145728,
+              0.007988996666585979,
+              -0.009220701759665637
+            ],
+            "velocity_m_s": [
+              0.0003819417734663873,
+              0.0005928046413160365,
+              0.0001889548837255873
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0019017888264228706,
+            0.0,
+            0.0019017888264228698,
+            0.006436513880746298,
+            0.0066489406664244875
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015634792094246135,
+              0.4604402023749885,
+              0.6152272308921378
+            ],
+            "rotation": [
+              -0.003203577563009094,
+              -0.0010766404638302292,
+              0.7173234997380032,
+              0.696732068057537
+            ],
+            "rotation_rad_s": [
+              -0.028849342808209257,
+              0.004482257882446933,
+              -0.00850692840780677
+            ],
+            "velocity_m_s": [
+              0.0002454234512188626,
+              0.0011447469661996122,
+              0.0003598401167930938
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 9400,
+      "force_n": 8,
+      "impulse_ns": [
+        0.006530472861822095,
+        0.0,
+        0.006530472861822093,
+        0.013616776349955902,
+        0.013416727073891563
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0015630133749978134,
+          0.4604388383662639,
+          0.6152271118614633
+        ],
+        "rotation": [
+          -0.0031944672491866326,
+          -0.001085457273777423,
+          0.7173285380363122,
+          0.6967269089680603
+        ],
+        "rotation_rad_s": [
+          -0.02492569710492447,
+          0.0017818619127594473,
+          -4.0956631369695585e-05
+        ],
+        "velocity_m_s": [
+          6.636366725435293e-05,
+          0.0009233501899735026,
+          0.00041696335738895075
+        ]
+      },
+      "input_efforts": {
+        "49": -0.07022078838422666,
+        "52": 0.0,
+        "53": 0.0
+      },
+      "native_us": 2000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "7248b0036243b9713d5c3e69da6913fc55d31b772ace5c64d176c42111f87ea2",
+        "warm_points": 16
+      },
+      "samples": [
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.006530472861822095,
+            0.0,
+            0.006530472861822093,
+            0.013616776349955902,
+            0.013416727073891563
+          ],
+          "parcel": {
+            "position_m": [
+              0.0015645465905088207,
+              0.46043899548440637,
+              0.6152247514077227
+            ],
+            "rotation": [
+              -0.0031861847288734,
+              -0.0010830415590598556,
+              0.7173291320902998,
+              0.6967263390330756
+            ],
+            "rotation_rad_s": [
+              -0.001922340553462392,
+              0.016437940278984754,
+              -0.008258064371233699
+            ],
+            "velocity_m_s": [
+              0.0006858102199100551,
+              0.00014542074535879874,
+              -6.648739606587492e-05
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6200,
+      "force_n": 12,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.014200036746965796,
+        0.014414686145988087
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0007917838068772828,
+          0.335139385255448,
+          0.65997526751517
+        ],
+        "rotation": [
+          -0.005715118884250663,
+          0.0006412645182717521,
+          0.7166615464489245,
+          0.6973974147051254
+        ],
+        "rotation_rad_s": [
+          -3.836105275254466e-05,
+          -0.00023392839291672254,
+          1.3298508891528952e-05
+        ],
+        "velocity_m_s": [
+          2.4546780840400187e-05,
+          0.1953395889115182,
+          1.4224301125623341e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.2965601548527316
+      },
+      "native_us": 250,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "e59f90d236e968417f7b2bad972f859a0bc6a5a5b5af3a28137f829c9e03d5bb",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.001773170635584351,
+            0.001803680057795582
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007917942899961661,
+              0.3351882201722127,
+              0.6599742343066374
+            ],
+            "rotation": [
+              -0.005715231393556097,
+              0.0006411891005184987,
+              0.7166618318964815,
+              0.6973971205198907
+            ],
+            "rotation_rad_s": [
+              0.0005131631985904044,
+              -0.00040867324305600747,
+              0.005983590815265715
+            ],
+            "velocity_m_s": [
+              1.5055129076725693e-05,
+              0.19528353353805142,
+              -0.0074422978839882355
+            ]
+          }
+        },
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017756019847518954,
+            0.0018014739708320368
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918158687776388,
+              0.3352370494641704,
+              0.6599713258685779
+            ],
+            "rotation": [
+              -0.00571526930645282,
+              0.0006410582611242169,
+              0.716662395359997,
+              0.6973965413005228
+            ],
+            "rotation_rad_s": [
+              0.00029918235920384353,
+              0.00035791562076141557,
+              0.005288955712585956
+            ],
+            "velocity_m_s": [
+              2.837976190597292e-05,
+              0.19523975474885877,
+              -0.014898288643949636
+            ]
+          }
+        },
+        {
+          "end_us": 750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017752691351049686,
+            0.0018015416698180715
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918397394081154,
+              0.3352858671952893,
+              0.6599665518095811
+            ],
+            "rotation": [
+              -0.005715235901414263,
+              0.0006410156300058324,
+              0.716662941800881,
+              0.6973959800764991
+            ],
+            "rotation_rad_s": [
+              0.0003782795332297761,
+              -0.0002678733044087814,
+              0.005845608767058934
+            ],
+            "velocity_m_s": [
+              3.9327366060015096e-05,
+              0.1951949027582621,
+              -0.022354396999083214
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017753340237779982,
+            0.0018015182936843678
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918669039499874,
+              0.3353346742255443,
+              0.6599599136846523
+            ],
+            "rotation": [
+              -0.0057152010320332585,
+              0.0006409693244664182,
+              0.716663505883249,
+              0.6973954007380742
+            ],
+            "rotation_rad_s": [
+              0.0003554503411576761,
+              -4.18068699481614e-05,
+              0.005847181077126964
+            ],
+            "velocity_m_s": [
+              5.037126534012305e-05,
+              0.19515027445033506,
+              -0.02981047313792001
+            ]
+          }
+        },
+        {
+          "end_us": 1250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.001775276169411989,
+            0.0018015472274499865
+          ],
+          "parcel": {
+            "position_m": [
+              0.000791896928893596,
+              0.33538347015116415,
+              0.6599514114259692
+            ],
+            "rotation": [
+              -0.005715161243143827,
+              0.0006409283380288576,
+              0.7166640731834616,
+              0.6973948181273795
+            ],
+            "rotation_rad_s": [
+              0.00035669818804698886,
+              5.68615714212547e-05,
+              0.005881179324836782
+            ],
+            "velocity_m_s": [
+              6.147879987554875e-05,
+              0.19510543052083715,
+              -0.037266563648085574
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017752039670464043,
+            0.0018015933182678652
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919298029413187,
+              0.335432254885455,
+              0.6599410449570896
+            ],
+            "rotation": [
+              -0.005715113422221555,
+              0.0006408950499925586,
+              0.7166646427875395,
+              0.6973942332069535
+            ],
+            "rotation_rad_s": [
+              0.0003563908520612898,
+              0.00014782184554112845,
+              0.00589582137023635
+            ],
+            "velocity_m_s": [
+              7.263193596743648e-05,
+              0.19506029162487193,
+              -0.04472266791491611
+            ]
+          }
+        },
+        {
+          "end_us": 1750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.001775128842855148,
+            0.0018016412322670915
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919655127497155,
+              0.3354810283309435,
+              0.6599288142784859
+            ],
+            "rotation": [
+              -0.005715057746802964,
+              0.000640869326094382,
+              0.716665213787701,
+              0.6973936469083201
+            ],
+            "rotation_rad_s": [
+              0.00035663866625569514,
+              0.00023542577833121552,
+              0.005905499466163919
+            ],
+            "velocity_m_s": [
+              8.383548528591498e-05,
+              0.19501484601758567,
+              -0.05217878745948314
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0017750519884330415,
+            0.0018016903758730865
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007920040580832654,
+              0.3355297903988914,
+              0.6599147193863208
+            ],
+            "rotation": [
+              -0.005714994222764004,
+              0.0006408511411945695,
+              0.7166657857223458,
+              0.6973930597058028
+            ],
+            "rotation_rad_s": [
+              0.0003569809940681865,
+              0.000321969590945846,
+              0.005911901659433837
+            ],
+            "velocity_m_s": [
+              9.509005706553818e-05,
+              0.1949690863035066,
+              -0.0596349230319988
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6200,
+      "force_n": 12,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.014201719645095198,
+        0.014413025644837174
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0007917838068772828,
+          0.335139385255448,
+          0.65997526751517
+        ],
+        "rotation": [
+          -0.005715118884250663,
+          0.0006412645182717521,
+          0.7166615464489245,
+          0.6973974147051254
+        ],
+        "rotation_rad_s": [
+          -3.836105275254466e-05,
+          -0.00023392839291672254,
+          1.3298508891528952e-05
+        ],
+        "velocity_m_s": [
+          2.4546780840400187e-05,
+          0.1953395889115182,
+          1.4224301125623341e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.2965601548527316
+      },
+      "native_us": 500,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "e59f90d236e968417f7b2bad972f859a0bc6a5a5b5af3a28137f829c9e03d5bb",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003550502660824568,
+            0.0036034005672428834
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918126425226308,
+              0.33523704500884927,
+              0.6599710776535508
+            ],
+            "rotation": [
+              -0.00571505276509798,
+              0.0006411172414052041,
+              0.7166620052830822,
+              0.697396943873578
+            ],
+            "rotation_rad_s": [
+              0.0006329503692477818,
+              -5.332999694452112e-05,
+              0.0031965759055126064
+            ],
+            "velocity_m_s": [
+              3.9248164562270936e-05,
+              0.19524878829010617,
+              -0.014898288750695059
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003550531146803769,
+            0.003603170878421476
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918597073462439,
+              0.33533466727220657,
+              0.6599594306218196
+            ],
+            "rotation": [
+              -0.005714917652952614,
+              0.0006409752615691082,
+              0.7166628046380235,
+              0.697396123673839
+            ],
+            "rotation_rad_s": [
+              0.0006180956513804474,
+              5.416218905208618e-05,
+              0.003813876985469505
+            ],
+            "velocity_m_s": [
+              5.805240041051066e-05,
+              0.1951587556594025,
+              -0.02981047232693478
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0035504704183247004,
+            0.0036031514665290877
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919185979069435,
+              0.33543224613669076,
+              0.6599403269129784
+            ],
+            "rotation": [
+              -0.005714757028213309,
+              0.0006408610296854262,
+              0.7166636701868417,
+              0.6973952356329763
+            ],
+            "rotation_rad_s": [
+              0.0006152980635179897,
+              0.00022858563647651714,
+              0.003973689280892638
+            ],
+            "velocity_m_s": [
+              7.856671403528793e-05,
+              0.19506866793059377,
+              -0.04472267739466808
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0035502154191421613,
+            0.003603302732643728
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919885917965818,
+              0.33552978022580193,
+              0.6599137663701925
+            ],
+            "rotation": [
+              -0.005714565409069494,
+              0.0006407763953918562,
+              0.716664556894343,
+              0.6973943260732995
+            ],
+            "rotation_rad_s": [
+              0.0006183669950558632,
+              0.00039729470566563353,
+              0.004034843690075775
+            ],
+            "velocity_m_s": [
+              9.98780352268934e-05,
+              0.19497758497474735,
+              -0.05963493578091422
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6200,
+      "force_n": 12,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.014205862724383574,
+        0.014409151033143691
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0007917838068772828,
+          0.335139385255448,
+          0.65997526751517
+        ],
+        "rotation": [
+          -0.005715118884250663,
+          0.0006412645182717521,
+          0.7166615464489245,
+          0.6973974147051254
+        ],
+        "rotation_rad_s": [
+          -3.836105275254466e-05,
+          -0.00023392839291672254,
+          1.3298508891528952e-05
+        ],
+        "velocity_m_s": [
+          2.4546780840400187e-05,
+          0.1953395889115182,
+          1.4224301125623341e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.2965601548527316
+      },
+      "native_us": 1000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "e59f90d236e968417f7b2bad972f859a0bc6a5a5b5af3a28137f829c9e03d5bb",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.007105754974472557,
+            0.007202282813268242
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918470102951667,
+              0.3353346561522303,
+              0.6599584311939353
+            ],
+            "rotation": [
+              -0.005715446223120763,
+              0.000639644934234127,
+              0.7166617073646173,
+              0.6973972481491881
+            ],
+            "rotation_rad_s": [
+              0.0007470945817594771,
+              0.002679077589110376,
+              -0.00273571730736065
+            ],
+            "velocity_m_s": [
+              7.449504355351191e-05,
+              0.19518177391388924,
+              -0.029811330879169123
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0071001077499110166,
+            0.007206868219875449
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007919393971645566,
+              0.33552974773335303,
+              0.6599118240005883
+            ],
+            "rotation": [
+              -0.005714690679233721,
+              0.0006395826019578398,
+              0.7166616889195718,
+              0.6973972733524869
+            ],
+            "rotation_rad_s": [
+              0.001032207627053366,
+              0.0002673260856208705,
+              -0.0005551991908107412
+            ],
+            "velocity_m_s": [
+              0.00011048163700124982,
+              0.1949979393040806,
+              -0.05963590416262297
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6200,
+      "force_n": 12,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.014218815273912175,
+        0.014397797602085705
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0007917838068772828,
+          0.335139385255448,
+          0.65997526751517
+        ],
+        "rotation": [
+          -0.005715118884250663,
+          0.0006412645182717521,
+          0.7166615464489245,
+          0.6973974147051254
+        ],
+        "rotation_rad_s": [
+          -3.836105275254466e-05,
+          -0.00023392839291672254,
+          1.3298508891528952e-05
+        ],
+        "velocity_m_s": [
+          2.4546780840400187e-05,
+          0.1953395889115182,
+          1.4224301125623341e-05
+        ]
+      },
+      "input_efforts": {
+        "49": -0.2965601548527316
+      },
+      "native_us": 2000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "e59f90d236e968417f7b2bad972f859a0bc6a5a5b5af3a28137f829c9e03d5bb",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.014218815273912175,
+            0.014397797602085705
+          ],
+          "parcel": {
+            "position_m": [
+              0.0007918499965175975,
+              0.335529690582476,
+              0.6599077743995161
+            ],
+            "rotation": [
+              -0.005717716944003261,
+              0.0006340208499542973,
+              0.7166565653879294,
+              0.6974025186482242
+            ],
+            "rotation_rad_s": [
+              0.0008231763033263197,
+              0.007533892888391009,
+              -0.016691681349699176
+            ],
+            "velocity_m_s": [
+              0.0001334350386184655,
+              0.19505943113569085,
+              -0.05963698253726027
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6262,
+      "force_n": 12,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.027959678397583558,
+        0.028553774884411548
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0011512619176178452,
+          0.34692577715193446,
+          0.6187212961837433
+        ],
+        "rotation": [
+          -0.005572574630506878,
+          -4.3061965320324746e-05,
+          0.7167268996097332,
+          0.6973316972097814
+        ],
+        "rotation_rad_s": [
+          0.0683020261795168,
+          -0.002169138846090534,
+          9.802495329323584e-05
+        ],
+        "velocity_m_s": [
+          0.013283417598353177,
+          0.18329181049230092,
+          -1.2968136780765511
+        ]
+      },
+      "input_efforts": {
+        "49": -4.970406765644819,
+        "52": 7.153229130915114,
+        "53": 7.153229130915114
+      },
+      "native_us": 250,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "4f1bd8b2041e920d0d14192c74d90c417e5ef4fde74f9c758f30a1b0293ee337",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0036750635376943956,
+            0.003714846778697952
+          ],
+          "parcel": {
+            "position_m": [
+              0.001154597300790856,
+              0.34697160328165405,
+              0.6183963126043276
+            ],
+            "rotation": [
+              -0.005567834790723306,
+              -4.859880144137998e-05,
+              0.7167270443374864,
+              0.6973315859540214
+            ],
+            "rotation_rad_s": [
+              0.06773285766382325,
+              -0.0021340696940824982,
+              0.00392719447256975
+            ],
+            "velocity_m_s": [
+              0.013357448488769626,
+              0.18321454913116245,
+              -1.3016670183459769
+            ]
+          }
+        },
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003474657671857541,
+            0.003549997748028223
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011579592577285565,
+              0.34701740287235183,
+              0.6180700422574528
+            ],
+            "rotation": [
+              -0.005563012327943372,
+              -5.40808600800201e-05,
+              0.7167274945434803,
+              0.6973311613104103
+            ],
+            "rotation_rad_s": [
+              0.06684827933498472,
+              -0.001439369022640763,
+              0.0036901985229419176
+            ],
+            "velocity_m_s": [
+              0.013430859372964772,
+              0.18304717380295074,
+              -1.3067720256163722
+            ]
+          }
+        },
+        {
+          "end_us": 750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003468425718245988,
+            0.003550439574986247
+          ],
+          "parcel": {
+            "position_m": [
+              0.001161339167512359,
+              0.34706315811264543,
+              0.6177424981731034
+            ],
+            "rotation": [
+              -0.005558289205438276,
+              -5.92979285691232e-05,
+              0.7167279285312287,
+              0.6973307524899487
+            ],
+            "rotation_rad_s": [
+              0.06372894088683237,
+              -0.002072396147351254,
+              0.004147974875507027
+            ],
+            "velocity_m_s": [
+              0.013504650958878895,
+              0.1828631500259029,
+              -1.311880476451464
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003468295698585539,
+            0.0035485182406390704
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011647378256178344,
+              0.34710886806914687,
+              0.6174136826468754
+            ],
+            "rotation": [
+              -0.005553782211760677,
+              -6.430311107913078e-05,
+              0.716728373422916,
+              0.6973303306889752
+            ],
+            "rotation_rad_s": [
+              0.0620159888428118,
+              -0.0017889166299160507,
+              0.004119033904456263
+            ],
+            "velocity_m_s": [
+              0.01357834841015914,
+              0.1826835350452303,
+              -1.3169903638222642
+            ]
+          }
+        },
+        {
+          "end_us": 1250,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003467590214808626,
+            0.003544626444118132
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011681549735209898,
+              0.34715453394670265,
+              0.6170835888144353
+            ],
+            "rotation": [
+              -0.0055492720842609524,
+              -6.929112138853594e-05,
+              0.7167288216231239,
+              0.6973299054484925
+            ],
+            "rotation_rad_s": [
+              0.06333607469781155,
+              -0.0015805075177598655,
+              0.004190968211739141
+            ],
+            "velocity_m_s": [
+              0.013651788036150159,
+              0.18251181294503235,
+              -1.3221034574696418
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0034725987034993503,
+            0.0035460340068994263
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011715906194315982,
+              0.34720015900100587,
+              0.6167522150318325
+            ],
+            "rotation": [
+              -0.005544664566642318,
+              -7.434609528941202e-05,
+              0.7167292760101835,
+              0.6973294745508896
+            ],
+            "rotation_rad_s": [
+              0.06425744258098331,
+              -0.001393300754121195,
+              0.004207569889871836
+            ],
+            "velocity_m_s": [
+              0.013725066473856682,
+              0.1823490545991853,
+              -1.3272121619681385
+            ]
+          }
+        },
+        {
+          "end_us": 1750,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.003467100240689757,
+            0.0035503925771968887
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011750444395912394,
+              0.3472457399562098,
+              0.6164195650875335
+            ],
+            "rotation": [
+              -0.005540087335348058,
+              -7.934477073806617e-05,
+              0.716729721676704,
+              0.697329052314586
+            ],
+            "rotation_rad_s": [
+              0.062290141695753004,
+              -0.0012940965742439469,
+              0.004068124632005386
+            ],
+            "velocity_m_s": [
+              0.013799063196268595,
+              0.18216170365243753,
+              -1.3323210751017123
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0034659466122023623,
+            0.0035489195138456104
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011785165814390767,
+              0.34729127385379344,
+              0.6160856408619522
+            ],
+            "rotation": [
+              -0.0055356277394917955,
+              -8.420232588282584e-05,
+              0.7167301608153873,
+              0.697328635804559
+            ],
+            "rotation_rad_s": [
+              0.06130494395095498,
+              -0.0011669066911858248,
+              0.004046934560237447
+            ],
+            "velocity_m_s": [
+              0.01387305229457752,
+              0.18197507971459567,
+              -1.3374318071314364
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6262,
+      "force_n": 12,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.027677551967844993,
+        0.02829343462047365
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0011512619176178452,
+          0.34692577715193446,
+          0.6187212961837433
+        ],
+        "rotation": [
+          -0.005572574630506878,
+          -4.3061965320324746e-05,
+          0.7167268996097332,
+          0.6973316972097814
+        ],
+        "rotation_rad_s": [
+          0.0683020261795168,
+          -0.002169138846090534,
+          9.802495329323584e-05
+        ],
+        "velocity_m_s": [
+          0.013283417598353177,
+          0.18329181049230092,
+          -1.2968136780765511
+        ]
+      },
+      "input_efforts": {
+        "49": -4.970406765644819,
+        "52": 7.153229130915114,
+        "53": 7.153229130915114
+      },
+      "native_us": 500,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "4f1bd8b2041e920d0d14192c74d90c417e5ef4fde74f9c758f30a1b0293ee337",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006928541373331983,
+            0.007068968637770318
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011579529088633113,
+              0.3470173801436379,
+              0.6180697643484699
+            ],
+            "rotation": [
+              -0.005563990769601202,
+              -5.2784649548731406e-05,
+              0.7167272479591305,
+              0.697331407046483
+            ],
+            "rotation_rad_s": [
+              0.07090498298116814,
+              -0.0017787127210072227,
+              0.00011893618430553576
+            ],
+            "velocity_m_s": [
+              0.01342837648307261,
+              0.18298267606216892,
+              -1.3070595218216037
+            ]
+          }
+        },
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006921177176763304,
+            0.007075680475271449
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011647159512046604,
+              0.3471088211337581,
+              0.6174131139985108
+            ],
+            "rotation": [
+              -0.005555513183031997,
+              -6.229268095050655e-05,
+              0.7167275717131046,
+              0.6973311410937644
+            ],
+            "rotation_rad_s": [
+              0.06713750242614619,
+              -0.0015717762239232044,
+              -0.0001177986575627444
+            ],
+            "velocity_m_s": [
+              0.013574482616268998,
+              0.18263833568243468,
+              -1.3173047732167262
+            ]
+          }
+        },
+        {
+          "end_us": 1500,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.006917582721909026,
+            0.0070710509070513764
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011715516699945397,
+              0.3472000889502042,
+              0.6167513397723813
+            ],
+            "rotation": [
+              -0.005547076141489603,
+              -7.165132705617287e-05,
+              0.7167278805359623,
+              0.6973308899473732
+            ],
+            "rotation_rad_s": [
+              0.06906865221325259,
+              -0.0011950103423960458,
+              -0.00010673356351001183
+            ],
+            "velocity_m_s": [
+              0.013720602929438318,
+              0.18229631953745778,
+              -1.3275557200747141
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.00691025069584068,
+            0.007077734600380506
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011784599783509365,
+              0.34729117851126795,
+              0.6160844475240463
+            ],
+            "rotation": [
+              -0.005538855893777049,
+              -8.068620000439294e-05,
+              0.7167281638386246,
+              0.6973306631187524
+            ],
+            "rotation_rad_s": [
+              0.06464823035539803,
+              -0.0010011221758838343,
+              -0.00035202458272460364
+            ],
+            "velocity_m_s": [
+              0.013867831296734735,
+              0.18191924909577967,
+              -1.3378060931934521
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6262,
+      "force_n": 12,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.027260679567346905,
+        0.02802531796192207
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0011512619176178452,
+          0.34692577715193446,
+          0.6187212961837433
+        ],
+        "rotation": [
+          -0.005572574630506878,
+          -4.3061965320324746e-05,
+          0.7167268996097332,
+          0.6973316972097814
+        ],
+        "rotation_rad_s": [
+          0.0683020261795168,
+          -0.002169138846090534,
+          9.802495329323584e-05
+        ],
+        "velocity_m_s": [
+          0.013283417598353177,
+          0.18329181049230092,
+          -1.2968136780765511
+        ]
+      },
+      "input_efforts": {
+        "49": -4.970406765644819,
+        "52": 7.153229130915114,
+        "53": 7.153229130915114
+      },
+      "native_us": 1000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "4f1bd8b2041e920d0d14192c74d90c417e5ef4fde74f9c758f30a1b0293ee337",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 1000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.013522937054140805,
+            0.013906501944035157
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011646845575061454,
+              0.347108697207974,
+              0.6174122369863303
+            ],
+            "rotation": [
+              -0.005564481994382882,
+              -5.667741208668928e-05,
+              0.7167262712472173,
+              0.6973324066984593
+            ],
+            "rotation_rad_s": [
+              0.05437236997363304,
+              0.0015251627039401699,
+              -0.010098136377918246
+            ],
+            "velocity_m_s": [
+              0.013575748726933502,
+              0.18241489940699285,
+              -1.3176945845955086
+            ]
+          }
+        },
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.0137377425132061,
+            0.014118816017886913
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011783559736780694,
+              0.3472907318941683,
+              0.6160828676903852
+            ],
+            "rotation": [
+              -0.005561505799141646,
+              -6.122875439115715e-05,
+              0.7167239483283183,
+              0.6973348175711234
+            ],
+            "rotation_rad_s": [
+              0.03408233952123093,
+              -0.0021565795470623304,
+              -0.009090829685368694
+            ],
+            "velocity_m_s": [
+              0.013870907784193068,
+              0.18154544027598252,
+              -1.3382788454553158
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "anchor_ms": 6262,
+      "force_n": 12,
+      "impulse_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.02685318602599574,
+        0.0278155828442035
+      ],
+      "incoming_parcel": {
+        "position_m": [
+          0.0011512619176178452,
+          0.34692577715193446,
+          0.6187212961837433
+        ],
+        "rotation": [
+          -0.005572574630506878,
+          -4.3061965320324746e-05,
+          0.7167268996097332,
+          0.6973316972097814
+        ],
+        "rotation_rad_s": [
+          0.0683020261795168,
+          -0.002169138846090534,
+          9.802495329323584e-05
+        ],
+        "velocity_m_s": [
+          0.013283417598353177,
+          0.18329181049230092,
+          -1.2968136780765511
+        ]
+      },
+      "input_efforts": {
+        "49": -4.970406765644819,
+        "52": 7.153229130915114,
+        "53": 7.153229130915114
+      },
+      "native_us": 2000,
+      "prepared": {
+        "bodies": 10,
+        "sha256": "4f1bd8b2041e920d0d14192c74d90c417e5ef4fde74f9c758f30a1b0293ee337",
+        "warm_points": 12
+      },
+      "samples": [
+        {
+          "end_us": 2000,
+          "impulse_ns": [
+            0.0,
+            0.0,
+            0.0,
+            0.02685318602599574,
+            0.0278155828442035
+          ],
+          "parcel": {
+            "position_m": [
+              0.0011782135278186109,
+              0.347290135622502,
+              0.6160799126182285
+            ],
+            "rotation": [
+              -0.0056012188649413805,
+              -3.6796329350387875e-05,
+              0.7167176418050243,
+              0.6973409832490143
+            ],
+            "rotation_rad_s": [
+              -0.015288855843857849,
+              0.006591295657615394,
+              -0.03213167105885497
+            ],
+            "velocity_m_s": [
+              0.013881665805352855,
+              0.18104895320035436,
+              -1.3387047466576987
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "matched_summary": [
+    {
+      "force_n": 8,
+      "anchor_ms": 6200,
+      "same_prepared_bodies_contacts_and_commands": true,
+      "grids": [
+        {
+          "native_us": 250,
+          "first_common_position_error_um": 0.0,
+          "endpoint_position_error_um": 0.0,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 500,
+          "first_common_position_error_um": 0.1701001381065116,
+          "endpoint_position_error_um": 0.6400351396845602,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 1000,
+          "first_common_position_error_um": 1.0235049442192352,
+          "endpoint_position_error_um": 1.9780371162884014,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 2000,
+          "first_common_position_error_um": 5.9044532538419325,
+          "endpoint_position_error_um": 5.9044532538419325,
+          "upward_shelf_impulse_ns": 0.0
+        }
+      ]
+    },
+    {
+      "force_n": 8,
+      "anchor_ms": 6308,
+      "same_prepared_bodies_contacts_and_commands": true,
+      "grids": [
+        {
+          "native_us": 250,
+          "first_common_position_error_um": 0.0,
+          "endpoint_position_error_um": 0.0,
+          "upward_shelf_impulse_ns": 0.09676498305561788
+        },
+        {
+          "native_us": 500,
+          "first_common_position_error_um": 0.05558694717486904,
+          "endpoint_position_error_um": 2.2602392247059253,
+          "upward_shelf_impulse_ns": 0.09744416594093787
+        },
+        {
+          "native_us": 1000,
+          "first_common_position_error_um": 8.560248700249472,
+          "endpoint_position_error_um": 8.765833409279704,
+          "upward_shelf_impulse_ns": 0.09903792161011384
+        },
+        {
+          "native_us": 2000,
+          "first_common_position_error_um": 18.85778964559911,
+          "endpoint_position_error_um": 18.85778964559911,
+          "upward_shelf_impulse_ns": 0.10077076101377785
+        }
+      ]
+    },
+    {
+      "force_n": 8,
+      "anchor_ms": 6710,
+      "same_prepared_bodies_contacts_and_commands": true,
+      "grids": [
+        {
+          "native_us": 250,
+          "first_common_position_error_um": 0.0,
+          "endpoint_position_error_um": 0.0,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 500,
+          "first_common_position_error_um": 0.054278452750931246,
+          "endpoint_position_error_um": 0.6582714181526155,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 1000,
+          "first_common_position_error_um": 0.37352181733770984,
+          "endpoint_position_error_um": 1.6117592394844664,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 2000,
+          "first_common_position_error_um": 2.151584077950995,
+          "endpoint_position_error_um": 2.151584077950995,
+          "upward_shelf_impulse_ns": 0.0
+        }
+      ]
+    },
+    {
+      "force_n": 8,
+      "anchor_ms": 8746,
+      "same_prepared_bodies_contacts_and_commands": true,
+      "grids": [
+        {
+          "native_us": 250,
+          "first_common_position_error_um": 0.0,
+          "endpoint_position_error_um": 0.0,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 500,
+          "first_common_position_error_um": 0.06818661711682716,
+          "endpoint_position_error_um": 0.4462291316731666,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 1000,
+          "first_common_position_error_um": 0.17392068607163494,
+          "endpoint_position_error_um": 1.146546870519026,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 2000,
+          "first_common_position_error_um": 1.4415623302711853,
+          "endpoint_position_error_um": 1.4415623302711853,
+          "upward_shelf_impulse_ns": 0.0
+        }
+      ]
+    },
+    {
+      "force_n": 8,
+      "anchor_ms": 9128,
+      "same_prepared_bodies_contacts_and_commands": true,
+      "grids": [
+        {
+          "native_us": 250,
+          "first_common_position_error_um": 0.0,
+          "endpoint_position_error_um": 0.0,
+          "upward_shelf_impulse_ns": 0.03031259660812951
+        },
+        {
+          "native_us": 500,
+          "first_common_position_error_um": 0.15831571473176187,
+          "endpoint_position_error_um": 2.9656849184828284,
+          "upward_shelf_impulse_ns": 0.029607851809336058
+        },
+        {
+          "native_us": 1000,
+          "first_common_position_error_um": 1.592966165178424,
+          "endpoint_position_error_um": 5.015798994276101,
+          "upward_shelf_impulse_ns": 0.031277616769624816
+        },
+        {
+          "native_us": 2000,
+          "first_common_position_error_um": 5.750405230446277,
+          "endpoint_position_error_um": 5.750405230446277,
+          "upward_shelf_impulse_ns": 0.03420844462582434
+        }
+      ]
+    },
+    {
+      "force_n": 8,
+      "anchor_ms": 9400,
+      "same_prepared_bodies_contacts_and_commands": true,
+      "grids": [
+        {
+          "native_us": 250,
+          "first_common_position_error_um": 0.0,
+          "endpoint_position_error_um": 0.0,
+          "upward_shelf_impulse_ns": 0.005495455793331989
+        },
+        {
+          "native_us": 500,
+          "first_common_position_error_um": 0.07083526832318351,
+          "endpoint_position_error_um": 0.45254659652802814,
+          "upward_shelf_impulse_ns": 0.003938951557146866
+        },
+        {
+          "native_us": 1000,
+          "first_common_position_error_um": 0.42165681136205085,
+          "endpoint_position_error_um": 0.5775581011762095,
+          "upward_shelf_impulse_ns": 0.004539617299176659
+        },
+        {
+          "native_us": 2000,
+          "first_common_position_error_um": 2.9075912144183844,
+          "endpoint_position_error_um": 2.9075912144183844,
+          "upward_shelf_impulse_ns": 0.006530472861822095
+        }
+      ]
+    },
+    {
+      "force_n": 12,
+      "anchor_ms": 6200,
+      "same_prepared_bodies_contacts_and_commands": true,
+      "grids": [
+        {
+          "native_us": 250,
+          "first_common_position_error_um": 0.0,
+          "endpoint_position_error_um": 0.0,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 500,
+          "first_common_position_error_um": 0.24827597201449791,
+          "endpoint_position_error_um": 0.9531959078081521,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 1000,
+          "first_common_position_error_um": 1.4827343418143333,
+          "endpoint_position_error_um": 2.896421917221783,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 2000,
+          "first_common_position_error_um": 6.947412468038785,
+          "endpoint_position_error_um": 6.947412468038785,
+          "upward_shelf_impulse_ns": 0.0
+        }
+      ]
+    },
+    {
+      "force_n": 12,
+      "anchor_ms": 6262,
+      "same_prepared_bodies_contacts_and_commands": true,
+      "grids": [
+        {
+          "native_us": 250,
+          "first_common_position_error_um": 0.0,
+          "endpoint_position_error_um": 0.0,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 500,
+          "first_common_position_error_um": 0.2789091344175831,
+          "endpoint_position_error_um": 1.1984779782004764,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 1000,
+          "first_common_position_error_um": 1.456696757612757,
+          "endpoint_position_error_um": 2.830193567202792,
+          "upward_shelf_impulse_ns": 0.0
+        },
+        {
+          "native_us": 2000,
+          "first_common_position_error_um": 5.848092691441814,
+          "endpoint_position_error_um": 5.848092691441814,
+          "upward_shelf_impulse_ns": 0.0
+        }
+      ]
+    }
+  ],
+  "step_cost": {
+    "cpu_affinity": 9,
+    "cpu": "AMD Ryzen 9 9950X3D",
+    "control_ms": 2,
+    "samples_per_block": 2001,
+    "blocks": [
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 1110273,
+        "p95_ns": 1292184,
+        "p99_ns": 1596255,
+        "physics_us": 250,
+        "recovery_open_ms": 11010,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 523962,
+        "p95_ns": 594161,
+        "p99_ns": 707152,
+        "physics_us": 500,
+        "recovery_open_ms": 10602,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 261641,
+        "p95_ns": 290781,
+        "p99_ns": 352721,
+        "physics_us": 1000,
+        "recovery_open_ms": 10486,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 131180,
+        "p95_ns": 155101,
+        "p99_ns": 182261,
+        "physics_us": 2000,
+        "recovery_open_ms": 10620,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 830342,
+        "p95_ns": 995443,
+        "p99_ns": 1463234,
+        "physics_us": 500,
+        "recovery_open_ms": 10602,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 379511,
+        "p95_ns": 414731,
+        "p99_ns": 436062,
+        "physics_us": 1000,
+        "recovery_open_ms": 10486,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 189551,
+        "p95_ns": 215001,
+        "p99_ns": 229311,
+        "physics_us": 2000,
+        "recovery_open_ms": 10620,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 1495204,
+        "p95_ns": 1540045,
+        "p99_ns": 1578485,
+        "physics_us": 250,
+        "recovery_open_ms": 11010,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 262611,
+        "p95_ns": 362622,
+        "p99_ns": 385132,
+        "physics_us": 1000,
+        "recovery_open_ms": 10486,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 131530,
+        "p95_ns": 149971,
+        "p99_ns": 165401,
+        "physics_us": 2000,
+        "recovery_open_ms": 10620,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 1095103,
+        "p95_ns": 1188753,
+        "p99_ns": 1347564,
+        "physics_us": 250,
+        "recovery_open_ms": 11010,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 548951,
+        "p95_ns": 624881,
+        "p99_ns": 796223,
+        "physics_us": 500,
+        "recovery_open_ms": 10602,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 135510,
+        "p95_ns": 176770,
+        "p99_ns": 192391,
+        "physics_us": 2000,
+        "recovery_open_ms": 10620,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 1096893,
+        "p95_ns": 1161463,
+        "p99_ns": 1314414,
+        "physics_us": 250,
+        "recovery_open_ms": 11010,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 522081,
+        "p95_ns": 609042,
+        "p99_ns": 738342,
+        "physics_us": 500,
+        "recovery_open_ms": 10602,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 458,
+        "mode": "GuardedCarry",
+        "p50_ns": 258720,
+        "p95_ns": 285851,
+        "p99_ns": 328341,
+        "physics_us": 1000,
+        "recovery_open_ms": 10486,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      }
+    ],
+    "median_percentiles_ns": {
+      "250": {
+        "p50_ns": 1103583.0,
+        "p95_ns": 1240468.5,
+        "p99_ns": 1463024.5
+      },
+      "500": {
+        "p50_ns": 536456.5,
+        "p95_ns": 616961.5,
+        "p99_ns": 767282.5
+      },
+      "1000": {
+        "p50_ns": 262126.0,
+        "p95_ns": 326701.5,
+        "p99_ns": 368926.5
+      },
+      "2000": {
+        "p50_ns": 133520.0,
+        "p95_ns": 165935.5,
+        "p99_ns": 187326.0
+      }
+    }
+  },
+  "coverage": {
+    "baseline": "7112eec",
+    "object_sha256": {
+      "tests": "0281252f3b7c82af6f6743078601594cbee767f990a87386269a45bd850eceab",
+      "app": "f15e20fc4cff8ae3eb373f5041c7a415f36a0d3e09ddd3630d2607a76afc37c5"
+    },
+    "lines": [
+      93,
+      94
+    ],
+    "regions": [
+      166,
+      170
+    ],
+    "files": {
+      "crates/gz-sim-cli/examples/serial_transfer/carry.rs": {
+        "lines": [
+          16,
+          17
+        ],
+        "missed_lines": [
+          [
+            243
+          ]
+        ],
+        "regions": [
+          39,
+          41
+        ],
+        "missed_regions": [
+          [
+            242,
+            75,
+            242,
+            76
+          ],
+          [
+            243,
+            24,
+            243,
+            30
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/obstacle.rs": {
+        "lines": [
+          33,
+          33
+        ],
+        "missed_lines": [],
+        "regions": [
+          49,
+          50
+        ],
+        "missed_regions": [
+          [
+            244,
+            43,
+            244,
+            44
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/cycle.rs": {
+        "lines": [
+          2,
+          2
+        ],
+        "missed_lines": [],
+        "regions": [
+          2,
+          2
+        ],
+        "missed_regions": []
+      },
+      "crates/gz-sim-scene/src/joint_controller.rs": {
+        "lines": [
+          42,
+          42
+        ],
+        "missed_lines": [],
+        "regions": [
+          76,
+          77
+        ],
+        "missed_regions": [
+          [
+            390,
+            71,
+            390,
+            72
+          ]
+        ]
+      },
+      "crates/gz-sim-scene/src/lib.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "missed_lines": [],
+        "regions": [
+          0,
+          0
+        ],
+        "missed_regions": []
+      }
+    }
+  },
+  "viewer": {
+    "9957": {
+      "case": "p250-n8",
+      "frames": 458,
+      "body_poses_and_shapes_checked": 9618,
+      "reset_ms": 0.0,
+      "captured_ms": {
+        "alarm": 6204.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "edge": 6310.0,
+        "finish": 18000.0,
+        "lower": 8744.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6254.0,
+        "resume": 6708.0,
+        "return_open": 11010.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12
+    },
+    "9959": {
+      "case": "p250-n12",
+      "frames": 455,
+      "body_poses_and_shapes_checked": 9555,
+      "reset_ms": 0.0,
+      "captured_ms": {
+        "alarm": 6204.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "finish": 18000.0,
+        "lower": 8256.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6254.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12
+    },
+    "9958": {
+      "case": "p2000-n8",
+      "frames": 458,
+      "body_poses_and_shapes_checked": 9618,
+      "reset_ms": 0.0,
+      "captured_ms": {
+        "alarm": 6204.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "edge": 6300.0,
+        "finish": 18000.0,
+        "lower": 8750.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6254.0,
+        "resume": 6708.0,
+        "return_open": 10620.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12
+    }
+  },
+  "historic_routes": {
+    "legacy": {
+      "runs": 4,
+      "same_terminal": 4,
+      "identical_frames": 4,
+      "changed_decisions": []
+    },
+    "offset": {
+      "runs": 44,
+      "same_terminal": 44,
+      "identical_frames": 42,
+      "changed_decisions": []
+    },
+    "receiver": {
+      "runs": 32,
+      "same_terminal": 32,
+      "identical_frames": 24,
+      "changed_decisions": []
+    }
+  },
+  "previous_pressure_study": {
+    "runs": 57,
+    "changes": [
+      {
+        "case": "p500-c2-u0.35-n8-t6201-d64-direct",
+        "before": "withheld",
+        "after": "receiver"
+      },
+      {
+        "case": "p1000-c2-u0.28-n6-t6201-d64-observe",
+        "before": "withheld",
+        "after": "ordinary shelf"
+      },
+      {
+        "case": "p500-c2-u0.28-n6-t6201-d64-observe",
+        "before": "withheld",
+        "after": "ordinary shelf"
+      },
+      {
+        "case": "p500-c2-u0.28-n8-t6201-d64-direct",
+        "before": "withheld",
+        "after": "receiver"
+      },
+      {
+        "case": "p1000-c2-u0.35-n8-t6201-d64-observe",
+        "before": "withheld",
+        "after": "ordinary shelf"
+      }
+    ]
+  }
+}
