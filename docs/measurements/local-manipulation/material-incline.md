@@ -18,6 +18,8 @@ On the 8.4 g folded sheet, setting static plane friction to 0.7 reduced the larg
 | 500 | 81.43 µm | 172.74 ms |
 | 1,000 | Reference | 292.23 ms |
 
+A fifth run then tested the apparent agreement with an independent 2,000-exchange reference. Against that run, the 16-, 250-, 500- and 1,000-exchange runs differed by 348.64, 241.05, 325.12 and 367.66 µm. The 1,000-vs-2,000 maximum occurred at 2.725 s on node 6. The previously passing pair therefore does not establish convergence of the full released trajectory. The finer holdout is included in the numerical receipt.
+
 The timings came from parallel CPU-affined runs on a shared workstation. The instrumented Rust runs covered 129/131 changed lines and 219/226 regions in the material solver, 105/107 and 253/263 in the CLI, and 5/5 and 14/14 in the scene loader. These denominators cover this phase's production changes. [Source world](../../../examples/worlds/local_material_incline.sdf)
 
 Run the following from the physics checkout, choosing a fresh output directory.

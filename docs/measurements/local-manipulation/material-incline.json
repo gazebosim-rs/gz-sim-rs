@@ -469,5 +469,124 @@
         "missing": []
       }
     }
+  },
+  "folded_sheet_2000_exchange_holdout": {
+    "max_particle_tolerance_m": 0.0001,
+    "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+    "reference_checked": false,
+    "reference_exchanges_per_ms": 2000,
+    "selected_exchanges_per_ms": null,
+    "trials": [
+      {
+        "exchanges_per_ms": 16,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          3.671049157743335e-05,
+          3.639777924394015e-05
+        ],
+        "max_particle_error_location": {
+          "particle": 2,
+          "time_ns": 3225000000
+        },
+        "max_particle_error_m": 0.0003486396440867443,
+        "mean_hold_jaw_load_n": [
+          0.04120804247691403,
+          0.04120204378564839
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 4046393,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 250,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          2.5319851300852986e-07,
+          1.7903903237134326e-09
+        ],
+        "max_particle_error_location": {
+          "particle": 9,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.00024104509768551488,
+        "mean_hold_jaw_load_n": [
+          0.04120503825013635,
+          0.04120504296071388
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 64884327,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 500,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          2.7635255394060824e-08,
+          1.4085291933786407e-07
+        ],
+        "max_particle_error_location": {
+          "particle": 9,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.0003251208023478557,
+        "mean_hold_jaw_load_n": [
+          0.04120501966282167,
+          0.04120505471509317
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 172739546,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 1000,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          1.4282044731879426e-08,
+          6.281259434209417e-08
+        ],
+        "max_particle_error_location": {
+          "particle": 6,
+          "time_ns": 2725000000
+        },
+        "max_particle_error_m": 0.0003676555343082241,
+        "mean_hold_jaw_load_n": [
+          0.0412050185624637,
+          0.04120504828425823
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 292226143,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 2000,
+        "first_particle_outside_tolerance": null,
+        "jaw_load_error_fraction_of_weight": [
+          0.0,
+          0.0
+        ],
+        "max_particle_error_location": null,
+        "max_particle_error_m": 0.0,
+        "mean_hold_jaw_load_n": [
+          0.04120501738556608,
+          0.041205043108249205
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 462250540,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      }
+    ],
+    "verification_exchanges_per_ms": 1000
   }
 }
