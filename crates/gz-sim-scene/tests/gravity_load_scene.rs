@@ -138,3 +138,46 @@ fn external_constraints_cannot_silently_turn_a_tree_load_into_a_closed_loop_read
         assert!(joint_gravity_load(&sim, id).is_ok());
     }
 }
+
+#[test]
+fn stationary_and_resumed_wrist_expose_the_same_world_momentum_convention() {
+    use gz_sim_scene::{
+        ArticulationTier, queue_ball_joint_effort, set_model_fidelity, subtree_momentum_about,
+    };
+    let mut sim = load_world_with_sdf_step(
+        include_str!("../../../examples/worlds/local_hanging_ball_wrist.sdf"),
+        "parked.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .unwrap();
+    let id = |name: &str| {
+        sim.world()
+            .iter_entities()
+            .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get()
+    };
+    let (model, bearing) = (id("default::wrist"), id("default::wrist::bearing"));
+    sim.step_exact(1).unwrap();
+    set_model_fidelity(&mut sim, model, ArticulationTier::Prescribed).unwrap();
+    sim.step_exact(250).unwrap();
+    let held = subtree_momentum_about(&sim, bearing, [0.; 3]).unwrap();
+    assert!(held.kinetic_energy_j < 1e-24);
+    queue_ball_joint_effort(&mut sim, bearing, [0.5, -0.25, 0.75]).unwrap();
+    assert_eq!(
+        subtree_momentum_about(&sim, bearing, [0.; 3]).unwrap(),
+        held
+    );
+    sim.step_exact(1).unwrap();
+    let origin = subtree_momentum_about(&sim, bearing, [0.; 3]).unwrap();
+    let point = glam::DVec3::new(2., -3., 1.);
+    let shifted = subtree_momentum_about(&sim, bearing, point.to_array()).unwrap();
+    assert!(origin.kinetic_energy_j > 1e-8);
+    let expected =
+        glam::DVec3::from(origin.angular_kg_m2_s) - point.cross(origin.linear_kg_m_s.into());
+    assert!(expected.distance(shifted.angular_kg_m2_s.into()) < 1e-14);
+}

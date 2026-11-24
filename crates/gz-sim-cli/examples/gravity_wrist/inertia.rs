@@ -400,4 +400,35 @@ mod tests {
         assert_eq!(value["reset_exact"], true);
         Ok(())
     }
+    #[test]
+    fn angular_impulse_and_energy_balance_converge_on_a_fixed_actuator_clock() -> Result<()> {
+        let d = tempfile::tempdir()?;
+        let mut previous: Option<Value> = None;
+        for n in [1, 2, 4] {
+            let out = d.path().join(n.to_string());
+            record(&out, true, n)?;
+            let current: Value = serde_json::from_slice(&fs::read(out.join("comparison.json"))?)?;
+            assert_eq!(current["ticks"], 2000);
+            assert_eq!(current["native_step_ns"], 1_000_000 / u64::from(n));
+            for i in 0..2 {
+                let row = &current["balance"][i];
+                for metric in [
+                    "peak_work_residual_j",
+                    "peak_angular_impulse_residual_nm_s",
+                    "peak_kinetic_reference_error_j",
+                ] {
+                    let now = row[metric].as_f64().unwrap();
+                    if let Some(last) = &previous {
+                        assert!(
+                            now < 0.65 * last["balance"][i][metric].as_f64().unwrap(),
+                            "{n} {i} {metric} {now}"
+                        );
+                    }
+                }
+                assert!(row["peak_work_residual_j"].as_f64().unwrap() < 0.005);
+            }
+            previous = Some(current);
+        }
+        Ok(())
+    }
 }
