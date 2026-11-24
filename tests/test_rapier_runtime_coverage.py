@@ -44,11 +44,12 @@ class DisabledBackendProof(unittest.TestCase):
                                "executable": str(binary),
                                "target": {"name": name, "src_path": str(root / source),
                                           "kind": ["bin" if name == "gz-sim-rs" else "test"]}})
-            sibling = target / MODULE.CPU_REPLAY
-            sibling.write_bytes(b"compiler artifact fixture")
-            events.append({"reason": "compiler-artifact", "features": [], "executable": str(sibling),
-                           "profile": {"test": False}, "target": {"name": MODULE.CPU_REPLAY,
-                           "kind": ["bin"], "src_path": str(root / MODULE.CPU_REPLAY_SOURCE)}})
+            for name, source in MODULE.CPU_COMPANIONS.items():
+                sibling = target / name
+                sibling.write_bytes(b"compiler artifact fixture")
+                events.append({"reason": "compiler-artifact", "features": [], "executable": str(sibling),
+                               "profile": {"test": False}, "target": {"name": name,
+                               "kind": ["bin"], "src_path": str(root / source)}})
             with patch.object(MODULE, "ROOT", root):
                 self.assertEqual(len(MODULE.checked_artifacts(events, target)), 3)
                 for missing in MODULE.EXECUTABLE_SOURCES:
@@ -139,14 +140,17 @@ class DisabledBackendProof(unittest.TestCase):
 
     def test_native_off_companion_rejects_a_replaced_or_duplicate_cargo_target(self):
         target = self.root / "target" / "private"
-        event = {"reason": "compiler-artifact", "features": [], "executable": str(target / MODULE.CPU_REPLAY),
-                 "profile": {"test": False}, "target": {"name": MODULE.CPU_REPLAY, "kind": ["bin"],
-                 "src_path": str(self.root / MODULE.CPU_REPLAY_SOURCE)}}
-        for wrong in [[event, event], [{**event, "executable": "/outside/replay"}],
-                      [{**event, "profile": {"test": True}}], [{**event, "features": ["rgb-camera"]}],
-                      [{**event, "target": {**event["target"], "src_path": str(self.root / "wrong.rs")}}]]:
-            with self.assertRaises(ValueError):
-                MODULE.native_off_companion(wrong, self.root, target)
+        events = [{"reason": "compiler-artifact", "features": [], "executable": str(target / name),
+                   "profile": {"test": False}, "target": {"name": name, "kind": ["bin"],
+                   "src_path": str(self.root / source)}} for name, source in MODULE.CPU_COMPANIONS.items()]
+        self.assertEqual(set(MODULE.native_off_companions(events, self.root, target)), set(MODULE.CPU_COMPANIONS))
+        for i, event in enumerate(events):
+            siblings = events[:i] + events[i + 1:]
+            for wrong in [[], [event, event], [{**event, "executable": "/outside/companion"}],
+                          [{**event, "profile": {"test": True}}], [{**event, "features": ["rgb-camera"]}],
+                          [{**event, "target": {**event["target"], "src_path": str(self.root / "wrong.rs")}}]]:
+                with self.subTest(name=event["target"]["name"], wrong=wrong), self.assertRaises(ValueError):
+                    MODULE.native_off_companions(siblings + wrong, self.root, target)
 
     def test_rgb_executables_bind_feature_source_and_the_tested_pair_and_companion(self):
         target = Path("/source/target/rapier-rgb-fixture")
@@ -166,12 +170,13 @@ class DisabledBackendProof(unittest.TestCase):
         with self.assertRaises(ValueError):
             MODULE.rgb_artifacts([wrong, *events[1:]], self.root, target)
 
-        sibling = events[-1]
-        for bad in [{**sibling, "profile": {"test": True}},
-                    {**sibling, "target": {**sibling["target"], "kind": ["test"]}},
-                    {**sibling, "target": {**sibling["target"], "src_path": str(self.root / "foreign.rs")}}]:
-            with self.assertRaises(ValueError):
-                MODULE.rgb_artifacts([*events[:-1], bad], self.root, target)
+        for sibling in (event for event in events if event["target"]["name"] in MODULE.CPU_COMPANIONS):
+            rest = [event for event in events if event is not sibling]
+            for bad in [{**sibling, "profile": {"test": True}},
+                        {**sibling, "target": {**sibling["target"], "kind": ["test"]}},
+                        {**sibling, "target": {**sibling["target"], "src_path": str(self.root / "foreign.rs")}}]:
+                with self.assertRaises(ValueError):
+                    MODULE.rgb_artifacts([*rest, bad], self.root, target)
 
     def test_native_or_gpu_artifacts_are_not_cpu_rgb_evidence(self):
         for name in ["gz_physics_dart", "gz_physics_mujoco", "gz_renderer", "bevy_render", "wgpu_core", "ash"]:
