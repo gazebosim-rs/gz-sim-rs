@@ -89,5 +89,39 @@
     "tampered-release.log": "beea6f4ebe7091e9c9ae7a10bab5f1a38dea3b464c6eb6450bae2926273f202e",
     "tampered-transitive.log": "551dc1f4fe6b960afb2d0bfc9ea223968ad6f3eaf8604322e03f72f9aec1adbb",
     "unprivileged.log": "a7d5c313defdebce98d723009aea75348d7a0e8ff3c375b6b3652df6773f0c8d"
+  },
+  "hosted_verification": {
+    "commit": "ff4bec9722fd2895ab4f4daa124bd967ad4012be",
+    "job_url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/45341246092/job/138265151193",
+    "full_job_log_sha256": "af25647407332bbbd5272002a65ef369abe6d0f676862d30d5ae91fe99b6aefb",
+    "steps": [
+      {
+        "name": "Authenticate the archived Ubuntu snapshot and install the locked client packages",
+        "conclusion": "success",
+        "started_at": "2026-11-24T06:40:56Z",
+        "completed_at": "2026-11-24T06:41:08Z"
+      },
+      {
+        "name": "Check that APT rejects a damaged transitive package",
+        "conclusion": "success",
+        "started_at": "2026-11-24T06:41:08Z",
+        "completed_at": "2026-11-24T06:41:12Z"
+      },
+      {
+        "name": "Build and validate the selected Zenoh client reference",
+        "conclusion": "success",
+        "started_at": "2026-11-24T06:41:12Z",
+        "completed_at": "2026-11-24T06:43:53Z"
+      },
+      {
+        "name": "Run python3 scripts/verify.py",
+        "conclusion": "failure",
+        "started_at": "2026-11-24T06:43:53Z",
+        "completed_at": "2026-11-24T06:46:49Z"
+      }
+    ],
+    "downstream_failure": "Clippy clone_on_copy, mounted_ball_axis.rs:18",
+    "correction": "692a1ec",
+    "ordinary_workspace_clippy_passed_locally_on": "68feae4630b65bc27789521b21f7bf7fe2702372"
   }
 }
