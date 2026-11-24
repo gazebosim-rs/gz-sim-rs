@@ -95,7 +95,7 @@ fn a_clear_shell_skips_projection_but_a_new_crossing_is_verified() {
     }
     assert_eq!(
         shell.verify(&x, &particles, 0.02),
-        Err(XpbdError::UnresolvedSurface)
+        Err(crate::XpbdError::UnresolvedSurface)
     );
 }
 
