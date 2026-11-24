@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Share a wrist impact on the first solve
+
+A new opt-in model setting couples a passive, unbounded hinge and slide through shared joint coordinates. On both mirrored strikes it delivered the predicted 65.317 mN·s elastic impulse on the very first solve. The maximum trajectory error over 24 ms fell from 2.383 mm to 2.290 µm at a 10 µs physics step. Impact-step p95 rose from 9.42 to 11.33 µs. The plastic impact, detached and centered controls, restart and public joint readout also passed. The powered serial gripper still uses the existing solver for its limited slider, screw and universal joints. Next is qualifying a driven joint with a travel stop in the same impact calculation. [Qualified joint types, timing, coverage and mirrored native replays](measurements/local-manipulation/reduced-wrist-slider.md)
+
 ## 2026-11-24 — Measure the load from the finger into the serial wrist
 
 At a 50 µm gap, both sliding fingers took almost all of the parcel's initial impulse along their slides. The left finger transferred 10.39 mN·s downward into the palm and the right transferred 10.58 mN·s upward. The corresponding vertical impulses at the wrist were −5.05 and +9.16 mN·s. Matched unloaded runs separated the effect of each strike from the commanded motion. The six-body study now reports all three components of transferred impulse, angular impulse about the incoming wrist, and the change in palm rotation relative to the nut. Four native recordings show the measured impulses at each stage. The ordinary hinged-finger control located an independent error in how separate constrained bodies share the initial impact. [Serial loads and gz-web-rs recordings](measurements/local-manipulation/wrist-impact-loads.md) · [Hinged-finger oracle and ordinary controls](measurements/local-manipulation/hinged-jaw-oracle.md)

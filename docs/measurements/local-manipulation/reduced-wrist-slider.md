@@ -5,6 +5,9 @@
 
 A 200 g sphere strikes an 80 g finger at 0.75 m/s, 20 mm from its center. The finger can slide freely along a guide. Its other five relative degrees of freedom are locked to a wrist that can turn freely about its pivot. The optional `ReducedScalarJoints` SDF model plugin builds these joint constraints as native Rapier multibody coordinates. Both links turn together immediately under the off-center impact. [Left strike](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10101%2F) · [Right strike](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10102%2F)
 
+
+In the ordinary simulator's 200 ms recordings, the sphere's final position from either direction was within 0.914 µm of the analytical free-flight endpoint. Separate impulse joints left a 7.943 mm error at the same instant. The 200 ms check measures the sphere, and the 24 ms figures below measure the complete mechanism. [Both corrected worlds, recordings, browser checks and sphere positions](reduced-wrist-replays.tar.xz)
+
 ## First native contact
 
 For offset `d`, restitution `e` and incoming normal speed `v`, the rigid impact impulse is `J = (1+e) v / (1/m_sphere + 1/m_finger + d²/(I_wrist + I_finger))`. The two moments of inertia about their centers are 0.000426666667 and 0.000032086667 kg·m². The first native impulse reached 65.317041434 mN·s at restitution 0.6, or 40.823150896 mN·s at zero restitution. The frictionless contact gave the predicted signed moment about the finger center, the equal/opposite parcel momentum change, and the predicted public hinge and slider velocities. The 0.6 trial had one loaded tick. With zero restitution the rotating finger stayed in light contact, receiving another 0.000499 mN·s by 200 µs at the 10 µs step.

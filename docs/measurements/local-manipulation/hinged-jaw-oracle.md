@@ -5,6 +5,9 @@
 
 A 200 g sphere approaches a free 80 g sliding finger at 0.75 m/s across a 50 µm gap. It strikes 20 mm above the finger’s center. A passive wrist hinge lets the finger and its guide rotate about a fixed vertical axis. The sphere gives a single frictionless contact with a known lever arm. Both shapes have restitution 0.6 and gravity is zero. The mirrored release reverses the impulse and wrist rotation. [Left native replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10099%2F) · [Right native replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10100%2F) · [Portable recordings](hinged-jaw-replays.tar.xz)
 
+
+The passive native tree now reproduces this predicted impulse for both directions of impact. [Corrected solver and measured cost](reduced-wrist-slider.md)
+
 ## Independent calculation
 
 Use wrist angle θ and slider displacement s. In the wrist frame the finger’s center is at (s, L), with L = 0.1 m and initially s = 0. Its contact point is at height L + d, where d = 0.02 m. The hinge passes through the wrist center of mass. Let I be the sum of the finger and wrist inertias about their own vertical center axes, m the finger mass, M the sphere mass, and J the signed horizontal impulse on the finger. For positive approach the incoming sphere moves along +X.
