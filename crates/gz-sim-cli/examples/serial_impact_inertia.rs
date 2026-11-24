@@ -18,6 +18,8 @@ use serde::Serialize;
 
 #[path = "serial_impact_inertia/compare.rs"]
 mod compare;
+#[path = "serial_impact_inertia/pulses.rs"]
+mod pulses;
 #[cfg(test)]
 #[path = "serial_impact_inertia/spindle_tests.rs"]
 mod spindle_tests;
@@ -94,6 +96,10 @@ struct Trial {
     /// Additional initial separation from the chosen face, in micrometres.
     #[arg(long, default_value_t = 0)]
     gap_um: u32,
+    /// Report each uninterrupted jaw contact and its impulse and moment on the parcel at uniform native steps.
+    #[arg(long, conflicts_with_all = ["automatic", "compare", "timing_runs"])]
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    impact_pulses: bool,
     /// Remove spindle velocity control, apply a held 3 N·m input, and retain or remove its physical speed stop.
     #[arg(long, value_enum)]
     passive_spindle: Option<PassiveSpindle>,
@@ -200,6 +206,8 @@ struct Impact {
     other_ns: f64,
     normal_on_parcel_ns: [f64; 3],
     first_end_ns: Option<u128>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pulses: Option<Vec<pulses::JawPulse>>,
 }
 #[derive(Clone, Copy)]
 struct Contacts {
@@ -244,7 +252,16 @@ impl Impact {
             *sum += v;
         }
     }
-    fn record(&mut self, patches: &[RigidContactPatch], ids: Contacts, end: Duration) {
+    fn record(
+        &mut self,
+        patches: &[RigidContactPatch],
+        ids: Contacts,
+        end: Duration,
+        dt: Duration,
+    ) {
+        if let Some(pulses) = &mut self.pulses {
+            pulses::record(pulses, patches, ids, end, dt);
+        }
         for p in patches {
             if let Some((other, sign)) = ids.counterpart(p.a, p.b) {
                 for point in &p.points {
@@ -397,6 +414,7 @@ fn run_with_first_solver(
     let n = trial.substeps;
     let first = trial.first_native_steps.unwrap_or(n);
     let uniform = (n > 1 || first > 1) && !trial.automatic;
+    let report_pulses = trial.impact_pulses;
     if uniform {
         sim.initialize_schedules()?;
         assert_eq!(
@@ -420,9 +438,17 @@ fn run_with_first_solver(
                         native.ordinary_contact_iterations()
                     },
                 };
-                *impact = Impact::default();
+                *impact = Impact {
+                    pulses: report_pulses.then(Vec::new),
+                    ..Default::default()
+                };
                 if let Err(e) = native.observe_contact_schedule(clock.dt, &[segment], &[], |cut| {
-                    impact.record(&cut.contact_patches(), ids, clock.start_time + cut.elapsed);
+                    impact.record(
+                        &cut.contact_patches(),
+                        ids,
+                        clock.start_time + cut.elapsed,
+                        cut.duration,
+                    );
                 }) {
                     fault.report(e);
                 }
@@ -453,7 +479,10 @@ fn run_with_first_solver(
             let impact = if let Some(r) = selected {
                 Impact::integrated(r, ids)
             } else if !uniform {
-                let mut impact = Impact::default();
+                let mut impact = Impact {
+                    pulses: report_pulses.then(Vec::new),
+                    ..Default::default()
+                };
                 let native = sim
                     .world()
                     .resource::<PhysicsBackend>()
@@ -463,6 +492,7 @@ fn run_with_first_solver(
                     &native.rigid_contact_patches(),
                     ids,
                     Duration::from_millis(u64::from(ms)),
+                    Duration::from_millis(1),
                 );
                 impact
             } else {
