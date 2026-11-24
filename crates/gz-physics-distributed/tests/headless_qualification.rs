@@ -14,6 +14,9 @@ use std::{
     time::Instant,
 };
 
+#[path = "support/curved_checkpoint.rs"]
+mod curved_checkpoint;
+
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const CASES: &str = include_str!("support/headless-worker-cases.json");
 const WORKER: &str = "gz-physics-distributed/src/bin/physics_worker.rs";
@@ -57,23 +60,64 @@ fn all_parents_passed(output: &str, count: usize) -> bool {
         .is_some_and(|summary| summary.starts_with(&expected))
 }
 
+struct Inputs {
+    directory: PathBuf,
+    root: PathBuf,
+    target: PathBuf,
+    worker: PathBuf,
+    artifacts: Vec<Value>,
+}
+
+impl Inputs {
+    fn load() -> Result<Self> {
+        let directory =
+            PathBuf::from(env::var_os("GZ_HEADLESS_EVIDENCE").ok_or("missing coverage directory")?);
+        let artifacts: Vec<Value> =
+            serde_json::from_reader(File::open(directory.join("headless-artifacts.json"))?)?;
+        let root = env::current_dir()?;
+        let target = fs::canonicalize(
+            env::var_os("CARGO_TARGET_DIR").ok_or("missing Cargo target directory")?,
+        )?;
+        let worker = executable(
+            &artifacts,
+            &root.join("crates").join(WORKER),
+            &target,
+            false,
+        )?;
+        Ok(Self {
+            directory,
+            root,
+            target,
+            worker,
+            artifacts,
+        })
+    }
+}
+
+#[test]
+#[ignore = "requires the headless qualification's Cargo artifacts"]
+fn real_trajectory_checkpoint() -> Result<()> {
+    let input = Inputs::load()?;
+    curved_checkpoint::run(
+        &input.root,
+        &input.target,
+        &input.directory,
+        &input.artifacts,
+        &input.worker,
+    )
+}
+
 #[test]
 #[ignore = "requires the headless qualification's Cargo artifact list and coverage directory"]
 fn real_worker_fixtures() -> Result<()> {
-    let directory =
-        PathBuf::from(env::var_os("GZ_HEADLESS_EVIDENCE").ok_or("missing coverage directory")?);
-    let artifacts: Vec<Value> =
-        serde_json::from_reader(File::open(directory.join("headless-artifacts.json"))?)?;
+    let Inputs {
+        directory,
+        root,
+        target,
+        worker,
+        artifacts,
+    } = Inputs::load()?;
     let suites: BTreeMap<String, Vec<String>> = serde_json::from_str(CASES)?;
-    let root = env::current_dir()?;
-    let target =
-        fs::canonicalize(env::var_os("CARGO_TARGET_DIR").ok_or("missing Cargo target directory")?)?;
-    let worker = executable(
-        &artifacts,
-        &root.join("crates").join(WORKER),
-        &target,
-        false,
-    )?;
     let mut receipt = json!({"worker_sha256": sha256(&worker)?, "suites": {}});
     for (source, cases) in suites {
         if cases.is_empty() || cases.iter().collect::<BTreeSet<_>>().len() != cases.len() {

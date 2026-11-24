@@ -592,11 +592,19 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
         if harness.is_symlink() or not harness.is_file() or not harness.resolve().is_relative_to(target_root):
             raise ValueError("headless worker qualification harness is outside the owned target")
         (directory / "headless-artifacts.json").write_text(json.dumps(artifacts))
-        result = profile_process.run([str(harness), "--ignored", "--exact", "real_worker_fixtures"],
+        result = profile_process.run([str(harness), "--ignored", "--exact", "--test-threads=1",
+                                      "real_worker_fixtures", "real_trajectory_checkpoint"],
                                      cwd=ROOT, env=dict(env, GZ_HEADLESS_EVIDENCE=str(directory)),
                                      directory=directory, label="worker-qualification")
         if result.returncode or not (directory / "headless-workers.json").is_file():
             raise ValueError(f"physical worker qualification failed: {result.stdout}{result.stderr}")
+        receipt = json.loads((directory / "worker-trajectory.json").read_text())
+        trajectory = receipt["artifact"]
+        with Path(trajectory["executable"]).open("rb") as executable:
+            if hashlib.file_digest(executable, "sha256").hexdigest() != receipt["example_sha256"]:
+                raise ValueError("curved-scene example changed after qualification")
+        artifacts.append(trajectory)
+        objects.append(trajectory["executable"])
     if name == "renderer":
         target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
         if (len(worker_objects) != 1 or not Path(worker_objects[0]).is_file()
@@ -793,6 +801,11 @@ def coverage(changed_file=None):
                                  *native_peer_inputs(),
                                  wrapper, ROOT / "scripts/verify.py", ROOT / "scripts/profile_process.py",
                                  ROOT / HEADLESS_WORKER_TEST, ROOT / HEADLESS_WORKER_CASES,
+                                 ROOT / "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/curved_scene_crash.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/support/curved_world.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/support/scene_actor.rs",
+                                 ROOT / "examples/multifidelity_curved_shuttle.sdf",
                                  ROOT / "planning/coverage-profiles.json", ROOT / "scripts/proto_inputs.py",
                                  ROOT / proto_inputs.AUDITOR,
                                  ROOT / "crates/gz-sim-proto/schema-source.json",
@@ -1001,6 +1014,8 @@ def retain_profile_evidence(candidate, output, hashes, missing):
                     "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"]
         if profile == "headless" and HEADLESS_WORKER_TEST in data.get("inputs", {}):
             required.append("headless-workers.json")
+            if "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs" in data["inputs"]:
+                required.append("worker-trajectory.json")
             required.extend(sorted(path.name for path in base.glob("worker-*.std*") if path.is_file()))
         # Partial child transcripts survive an interrupted profile even when
         # no final test-output/evidence file was produced.
