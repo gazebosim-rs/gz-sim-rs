@@ -88,3 +88,39 @@ fn the_report_uses_the_short_rotation_even_across_a_quaternion_sign_change() {
     assert_eq!(separation(q), separation(-q));
     assert!(separation(q.conjugate() * (-q)) < 1e-15);
 }
+
+#[test]
+fn an_already_parked_control_cannot_pass_as_a_continuously_solved_wrist()
+-> Result<(), Box<dyn Error>> {
+    let mut sim = load(HANGING)?;
+    sim.step_exact(10)?;
+    let wrist = Wrist::bind(&sim)?;
+    set_model_fidelity(&mut sim, wrist.model, ArticulationTier::Prescribed)?;
+    let error = episode(&mut sim, false, |_| Ok(()))
+        .err()
+        .unwrap()
+        .to_string();
+    assert!(error.contains("unexpected wrist tier at tick 1"), "{error}");
+    Ok(())
+}
+
+#[test]
+fn a_linear_encoder_cannot_stand_in_for_the_spherical_bearing_sample() -> Result<(), Box<dyn Error>>
+{
+    let xml = HANGING
+        .replace(
+            "name=\"bearing\" type=\"ball\"",
+            "name=\"bearing\" type=\"prismatic\"",
+        )
+        .replace(
+            "0.31 -0.42 0.63</pose></joint>",
+            "0.31 -0.42 0.63</pose><axis><xyz>1 0 0</xyz></axis></joint>",
+        );
+    let mut sim = load(&xml)?;
+    let error = episode(&mut sim, false, |_| Ok(()))
+        .err()
+        .unwrap()
+        .to_string();
+    assert!(error.contains("missing bearing sample"), "{error}");
+    Ok(())
+}
