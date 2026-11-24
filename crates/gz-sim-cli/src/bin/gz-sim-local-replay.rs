@@ -164,6 +164,7 @@ impl Sink {
 }
 
 struct Capture {
+    visuals: gz_sim_cli::ArchiveVisuals,
     path: PathBuf,
     frames: Vec<(String, String)>,
     last_time: Option<std::time::Duration>,
@@ -174,12 +175,10 @@ impl Capture {
             return Err("one epoch exceeds 4096 display frames".into());
         }
         self.last_time = Some(sim.elapsed());
-        self.frames.push(gz_sim_cli::primitive_frame(
-            sim,
-            sdf,
-            world,
-            self.frames.len() as u64 + 1,
-        )?);
+        self.frames.push(
+            self.visuals
+                .frame(sim, sdf, world, self.frames.len() as u64 + 1)?,
+        );
         Ok(())
     }
     fn finish(&mut self, sim: &Simulation, sdf: &sdformat::Sdf, world: &str) -> Result<()> {
@@ -189,7 +188,7 @@ impl Capture {
         let epoch = sim.epoch();
         gz_sim_cli::export_archive_at(
             &self.path.join(format!("epoch-{epoch}")),
-            BTreeMap::new(),
+            self.visuals.files(),
             epoch,
             std::time::Duration::ZERO,
             std::mem::take(&mut self.frames),
@@ -240,11 +239,16 @@ fn run(args: Args) -> Result<()> {
         "compiled_distributed": cfg!(feature="distributed-physics"), "world_sha256": digest(&xml), "journal_sha256": digest(&bytes),
         "seed": journal.seed, "step_ns": sim.step_duration().as_nanos()
     }))?;
-    let mut capture = args.record.map(|path| Capture {
-        path,
-        frames: Vec::new(),
-        last_time: None,
-    });
+    let mut capture = if let Some(path) = args.record {
+        Some(Capture {
+            path,
+            visuals: gz_sim_cli::ArchiveVisuals::new(&sim)?,
+            frames: Vec::new(),
+            last_time: None,
+        })
+    } else {
+        None
+    };
     if let Some(c) = &mut capture {
         std::fs::create_dir(&c.path)?;
         c.sample(&sim, &sdf, &world.name)?;
@@ -405,6 +409,7 @@ mod tests {
             gz_sim_scene::load_local_replay_world(xml, "robot.sdf", "default", [0; 32]).unwrap();
         let sdf = sdformat::load_str(xml, "robot.sdf", &sdformat::NoResources).unwrap();
         let mut capture = Capture {
+            visuals: gz_sim_cli::ArchiveVisuals::default(),
             path: PathBuf::new(),
             frames: vec![(String::new(), String::new()); 4096],
             last_time: None,

@@ -9,6 +9,8 @@ mod lines;
 mod playback;
 mod writer;
 
+pub(super) const EXPORT_ASSET_PORT: u16 = 1;
+
 /// Captured mesh URLs use this placeholder origin. Playback remaps them to the
 /// loopback asset service for the session. Export performs no network requests.
 pub const EXPORT_ASSET_PREFIX: &str = "http://127.0.0.1:1";

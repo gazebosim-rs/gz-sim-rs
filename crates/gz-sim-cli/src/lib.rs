@@ -12,8 +12,8 @@ mod web;
 
 use std::error::Error;
 pub use web::parked::ParkedFence;
-pub use web::primitive_frame;
 pub use web::recording::{EXPORT_ASSET_PREFIX, export_archive, export_archive_at};
+pub use web::{ArchiveVisuals, primitive_frame};
 
 /// Reports the failed system's own diagnostic, such as a physics engine error,
 /// instead of the generic terminal step error that wraps it.

@@ -46,8 +46,13 @@ pub fn load_local_replay_world(
 }
 
 pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
-    use sdformat::Geometry::{Box, Sphere};
-    let primitive = |geometry: &sdformat::Geometry| matches!(geometry, Box { .. } | Sphere { .. });
+    use sdformat::Geometry::{Box, Capsule, Cylinder, Sphere};
+    let primitive = |geometry: &sdformat::Geometry| {
+        matches!(
+            geometry,
+            Box { .. } | Sphere { .. } | Cylinder { .. } | Capsule { .. }
+        )
+    };
     let admitted = world.plugins.is_empty()
         && world.joints.is_empty()
         && world.extensions.is_empty()
@@ -92,6 +97,6 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     require(
         admitted,
         &world.name,
-        "local-cpu-v1 admits inline rigid box/sphere models, native joint controllers and IMUs",
+        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, native joint controllers and IMUs",
     )
 }

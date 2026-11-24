@@ -466,3 +466,75 @@ fn spindle_and_universal_inputs_replay_on_the_moving_wrist() {
         assert!(!run(&xml, &path, &[]).status.success());
     }
 }
+
+#[test]
+fn tilted_curved_shapes_hit_at_their_own_support_height_and_bundle_their_surfaces() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = file(
+        dir,
+        "curves.sdf",
+        include_str!("../../../examples/worlds/local_curved_drop.sdf"),
+    );
+    let commands = file(
+        dir,
+        "drop.json",
+        include_str!("../../../examples/replay/curved_drop.json"),
+    );
+    let archive = dir.join("capture");
+    let rows = success(run(
+        &xml,
+        &commands,
+        &["--record", archive.to_str().unwrap()],
+    ));
+    assert_eq!(rows, success(run(&xml, &commands, &["--threads", "8"])));
+    let mut first = std::collections::BTreeMap::new();
+    for tick in 1..=600 {
+        let state = record(&rows, 1, tick);
+        shared(state, record(&rows, 3, tick), STATE);
+        for pair in state["pair_reactions_ns"].as_array().unwrap() {
+            if pair[2].as_f64().unwrap() > 0. {
+                first
+                    .entry((pair[0].as_u64().unwrap(), pair[1].as_u64().unwrap()))
+                    .or_insert(tick);
+            }
+        }
+    }
+    // Both centers start at 320 mm and both shapes have 45 mm radius
+    // and 210 mm overall axial length. The capsule's straight section is 120 mm.
+    let tilt = std::f64::consts::PI / 6.;
+    let height = [
+        0.105 * tilt.cos() + 0.045 * tilt.sin(),
+        0.06 * tilt.cos() + 0.045,
+    ];
+    assert_eq!(first.len(), 2);
+    for (h, tick) in height.into_iter().zip(first.values()) {
+        let ballistic_ms = 1000. * (2. * (0.32 - h) / 9.81).sqrt();
+        assert!((*tick as f64 - ballistic_ms).abs() < 1.);
+    }
+    for pair in record(&rows, 1, 600)["pair_reactions_ns"]
+        .as_array()
+        .unwrap()
+    {
+        assert!((pair[2].as_f64().unwrap() * 1000. - 0.25 * 9.81).abs() < 0.01);
+    }
+    let manifest = |epoch| -> Value {
+        serde_json::from_slice(
+            &fs::read(archive.join(format!("epoch-{epoch}/manifest.json"))).unwrap(),
+        )
+        .unwrap()
+    };
+    let initial = manifest(0);
+    assert_eq!(initial["assets"], manifest(1)["assets"]);
+    let assets = initial["assets"].as_array().unwrap();
+    assert_eq!(assets.len(), 2);
+    for entry in assets {
+        let route = entry["route"].as_str().unwrap().trim_start_matches('/');
+        let bytes = fs::read(archive.join("epoch-0").join(route)).unwrap();
+        assert_eq!(&bytes[..4], b"glTF");
+        assert_eq!(
+            bytes,
+            fs::read(archive.join("epoch-1").join(route)).unwrap()
+        );
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "seed": "curved-drop-v1",
+  "commands": [
+    {
+      "op": "step",
+      "count": 600
+    },
+    {
+      "op": "reset"
+    },
+    {
+      "op": "step",
+      "count": 600
+    }
+  ]
+}

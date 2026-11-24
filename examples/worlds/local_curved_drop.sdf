@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="local" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="floor"><static>true</static><link name="slab">
+      <collision name="surface"><pose>0 0 -0.025 0 0 0</pose><geometry><box><size>1.1 0.9 0.05</size></box></geometry></collision>
+      <visual name="surface"><pose>0 0 -0.025 0 0 0</pose><geometry><box><size>1.1 0.9 0.05</size></box></geometry><material><diffuse>0.28 0.32 0.36 1</diffuse></material></visual>
+    </link></model>
+    <model name="cylinder"><link name="body"><pose>0 -0.14 0.32 0 0.5235987755982988 0</pose>
+      <inertial><mass>0.25</mass><inertia><ixx>0.0010453125</ixx><iyy>0.0010453125</iyy><izz>0.00025312499999999999</izz></inertia></inertial>
+      <collision name="solid"><geometry><cylinder><radius>0.045</radius><length>0.21</length></cylinder></geometry></collision>
+      <visual name="solid"><geometry><cylinder><radius>0.045</radius><length>0.21</length></cylinder></geometry><material><diffuse>0.93 0.48 0.14 1</diffuse></material></visual>
+    </link></model>
+    <model name="capsule"><link name="body"><pose>0 0.14 0.32 0 0.5235987755982988 0</pose>
+      <inertial><mass>0.25</mass><inertia><ixx>0.00082062499999999996</ixx><iyy>0.00082062499999999996</iyy><izz>0.00023625</izz></inertia></inertial>
+      <collision name="solid"><geometry><capsule><radius>0.045</radius><length>0.12</length></capsule></geometry></collision>
+      <visual name="solid"><geometry><capsule><radius>0.045</radius><length>0.12</length></capsule></geometry><material><diffuse>0.12 0.70 0.62 1</diffuse></material></visual>
+    </link></model>
+  </world>
+</sdf>

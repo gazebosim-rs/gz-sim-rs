@@ -397,6 +397,19 @@ pub(super) struct Alias {
 
 impl Assets {
     pub(super) fn new(sim: &Simulation) -> io::Result<Option<Self>> {
+        let Some(mut assets) = Self::offline(sim)? else {
+            return Ok(None);
+        };
+        let (port, stop, worker) = start_server(Arc::clone(&assets.files))?;
+        eprintln!("gzweb-rs local glTF resources: http://127.0.0.1:{port}/assets/");
+        assets.port = port;
+        assets.stop = stop;
+        assets.worker = Some(worker);
+        Ok(Some(assets))
+    }
+
+    /// Resolve the asset table once. Offline archives use the recorder's reserved origin.
+    pub(super) fn offline(sim: &Simulation) -> io::Result<Option<Self>> {
         let mut entries: BTreeMap<u64, (sdformat::Mesh, String)> = BTreeMap::new();
         let mut files = Files::new();
         let mut cylinders = BTreeMap::new();
@@ -454,17 +467,14 @@ impl Assets {
         if files.is_empty() {
             return Ok(None);
         }
-        let files = Arc::new(files);
-        let (port, stop, worker) = start_server(files.clone())?;
-        eprintln!("gzweb-rs local glTF resources: http://127.0.0.1:{port}/assets/");
         Ok(Some(Self {
-            files,
+            files: Arc::new(files),
             entries,
             cylinders,
             aliases: None,
-            port,
-            stop,
-            worker: Some(worker),
+            port: super::recording::EXPORT_ASSET_PORT,
+            stop: Arc::new(AtomicBool::new(false)),
+            worker: None,
         }))
     }
 
