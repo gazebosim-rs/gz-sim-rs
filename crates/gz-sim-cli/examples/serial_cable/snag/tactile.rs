@@ -31,9 +31,12 @@ impl Fixture {
             Self::Rub => (0., 0.1165),
             Self::Limit => (0., 0.16),
         };
-        SDF.replace("0 0.23 0.5535", &format!("{x} 0.23 {}", 0.50 + h / 2.))
-            .replace("0.26 0.024 0.107", &format!("0.26 0.024 {h}"))
+        obstacle_xml(x, h)
     }
+}
+fn obstacle_xml(x: f64, height: f64) -> String {
+    SDF.replace("0 0.23 0.5535", &format!("{x} 0.23 {}", 0.50 + height / 2.))
+        .replace("0.26 0.024 0.107", &format!("0.26 0.024 {height}"))
 }
 #[derive(Serialize, PartialEq)]
 struct Log {
@@ -166,18 +169,28 @@ fn monitored_run(
         .into());
     }
     if let Some(d) = out {
-        std::fs::create_dir(d)?;
-        gz_sim_cli::export_archive(&d.join("replay"), Default::default(), frames)?;
-        std::fs::write(d.join("trace.json"), serde_json::to_vec(&rows)?)?;
-        std::fs::write(d.join("particle-frames.json"), serde_json::to_vec(&coords)?)?;
-        std::fs::write(
-            d.join("frames.json"),
-            serde_json::to_vec(
-                &json!({"kind":"authored-archive-v1","dt_ns":1,"camera":"front","particle_visuals":(0..11).map(|i|format!("default::stand::post::cable_{i}")).collect::<Vec<_>>(),"captures":keys}),
-            )?,
-        )?;
+        write_replay(d, &rows, frames, coords, keys)?;
     }
     Ok(rows)
+}
+fn write_replay(
+    d: &Path,
+    rows: &[Log],
+    frames: Vec<(String, String)>,
+    coords: Vec<Value>,
+    keys: std::collections::BTreeMap<String, usize>,
+) -> Result<()> {
+    std::fs::create_dir(d)?;
+    gz_sim_cli::export_archive(&d.join("replay"), Default::default(), frames)?;
+    std::fs::write(d.join("trace.json"), serde_json::to_vec(&rows)?)?;
+    std::fs::write(d.join("particle-frames.json"), serde_json::to_vec(&coords)?)?;
+    std::fs::write(
+        d.join("frames.json"),
+        serde_json::to_vec(
+            &json!({"kind":"authored-archive-v1","dt_ns":1,"camera":"front","particle_visuals":(0..11).map(|i|format!("default::stand::post::cable_{i}")).collect::<Vec<_>>(),"captures":keys}),
+        )?,
+    )?;
+    Ok(())
 }
 fn trial_order() -> [Fixture; 6] {
     [
@@ -195,6 +208,8 @@ pub(crate) mod braking;
 mod plot;
 #[path = "tactile/qualification.rs"]
 mod qualification;
+#[path = "tactile/weighing.rs"]
+pub(crate) mod weighing;
 pub(crate) fn record(out: &Path) -> Result<()> {
     std::fs::create_dir(out)?;
     let mut baseline = vec![];

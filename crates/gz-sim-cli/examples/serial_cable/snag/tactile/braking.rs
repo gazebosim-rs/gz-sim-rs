@@ -10,8 +10,17 @@ pub(super) struct SupportLoss {
 }
 impl SupportLoss {
     pub(super) fn observe(&mut self, stage: Stage, r: &JawReadings, s: &Signal) -> f64 {
+        self.observe_with_weight(stage, r, s, WEIGHT)
+    }
+    pub(super) fn observe_with_weight(
+        &mut self,
+        stage: Stage,
+        r: &JawReadings,
+        s: &Signal,
+        weight_n: f64,
+    ) -> f64 {
         if stage == Stage::Transport
-            && r.force_on_payload_n[2] < 0.75 * WEIGHT
+            && r.force_on_payload_n[2] < 0.75 * weight_n
             && s.drag_n > 0.003
             && r.rail_speed_m_s > 0.
             && r.squeeze_n.iter().all(|n| *n > 0.3)

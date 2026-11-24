@@ -1,0 +1,1040 @@
+{
+  "step_s": 0.001,
+  "gravity_m_s2": 9.81,
+  "pickup_end_s": 5.4,
+  "calibration_end_s": 9.4,
+  "probe_stroke_m": 0.035,
+  "window_ticks": 400,
+  "load_quiet_std_to_mean": 0.12,
+  "max_estimate_disagreement_to_vertical": 0.12,
+  "peak_payload_momentum_budget_ns": 0.0048,
+  "cases": [
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 756,
+      "case": "nominal",
+      "decision_tick": 9400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.021982104317123392,
+        "horizontal_force_moment_ns2": -0.001545609150328734,
+        "inertial_mass_kg": 0.022087882969332062,
+        "mass_kg": 0.021982104317123392,
+        "plateau_std_n": [
+          0.0038075747389000243,
+          0.0006447419477962357,
+          0.0004232710880093435
+        ],
+        "rail_endpoints_m": [
+          1.353953764857111e-05,
+          0.03500433893061339,
+          1.970643294675619e-05
+        ],
+        "refused": null,
+        "stable_grip_ticks": [
+          400,
+          400,
+          400
+        ],
+        "stable_lift_ticks": [
+          400,
+          400,
+          400
+        ],
+        "travel_ticks": 4000,
+        "weighted_plateaus_n": [
+          0.2152198142691337,
+          0.21594796214199935,
+          0.21576555364180844
+        ]
+      },
+      "events": [
+        [
+          9400,
+          "Transport"
+        ],
+        [
+          11049,
+          "Backoff"
+        ],
+        [
+          12509,
+          "Raising"
+        ],
+        [
+          13509,
+          "Transport"
+        ],
+        [
+          14876,
+          "Backoff"
+        ],
+        [
+          16337,
+          "Returning"
+        ],
+        [
+          19837,
+          "Placing"
+        ],
+        [
+          22853,
+          "Opening"
+        ],
+        [
+          23228,
+          "Withdrawn"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        0.21581999999999785,
+        -0.0
+      ],
+      "friction": 0.7,
+      "mass_relative_error": -0.0008134401307548349,
+      "minimum_rigid_clearance_m": 0.007622221666300414,
+      "peak_momentum_residual_ns": 6.411251409056302e-18,
+      "peak_strain": 0.0009462960585264746,
+      "peak_transport_accel_m_s2": 0.6137418391726386,
+      "peak_transport_speed_m_s": 0.2061908898310048,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 25728,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.0,
+      "trace_sha256": "df295987eca00494c817a4311f8d01d80d36a4a1046c048c71da359eb7679f4f"
+    },
+    {
+      "authored_mass_kg": 0.011,
+      "bar_contact_ticks": 0,
+      "case": "light",
+      "decision_tick": 9400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.011018811413770637,
+        "horizontal_force_moment_ns2": -0.0007832547255596034,
+        "inertial_mass_kg": 0.011192696647114845,
+        "mass_kg": 0.011018811413770637,
+        "plateau_std_n": [
+          0.003126302899708479,
+          0.0009856243950040842,
+          0.0006069026051055676
+        ],
+        "rail_endpoints_m": [
+          1.3468479939878818e-05,
+          0.0350034527094542,
+          1.4346979311295244e-05
+        ],
+        "refused": null,
+        "stable_grip_ticks": [
+          400,
+          400,
+          400
+        ],
+        "stable_lift_ticks": [
+          400,
+          400,
+          400
+        ],
+        "travel_ticks": 2000,
+        "weighted_plateaus_n": [
+          0.10838818136305081,
+          0.10792276036213565,
+          0.10797267818208342
+        ]
+      },
+      "events": [
+        [
+          9400,
+          "Transport"
+        ],
+        [
+          11723,
+          "Placing"
+        ],
+        [
+          13734,
+          "Opening"
+        ],
+        [
+          14109,
+          "Withdrawn"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        -0.0,
+        0.10790999999999892
+      ],
+      "friction": 0.5,
+      "mass_relative_error": 0.0017101285246034607,
+      "minimum_rigid_clearance_m": 0.419368261086262,
+      "peak_momentum_residual_ns": 5.380694643610246e-18,
+      "peak_strain": 0.0009233371261574419,
+      "peak_transport_accel_m_s2": 1.218076928749534,
+      "peak_transport_speed_m_s": 0.46102113357409935,
+      "requested_travel_ticks": 2000,
+      "reset_identical_ticks": 16609,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.0,
+      "trace_sha256": "44763bb68b2576bdef33feaf50b50f6bf98dd3f5bdd138bd2d54d852930ff70c"
+    },
+    {
+      "authored_mass_kg": 0.033,
+      "bar_contact_ticks": 942,
+      "case": "heavy",
+      "decision_tick": 9400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.03298835474025168,
+        "horizontal_force_moment_ns2": -0.0023078891668995676,
+        "inertial_mass_kg": 0.032979297906382064,
+        "mass_kg": 0.03298835474025168,
+        "plateau_std_n": [
+          0.002810223984307431,
+          0.0008718423098583713,
+          0.0006430257895666882
+        ],
+        "rail_endpoints_m": [
+          1.3706026953487457e-05,
+          0.03500766241239849,
+          2.168249201476541e-05
+        ],
+        "refused": null,
+        "stable_grip_ticks": [
+          400,
+          400,
+          400
+        ],
+        "stable_lift_ticks": [
+          400,
+          400,
+          400
+        ],
+        "travel_ticks": 5928,
+        "weighted_plateaus_n": [
+          0.3234518561810581,
+          0.3236586880613635,
+          0.32373673576318523
+        ]
+      },
+      "events": [
+        [
+          9400,
+          "Transport"
+        ],
+        [
+          11882,
+          "Backoff"
+        ],
+        [
+          13344,
+          "Raising"
+        ],
+        [
+          14344,
+          "Transport"
+        ],
+        [
+          16384,
+          "Backoff"
+        ],
+        [
+          17847,
+          "Returning"
+        ],
+        [
+          21347,
+          "Placing"
+        ],
+        [
+          24356,
+          "Opening"
+        ],
+        [
+          24731,
+          "Withdrawn"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        0.32373000000000113,
+        -0.0
+      ],
+      "friction": 0.65,
+      "mass_relative_error": -0.00035288665904014067,
+      "minimum_rigid_clearance_m": 0.0022059736471888194,
+      "peak_momentum_residual_ns": 5.832942192119907e-18,
+      "peak_strain": 0.0010077893760267465,
+      "peak_transport_accel_m_s2": 0.5246071414229253,
+      "peak_transport_speed_m_s": 0.13902360944669814,
+      "requested_travel_ticks": 2000,
+      "reset_identical_ticks": 27231,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.0,
+      "trace_sha256": "1b51480c142944730f577643d1c53a383beeec608e2f57ed12e6aaba6638c3a5"
+    },
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 123,
+      "case": "rub",
+      "decision_tick": 9400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.021982104317123392,
+        "horizontal_force_moment_ns2": -0.001545609150328734,
+        "inertial_mass_kg": 0.022087882969332062,
+        "mass_kg": 0.021982104317123392,
+        "plateau_std_n": [
+          0.0038075747389000243,
+          0.0006447419477962357,
+          0.0004232710880093435
+        ],
+        "rail_endpoints_m": [
+          1.353953764857111e-05,
+          0.03500433893061339,
+          1.970643294675619e-05
+        ],
+        "refused": null,
+        "stable_grip_ticks": [
+          400,
+          400,
+          400
+        ],
+        "stable_lift_ticks": [
+          400,
+          400,
+          400
+        ],
+        "travel_ticks": 4000,
+        "weighted_plateaus_n": [
+          0.2152198142691337,
+          0.21594796214199935,
+          0.21576555364180844
+        ]
+      },
+      "events": [
+        [
+          9400,
+          "Transport"
+        ],
+        [
+          13400,
+          "Placing"
+        ],
+        [
+          14224,
+          "Opening"
+        ],
+        [
+          14599,
+          "Withdrawn"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        -0.0,
+        0.21581999999999785
+      ],
+      "friction": 0.7,
+      "mass_relative_error": -0.0008134401307548349,
+      "minimum_rigid_clearance_m": 0.07606695748645646,
+      "peak_momentum_residual_ns": 4.942870313816251e-18,
+      "peak_strain": 0.0008313596433062731,
+      "peak_transport_accel_m_s2": 0.6137418391726386,
+      "peak_transport_speed_m_s": 0.22071655638753973,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 17099,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.0,
+      "trace_sha256": "ecc7e787f2a3d2b94788d4783a76e5c37ef2d4ac6c1af821f5190e8b80041331"
+    },
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 0,
+      "case": "slick",
+      "decision_tick": 5400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.0,
+        "horizontal_force_moment_ns2": 0.0,
+        "inertial_mass_kg": null,
+        "mass_kg": null,
+        "plateau_std_n": [
+          0.0,
+          null,
+          null
+        ],
+        "rail_endpoints_m": [
+          1.1357695879495516e-05,
+          null,
+          null
+        ],
+        "refused": "NoBilateralGrasp",
+        "stable_grip_ticks": [
+          0,
+          0,
+          0
+        ],
+        "stable_lift_ticks": [
+          400,
+          0,
+          0
+        ],
+        "travel_ticks": null,
+        "weighted_plateaus_n": [
+          0.0,
+          null,
+          null
+        ]
+      },
+      "events": [
+        [
+          5400,
+          "Unidentified"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        0.21581999999999785,
+        -0.0
+      ],
+      "friction": 0.0,
+      "mass_relative_error": null,
+      "minimum_rigid_clearance_m": 0.42003660768296086,
+      "peak_momentum_residual_ns": 3.0772668504020227e-18,
+      "peak_strain": 6.29977267405657e-05,
+      "peak_transport_accel_m_s2": 0.0,
+      "peak_transport_speed_m_s": 0.0,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 7900,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.13178976120694633,
+      "trace_sha256": "e31cc6b2df551030466718abdcfebdaa48455a8d56a07f0b98e1613ee96e327f"
+    },
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 0,
+      "case": "probe-slip",
+      "decision_tick": 6011,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.021938818987679274,
+        "horizontal_force_moment_ns2": -0.0007164563641427058,
+        "inertial_mass_kg": null,
+        "mass_kg": null,
+        "plateau_std_n": [
+          0.0038075747389000243,
+          null,
+          null
+        ],
+        "rail_endpoints_m": [
+          1.353953764857111e-05,
+          null,
+          null
+        ],
+        "refused": "NoBilateralGrasp",
+        "stable_grip_ticks": [
+          400,
+          0,
+          0
+        ],
+        "stable_lift_ticks": [
+          400,
+          0,
+          0
+        ],
+        "travel_ticks": null,
+        "weighted_plateaus_n": [
+          0.2152198142691337,
+          null,
+          null
+        ]
+      },
+      "events": [
+        [
+          6011,
+          "Unidentified"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        0.21581999999999785,
+        -0.0
+      ],
+      "friction": 0.7,
+      "mass_relative_error": null,
+      "minimum_rigid_clearance_m": 0.42003681748768223,
+      "peak_momentum_residual_ns": 1.1908993580931944e-17,
+      "peak_strain": 0.0008313596433062731,
+      "peak_transport_accel_m_s2": 0.0,
+      "peak_transport_speed_m_s": 0.0,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 8511,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.0,
+      "trace_sha256": "05a8bafd35b69e9488811fcc83642552ba575797175285972cea34384e0ea27a"
+    },
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 0,
+      "case": "assisted",
+      "decision_tick": 9400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.014348430097497136,
+        "horizontal_force_moment_ns2": -0.0014852456898000197,
+        "inertial_mass_kg": 0.021220799544689594,
+        "mass_kg": null,
+        "plateau_std_n": [
+          0.006089031872927981,
+          0.0016342363255746131,
+          0.0009891230966524828
+        ],
+        "rail_endpoints_m": [
+          1.0004445418641885e-05,
+          0.03500905208822188,
+          1.8008798202775294e-05
+        ],
+        "refused": "MassDisagreement",
+        "stable_grip_ticks": [
+          400,
+          400,
+          400
+        ],
+        "stable_lift_ticks": [
+          400,
+          400,
+          400
+        ],
+        "travel_ticks": null,
+        "weighted_plateaus_n": [
+          0.14053844680234784,
+          0.14080832143220562,
+          0.14092752953478727
+        ]
+      },
+      "events": [
+        [
+          9400,
+          "Unidentified"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        -0.0,
+        -0.0
+      ],
+      "friction": 0.7,
+      "mass_relative_error": null,
+      "minimum_rigid_clearance_m": 0.42003681748768223,
+      "peak_momentum_residual_ns": 4.893505299110725e-18,
+      "peak_strain": 0.0006931781429178052,
+      "peak_transport_accel_m_s2": 0.0,
+      "peak_transport_speed_m_s": 0.0,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 11900,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.032780628574337965,
+      "trace_sha256": "879e2d3ce0384f07ea54e123d5a44dd8bae54bb06572d1f78d7ce92bba161ac1"
+    },
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 0,
+      "case": "no-lift",
+      "decision_tick": 5400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.006212043645660402,
+        "horizontal_force_moment_ns2": 0.0,
+        "inertial_mass_kg": null,
+        "mass_kg": null,
+        "plateau_std_n": [
+          9.434143476525808e-05,
+          null,
+          null
+        ],
+        "rail_endpoints_m": [
+          4.3749826619922704e-06,
+          null,
+          null
+        ],
+        "refused": "UnsettledLift",
+        "stable_grip_ticks": [
+          400,
+          0,
+          0
+        ],
+        "stable_lift_ticks": [
+          0,
+          0,
+          0
+        ],
+        "travel_ticks": null,
+        "weighted_plateaus_n": [
+          0.06094014816392855,
+          null,
+          null
+        ]
+      },
+      "events": [
+        [
+          5400,
+          "Unidentified"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        0.15595190303831696,
+        -0.0
+      ],
+      "friction": 0.7,
+      "mass_relative_error": null,
+      "minimum_rigid_clearance_m": 0.4200366341708437,
+      "peak_momentum_residual_ns": 4.892585638882702e-18,
+      "peak_strain": 0.00015101202346157194,
+      "peak_transport_accel_m_s2": 0.0,
+      "peak_transport_speed_m_s": 0.0,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 7900,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 6.417079650383867e-07,
+      "trace_sha256": "bb104df58acfc11a47d708927c28c0e88b0ffb36639b422c1960162707f90a1a"
+    },
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 0,
+      "case": "stalled-probe",
+      "decision_tick": 9400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.02198211264163736,
+        "horizontal_force_moment_ns2": -9.175119704002464e-06,
+        "inertial_mass_kg": null,
+        "mass_kg": null,
+        "plateau_std_n": [
+          0.0038075747389000243,
+          0.0007458547115637455,
+          0.0001120373561135743
+        ],
+        "rail_endpoints_m": [
+          1.353953764857111e-05,
+          -3.75819008726403e-05,
+          -8.499931987334117e-05
+        ],
+        "refused": "InsufficientProbe",
+        "stable_grip_ticks": [
+          400,
+          400,
+          400
+        ],
+        "stable_lift_ticks": [
+          400,
+          400,
+          400
+        ],
+        "travel_ticks": null,
+        "weighted_plateaus_n": [
+          0.2152198142691337,
+          0.2158872642487386,
+          0.2158264965255151
+        ]
+      },
+      "events": [
+        [
+          9400,
+          "Unidentified"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        -0.0,
+        -0.0
+      ],
+      "friction": 0.7,
+      "mass_relative_error": null,
+      "minimum_rigid_clearance_m": 0.42003681748768223,
+      "peak_momentum_residual_ns": 4.942870313816251e-18,
+      "peak_strain": 0.0008313596433062731,
+      "peak_transport_accel_m_s2": 0.0,
+      "peak_transport_speed_m_s": 0.0,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 11900,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.02698211187537105,
+      "trace_sha256": "b0acad512dc2efc2543f47ef4f5b8347614047efbfcbb3ee4d07fc3e667e33cc"
+    },
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 0,
+      "case": "pulsed",
+      "decision_tick": 5400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.021902110849519887,
+        "horizontal_force_moment_ns2": 0.0,
+        "inertial_mass_kg": null,
+        "mass_kg": null,
+        "plateau_std_n": [
+          0.1764758095012522,
+          null,
+          null
+        ],
+        "rail_endpoints_m": [
+          1.065270435972174e-05,
+          null,
+          null
+        ],
+        "refused": "InconsistentWeight",
+        "stable_grip_ticks": [
+          400,
+          0,
+          0
+        ],
+        "stable_lift_ticks": [
+          400,
+          0,
+          0
+        ],
+        "travel_ticks": null,
+        "weighted_plateaus_n": [
+          0.2148597074337901,
+          null,
+          null
+        ]
+      },
+      "events": [
+        [
+          5400,
+          "Unidentified"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        -0.0,
+        -0.0
+      ],
+      "friction": 0.7,
+      "mass_relative_error": null,
+      "minimum_rigid_clearance_m": 0.42003681748768223,
+      "peak_momentum_residual_ns": 4.942870313816251e-18,
+      "peak_strain": 0.001146061792130837,
+      "peak_transport_accel_m_s2": 0.0,
+      "peak_transport_speed_m_s": 0.0,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 7900,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.08487730416059427,
+      "trace_sha256": "c2c80b7370cfb042900af28a11332c22fa1c90c3ffd1fd4f8e8a44ec2158f310"
+    },
+    {
+      "authored_mass_kg": 0.022,
+      "bar_contact_ticks": 0,
+      "case": "lost",
+      "decision_tick": 9400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.021982104317123392,
+        "horizontal_force_moment_ns2": -0.001545609150328734,
+        "inertial_mass_kg": 0.022087882969332062,
+        "mass_kg": 0.021982104317123392,
+        "plateau_std_n": [
+          0.0038075747389000243,
+          0.0006447419477962357,
+          0.0004232710880093435
+        ],
+        "rail_endpoints_m": [
+          1.353953764857111e-05,
+          0.03500433893061339,
+          1.970643294675619e-05
+        ],
+        "refused": null,
+        "stable_grip_ticks": [
+          400,
+          400,
+          400
+        ],
+        "stable_lift_ticks": [
+          400,
+          400,
+          400
+        ],
+        "travel_ticks": 4000,
+        "weighted_plateaus_n": [
+          0.2152198142691337,
+          0.21594796214199935,
+          0.21576555364180844
+        ]
+      },
+      "events": [
+        [
+          9400,
+          "Transport"
+        ],
+        [
+          10061,
+          "LostGrip"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        0.21581999999999785,
+        -0.0
+      ],
+      "friction": 0.7,
+      "mass_relative_error": -0.0008134401307548349,
+      "minimum_rigid_clearance_m": 0.42003681748768223,
+      "peak_momentum_residual_ns": 8.91822193380526e-18,
+      "peak_strain": 0.0008313596433062731,
+      "peak_transport_accel_m_s2": 3.6807821607142825,
+      "peak_transport_speed_m_s": 0.08207179312609514,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 12561,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.0,
+      "trace_sha256": "c062239dd4ffebde34220740e59c5d284ca71608a5476d5442650c223a1fab97"
+    },
+    {
+      "authored_mass_kg": 0.011,
+      "bar_contact_ticks": 0,
+      "case": "light-normal",
+      "decision_tick": 9400,
+      "estimate": {
+        "apparent_weight_mass_kg": 0.011018811413770637,
+        "horizontal_force_moment_ns2": -0.0007832547255596034,
+        "inertial_mass_kg": 0.011192696647114845,
+        "mass_kg": 0.011018811413770637,
+        "plateau_std_n": [
+          0.003126302899708479,
+          0.0009856243950040842,
+          0.0006069026051055676
+        ],
+        "rail_endpoints_m": [
+          1.3468479939878818e-05,
+          0.0350034527094542,
+          1.4346979311295244e-05
+        ],
+        "refused": null,
+        "stable_grip_ticks": [
+          400,
+          400,
+          400
+        ],
+        "stable_lift_ticks": [
+          400,
+          400,
+          400
+        ],
+        "travel_ticks": 4000,
+        "weighted_plateaus_n": [
+          0.10838818136305081,
+          0.10792276036213565,
+          0.10797267818208342
+        ]
+      },
+      "events": [
+        [
+          9400,
+          "Transport"
+        ],
+        [
+          13400,
+          "Placing"
+        ],
+        [
+          15411,
+          "Opening"
+        ],
+        [
+          15786,
+          "Withdrawn"
+        ]
+      ],
+      "final_support_loads_source_shelf_n": [
+        -0.0,
+        0.10790999999999892
+      ],
+      "friction": 0.5,
+      "mass_relative_error": 0.0017101285246034607,
+      "minimum_rigid_clearance_m": 0.41922895957601714,
+      "peak_momentum_residual_ns": 5.380694643610246e-18,
+      "peak_strain": 0.0009233371261574419,
+      "peak_transport_accel_m_s2": 0.6154938328632176,
+      "peak_transport_speed_m_s": 0.22050878963447393,
+      "requested_travel_ticks": 4000,
+      "reset_identical_ticks": 18286,
+      "rigid_pad_bar_impulse_ns": 0.0,
+      "independent_end_max_particle_speed_m_s": 0.0,
+      "trace_sha256": "aa8814662550f7097322fcde2a489041bfbe9bdda938c05f3a28245f54d6175a"
+    }
+  ],
+  "browser": {
+    "heavy": {
+      "body_poses_and_shapes_checked": 7614,
+      "captured_ms": {
+        "end": 27231.0,
+        "event-11882-Backoff": 11882.0,
+        "event-13344-Raising": 13344.0,
+        "event-14344-Transport": 14344.0,
+        "event-16384-Backoff": 16384.0,
+        "event-17847-Returning": 17847.0,
+        "event-21347-Placing": 21347.0,
+        "event-24356-Opening": 24356.0,
+        "event-24731-Withdrawn": 24731.0,
+        "event-9400-Transport": 9400.0,
+        "start": 0.0,
+        "weigh-start": 5400.0,
+        "weigh-turn": 7400.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 282,
+      "independent_particle_positions_checked": 3102,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 282,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9977%2F"
+    },
+    "assisted": {
+      "body_poses_and_shapes_checked": 3240,
+      "captured_ms": {
+        "end": 11900.0,
+        "event-9400-Unidentified": 9400.0,
+        "start": 0.0,
+        "weigh-start": 5400.0,
+        "weigh-turn": 7400.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 120,
+      "independent_particle_positions_checked": 1320,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 120,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9978%2F"
+    },
+    "light": {
+      "body_poses_and_shapes_checked": 4617,
+      "captured_ms": {
+        "end": 16609.0,
+        "event-11723-Placing": 11723.0,
+        "event-13734-Opening": 13734.0,
+        "event-14109-Withdrawn": 14109.0,
+        "event-9400-Transport": 9400.0,
+        "start": 0.0,
+        "weigh-start": 5400.0,
+        "weigh-turn": 7400.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 171,
+      "independent_particle_positions_checked": 1881,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 171,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9979%2F"
+    }
+  },
+  "coverage": {
+    "changed_production": {
+      "crates/gz-sim-cli/examples/serial_cable.rs": {
+        "mapped_lines": [
+          26,
+          26
+        ],
+        "mapped_regions": [
+          36,
+          36
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/controller.rs": {
+        "mapped_lines": [
+          17,
+          17
+        ],
+        "mapped_regions": [
+          30,
+          30
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile.rs": {
+        "mapped_lines": [
+          23,
+          25
+        ],
+        "mapped_regions": [
+          49,
+          57
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/braking.rs": {
+        "mapped_lines": [
+          10,
+          10
+        ],
+        "mapped_regions": [
+          8,
+          8
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/sensor.rs": {
+        "mapped_lines": [
+          10,
+          10
+        ],
+        "mapped_regions": [
+          12,
+          12
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/weighing.rs": {
+        "mapped_lines": [
+          233,
+          240
+        ],
+        "mapped_regions": [
+          427,
+          461
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/weighing/plot.rs": {
+        "mapped_lines": [
+          48,
+          48
+        ],
+        "mapped_regions": [
+          83,
+          90
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/weighing/qualification.rs": {
+        "mapped_lines": [
+          82,
+          82
+        ],
+        "mapped_regions": [
+          171,
+          172
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/weighing/identify.rs": {
+        "mapped_lines": [
+          122,
+          122
+        ],
+        "mapped_regions": [
+          213,
+          214
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "app",
+        "sha256": "2f71537385e7b6109ccfc587a534ab2d2c6d05681b3ec081e5edcb4f7b848c2a"
+      },
+      {
+        "case": "product",
+        "sha256": "426d751997e1d47057dbfffe415e5799a4223a717da9589fd6a53b9c09877358"
+      }
+    ],
+    "mapped_lines": [
+      571,
+      580
+    ],
+    "mapped_regions": [
+      1029,
+      1080
+    ]
+  },
+  "release_tests": 27,
+  "release_strict_clippy": true,
+  "archive_parity": {
+    "plain_qualified_instrumented_and_final_recordings_all_files_identical": true,
+    "legacy_tactile_all_six_recordings_match_previous_qualification": true,
+    "plain_binary_sha256": "f1cdc020783d277da17b3052664137b6c9c5a66bc3e599118f1111893d51e178",
+    "comparison_sha256": "def6b653af131e6484bccbb6af68a42ee729954e2eaf382b3dccd12c762d9065"
+  },
+  "coverage_method": "Separate LLVM exports of release example test and operational binaries, positive hits merged at identical changed production source coordinates. The executable ran both --weigh and the existing --tactile mode."
+}

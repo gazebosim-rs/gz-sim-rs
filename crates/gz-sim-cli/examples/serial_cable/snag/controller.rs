@@ -20,6 +20,7 @@ pub(super) enum Stage {
     Opening,
     Withdrawn,
     LostGrip,
+    Unidentified,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub(super) struct Event {
@@ -64,6 +65,7 @@ pub(super) struct Controller {
     pub lift: f64,
     stage_start: usize,
     travel_ticks: usize,
+    pub pickup_end_tick: usize,
     pub active_braking: bool,
     stopping_forward: bool,
     motion: RailMotion,
@@ -81,6 +83,7 @@ impl Controller {
             lift: NORMAL_LIFT,
             stage_start: 0,
             travel_ticks,
+            pickup_end_tick: 5400,
             active_braking: false,
             stopping_forward: false,
             motion: RailMotion {
@@ -94,7 +97,7 @@ impl Controller {
     }
     pub fn drive(&mut self, robot: &Robot, sim: &mut Simulation, tick: usize) -> Result<()> {
         if self.stage == Stage::Pickup {
-            return robot.drive(sim, tick, false, None, NORMAL_LIFT);
+            return robot.drive(sim, tick.min(5400), false, None, NORMAL_LIFT);
         }
         let entering = tick == self.stage_start + 1;
         if entering {
@@ -149,8 +152,11 @@ impl Controller {
             load_n: s.load_n,
             spindle_rad: s.spindle_rad,
         });
-        self.stopping_forward =
-            self.active_braking && matches!(stage, Stage::Backoff | Stage::LostGrip);
+        self.stopping_forward = self.active_braking
+            && matches!(
+                stage,
+                Stage::Backoff | Stage::LostGrip | Stage::Unidentified
+            );
         self.stage = stage;
         self.stage_start = tick;
         self.dwell = 0;
@@ -180,7 +186,7 @@ impl Controller {
         let rail_done =
             tick >= self.motion.start + self.motion.duration && (y - self.motion.to).abs() < 0.003;
         match self.stage {
-            Stage::Pickup if tick >= 5400 => {
+            Stage::Pickup if tick >= self.pickup_end_tick => {
                 if !s.carried {
                     return Err("cable pickup failed".into());
                 }
@@ -230,7 +236,20 @@ impl Controller {
         }
         Ok(())
     }
+    pub fn limit_payload_momentum(&mut self, mass_kg: f64) -> usize {
+        // The quintic rail profile peaks at 1.875 times its mean speed.
+        // Bound commanded forward payload momentum to 4.8 mN s on the full move.
+        let min_ticks = (1.875 * 0.46 * mass_kg / (0.0048 * DT)).ceil() as usize;
+        self.travel_ticks = self.travel_ticks.max(min_ticks);
+        self.travel_ticks
+    }
+    pub fn hold_unidentified(&mut self, tick: usize, y: f64, s: &Feedback) {
+        self.enter(Stage::Unidentified, tick, y, s, y, 1);
+    }
     pub fn done(&self, tick: usize) -> bool {
-        matches!(self.stage, Stage::LostGrip | Stage::Withdrawn) && tick - self.stage_start >= 2500
+        matches!(
+            self.stage,
+            Stage::LostGrip | Stage::Withdrawn | Stage::Unidentified
+        ) && tick - self.stage_start >= 2500
     }
 }

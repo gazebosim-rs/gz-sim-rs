@@ -159,6 +159,15 @@ struct Sample {
     residual: f64,
 }
 fn sample(sim: &Simulation, robot: &Robot, prev: DVec3) -> Result<Sample> {
+    sample_payload(sim, robot, prev, [0.; 3], 0.7)
+}
+fn sample_payload(
+    sim: &Simulation,
+    robot: &Robot,
+    prev: DVec3,
+    external_n: [f64; 3],
+    friction: f64,
+) -> Result<Sample> {
     let (_, cable) = deformable::bodies(sim)
         .find(|(n, _)| *n == "cable")
         .ok_or("no cable")?;
@@ -204,6 +213,8 @@ fn sample(sim: &Simulation, robot: &Robot, prev: DVec3) -> Result<Sample> {
         .state
         .position;
     s.tip_sag = particles[5].position[2] - particles[0].position[2].min(particles[10].position[2]);
+    let reference_mass = particles[0].inverse_mass.recip();
+    let mut mass_kg = reference_mass * particles.len() as f64;
     let mut cm = DVec3::ZERO;
     let mut momentum = DVec3::ZERO;
     let mut state_hash = Sha256::new();
@@ -214,7 +225,9 @@ fn sample(sim: &Simulation, robot: &Robot, prev: DVec3) -> Result<Sample> {
         let pos = DVec3::from(p.position);
         let v = DVec3::from(p.velocity);
         cm += pos;
-        momentum += v * 0.002;
+        let m = p.inverse_mass.recip();
+        mass_kg += m - reference_mass;
+        momentum += v * m;
         s.min_z = s.min_z.min(pos.z - RADIUS);
         s.peak_speed = s.peak_speed.max(v.length());
         let q = bar_shape.distances(pos);
@@ -236,7 +249,9 @@ fn sample(sim: &Simulation, robot: &Robot, prev: DVec3) -> Result<Sample> {
         .iter()
         .map(|j| DVec3::from(j.linear))
         .sum::<DVec3>();
-    s.residual = (momentum - prev + DT * WEIGHT * DVec3::Z + sum).length();
+    let weight = mass_kg * 9.81;
+    s.residual =
+        (momentum - prev + DT * weight * DVec3::Z + sum - DT * DVec3::from(external_n)).length();
     for pair in particles.windows(2) {
         let length = DVec3::from(pair[0].position).distance(pair[1].position.into());
         s.strain = s.strain.max((length / SPACING - 1.).abs());
@@ -249,7 +264,9 @@ fn sample(sim: &Simulation, robot: &Robot, prev: DVec3) -> Result<Sample> {
         let outward = DQuat::from_array(pose.rotation) * DVec3::X * (if i == 0 { -1. } else { 1. });
         s.squeeze[i] = DVec3::from(j.linear).dot(outward) / DT;
         let tangential = (DVec3::from(j.linear) / DT - outward * s.squeeze[i]).length();
-        s.jaw_friction_excess_n = s.jaw_friction_excess_n.max(tangential - 0.7 * s.squeeze[i]);
+        s.jaw_friction_excess_n = s
+            .jaw_friction_excess_n
+            .max(tangential - friction * s.squeeze[i]);
         s.jaw_up[i] = -j.linear[2] / DT;
     }
     Ok(s)
@@ -340,6 +357,12 @@ fn main() -> Result<()> {
     let out = std::env::args_os()
         .nth(1)
         .ok_or("supply fresh output directory")?;
+    if out == "--weigh" {
+        let d = std::env::args_os()
+            .nth(2)
+            .ok_or("supply fresh weighing directory")?;
+        return snag::tactile::weighing::record(Path::new(&d));
+    }
     if out == "--braking" {
         let d = std::env::args_os()
             .nth(2)

@@ -2149,3 +2149,7 @@ The gripper sensed that the snagged cable was losing supported weight and active
 ## 2026-11-23 — Keeping a resting payload awake on a moving deck
 
 Forcing 1,000 nearly co-moving payloads to sleep stopped their horizontal motion. Across 40,000 normally supported pair-ticks, carrying the previous pose, twist and reaction forward never matched the continuing solve. Batching the real contact solves preserved all 1,359,760 observed native points. A two-thread guard reduced steady p95 from 9.17 to 6.40 ms, but increased launch-to-landing p95 from 7.31 to 7.57 ms, so the ordinary solver remains in use. The Rust qualification reproduces the 1.122 N·s first landing on a different deck. [Measurements, CPU costs, coverage and native replay](measurements/local-manipulation/fleet-loaded-rest.md)
+
+## 2026-11-23 — Weighing the cable before the robot carries it
+
+The gripper measured 11, 22 and 33 g cables to within 0.02 g during real pickup. A 35 mm sideways probe identified external assistance that made the 22 g cable appear to weigh just 14.35 g. The 33 g cable returned to its source with 2.21 mm rigid clearance. Fast light delivery and a 123 ms rub completed without a false stop. Six refusal cases withheld transport and the post-pickup jaw failure stopped the rail. Reset reproduced 173,525 measured ticks. Twenty-seven release tests passed with 571/580 changed production lines and 1029/1080 regions covered. [Measurements, physical limits and three native replays](measurements/local-manipulation/serial-cable-weigh.md)

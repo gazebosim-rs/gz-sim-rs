@@ -59,9 +59,16 @@ pub(super) struct Signal {
 pub(super) const SNAG_N: f64 = 0.040;
 impl Observer {
     pub(super) fn update(&mut self, r: &JawReadings) -> (controller::Feedback, Signal) {
+        self.update_with_weight(r, WEIGHT)
+    }
+    pub(super) fn update_with_weight(
+        &mut self,
+        r: &JawReadings,
+        weight_n: f64,
+    ) -> (controller::Feedback, Signal) {
         let a = (r.rail_speed_m_s - self.previous_rail_speed) / DT;
         self.previous_rail_speed = r.rail_speed_m_s;
-        let raw = r.force_on_payload_n[1] - (WEIGHT / 9.81) * a;
+        let raw = r.force_on_payload_n[1] - (weight_n / 9.81) * a;
         self.filtered_drag += (raw - self.filtered_drag) * 0.08;
         let vertical = r.force_on_payload_n[2];
         let min = r.squeeze_n[0].min(r.squeeze_n[1]);
@@ -72,10 +79,10 @@ impl Observer {
         }
         (
             controller::Feedback {
-                carried: min > 0.3 && (vertical - WEIGHT).abs() < 0.05,
+                carried: min > 0.3 && (vertical - weight_n).abs() < 0.05,
                 snag: self.filtered_drag > SNAG_N,
                 clear: self.filtered_drag.abs() < 0.015,
-                supported: min > 0.3 && vertical < 0.08 * WEIGHT,
+                supported: min > 0.3 && vertical < 0.08 * weight_n,
                 lost: self.loss_ticks >= 8,
                 load_n: self.filtered_drag,
                 spindle_rad: r.spindle_rad,

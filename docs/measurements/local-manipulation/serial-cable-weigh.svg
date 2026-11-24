@@ -1,0 +1,88 @@
+<svg width="920" height="460" viewBox="0 0 920 460" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="920" height="460" opacity="1" fill="#FFFFFF" stroke="none"/>
+<text x="460" y="23" dy="0.76em" text-anchor="middle" font-family="sans-serif" font-size="20.967741935483872" opacity="1" fill="#000000">
+Weighing the cable at pickup
+</text>
+<text x="18" y="217" dy="0.76em" text-anchor="middle" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000" transform="rotate(270, 18, 217)">
+Mass (g)
+</text>
+<line opacity="0.2" stroke="#000000" stroke-width="1" x1="82" y1="384" x2="901" y2="384"/>
+<line opacity="0.2" stroke="#000000" stroke-width="1" x1="82" y1="340" x2="901" y2="340"/>
+<line opacity="0.2" stroke="#000000" stroke-width="1" x1="82" y1="296" x2="901" y2="296"/>
+<line opacity="0.2" stroke="#000000" stroke-width="1" x1="82" y1="252" x2="901" y2="252"/>
+<line opacity="0.2" stroke="#000000" stroke-width="1" x1="82" y1="208" x2="901" y2="208"/>
+<line opacity="0.2" stroke="#000000" stroke-width="1" x1="82" y1="164" x2="901" y2="164"/>
+<line opacity="0.2" stroke="#000000" stroke-width="1" x1="82" y1="120" x2="901" y2="120"/>
+<line opacity="0.2" stroke="#000000" stroke-width="1" x1="82" y1="76" x2="901" y2="76"/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="81,49 81,384 "/>
+<text x="72" y="384" dy="0.5ex" text-anchor="end" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+0.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="76,384 81,384 "/>
+<text x="72" y="340" dy="0.5ex" text-anchor="end" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+5.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="76,340 81,340 "/>
+<text x="72" y="296" dy="0.5ex" text-anchor="end" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+10.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="76,296 81,296 "/>
+<text x="72" y="252" dy="0.5ex" text-anchor="end" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+15.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="76,252 81,252 "/>
+<text x="72" y="208" dy="0.5ex" text-anchor="end" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+20.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="76,208 81,208 "/>
+<text x="72" y="164" dy="0.5ex" text-anchor="end" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+25.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="76,164 81,164 "/>
+<text x="72" y="120" dy="0.5ex" text-anchor="end" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+30.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="76,120 81,120 "/>
+<text x="72" y="76" dy="0.5ex" text-anchor="end" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+35.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="76,76 81,76 "/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="82,385 901,385 "/>
+<rect x="112" y="191" width="41" height="193" opacity="1" fill="#5B6170" stroke="none"/>
+<rect x="317" y="288" width="41" height="96" opacity="1" fill="#5B6170" stroke="none"/>
+<rect x="522" y="94" width="41" height="290" opacity="1" fill="#5B6170" stroke="none"/>
+<rect x="726" y="191" width="41" height="193" opacity="1" fill="#5B6170" stroke="none"/>
+<rect x="161" y="191" width="41" height="193" opacity="1" fill="#00778C" stroke="none"/>
+<rect x="366" y="287" width="41" height="97" opacity="1" fill="#00778C" stroke="none"/>
+<rect x="571" y="94" width="41" height="290" opacity="1" fill="#00778C" stroke="none"/>
+<rect x="776" y="258" width="41" height="126" opacity="1" fill="#00778C" stroke="none"/>
+<rect x="210" y="190" width="41" height="194" opacity="1" fill="#C1612C" stroke="none"/>
+<rect x="415" y="286" width="41" height="98" opacity="1" fill="#C1612C" stroke="none"/>
+<rect x="620" y="94" width="41" height="290" opacity="1" fill="#C1612C" stroke="none"/>
+<rect x="825" y="197" width="41" height="187" opacity="1" fill="#C1612C" stroke="none"/>
+<rect x="87" y="54" width="148" height="60" opacity="0.9" fill="#FFFFFF" stroke="none"/>
+<text x="127" y="64" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+Authored cable
+</text>
+<text x="127" y="79" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+Vertical jaw force
+</text>
+<text x="127" y="94" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+Horizontal inertia
+</text>
+<rect x="97" y="64" width="18" height="10" opacity="1" fill="#5B6170" stroke="none"/>
+<rect x="97" y="79" width="18" height="10" opacity="1" fill="#00778C" stroke="none"/>
+<rect x="97" y="94" width="18" height="10" opacity="1" fill="#C1612C" stroke="none"/>
+<text x="143" y="404" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="13.709677419354838" opacity="1" fill="#000000">
+Nominal
+</text>
+<text x="348" y="404" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="13.709677419354838" opacity="1" fill="#000000">
+Light
+</text>
+<text x="552" y="404" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="13.709677419354838" opacity="1" fill="#000000">
+Heavy
+</text>
+<text x="757" y="404" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="13.709677419354838" opacity="1" fill="#000000">
+Partly supported
+</text>
+</svg>
