@@ -5,7 +5,8 @@ use super::*;
 use gz_physics_xpbd::{Boundary, RigidMobility, SoftBody, step_coupled_rigid};
 use std::time::Duration;
 
-const LENGTH: usize = 16;
+#[path = "interval_view.rs"]
+mod view;
 
 fn paths(
     before: [BodyState; 2],
@@ -54,13 +55,13 @@ pub(super) fn run(
     damping: f64,
     compliance: f64,
     exchanges: usize,
-    first_tick: usize,
+    (first_tick, count): (usize, usize),
 ) -> Result<()> {
     let end = first_tick
-        .checked_add(LENGTH - 1)
-        .filter(|end| first_tick > 0 && *end <= 3400 * exchanges)
+        .checked_add(count.saturating_sub(1))
+        .filter(|end| first_tick > 0 && count > 0 && *end <= 3400 * exchanges)
         .ok_or("interval is outside the 3.4 s grasp")?;
-    let mut r = Recording::new(xml, "sheet-interval.sdf", "default")?;
+    let mut r = Recording::new(&view::world(xml), "sheet-interval.sdf", "default")?;
     let controller = arm::Controller::with_jaw_damping(&r.sim, damping)?;
     let ids = [
         entity_id(&r.sim, "default::arm::left")?,
@@ -72,7 +73,9 @@ pub(super) fn run(
     ];
     let dt = r.sim.step_duration();
     let mut branches = Vec::<(u32, SoftBody)>::new();
-    let mut samples = Vec::with_capacity(LENGTH);
+    let mut samples = Vec::with_capacity(count);
+    let stride = count.div_ceil(160);
+    let mut frames = Vec::new();
     for tick in 1..=end {
         if (tick - 1).is_multiple_of(exchanges) {
             let actuator_tick = (tick - 1) / exchanges;
@@ -107,6 +110,7 @@ pub(super) fn run(
         let (geometry, mobility) = paths(pre, post, half, dt, compliance);
         let native = arm_sheet::cloth(&r.sim)?;
         let mut levels = Vec::new();
+        let mut forces = [[0.; 2]; 4];
         for (index, (steps, branch)) in branches.iter_mut().enumerate() {
             step_coupled_rigid(&mut [branch], dt, &geometry, &mobility)?;
             if index == 0
@@ -119,6 +123,7 @@ pub(super) fn run(
             for impulse in branch.last_pad_loads() {
                 normal[impulse.boundary] += DVec3::from(impulse.normal).length() / dt.as_secs_f64();
             }
+            forces[index] = normal;
             let peak = branch
                 .particles()
                 .iter()
@@ -132,11 +137,22 @@ pub(super) fn run(
                 json!({"substeps":steps,"normal_n":normal,"up_n":up,"max_pose_delta_m":peak}),
             );
         }
+        if (tick - first_tick).is_multiple_of(stride) || tick == end {
+            let time = native.sim_time().as_nanos();
+            let positions = native
+                .particles()
+                .iter()
+                .map(|p| p.position)
+                .collect::<Vec<_>>();
+            frames.push(json!({"time_ns":time,"positions":positions}));
+            view::capture(&mut r, &forces)?;
+        }
         samples.push(json!({"end_tick":tick,"samples":levels}));
     }
+    view::save(r, out, &frames)?;
     write_json(
         &out.join("interval.json"),
-        &json!({"native_step_ns":dt.as_nanos(),"first_tick":first_tick,"native_matched_intervals":LENGTH,"actuator_period_ns":1_000_000,"intervals":samples}),
+        &json!({"native_step_ns":dt.as_nanos(),"first_tick":first_tick,"native_matched_intervals":count,"actuator_period_ns":1_000_000,"intervals":samples}),
     )
 }
 
@@ -159,12 +175,12 @@ mod tests {
             0.001,
         )?;
         for t in [0, 3390, usize::MAX] {
-            assert!(run(dir.path(), &xml, 12., 0.001, 1, t).is_err());
+            assert!(run(dir.path(), &xml, 12., 0.001, 1, (t, 16)).is_err());
         }
-        run(dir.path(), &xml, 12., 0.001, 1, 1751)?;
+        run(dir.path(), &xml, 12., 0.001, 1, (1751, 16))?;
         let v: Value = serde_json::from_slice(&fs::read(dir.path().join("interval.json"))?)?;
         let steps = v["intervals"].as_array().unwrap();
-        assert_eq!(steps.len(), LENGTH);
+        assert_eq!(steps.len(), 16);
         for step in steps {
             for (i, sample) in step["samples"].as_array().unwrap().iter().enumerate() {
                 assert_eq!(sample["substeps"], 1 << i);

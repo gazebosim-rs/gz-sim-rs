@@ -104,6 +104,9 @@ enum Study {
         /// Compare one recorded native jaw path at four material resolutions, beginning at this tick.
         #[arg(long)]
         inspect_native_tick: Option<std::num::NonZeroUsize>,
+        /// Number of native intervals to replay (16 by default).
+        #[arg(long, requires = "inspect_native_tick")]
+        inspect_native_count: Option<std::num::NonZeroU16>,
     },
     /// Compare recorded grasps with the finest two exchange rates and select the lowest passing rate.
     SheetJawConvergence {
@@ -293,8 +296,18 @@ fn main() -> Result<()> {
             output,
             settings,
             inspect_native_tick,
+            inspect_native_count,
         } => write_new(&output, |out| {
-            sheet_jaws::study(out, settings, inspect_native_tick.map(|n| n.get()))
+            sheet_jaws::study(
+                out,
+                settings,
+                inspect_native_tick.map(|n| {
+                    (
+                        n.get(),
+                        inspect_native_count.map_or(16, |c| usize::from(c.get())),
+                    )
+                }),
+            )
         }),
         Study::SheetJawConvergence { recordings } => {
             println!(

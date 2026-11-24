@@ -131,7 +131,7 @@ fn run(out: &Path, settings: Settings) -> Result<()> {
     study(out, settings, None)
 }
 
-pub(super) fn study(out: &Path, settings: Settings, first_tick: Option<usize>) -> Result<()> {
+pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize)>) -> Result<()> {
     let Settings {
         jaw_mass_scale: scale,
         pad_compliance: compliance,
@@ -160,8 +160,8 @@ pub(super) fn study(out: &Path, settings: Settings, first_tick: Option<usize>) -
     } else {
         12.
     };
-    if let Some(tick) = first_tick {
-        return interval::run(out, &xml, damping, compliance, exchanges_per_ms, tick);
+    if let Some(window) = window {
+        return interval::run(out, &xml, damping, compliance, exchanges_per_ms, window);
     }
     let result =
         arm_sheet::simulate_with_jaw_damping(&xml, case, NOMINAL_FLARE, Some(out), damping);
