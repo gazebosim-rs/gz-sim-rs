@@ -1,0 +1,691 @@
+{
+  "accepted_release_binary_sha256": "8eb8c6a2cbd43451d620c663a3ae0e48b36c0626a9c70a071a1d5c51240664e3",
+  "base": "b4b83b87535a7493d772efaf1bcbba62c74541fd",
+  "cases": {
+    "130-1000": {
+      "bevy_step_ns": 1000,
+      "exchanges_per_actuator_ms": 1000,
+      "final_100ms_jaws_n": 0.0014358861145690892,
+      "final_100ms_table_n": 0.08096817128310925,
+      "final_horizontal_squeeze_n": [
+        0.827264315775165,
+        0.8249999413676801
+      ],
+      "first_diverging_public_row": 3422,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 3421,
+      "maximum_momentum_residual_ns": 2.2661181292946595e-16,
+      "offset_mm": 130,
+      "pressure_first_opening_ms": 3422,
+      "pressure_outcome": "Fell",
+      "pressure_qualified_but_outside_margin_ticks": 933,
+      "pressure_recording_sha256": "d9a455b8dfe45fd97694d221d1929119f642f689630e4a7909855ef65bd714f9",
+      "public_rows_sha256": "85425e3f6d0c735b04f46c9e14e59d71b520c372f71fe9d772b40d0b4e196d17",
+      "recording_sha256": "296fa1b95f88093a8f728b733257f72ff042697a0eab6a397c8f7c5fb8fd3371",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "1e1766671c219c18d184edd9cd78343bfcd95947e9fba0e2e7bfdaa34270f89f"
+    },
+    "130-16": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 16,
+      "final_100ms_jaws_n": 0.040383312898672565,
+      "final_100ms_table_n": 0.042021470111848876,
+      "final_horizontal_squeeze_n": [
+        0.8255515718225861,
+        0.8249990098890706
+      ],
+      "first_diverging_public_row": null,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 4300,
+      "maximum_momentum_residual_ns": 7.158766532602548e-18,
+      "offset_mm": 130,
+      "pressure_first_opening_ms": null,
+      "pressure_outcome": "Held",
+      "pressure_qualified_but_outside_margin_ticks": 1,
+      "pressure_recording_sha256": "458d800d69501a1fad828b4316f81edce3930690482e55ea0291d03910be4171",
+      "public_rows_sha256": "482a7209ee36d5e652646efd0ee4c3f1d78e649e49d31374e9e43c2bd4a8ceec",
+      "recording_sha256": "458d800d69501a1fad828b4316f81edce3930690482e55ea0291d03910be4171",
+      "reset": true,
+      "wrench_and_trajectory_sha256": "577ebb4b8c5d13c6077db0fe79064a154ca09d044ad7b28b8935ad7dfc92bade"
+    },
+    "130-250": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 250,
+      "final_100ms_jaws_n": 0.005341162411884122,
+      "final_100ms_table_n": 0.0770629094854153,
+      "final_horizontal_squeeze_n": [
+        0.8270220466782318,
+        0.8249998675767614
+      ],
+      "first_diverging_public_row": 3436,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 3435,
+      "maximum_momentum_residual_ns": 7.281792242843788e-17,
+      "offset_mm": 130,
+      "pressure_first_opening_ms": 3436,
+      "pressure_outcome": "Fell",
+      "pressure_qualified_but_outside_margin_ticks": 918,
+      "pressure_recording_sha256": "35345fb6b5d5e22d5aa68e6edf707b16e3bdad4441a978400dd63a3bac23871e",
+      "public_rows_sha256": "d48eb881029f35c9fc06808f6ed24a9edbe429d31092b8cc303dfa74d42b9da8",
+      "recording_sha256": "6fcbe1d5b3ae45681635695d8717788467d30f4b6fc90176ced7d9eb953d0c00",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "63a349ebca449a944eea355404ab2251f0101334b3c810423ca1c75452e4180c"
+    },
+    "130-64": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 64,
+      "final_100ms_jaws_n": 0.01716423519634374,
+      "final_100ms_table_n": 0.06523996926876906,
+      "final_horizontal_squeeze_n": [
+        0.8264292501881938,
+        0.824999786072346
+      ],
+      "first_diverging_public_row": null,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 4300,
+      "maximum_momentum_residual_ns": 2.5696563811523813e-17,
+      "offset_mm": 130,
+      "pressure_first_opening_ms": null,
+      "pressure_outcome": "Held",
+      "pressure_qualified_but_outside_margin_ticks": 17,
+      "pressure_recording_sha256": "f0bf0d4d18e818d760984f7e8e860317c01ecf18dcd37eedba73dac6b5f50e34",
+      "public_rows_sha256": "92d4ecb74bb9e0f32f4af7c136cc1862e01df8507b66b154ab8d441c86392a57",
+      "recording_sha256": "f0bf0d4d18e818d760984f7e8e860317c01ecf18dcd37eedba73dac6b5f50e34",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "87fbdfc280937d587648eb097a443613c899d3b7a378f990fb79d9edfcbc3833"
+    },
+    "165-16": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 16,
+      "final_100ms_jaws_n": 0.08248872083012164,
+      "final_100ms_table_n": 0.0,
+      "final_horizontal_squeeze_n": [
+        0.8250000792421184,
+        0.8250000792461538
+      ],
+      "first_diverging_public_row": null,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 4300,
+      "maximum_momentum_residual_ns": 7.158766532602548e-18,
+      "offset_mm": 165,
+      "pressure_first_opening_ms": null,
+      "pressure_outcome": "Held",
+      "pressure_qualified_but_outside_margin_ticks": 0,
+      "pressure_recording_sha256": "64fe9b5c7153e8159d3627e80f7152074358253bbee29e652c5c464bbb3ddd54",
+      "public_rows_sha256": "bc786c1694cde6383d18f42b4947c1ee63027ca0214d260f3a831f08ad0a795e",
+      "recording_sha256": "64fe9b5c7153e8159d3627e80f7152074358253bbee29e652c5c464bbb3ddd54",
+      "reset": true,
+      "wrench_and_trajectory_sha256": "59519320e7650288ca404786b6675fa8c2aa4ba7d190c5a05655e0a6e15ccdc3"
+    },
+    "80-1000": {
+      "bevy_step_ns": 1000,
+      "exchanges_per_actuator_ms": 1000,
+      "final_100ms_jaws_n": 0.0,
+      "final_100ms_table_n": 0.08240399998650394,
+      "final_horizontal_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "first_diverging_public_row": null,
+      "guard_first_opening_ms": 3101,
+      "guard_last_opening_ms": 350,
+      "guard_outcome": "Resting",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 350,
+      "matching_public_rows": 4300,
+      "maximum_momentum_residual_ns": 2.2661181292946595e-16,
+      "offset_mm": 80,
+      "pressure_first_opening_ms": 3101,
+      "pressure_outcome": "Resting",
+      "pressure_qualified_but_outside_margin_ticks": 8,
+      "pressure_recording_sha256": "1178f623d203eb3e00f0380fa42128a3cdaa1567d1c9a25e4a6bb374418c555b",
+      "public_rows_sha256": "01b2582a73d54b14d82cd5fc5340ae13aeeeaf2c094bbffee65c6d70d8ab52d1",
+      "recording_sha256": "1178f623d203eb3e00f0380fa42128a3cdaa1567d1c9a25e4a6bb374418c555b",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "15076d8273feaf612dda30b701f0077e2862c51f1bcf4e9e189fc36032f5258d"
+    },
+    "80-16": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 16,
+      "final_100ms_jaws_n": 0.0,
+      "final_100ms_table_n": 0.08240400000002635,
+      "final_horizontal_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "first_diverging_public_row": null,
+      "guard_first_opening_ms": 3075,
+      "guard_last_opening_ms": 350,
+      "guard_outcome": "Resting",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 350,
+      "matching_public_rows": 4300,
+      "maximum_momentum_residual_ns": 7.158766532602548e-18,
+      "offset_mm": 80,
+      "pressure_first_opening_ms": 3075,
+      "pressure_outcome": "Resting",
+      "pressure_qualified_but_outside_margin_ticks": 19,
+      "pressure_recording_sha256": "6c39d18d8d1d938a71f45f7f33c0173def51e65f2d2a988b6a58103d9ce0a8a2",
+      "public_rows_sha256": "de6b6c929849c071bccb6d9e9dcbc5415e3d12d54f8466e48237c31f79a1e52c",
+      "recording_sha256": "6c39d18d8d1d938a71f45f7f33c0173def51e65f2d2a988b6a58103d9ce0a8a2",
+      "reset": true,
+      "wrench_and_trajectory_sha256": "ba43edfaf456c582ac4639abaa1d347ee5f28ec2da357a9ffa5b3eaa07b49317"
+    },
+    "80-250": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 250,
+      "final_100ms_jaws_n": 0.0,
+      "final_100ms_table_n": 0.08240399999571983,
+      "final_horizontal_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "first_diverging_public_row": null,
+      "guard_first_opening_ms": 3100,
+      "guard_last_opening_ms": 350,
+      "guard_outcome": "Resting",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 350,
+      "matching_public_rows": 4300,
+      "maximum_momentum_residual_ns": 7.281792242843788e-17,
+      "offset_mm": 80,
+      "pressure_first_opening_ms": 3100,
+      "pressure_outcome": "Resting",
+      "pressure_qualified_but_outside_margin_ticks": 1,
+      "pressure_recording_sha256": "a763ee6669d0c6113a416ad10fa69f260cab3f944263c3fbdb04b2eb288763e7",
+      "public_rows_sha256": "e45c311db6dcb67ea97b287b2243e03f35c5fb877e148f5754d7661c01d8769c",
+      "recording_sha256": "a763ee6669d0c6113a416ad10fa69f260cab3f944263c3fbdb04b2eb288763e7",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "10b484242129895fae4e7551c8c668327d842829fe4754c05b8606d1f435568b"
+    },
+    "80-64": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 64,
+      "final_100ms_jaws_n": 0.0,
+      "final_100ms_table_n": 0.08240400000000987,
+      "final_horizontal_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "first_diverging_public_row": null,
+      "guard_first_opening_ms": 3088,
+      "guard_last_opening_ms": 350,
+      "guard_outcome": "Resting",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 350,
+      "matching_public_rows": 4300,
+      "maximum_momentum_residual_ns": 2.5696563811523813e-17,
+      "offset_mm": 80,
+      "pressure_first_opening_ms": 3088,
+      "pressure_outcome": "Resting",
+      "pressure_qualified_but_outside_margin_ticks": 1,
+      "pressure_recording_sha256": "88b10164e51f20b5d4e6502cdea25ceb57c696e55014c49c582ee239b62c58e9",
+      "public_rows_sha256": "3cab4bdca8c59c37fba5204e862665eaaa9c8f6f1389cbc1112b376c71b3bb60",
+      "recording_sha256": "88b10164e51f20b5d4e6502cdea25ceb57c696e55014c49c582ee239b62c58e9",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "b5b7377c7956bb991f24b74618f8d22274c8b68f0f7f459019c0605cc82991fb"
+    },
+    "89-16": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 16,
+      "final_100ms_jaws_n": 7.440459423777826e-13,
+      "final_100ms_table_n": 0.0824039999992872,
+      "final_horizontal_squeeze_n": [
+        0.8250001471200253,
+        0.825000064349114
+      ],
+      "first_diverging_public_row": 3101,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 3100,
+      "maximum_momentum_residual_ns": 7.158766532602548e-18,
+      "offset_mm": 89,
+      "pressure_first_opening_ms": 3101,
+      "pressure_outcome": "Resting",
+      "pressure_qualified_but_outside_margin_ticks": 1233,
+      "pressure_recording_sha256": "ff6d2e5d0879d6ee32047b8b382dfe10ddeb822cb6c5625159a8034c89bfa7b0",
+      "public_rows_sha256": "efe4a0e929cef833a42338e59e34c276f66c6b06178f4de1af0ed64cfda959b7",
+      "recording_sha256": "a258c23ebe3578c33abd29230d96c6da219c84b9c5c0a05f1bf4808dc8c58177",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "ef634a2730d1b76b7b37754b2beb8fc6ffeb6d5fddf48a90625f2f9a63d5062e"
+    },
+    "89-250": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 250,
+      "final_100ms_jaws_n": 3.1855403118008557e-06,
+      "final_100ms_table_n": 0.08240081447195188,
+      "final_horizontal_squeeze_n": [
+        0.8250006872817779,
+        0.8250001413909441
+      ],
+      "first_diverging_public_row": 3099,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 3098,
+      "maximum_momentum_residual_ns": 7.281792242843788e-17,
+      "offset_mm": 89,
+      "pressure_first_opening_ms": 3099,
+      "pressure_outcome": "Resting",
+      "pressure_qualified_but_outside_margin_ticks": 1245,
+      "pressure_recording_sha256": "fc111b51e80a904a46af5615e89b6356390b0992358d9ea0bbe5470453a905c0",
+      "public_rows_sha256": "68abc4b3a42c5ef919139688d8cfc3f2963fea8baebc7bee3649d6dbdbf6fbb8",
+      "recording_sha256": "31a682ab28f1087cf009513948423ae75bb6e0a7da98f8ab673bbd27b4199747",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "960576dc2ca1eb6ff99072be2d5ebc39495ca23d3b21136ac3ec50510b707bbb"
+    },
+    "95-1000": {
+      "bevy_step_ns": 1000,
+      "exchanges_per_actuator_ms": 1000,
+      "final_100ms_jaws_n": 1.618872683582404e-05,
+      "final_100ms_table_n": 0.08238781128237734,
+      "final_horizontal_squeeze_n": [
+        0.8250080840586574,
+        0.8250103287233745
+      ],
+      "first_diverging_public_row": 3098,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 3097,
+      "maximum_momentum_residual_ns": 2.2661181292946595e-16,
+      "offset_mm": 95,
+      "pressure_first_opening_ms": 3098,
+      "pressure_outcome": "Fell",
+      "pressure_qualified_but_outside_margin_ticks": 1242,
+      "pressure_recording_sha256": "7f1773ac1efbb140385e3d581efb542db4afd067a4d5c0a1c803050f50862d8b",
+      "public_rows_sha256": "3ce2072bc750c1907e6872309fd9d7eec380aadefa5da51ebe95b026f86e5350",
+      "recording_sha256": "1091affb8485e4a1e731bb6b2602df84cc5a07e6525fc8242e72f5ac30543bb4",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "181862478186746a5f3b55389ae7bc2ad287539639c252ebdee75c1a26ab4b2a"
+    },
+    "95-16": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 16,
+      "final_100ms_jaws_n": 0.0007774795806596645,
+      "final_100ms_table_n": 0.08162655155862787,
+      "final_horizontal_squeeze_n": [
+        0.8250082126424348,
+        0.8250082986027493
+      ],
+      "first_diverging_public_row": 3063,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 3062,
+      "maximum_momentum_residual_ns": 7.158766532602548e-18,
+      "offset_mm": 95,
+      "pressure_first_opening_ms": 3063,
+      "pressure_outcome": "Fell",
+      "pressure_qualified_but_outside_margin_ticks": 1267,
+      "pressure_recording_sha256": "ab0cb118ecd58daa4e194c7eebc14484cb97242531d660c5bbd966998eb14ed0",
+      "public_rows_sha256": "cc85b0aeb8cdff84a33c6c6aed325109e3f4739dc8f026b0ee1a5aee645258de",
+      "recording_sha256": "a8a4a457f83734e0ba2b3bcef1b3e1c72dd76cd99d7a980a02efcd954fc500ed",
+      "reset": true,
+      "wrench_and_trajectory_sha256": "e1ea4df9a251a449618e790255956b4bb41ba556250302c79b38690b534138f2"
+    },
+    "95-250": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 250,
+      "final_100ms_jaws_n": 6.385040558019498e-05,
+      "final_100ms_table_n": 0.08234014976082162,
+      "final_horizontal_squeeze_n": [
+        0.8250082405476103,
+        0.8250100361515337
+      ],
+      "first_diverging_public_row": 3086,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 3085,
+      "maximum_momentum_residual_ns": 7.281792242843788e-17,
+      "offset_mm": 95,
+      "pressure_first_opening_ms": 3086,
+      "pressure_outcome": "Fell",
+      "pressure_qualified_but_outside_margin_ticks": 1252,
+      "pressure_recording_sha256": "c783e4ca8a2cd724da36b74f32ca99dcbe0213806fa907e5a9d8d247a9e407b7",
+      "public_rows_sha256": "57de20bda174732e6e649912c0bf2681a733392c352c3445ac9bee67856338ed",
+      "recording_sha256": "cebb3d20bd88d8d0a686130ce07adf50e81ce53a276209beda821b801f698357",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "dc4a2ad97cd5051349036682dc65776d4cf327b8c7d98914629638a0c686bbed"
+    },
+    "95-64": {
+      "bevy_step_ns": 1000000,
+      "exchanges_per_actuator_ms": 64,
+      "final_100ms_jaws_n": 0.0002371274314692304,
+      "final_100ms_table_n": 0.08216687497711476,
+      "final_horizontal_squeeze_n": [
+        0.8250087731499335,
+        0.8250090965521534
+      ],
+      "first_diverging_public_row": 3075,
+      "guard_first_opening_ms": null,
+      "guard_last_opening_ms": 0,
+      "guard_outcome": "Held",
+      "independent_wrenches_checked": 4300,
+      "independently_checked_opening_increments": 0,
+      "matching_public_rows": 3074,
+      "maximum_momentum_residual_ns": 2.5696563811523813e-17,
+      "offset_mm": 95,
+      "pressure_first_opening_ms": 3075,
+      "pressure_outcome": "Fell",
+      "pressure_qualified_but_outside_margin_ticks": 1260,
+      "pressure_recording_sha256": "4f16f0919da51f353049ca08b0473dff6f10a2fde25caa7a0fe0aad8e137a6f1",
+      "public_rows_sha256": "e47832ebea599116aa3e140fcafdb3a21c444f5f8b0411cbea56d6d7c1f75461",
+      "recording_sha256": "1583e3319b99d109a3185edc9fbeaba9766f38c9e47e048dcf7ff94089f2a7dd",
+      "reset": false,
+      "wrench_and_trajectory_sha256": "7ef3c1468d950ffe1507abc9656beade7052c5224b565dc865a22882d780f4d5"
+    }
+  },
+  "coverage": {
+    "executables": {
+      "existing-edge": {
+        "build_id": "12cc29222ea1679a8e967562f70446fca5d3215f",
+        "passed": 6,
+        "sha256": "884c0b83052ebd210f33dba67c2fad003dcd3eb6c3a60022a162b6aff9b709fe"
+      },
+      "existing-setdown": {
+        "build_id": "12cc29222ea1679a8e967562f70446fca5d3215f",
+        "passed": 7,
+        "sha256": "884c0b83052ebd210f33dba67c2fad003dcd3eb6c3a60022a162b6aff9b709fe"
+      },
+      "operator": {
+        "build_id": "12cc29222ea1679a8e967562f70446fca5d3215f",
+        "passed": 3,
+        "sha256": "884c0b83052ebd210f33dba67c2fad003dcd3eb6c3a60022a162b6aff9b709fe"
+      },
+      "policy": {
+        "build_id": "b1a8cd140961ae913c9f498d9d549994b4360c76",
+        "passed": 10,
+        "sha256": "f9fc9b12d1717dad7d43c86b5a402037e5fb65c176b9f9d8f64926b415992ab8"
+      },
+      "run-165": {
+        "build_id": "c0ac4849670aae01e749ba6690721008e266629e",
+        "passed": 0,
+        "sha256": "2232b96bca274ef517ed7843c90cde3848885d9848552b82c97fcb687df57ff3"
+      },
+      "run-80": {
+        "build_id": "c0ac4849670aae01e749ba6690721008e266629e",
+        "passed": 0,
+        "sha256": "2232b96bca274ef517ed7843c90cde3848885d9848552b82c97fcb687df57ff3"
+      },
+      "run-95": {
+        "build_id": "c0ac4849670aae01e749ba6690721008e266629e",
+        "passed": 0,
+        "sha256": "2232b96bca274ef517ed7843c90cde3848885d9848552b82c97fcb687df57ff3"
+      },
+      "run-compare": {
+        "build_id": "c0ac4849670aae01e749ba6690721008e266629e",
+        "passed": 0,
+        "sha256": "2232b96bca274ef517ed7843c90cde3848885d9848552b82c97fcb687df57ff3"
+      },
+      "run-pressure": {
+        "build_id": "c0ac4849670aae01e749ba6690721008e266629e",
+        "passed": 0,
+        "sha256": "2232b96bca274ef517ed7843c90cde3848885d9848552b82c97fcb687df57ff3"
+      }
+    },
+    "files": {
+      "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+        "lines": [
+          2,
+          2
+        ],
+        "regions": [
+          2,
+          2
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown.rs": {
+        "lines": [
+          14,
+          14
+        ],
+        "regions": [
+          20,
+          22
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown/edge.rs": {
+        "lines": [
+          48,
+          49
+        ],
+        "regions": [
+          95,
+          98
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown/edge_tests.rs": {
+        "lines": [
+          9,
+          9
+        ],
+        "regions": [
+          45,
+          46
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown/margin_tests.rs": {
+        "lines": [
+          149,
+          150
+        ],
+        "regions": [
+          303,
+          304
+        ]
+      },
+      "crates/gz-sim-scene/src/grasp_guard.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-sim-scene/src/grasp_guard/deck_margin.rs": {
+        "lines": [
+          37,
+          37
+        ],
+        "regions": [
+          65,
+          65
+        ]
+      },
+      "crates/gz-sim-scene/src/grasp_guard/setdown.rs": {
+        "lines": [
+          18,
+          18
+        ],
+        "regions": [
+          20,
+          20
+        ]
+      },
+      "crates/gz-sim-scene/tests/private/finite_deck_margin.rs": {
+        "lines": [
+          80,
+          80
+        ],
+        "regions": [
+          153,
+          153
+        ]
+      }
+    },
+    "totals": {
+      "gz-sim-cli": {
+        "including_tests": {
+          "lines": [
+            222,
+            224
+          ],
+          "regions": [
+            465,
+            472
+          ]
+        },
+        "production": {
+          "lines": [
+            64,
+            65
+          ],
+          "regions": [
+            117,
+            122
+          ]
+        }
+      },
+      "gz-sim-scene": {
+        "including_tests": {
+          "lines": [
+            135,
+            135
+          ],
+          "regions": [
+            238,
+            238
+          ]
+        },
+        "production": {
+          "lines": [
+            55,
+            55
+          ],
+          "regions": [
+            85,
+            85
+          ]
+        }
+      }
+    }
+  },
+  "horizon_ms": 4300,
+  "implementation": "45b61cb2d8c0bbd4f21dce31996992df220aaf33",
+  "late_full_withdrawal": {
+    "clearance_m": 0.04111767460979179,
+    "deck_up_n": 0.0,
+    "jaw_up_n": 0.08240391468725874
+  },
+  "minimum_inset_m": 0.002,
+  "required_pressure_window_ms": 20,
+  "sheet_weight_n": 0.082404,
+  "unselected_policy_unchanged_files": {
+    "130": {
+      "comparison.json": "75979e42ff7aa5d294276f5e1b710e698d1e2a6a895910332cbcff7671507674",
+      "edge.json": "88cb8ed03e4cd5be8e66809b79e715afd232958acf5260b4997709aa201e78e9",
+      "frames.json": "4a2c86c499c9e9adfd5b7dcec6bf6e182a1fe09a24c622740051f277962e6b8f",
+      "replay/frames.jsonl": "458d800d69501a1fad828b4316f81edce3930690482e55ea0291d03910be4171",
+      "replay/manifest.json": "e615d4334c567c324aa9ea0e498d8853cee8a750f245ccba9b1e4246b0e808dd",
+      "ticks.json": "482a7209ee36d5e652646efd0ee4c3f1d78e649e49d31374e9e43c2bd4a8ceec"
+    },
+    "80": {
+      "comparison.json": "7455770240addf84d25a391a8552e9281bde72ce5dd27ec6832cdbc2c3d752db",
+      "edge.json": "9a4fc9f4b70fdc561ae01a29b471d83639f0a340c7b899832961b14bae4a8c42",
+      "frames.json": "35a6776f2dca95634259ca31436727487b9bfc9e57604e1d1bfd7b342e2e6267",
+      "replay/frames.jsonl": "6c39d18d8d1d938a71f45f7f33c0173def51e65f2d2a988b6a58103d9ce0a8a2",
+      "replay/manifest.json": "2eaf9c9ef147ac14204e4faf443a51c9c8c7e693f007795e413bd885e7b77f4a",
+      "ticks.json": "de6b6c929849c071bccb6d9e9dcbc5415e3d12d54f8466e48237c31f79a1e52c"
+    },
+    "95": {
+      "comparison.json": "b2d4440fc6c1e34be76a7106987aba8247ffb990b69cfbf0c3aeffbeb1474ab0",
+      "edge.json": "658d9db0b0b80a3e3367ced4cc303c0285bae2305842496d51a74b1e9fbfb16c",
+      "frames.json": "090728f2dcbe224652215056c3ce993072227d86578886ae5dce6578b00d4be2",
+      "replay/frames.jsonl": "ab0cb118ecd58daa4e194c7eebc14484cb97242531d660c5bbd966998eb14ed0",
+      "replay/manifest.json": "045e6846812fa516065ef1c9b02e45f6b63eeb2820b24893f3248714dee20982",
+      "ticks.json": "5832de4d2c375e8a3a729a55a4cc27a3bfae68b52ffaf7e7d3367a34376db006"
+    }
+  },
+  "viewer": {
+    "held": {
+      "body_poses_and_shapes_checked": 4325,
+      "captured_ms": {
+        "deck_stopped": 1900.0,
+        "end": 4300.0,
+        "lift": 1500.0,
+        "lowering": 2500.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 173,
+      "independent_particle_positions_checked": 2076,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 173,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10067%2F"
+    },
+    "miss": {
+      "body_poses_and_shapes_checked": 4325,
+      "captured_ms": {
+        "deck_stopped": 1900.0,
+        "end": 4300.0,
+        "lift": 1500.0,
+        "lowering": 2500.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 173,
+      "independent_particle_positions_checked": 2076,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 173,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10070%2F"
+    },
+    "rest": {
+      "body_poses_and_shapes_checked": 4325,
+      "captured_ms": {
+        "deck_stopped": 1900.0,
+        "end": 4300.0,
+        "lift": 1500.0,
+        "lowering": 2500.0,
+        "released": 3125.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 173,
+      "independent_particle_positions_checked": 2076,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 173,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10066%2F"
+    }
+  }
+}

@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — The gripper keeps hold when the receiver loads at its edge
+
+An opt-in 2 mm release margin projects the measured table force and torque onto the finite deck. It preserved the successful overhang placement and kept both fingers on the sheet where pressure alone let it fall, including the finer contact controls. After a subsequent 100 mm deck withdrawal, the jaws still carried all 82.4 mN of sheet weight. A placement only about 1 mm inside the edge showed the cost of the conservative setting. [Measured comparison, regression and three native recordings](measurements/local-manipulation/sheet-deck-margin.md)
+
 ## 2026-11-24 — Measure short impacts in the robot’s support sensor and input replay
 
 A 10 g parcel bounced clear of a pad between controller observations. The sensor now reports the correct 3.58125 N mean force, keeps the release timer clear, and reports zero on the following step. The three-epoch command replay reproduces the sorter and both jaw strikes across one and eight threads, including an ordinary-control comparison after reset. The receiving sensor covered 22/22 changed lines and 46/47 regions. All changed replay lines and regions ran. [Support sensor and rebound](measurements/local-manipulation/receiving-impact.md) · [Replay and paused policy changes](measurements/local-manipulation/refined-input-replay.md)
