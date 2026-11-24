@@ -101,6 +101,9 @@ enum Study {
         output: PathBuf,
         #[command(flatten)]
         settings: sheet_jaws::Settings,
+        /// Compare one recorded native jaw path at four material resolutions, beginning at this tick.
+        #[arg(long)]
+        inspect_native_tick: Option<std::num::NonZeroUsize>,
     },
     /// Compare recorded grasps with the finest two exchange rates and select the lowest passing rate.
     SheetJawConvergence {
@@ -286,9 +289,13 @@ fn main() -> Result<()> {
         Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
         Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
-        Study::SheetJaws { output, settings } => {
-            write_new(&output, |out| sheet_jaws::run(out, settings))
-        }
+        Study::SheetJaws {
+            output,
+            settings,
+            inspect_native_tick,
+        } => write_new(&output, |out| {
+            sheet_jaws::study(out, settings, inspect_native_tick.map(|n| n.get()))
+        }),
         Study::SheetJawConvergence { recordings } => {
             println!(
                 "{}",

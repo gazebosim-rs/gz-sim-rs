@@ -7,6 +7,8 @@ pub(super) mod contact_windows;
 pub(super) mod convergence;
 #[path = "sheet_jaws/force_view.rs"]
 pub(super) mod force_view;
+#[path = "sheet_jaws/interval.rs"]
+mod interval;
 use super::*;
 use crate::arm_sheet::{Case, NOMINAL_FLARE, SheetStepFault};
 
@@ -124,7 +126,12 @@ fn timed_scene(
     )
 }
 
-pub(super) fn run(out: &Path, settings: Settings) -> Result<()> {
+#[cfg(test)]
+fn run(out: &Path, settings: Settings) -> Result<()> {
+    study(out, settings, None)
+}
+
+pub(super) fn study(out: &Path, settings: Settings, first_tick: Option<usize>) -> Result<()> {
     let Settings {
         jaw_mass_scale: scale,
         pad_compliance: compliance,
@@ -153,6 +160,9 @@ pub(super) fn run(out: &Path, settings: Settings) -> Result<()> {
     } else {
         12.
     };
+    if let Some(tick) = first_tick {
+        return interval::run(out, &xml, damping, compliance, exchanges_per_ms, tick);
+    }
     let result =
         arm_sheet::simulate_with_jaw_damping(&xml, case, NOMINAL_FLARE, Some(out), damping);
     let trial = match result {

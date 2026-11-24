@@ -338,6 +338,19 @@ pub fn bodies(sim: &Simulation) -> impl Iterator<Item = (&str, &DeformableSample
         })
 }
 
+/// Clone the committed material including rest geometry and contact history for an
+/// independent local solver experiment. Changing the snapshot leaves the world untouched.
+pub fn material_snapshot(sim: &Simulation, name: &str) -> Option<SoftBody> {
+    if sim.is_faulted() {
+        return None;
+    }
+    sim.world()
+        .get_resource::<Deformables>()?
+        .current
+        .get(name)
+        .cloned()
+}
+
 /// Evaluate kinetic, gravitational and elastic energy of a named material in a
 /// healthy loaded world. Values are in joules. The query does no work on other bodies.
 pub fn material_energy(

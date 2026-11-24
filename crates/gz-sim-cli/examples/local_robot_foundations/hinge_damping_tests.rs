@@ -22,3 +22,25 @@ fn measurement_requires_each_named_sample() {
         "missing measured cloth"
     );
 }
+
+#[test]
+fn preserves_io_errors_for_a_partial_material_recording() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    for filename in [
+        "replay",
+        "particle-frames.json",
+        "damping.json",
+        "world.sdf",
+    ] {
+        let dir = temp.path().join(filename.replace('.', "_"));
+        fs::create_dir_all(&dir)?;
+        let obstacle = dir.join(filename);
+        if filename == "replay" {
+            fs::write(&obstacle, "existing file")?;
+        } else {
+            fs::create_dir(&obstacle)?;
+        }
+        assert!(run(&dir).is_err(), "overwrote {filename}");
+    }
+    Ok(())
+}
