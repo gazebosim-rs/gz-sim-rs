@@ -43,7 +43,7 @@ pub use gz_physics_rapier::{
     FacePressureReceipt, FiniteEndpointCertificate, FiniteImpactReceipt, FleetIsolationStats,
     FractionalBearingSpan, FractionalPointEvent, FractionalPointReceipt,
     FrictionlessRecontactReceipt, HeldSupportStatus, InternalPointImpact, JointGravityLoad,
-    MAX_ARTICULATED_CONTACT_SITES, MixedEdgeImpactReceipt, NormalReaction,
+    LockedSubtreeInertia, MAX_ARTICULATED_CONTACT_SITES, MixedEdgeImpactReceipt, NormalReaction,
     OpeningEdgeImpactReceipt, PartitionBounds, PartitionBoxBounds, PlanarImpactReceipt,
     RigidContactObservation, RigidContactPatch, RigidPatchPoint, RigidSurfaceWitness, RobotJoint,
     RobotSpring, RockingLimitReceipt, SharedFaceReceipt, SharedSupportLoad, SharedSupportRequest,
@@ -1710,6 +1710,14 @@ impl MultiFidelityBackend {
         self.solver
             .add_ball_effort(id, torque)
             .map_err(engine_error)
+    }
+
+    /// Composite mass and pivot inertia in the native joint axes.
+    pub fn locked_subtree_inertia(
+        &self,
+        id: JointId,
+    ) -> Result<LockedSubtreeInertia, PhysicsError> {
+        self.solver.locked_subtree_inertia(id).map_err(engine_error)
     }
 
     /// Gravity force and moment of the downstream rigid tree in parent joint axes.

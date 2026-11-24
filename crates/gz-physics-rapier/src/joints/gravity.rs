@@ -15,6 +15,17 @@ pub struct JointGravityLoad {
     pub parent_frame_rotation: [f64; 4],
 }
 
+/// Mass, center of mass and rotational inertia of the downstream bodies held at
+/// their current relative poses. All coordinates are in the parent joint frame.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct LockedSubtreeInertia {
+    pub mass_kg: f64,
+    pub center_of_mass_m: [f64; 3],
+    /// Columns of the symmetric tensor about the joint origin, in kg·m².
+    pub inertia_kg_m2: [[f64; 3]; 3],
+    pub parent_frame_rotation: [f64; 4],
+}
+
 /// Each valid subtree occupies a contiguous range in preorder. Topology is
 /// built once per joint graph; each query visits only its downstream bodies.
 #[derive(Clone, Default)]
@@ -102,10 +113,7 @@ impl RapierBackend {
         (weight, arm.cross(weight), arm.dot(weight))
     }
 
-    /// Sum the native weights and their moments on the child side of a robot joint.
-    /// Admits a tree of robot joints or a tree of ordinary native joints. Mixed
-    /// external constraints, cycles and multiple parents have no unique robot load.
-    pub fn joint_gravity_load(&self, id: JointId) -> Result<JointGravityLoad, PhysicsError> {
+    fn downstream_bodies(&self, id: JointId) -> Result<(Construction, &[BodyId]), PhysicsError> {
         let joint = self
             .joints
             .records
@@ -116,9 +124,60 @@ impl RapierBackend {
             .gravity_tree
             .get_or_init(|| GravityTree::build(&self.joints.records));
         let range = tree.ranges.get(&id).ok_or(PhysicsError::InvalidJoint)?;
-        let frame = self.parent_joint_pose(joint.initial);
+        Ok((joint.initial, &tree.bodies[range.clone()]))
+    }
+
+    /// Composite rigid-body inertia about the current joint pivot. Descendant
+    /// joints contribute at their committed configurations. Free motion of those
+    /// joints requires an articulated dynamics calculation.
+    pub fn locked_subtree_inertia(
+        &self,
+        id: JointId,
+    ) -> Result<LockedSubtreeInertia, PhysicsError> {
+        let (joint, bodies) = self.downstream_bodies(id)?;
+        let frame = self.parent_joint_pose(joint);
+        let inverse = frame.rotation.inverse();
+        let mut mass = 0.;
+        let mut first_moment = Vector::ZERO;
+        let mut inertia = Matrix::ZERO;
+        for body in bodies {
+            let rb = &self.world.bodies[self.bodies[body].0];
+            let props = &rb.mass_properties().local_mprops;
+            let m = props.mass();
+            let arm = inverse * (rb.center_of_mass() - frame.translation);
+            let axes =
+                Matrix::from_quat(inverse * *rb.rotation() * props.principal_inertia_local_frame);
+            let at_com = axes * Matrix::from_diagonal(props.principal_inertia()) * axes.transpose();
+            // [r]×ᵀ [r]× avoids subtracting two nearly equal squared lengths.
+            let cross = Matrix::from_cols(
+                arm.cross(Vector::X),
+                arm.cross(Vector::Y),
+                arm.cross(Vector::Z),
+            );
+            inertia += at_com + m * cross.transpose() * cross;
+            mass += m;
+            first_moment += m * arm;
+        }
+        let center = first_moment / mass;
+        if !mass.is_finite() || !center.is_finite() || !inertia.is_finite() {
+            return Err(PhysicsError::InvalidValue);
+        }
+        Ok(LockedSubtreeInertia {
+            mass_kg: mass,
+            center_of_mass_m: center.to_array(),
+            inertia_kg_m2: inertia.to_cols_array_2d(),
+            parent_frame_rotation: joint.frame1.rotation.to_array(),
+        })
+    }
+
+    /// Sum the native weights and their moments on the child side of a robot joint.
+    /// Admits a tree of robot joints or a tree of ordinary native joints. Mixed
+    /// external constraints, cycles and multiple parents have no unique robot load.
+    pub fn joint_gravity_load(&self, id: JointId) -> Result<JointGravityLoad, PhysicsError> {
+        let (joint, bodies) = self.downstream_bodies(id)?;
+        let frame = self.parent_joint_pose(joint);
         let (mut force, mut moment) = (Vector::ZERO, Vector::ZERO);
-        for body in &tree.bodies[range.clone()] {
+        for body in bodies {
             let (weight, torque, _) = self.gravity_about(self.bodies[body].0, frame.translation);
             force += weight;
             moment += torque;
@@ -132,7 +191,7 @@ impl RapierBackend {
         Ok(JointGravityLoad {
             force_n: force.to_array(),
             torque_nm: moment.to_array(),
-            parent_frame_rotation: joint.initial.frame1.rotation.to_array(),
+            parent_frame_rotation: joint.frame1.rotation.to_array(),
         })
     }
 }

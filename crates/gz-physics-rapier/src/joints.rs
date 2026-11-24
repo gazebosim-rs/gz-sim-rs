@@ -25,7 +25,7 @@ mod coated_ankle;
 pub use coated_ankle::{CoatedAnkle, CoatedAnkleStep, ShankContact};
 mod exact_lock;
 mod gravity;
-pub use gravity::JointGravityLoad;
+pub use gravity::{JointGravityLoad, LockedSubtreeInertia};
 mod parked_robot;
 pub(crate) mod parked_speed;
 mod robot;

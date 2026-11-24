@@ -91,10 +91,10 @@ pub use local_replay::load_local_replay_world;
 
 mod inputs;
 pub use inputs::{
-    InputError, JointForceCommand, joint_gravity_load, pending_free_link_wrench,
-    pending_link_world_wrench, queue_ball_joint_effort, queue_joint_effort,
-    queue_link_force_at_point, queue_link_world_velocity, queue_link_world_wrench,
-    queue_universal_joint_effort, set_joint_force,
+    InputError, JointForceCommand, joint_gravity_load, locked_subtree_inertia,
+    pending_free_link_wrench, pending_link_world_wrench, queue_ball_joint_effort,
+    queue_joint_effort, queue_link_force_at_point, queue_link_world_velocity,
+    queue_link_world_wrench, queue_universal_joint_effort, set_joint_force,
 };
 
 mod schedule;

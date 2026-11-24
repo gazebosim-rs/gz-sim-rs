@@ -18,6 +18,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[path = "gravity_wrist/inertia.rs"]
+mod inertia;
+
 const XML: &str = include_str!("../../../examples/worlds/gravity_wrist.sdf");
 const TICKS: usize = 1200;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -26,10 +29,18 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 struct Options {
     /// Directory for the native replay, measured trajectory and joint gravity comparison.
     output: PathBuf,
+    /// Accelerate and brake the loaded wrist using its measured composite inertia.
+    #[arg(long)]
+    accelerate: bool,
 }
 
 fn main() -> Result<()> {
-    record(&Options::parse().output)
+    let options = Options::parse();
+    if options.accelerate {
+        inertia::record(&options.output)
+    } else {
+        record(&options.output)
+    }
 }
 
 fn named(sim: &Simulation, name: &str) -> Entity {

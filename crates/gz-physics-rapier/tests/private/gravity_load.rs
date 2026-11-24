@@ -32,12 +32,29 @@ fn a_floating_branch_tracks_only_its_descendants_actual_masses_and_gravity_scale
     b.world.bodies[b.bodies[&payload].0].set_gravity_scale(0.25, true);
     assert_eq!(load(&b).force_n, [0., 0., -30.]);
     assert!(Vector::from_array(load(&b).torque_nm).distance(Vector::new(-6., 7., 0.)) < 1e-12);
+    let composite = b.locked_subtree_inertia(bearing).unwrap();
+    assert_eq!(composite.mass_kg, 6.);
+    let center = (Vector::new(0.1, 0.4, 0.2) * 2. + Vector::new(0.5, -0.2, 0.) * 4.) / 6.;
+    assert!(center.distance(composite.center_of_mass_m.into()) < 1e-12);
     assert!(b.remove_joint(edge));
+    assert_eq!(b.locked_subtree_inertia(bearing).unwrap().mass_kg, 2.);
     assert_eq!(load(&b).force_n, [0., 0., -20.]);
     weld(&mut b, Some(wrist), payload);
     assert!(b.remove(payload));
     assert_eq!(load(&b).force_n, [0., 0., -20.]);
+    let handle = b.bodies[&wrist].0;
+    let before = b.locked_subtree_inertia(bearing).unwrap();
     b.world.gravity = Vector::splat(f64::MAX);
+    assert_eq!(b.locked_subtree_inertia(bearing).unwrap(), before);
+    assert!(matches!(
+        b.locked_subtree_inertia(edge),
+        Err(PhysicsError::MissingJoint)
+    ));
+    b.world.bodies[handle].set_translation(Vector::splat(1e200), true);
+    assert!(matches!(
+        b.locked_subtree_inertia(bearing),
+        Err(PhysicsError::InvalidValue)
+    ));
     assert!(matches!(
         b.joint_gravity_load(bearing),
         Err(PhysicsError::InvalidValue)

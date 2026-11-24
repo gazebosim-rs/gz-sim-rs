@@ -454,14 +454,7 @@ pub fn joint_gravity_load(
     sim: &Simulation,
     id: u64,
 ) -> Result<gz_physics_multifidelity::JointGravityLoad, InputError> {
-    let (entity, joint) = loaded_joint(sim, id)?;
-    let authored = sim
-        .world()
-        .get::<crate::JointHandle>(entity)
-        .and_then(|h| h.gravity_axes)
-        .ok_or(InputError::Unsupported(
-            "downstream gravity requires a local rigid robot joint",
-        ))?;
+    let (joint, authored) = joint_load_axes(sim, id)?;
     let backend = sim.world().resource::<PhysicsBackend>();
     let mut load = if let Some(local) =
         backend.downcast_ref::<gz_physics_multifidelity::MultiFidelityBackend>()
@@ -480,6 +473,49 @@ pub fn joint_gravity_load(
     load.torque_nm = (rotate * glam::DVec3::from_array(load.torque_nm)).to_array();
     load.parent_frame_rotation = authored;
     Ok(load)
+}
+
+fn joint_load_axes(sim: &Simulation, id: u64) -> Result<(JointId, [f64; 4]), InputError> {
+    let (entity, joint) = loaded_joint(sim, id)?;
+    let authored = sim
+        .world()
+        .get::<crate::JointHandle>(entity)
+        .and_then(|h| h.gravity_axes)
+        .ok_or(InputError::Unsupported(
+            "downstream gravity requires a local rigid robot joint",
+        ))?;
+    Ok((joint, authored))
+}
+
+/// Composite downstream inertia about a loaded joint, in the authored parent
+/// joint axes. The tensor describes the bodies at their current relative poses.
+pub fn locked_subtree_inertia(
+    sim: &Simulation,
+    id: u64,
+) -> Result<gz_physics_multifidelity::LockedSubtreeInertia, InputError> {
+    let (joint, authored) = joint_load_axes(sim, id)?;
+    let backend = sim.world().resource::<PhysicsBackend>();
+    let mut data = if let Some(local) =
+        backend.downcast_ref::<gz_physics_multifidelity::MultiFidelityBackend>()
+    {
+        local.locked_subtree_inertia(joint).map_err(input_error)?
+    } else {
+        backend
+            .downcast_ref::<gz_physics_rapier::RapierBackend>()
+            .ok_or(InputError::InvalidPhysics)?
+            .locked_subtree_inertia(joint)
+            .map_err(input_error)?
+    };
+    let rotation = glam::DMat3::from_quat(
+        glam::DQuat::from_array(authored).inverse()
+            * glam::DQuat::from_array(data.parent_frame_rotation),
+    );
+    data.center_of_mass_m = (rotation * glam::DVec3::from(data.center_of_mass_m)).to_array();
+    data.inertia_kg_m2 =
+        (rotation * glam::DMat3::from_cols_array_2d(&data.inertia_kg_m2) * rotation.transpose())
+            .to_cols_array_2d();
+    data.parent_frame_rotation = authored;
+    Ok(data)
 }
 
 fn loaded_joint(sim: &Simulation, id: u64) -> Result<(Entity, JointId), InputError> {
