@@ -2357,6 +2357,11 @@ fn parallel_pose_updates(rows: usize) -> bool {
         && bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::new).thread_num() > 1
 }
 
+fn pose_batch_rows(rows: usize) -> usize {
+    rows.div_ceil(bevy_tasks::ComputeTaskPool::get().thread_num())
+        .max(2048)
+}
+
 fn sync_models(
     identities: EntityLookup,
     links: Query<(&EntityId, &WorldPose), Without<ModelAnchor>>,
@@ -2364,34 +2369,50 @@ fn sync_models(
 ) {
     if parallel_pose_updates(models.count())
         && let (Ok(link_tables), Ok(model_chunks)) =
-            (links.contiguous_iter(), models.contiguous_par_iter_mut())
+            (links.contiguous_iter(), models.contiguous_iter_mut())
     {
         let tables: Vec<_> = link_tables.collect();
-        model_chunks
-            .batching_strategy(bevy_ecs::batching::BatchingStrategy::new().min_batch_size(2048))
-            .for_each(|(anchors, mut poses)| {
-                let mut resolve = identities.reader();
-                for (anchors, poses) in anchors.chunks(64).zip(poses.chunks_mut(64)) {
-                    // Both tables often retain construction order. Seek once per
-                    // small block; swap-removes and restored IDs can break a run.
-                    let source = tables.iter().find_map(|(ids, values)| {
-                        let start = ids.partition_point(|id| id.get() < anchors[0].link);
-                        (ids.get(start)?.get() == anchors[0].link)
-                            .then(|| (&ids[start..], &values[start..]))
+        // Fetch whole Bevy tables before splitting their disjoint rows. This keeps
+        // each pose slice paired with the entity rows that produced it.
+        let tables = &tables;
+        let identities = &identities;
+        let links = &links;
+        bevy_tasks::ComputeTaskPool::get().scope(|scope| {
+            for (anchors, poses) in model_chunks {
+                let batch_rows = pose_batch_rows(anchors.len());
+                let (poses, _) = bevy_ecs::change_detection::ContiguousMut::split(poses);
+                for (anchors, poses) in anchors
+                    .chunks(batch_rows)
+                    .zip(poses.chunks_mut(batch_rows))
+                {
+                    scope.spawn(async move {
+                        let mut resolve = identities.reader();
+                        for (anchors, poses) in anchors.chunks(64).zip(poses.chunks_mut(64)) {
+                            // Both tables often retain construction order. Seek once per
+                            // small block; swap-removes and restored IDs can break a run.
+                            let source = tables.iter().find_map(|(ids, values)| {
+                                let start = ids.partition_point(|id| id.get() < anchors[0].link);
+                                (ids.get(start)?.get() == anchors[0].link)
+                                    .then(|| (&ids[start..], &values[start..]))
+                            });
+                            for (i, (anchor, pose)) in
+                                anchors.iter().zip(poses.iter_mut()).enumerate()
+                            {
+                                let adjacent = source.and_then(|(ids, values)| {
+                                    (ids.get(i)?.get() == anchor.link).then(|| &values[i])
+                                });
+                                let link = adjacent.unwrap_or_else(|| {
+                                    let entity = resolve(anchor.link)
+                                        .expect("scene owns canonical link identity");
+                                    links.get(entity).expect("scene owns canonical link pose").1
+                                });
+                                *pose = link.compose(anchor.link_to_model);
+                            }
+                        }
                     });
-                    for (i, (anchor, pose)) in anchors.iter().zip(poses.iter_mut()).enumerate() {
-                        let adjacent = source.and_then(|(ids, values)| {
-                            (ids.get(i)?.get() == anchor.link).then(|| &values[i])
-                        });
-                        let link = adjacent.unwrap_or_else(|| {
-                            let entity =
-                                resolve(anchor.link).expect("scene owns canonical link identity");
-                            links.get(entity).expect("scene owns canonical link pose").1
-                        });
-                        *pose = link.compose(anchor.link_to_model);
-                    }
                 }
-            });
+            }
+        });
         return;
     }
     let mut resolve = identities.reader();
@@ -2479,25 +2500,41 @@ fn sync_bodies(
         velocity.angular = state.angular_velocity;
     };
     if parallel_pose_updates(bodies.count())
-        && let Ok(chunks) = bodies.contiguous_par_iter_mut()
+        && let Ok(tables) = bodies.contiguous_iter_mut()
     {
-        chunks
-            .batching_strategy(bevy_ecs::batching::BatchingStrategy::new().min_batch_size(2048))
-            .for_each(|(handles, centers, mut poses, mut velocities)| {
-                // Each task owns contiguous ECS writes and a scoped native cursor.
-                // A missing/repeated/out-of-order ID has the scalar read semantics.
-                backend.read_states(&mut |states| {
-                    for (i, ((handle, pose), velocity)) in handles
-                        .iter()
-                        .zip(poses.iter_mut())
-                        .zip(velocities.iter_mut())
-                        .enumerate()
-                    {
-                        let state = states.state(handle.0).expect("scene owns body lifecycle");
-                        publish(state, centers.map(|s| &s[i]), pose, velocity);
-                    }
-                });
-            });
+        let backend = &*backend;
+        bevy_tasks::ComputeTaskPool::get().scope(|scope| {
+            for (handles, centers, poses, velocities) in tables {
+                let batch_rows = pose_batch_rows(handles.len());
+                let (poses, _) = bevy_ecs::change_detection::ContiguousMut::split(poses);
+                let (velocities, _) = bevy_ecs::change_detection::ContiguousMut::split(velocities);
+                for (batch, ((handles, poses), velocities)) in handles
+                    .chunks(batch_rows)
+                    .zip(poses.chunks_mut(batch_rows))
+                    .zip(velocities.chunks_mut(batch_rows))
+                    .enumerate()
+                {
+                    let start = batch * batch_rows;
+                    let centers = centers.map(|all| &all[start..start + handles.len()]);
+                    scope.spawn(async move {
+                        // Each task owns contiguous ECS writes and a scoped native cursor.
+                        // A missing/repeated/out-of-order ID has the scalar read semantics.
+                        backend.read_states(&mut |states| {
+                            for (i, ((handle, pose), velocity)) in handles
+                                .iter()
+                                .zip(poses.iter_mut())
+                                .zip(velocities.iter_mut())
+                                .enumerate()
+                            {
+                                let state =
+                                    states.state(handle.0).expect("scene owns body lifecycle");
+                                publish(state, centers.map(|s| &s[i]), pose, velocity);
+                            }
+                        });
+                    });
+                }
+            }
+        });
         return;
     }
     backend.read_states(&mut |states| {

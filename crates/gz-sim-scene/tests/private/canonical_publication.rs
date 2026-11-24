@@ -65,3 +65,58 @@ fn dense_model_publication_follows_the_live_link_across_reordering_and_replaceme
         );
     }
 }
+
+#[test]
+fn dense_body_publication_preserves_each_native_pose_and_center_velocity() {
+    let mut sim = Simulation::new(Duration::from_millis(1)).unwrap();
+    let mut backend: PhysicsBackend = RapierBackend::new([0.; 3]).unwrap().into();
+    let mut cases = Vec::new();
+    let rotation = RotationSpec {
+        orientation: DQuat::from_rotation_z(0.5).to_array(),
+        angular_velocity: [0., 0., 2.],
+    };
+    // Two distinct Bevy tables have full batches and unequal final batches.
+    for i in 0..9001 {
+        let spec = BodySpec {
+            shape: Shape::Sphere { radius: 0.1 },
+            position: [f64::from(i), 0., 3.],
+            velocity: [0.25, f64::from(i), -0.5],
+            mass: Some(1.),
+        };
+        let id = backend.spawn_link(spec, rotation, None).unwrap();
+        let mut body = sim.world_mut().spawn((
+            BodyHandle(id),
+            WorldPose {
+                translation: [0.; 3],
+                rotation: [0., 0., 0., 1.],
+            },
+            Velocity {
+                linear: [0.; 3],
+                angular: [0.; 3],
+            },
+        ));
+        let center = [0.001 * f64::from(i), 0.1, 0.];
+        if i % 2 == 0 {
+            body.insert(LinkCenterOfMass(center));
+        }
+        cases.push((body.id(), id, (i % 2 == 0).then_some(center)));
+    }
+    sim.world_mut().insert_resource(backend);
+    sim.add_systems(Phase::PhysicsCommit, sync_bodies);
+    sim.step_exact(1).unwrap();
+    let backend = sim.world().resource::<PhysicsBackend>();
+    for (entity, id, center) in cases {
+        let native = backend.state(id).unwrap();
+        let published = sim.world().get::<WorldPose>(entity).unwrap();
+        let velocity = sim.world().get::<Velocity>(entity).unwrap();
+        assert_eq!(published.translation, native.position);
+        assert_eq!(published.rotation, native.orientation);
+        assert_eq!(velocity.angular, native.angular_velocity);
+        let mut expected = DVec3::from_array(native.velocity);
+        if let Some(center) = center {
+            let arm = DQuat::from_array(native.orientation) * DVec3::from_array(center);
+            expected -= DVec3::from_array(native.angular_velocity).cross(arm);
+        }
+        assert_eq!(velocity.linear, expected.to_array());
+    }
+}
