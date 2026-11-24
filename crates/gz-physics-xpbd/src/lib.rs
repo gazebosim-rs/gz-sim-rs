@@ -28,7 +28,7 @@ mod coupled;
 mod cuboid;
 mod energy;
 mod static_box_faces;
-pub use energy::MaterialEnergy;
+pub use energy::{MaterialElasticForce, MaterialEnergy};
 mod impact_group;
 mod material;
 mod momentum;

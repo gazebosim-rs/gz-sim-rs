@@ -330,6 +330,21 @@ pub fn material_energy(
         .map(SoftBody::mechanical_energy)
 }
 
+/// Query spring restoring forces on the committed nodes of one named material.
+pub fn material_elastic_forces(
+    sim: &Simulation,
+    name: &str,
+) -> Option<Result<Vec<gz_physics_xpbd::MaterialElasticForce>, gz_physics_xpbd::XpbdError>> {
+    if sim.is_faulted() {
+        return None;
+    }
+    sim.world()
+        .get_resource::<Deformables>()?
+        .current
+        .get(name)
+        .map(SoftBody::elastic_node_forces)
+}
+
 fn reset(info: Res<UpdateInfo>, mut soft: ResMut<Deformables>) {
     let soft = &mut *soft;
     soft.pending_accelerations.clear();

@@ -212,6 +212,10 @@ pub(super) struct PanelBalance {
     normal_up_n: [f64; 2],
     tangent_up_n: [f64; 2],
     momentum_change_per_second_n: [f64; 2],
+    /// Instantaneous spring force sampled once per actuator period during the hold.
+    elastic_distance_up_n: [f64; 2],
+    elastic_bending_up_n: [f64; 2],
+    elastic_samples: usize,
 }
 
 impl Metrics {
@@ -384,6 +388,17 @@ pub(super) fn simulate_with_jaw_damping(
         let points = b.particles();
         if let Some(balance) = &mut m.panel_balance {
             if HOLD.contains(&tick) {
+                if native_tick.is_multiple_of(exchanges) {
+                    let forces = gz_sim_scene::deformable::material_elastic_forces(&r.sim, "sheet")
+                        .ok_or("missing committed folded sheet")??;
+                    for (id, f) in forces.iter().enumerate() {
+                        balance.elastic_distance_up_n[panel(id)] +=
+                            f.distance.z / HOLD.clone().count() as f64;
+                        balance.elastic_bending_up_n[panel(id)] +=
+                            f.bending.z / HOLD.clone().count() as f64;
+                    }
+                    balance.elastic_samples += 1;
+                }
                 for j in b.last_self_contact_particle_impulses() {
                     let layer = panel(j.particle);
                     balance.normal_up_n[layer] += j.normal[2] / hold_duration;
