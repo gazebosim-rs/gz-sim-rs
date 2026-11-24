@@ -7,6 +7,10 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — Native joint readings on the local CPU transfer robot
+
+The rail and both jaws publish real measurements on the standard joint-state topic at 100 Hz. A Zenoh subscriber verified the three prismatic joint types, timestamp and motion. The 200 g shelf transfer produced the same 451 visual frames as the run without the publisher. [Measurements, source coverage and gz-web-rs replay](measurements/local-manipulation/cpu-gripper-joint-state.md)
+
 ## 2026-11-23 — 2,048 observed GPU grippers
 
 The ordinary SDF and Bevy path now runs 2,048 independent three-slider grippers with free objects and per-robot joint readings. It accepts a complete live action vector transactionally and publishes every robot each millisecond. Across eight load, friction and command scenarios, 1,024 spheres cleared 100 mm throughout the hold and the other 1,024 stayed on or returned to the table. Sixteen independent native CPU simulations checked both ends of the command range. Median throughput was 382,888 environment-steps/s with SDF commands and 301,212 with dense live commands, with identical physical and joint-sensor digests through all twelve episodes. [Timing, controls, coverage and visual replay](measurements/local-manipulation/gpu-gripper-population.md)
