@@ -1,0 +1,562 @@
+{
+  "approach": {
+    "iterations": 24,
+    "substeps": 8
+  },
+  "comparisons": [
+    {
+      "iterations": 24,
+      "max_mean_cross_panel_node_error_n": 0.031152994863756254,
+      "max_tick_self_contact_error_n": 0.032398973825333244,
+      "mean_cross_panel_error_n": 0.031153105620858382,
+      "mean_self_contact_error_n": 0.031153105620858382,
+      "substeps": 8
+    },
+    {
+      "iterations": 24,
+      "max_mean_cross_panel_node_error_n": 0.002230137978210027,
+      "max_tick_self_contact_error_n": 0.0030981062880160067,
+      "mean_cross_panel_error_n": 0.002230138070858617,
+      "mean_self_contact_error_n": 0.0022301380708586206,
+      "substeps": 16
+    },
+    {
+      "iterations": 24,
+      "max_mean_cross_panel_node_error_n": 3.615166467749176e-05,
+      "max_tick_self_contact_error_n": 0.001769079680875453,
+      "mean_cross_panel_error_n": 3.603831943516794e-05,
+      "mean_self_contact_error_n": 3.603831943516794e-05,
+      "substeps": 32
+    },
+    {
+      "iterations": 12,
+      "max_mean_cross_panel_node_error_n": 3.621878993725555e-05,
+      "max_tick_self_contact_error_n": 0.0017691295141923497,
+      "mean_cross_panel_error_n": 3.6105406073579094e-05,
+      "mean_self_contact_error_n": 3.6105406073575624e-05,
+      "substeps": 32
+    },
+    {
+      "iterations": 48,
+      "max_mean_cross_panel_node_error_n": 3.615368166251867e-05,
+      "max_tick_self_contact_error_n": 0.0017690796794099725,
+      "mean_cross_panel_error_n": 3.604036099183819e-05,
+      "mean_self_contact_error_n": 3.604036099183819e-05,
+      "substeps": 32
+    },
+    {
+      "iterations": 24,
+      "max_mean_cross_panel_node_error_n": 2.7424083143268163e-10,
+      "max_tick_self_contact_error_n": 1.6872196243085391e-06,
+      "mean_cross_panel_error_n": 2.688223255109534e-10,
+      "mean_self_contact_error_n": 2.6882232204150647e-10,
+      "substeps": 64
+    },
+    {
+      "iterations": 48,
+      "max_mean_cross_panel_node_error_n": 0.0,
+      "max_tick_self_contact_error_n": 0.0,
+      "mean_cross_panel_error_n": 0.0,
+      "mean_self_contact_error_n": 0.0,
+      "substeps": 64
+    }
+  ],
+  "dt_ns": 1000000,
+  "hold_ticks": 300,
+  "matched_time_ns": 1650000000,
+  "reference": {
+    "iterations": 48,
+    "substeps": 64
+  },
+  "trials": [
+    {
+      "first_self_contact_n": 0.04914687921498197,
+      "hold_step_p95_ns": 1907444,
+      "iterations": 24,
+      "last_100ms_self_contact_n": 0.049146328381248355,
+      "max_particle_displacement_from_anchor_m": 4.62703821041771e-06,
+      "mean_bench_up_n": -0.0,
+      "mean_cross_panel_n": 0.04914633327355002,
+      "mean_cross_panel_node_normal_n": [
+        0.0,
+        0.04914622238207146,
+        1.1089147854186414e-07,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.020994147523004e-07,
+        0.049146131174135195,
+        0.0
+      ],
+      "mean_jaw_normal_n": [
+        0.61541597246701,
+        0.6154159724658327
+      ],
+      "mean_jaw_up_n": [
+        0.0410601776125523,
+        0.04134802728470379
+      ],
+      "mean_mixed_n": 0.0,
+      "mean_pad_normal_by_node_n": [
+        0.0,
+        0.3041708761763708,
+        0.0,
+        0.0,
+        0.31124509629063896,
+        0.0,
+        0.0,
+        0.3111734989281651,
+        0.0,
+        0.0,
+        0.30424247353766726,
+        0.0
+      ],
+      "mean_same_panel_n": 0.0,
+      "mean_self_contact_n": 0.04914633327355002,
+      "min_bench_clearance_m": 0.14961663654776647,
+      "refined_ticks": 0,
+      "substeps": 8
+    },
+    {
+      "first_self_contact_n": 0.022464824160056514,
+      "hold_step_p95_ns": 3526877,
+      "iterations": 24,
+      "last_100ms_self_contact_n": 0.020224796268912704,
+      "max_particle_displacement_from_anchor_m": 4.892044397274803e-06,
+      "mean_bench_up_n": -0.0,
+      "mean_cross_panel_n": 0.020223365723550258,
+      "mean_cross_panel_node_normal_n": [
+        0.0,
+        0.020223365496525234,
+        2.2702502291872503e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.6515864361495376e-07,
+        0.020223200564906625,
+        0.0
+      ],
+      "mean_jaw_normal_n": [
+        0.6151555495533719,
+        0.615155555764081
+      ],
+      "mean_jaw_up_n": [
+        0.04124621996584567,
+        0.04116198562462728
+      ],
+      "mean_mixed_n": 0.0,
+      "mean_pad_normal_by_node_n": [
+        0.0,
+        0.3036671434844965,
+        0.0,
+        0.0,
+        0.3114884060688753,
+        0.0,
+        0.0,
+        0.311510622896475,
+        0.0,
+        0.0,
+        0.3036449328676051,
+        0.0
+      ],
+      "mean_same_panel_n": 0.0,
+      "mean_self_contact_n": 0.02022336572355026,
+      "min_bench_clearance_m": 0.1496165048986473,
+      "refined_ticks": 0,
+      "substeps": 16
+    },
+    {
+      "first_self_contact_n": 0.02166382392565616,
+      "hold_step_p95_ns": 8435456,
+      "iterations": 24,
+      "last_100ms_self_contact_n": 0.017954521849808044,
+      "max_particle_displacement_from_anchor_m": 4.932256780646065e-06,
+      "mean_bench_up_n": -0.0,
+      "mean_cross_panel_n": 0.017957189333256473,
+      "mean_cross_panel_node_normal_n": [
+        0.0,
+        0.017957163602595933,
+        2.5730660537329787e-08,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.1488579395625106e-07,
+        0.017957074447462525,
+        0.0
+      ],
+      "mean_jaw_normal_n": [
+        0.6151353022502529,
+        0.6151353207726746
+      ],
+      "mean_jaw_up_n": [
+        0.04122017396895829,
+        0.04118803177803736
+      ],
+      "mean_mixed_n": 0.0,
+      "mean_pad_normal_by_node_n": [
+        0.0,
+        0.30361831476733897,
+        0.0,
+        0.0,
+        0.3115169874829139,
+        0.0,
+        0.0,
+        0.31152619485526883,
+        0.0,
+        0.0,
+        0.3036091259174053,
+        0.0
+      ],
+      "mean_same_panel_n": 0.0,
+      "mean_self_contact_n": 0.017957189333256473,
+      "min_bench_clearance_m": 0.14961649546580852,
+      "refined_ticks": 0,
+      "substeps": 32
+    },
+    {
+      "first_self_contact_n": 0.021663774092339265,
+      "hold_step_p95_ns": 5249169,
+      "iterations": 12,
+      "last_100ms_self_contact_n": 0.017954457790314116,
+      "max_particle_displacement_from_anchor_m": 4.932459039948882e-06,
+      "mean_bench_up_n": -0.0,
+      "mean_cross_panel_n": 0.017957122246618062,
+      "mean_cross_panel_node_normal_n": [
+        0.0,
+        0.017957096555823837,
+        2.569079421523793e-08,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.1492441527946275e-07,
+        0.01795700732220276,
+        0.0
+      ],
+      "mean_jaw_normal_n": [
+        0.6151353012678705,
+        0.6151353216718469
+      ],
+      "mean_jaw_up_n": [
+        0.041220265433760415,
+        0.04118794239780832
+      ],
+      "mean_mixed_n": 0.0,
+      "mean_pad_normal_by_node_n": [
+        0.0,
+        0.3036183131232477,
+        0.0,
+        0.0,
+        0.31151698814462264,
+        0.0,
+        0.0,
+        0.31152619399817494,
+        0.0,
+        0.0,
+        0.30360912767367193,
+        0.0
+      ],
+      "mean_same_panel_n": 0.0,
+      "mean_self_contact_n": 0.017957122246618065,
+      "min_bench_clearance_m": 0.14961649527397114,
+      "refined_ticks": 0,
+      "substeps": 32
+    },
+    {
+      "first_self_contact_n": 0.021663823927121642,
+      "hold_step_p95_ns": 12539663,
+      "iterations": 48,
+      "last_100ms_self_contact_n": 0.01795452171612846,
+      "max_particle_displacement_from_anchor_m": 4.932403792274306e-06,
+      "mean_bench_up_n": -0.0,
+      "mean_cross_panel_n": 0.017957187291699803,
+      "mean_cross_panel_node_normal_n": [
+        0.0,
+        0.017957161535558125,
+        2.575614166383663e-08,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.1486122228283982e-07,
+        0.0179570724304775,
+        0.0
+      ],
+      "mean_jaw_normal_n": [
+        0.6151353016671426,
+        0.6151353213614137
+      ],
+      "mean_jaw_up_n": [
+        0.04122015452797135,
+        0.041188051586258136
+      ],
+      "mean_mixed_n": 0.0,
+      "mean_pad_normal_by_node_n": [
+        0.0,
+        0.3036183141141903,
+        0.0,
+        0.0,
+        0.31151698755295204,
+        0.0,
+        0.0,
+        0.31152619480187854,
+        0.0,
+        0.0,
+        0.3036091265595345,
+        0.0
+      ],
+      "mean_same_panel_n": 0.0,
+      "mean_self_contact_n": 0.017957187291699803,
+      "min_bench_clearance_m": 0.14961649535457605,
+      "refined_ticks": 0,
+      "substeps": 32
+    },
+    {
+      "first_self_contact_n": 0.023432903606030932,
+      "hold_step_p95_ns": 21443758,
+      "iterations": 24,
+      "last_100ms_self_contact_n": 0.017982178719024987,
+      "max_particle_displacement_from_anchor_m": 4.960778751162644e-06,
+      "mean_bench_up_n": -0.0,
+      "mean_cross_panel_n": 0.017993227383869315,
+      "mean_cross_panel_node_normal_n": [
+        0.0,
+        0.017993227244074376,
+        1.3979492166855222e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.522667438338616e-09,
+        0.017993225861201858,
+        0.0
+      ],
+      "mean_jaw_normal_n": [
+        0.6151349260065503,
+        0.6151349700572412
+      ],
+      "mean_jaw_up_n": [
+        0.04120400284412324,
+        0.041204202746728126
+      ],
+      "mean_mixed_n": 0.0,
+      "mean_pad_normal_by_node_n": [
+        0.0,
+        0.30361389894525787,
+        0.0,
+        0.0,
+        0.3115210270612929,
+        0.0,
+        0.0,
+        0.3115216779833919,
+        0.0,
+        0.0,
+        0.3036132920738498,
+        0.0
+      ],
+      "mean_same_panel_n": 0.0,
+      "mean_self_contact_n": 0.01799322738386932,
+      "min_bench_clearance_m": 0.1496164961831416,
+      "refined_ticks": 0,
+      "substeps": 64
+    },
+    {
+      "first_self_contact_n": 0.023432903606531615,
+      "hold_step_p95_ns": 45689163,
+      "iterations": 48,
+      "last_100ms_self_contact_n": 0.01798217871905336,
+      "max_particle_displacement_from_anchor_m": 4.960750488065843e-06,
+      "mean_bench_up_n": -0.0,
+      "mean_cross_panel_n": 0.01799322765269164,
+      "mean_cross_panel_node_normal_n": [
+        0.0,
+        0.017993227518315207,
+        1.3437642591845222e-10,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5405516209294553e-09,
+        0.017993226112140017,
+        0.0
+      ],
+      "mean_jaw_normal_n": [
+        0.615134926425439,
+        0.6151349696373504
+      ],
+      "mean_jaw_up_n": [
+        0.04120400423956143,
+        0.04120420135130427
+      ],
+      "mean_mixed_n": 0.0,
+      "mean_pad_normal_by_node_n": [
+        0.0,
+        0.3036138994979267,
+        0.0,
+        0.0,
+        0.31152102692751193,
+        0.0,
+        0.0,
+        0.3115216781132036,
+        0.0,
+        0.0,
+        0.30361329152414696,
+        0.0
+      ],
+      "mean_same_panel_n": 0.0,
+      "mean_self_contact_n": 0.01799322765269164,
+      "min_bench_clearance_m": 0.14961649618310624,
+      "refined_ticks": 0,
+      "substeps": 64
+    }
+  ],
+  "per_trial_samples": 300,
+  "mesh": {
+    "calibration": "Total flat-face pad stiffness for equal indentation, axial stretch, simple-shear energy and hinge dual-width/edge-length scaling.",
+    "drive": "Identical recorded jaw endpoint trajectory on all meshes; cold material contact histories.",
+    "dt_s": 0.001,
+    "material_substeps": 64,
+    "solver_iterations": 48,
+    "start_ms": 1650,
+    "ticks": 300,
+    "trials": [
+      {
+        "angular_momentum_error_nms": 0.0,
+        "center_of_mass_error_m": 0.0,
+        "columns": 3,
+        "completed_ticks": 300,
+        "cross_panel_width_n": [
+          7.70275810458728e-10,
+          0.017993226815220954,
+          6.718821295922298e-11
+        ],
+        "face_nodes": [
+          2,
+          2
+        ],
+        "initial_panel_skin_gap_m": 2.001532329876099e-06,
+        "linear_momentum_error_ns": 0.0,
+        "mass_error_kg": 0.0,
+        "max_matched_node_position_error_m": 0.0,
+        "max_matched_node_velocity_error_m_s": 0.0,
+        "mean_bench_up_n": 0.0,
+        "mean_closest_panel_skin_gap_m": 1.9910030722482727e-10,
+        "mean_cross_panel_n": 0.017993227652684914,
+        "mean_jaw_squeeze_n": [
+          0.6151349264254334,
+          0.6151349696373369
+        ],
+        "mean_jaw_up_n": [
+          0.04120400423956148,
+          0.041204201351295995
+        ],
+        "mean_self_contact_n": 0.017993227652684907,
+        "min_held_panel_skin_gap_m": 1.1645278491512201e-11,
+        "pad_compliance_m_per_n": [
+          0.001,
+          0.001
+        ],
+        "refusal": null,
+        "spacing_m": 0.053,
+        "status": "completed"
+      },
+      {
+        "angular_momentum_error_nms": 1.235640321122648e-09,
+        "center_of_mass_error_m": 5.556388005315563e-17,
+        "columns": 5,
+        "completed_ticks": 300,
+        "cross_panel_width_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "face_nodes": [
+          6,
+          6
+        ],
+        "initial_panel_skin_gap_m": 2.00153232993161e-06,
+        "linear_momentum_error_ns": 1.0703308003012953e-21,
+        "mass_error_kg": 1.734723475976807e-18,
+        "max_matched_node_position_error_m": 0.0,
+        "max_matched_node_velocity_error_m_s": 0.0,
+        "mean_bench_up_n": 0.0,
+        "mean_closest_panel_skin_gap_m": 3.906186716354799e-06,
+        "mean_cross_panel_n": 0.0,
+        "mean_jaw_squeeze_n": [
+          0.6179445219474439,
+          0.6179445570595402
+        ],
+        "mean_jaw_up_n": [
+          0.041121140193228954,
+          0.041287065381230344
+        ],
+        "mean_self_contact_n": 0.0,
+        "min_held_panel_skin_gap_m": 3.104048384217073e-06,
+        "pad_compliance_m_per_n": [
+          0.003,
+          0.003
+        ],
+        "refusal": null,
+        "spacing_m": 0.0265,
+        "status": "completed"
+      },
+      {
+        "angular_momentum_error_nms": 1.4644626028119826e-09,
+        "center_of_mass_error_m": 1.5700976395944457e-16,
+        "columns": 7,
+        "completed_ticks": 300,
+        "cross_panel_width_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "face_nodes": [
+          10,
+          10
+        ],
+        "initial_panel_skin_gap_m": 2.001532329876099e-06,
+        "linear_momentum_error_ns": 3.0728721031506205e-21,
+        "mass_error_kg": 1.734723475976807e-18,
+        "max_matched_node_position_error_m": 0.0,
+        "max_matched_node_velocity_error_m_s": 0.0,
+        "mean_bench_up_n": 0.0,
+        "mean_closest_panel_skin_gap_m": 4.872383190325548e-06,
+        "mean_cross_panel_n": 0.0,
+        "mean_jaw_squeeze_n": [
+          0.6185849017700862,
+          0.6185849351851013
+        ],
+        "mean_jaw_up_n": [
+          0.04110411467882053,
+          0.04130409087553014
+        ],
+        "mean_self_contact_n": 0.0,
+        "min_held_panel_skin_gap_m": 3.952244149674211e-06,
+        "pad_compliance_m_per_n": [
+          0.005,
+          0.005
+        ],
+        "refusal": null,
+        "spacing_m": 0.017666666666666667,
+        "status": "completed"
+      }
+    ]
+  }
+}

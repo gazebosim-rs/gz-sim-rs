@@ -1,0 +1,10 @@
+{
+  "seed": "spawned-parcel-load",
+  "commands": [
+    {"op":"spawn","template":"default::parcel","alias":"pushed","position":[-0.15,0.12,0.64]},
+    {"op":"spawn","template":"default::parcel","alias":"control","position":[-0.15,-0.12,0.64]},
+    {"op":"point_force","link":{"alias":"pushed"},"point_in_link_m":[0,0.02,0],"world_force_n":[60,0,0]},
+    {"op":"paused_tick"},
+    {"op":"step","count":200}
+  ]
+}

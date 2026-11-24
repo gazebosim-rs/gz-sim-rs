@@ -1,0 +1,53 @@
+<svg width="780" height="316" viewBox="0 0 780 316" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="780" height="316" opacity="1" fill="#FFFFFF" stroke="none"/>
+<text x="20" y="31" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="19.35483870967742" opacity="1" fill="#24303E" font-weight="bold">
+Normal impulse at each end of the landing edge
+</text>
+<text x="20" y="56" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#24303E">
+Measured in mN·s on the released 80 g cuboid
+</text>
+<text x="20" y="102" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="13.709677419354838" opacity="1" fill="#24303E" font-weight="bold">
+Centered edge
+</text>
+<rect x="191" y="78" width="231" height="13" opacity="1" fill="#1B6F99" stroke="none"/>
+<text x="430" y="90" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="11.290322580645162" opacity="1" fill="#24303E">
+33.95
+</text>
+<rect x="191" y="99" width="231" height="13" opacity="1" fill="#C96622" stroke="none"/>
+<text x="430" y="111" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="11.290322580645162" opacity="1" fill="#24303E">
+33.95
+</text>
+<text x="20" y="164" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="13.709677419354838" opacity="1" fill="#24303E" font-weight="bold">
+Off-center edge
+</text>
+<rect x="191" y="140" width="426" height="13" opacity="1" fill="#1B6F99" stroke="none"/>
+<text x="625" y="152" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="11.290322580645162" opacity="1" fill="#24303E">
+62.59
+</text>
+<rect x="191" y="161" width="279" height="13" opacity="1" fill="#C96622" stroke="none"/>
+<text x="478" y="173" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="11.290322580645162" opacity="1" fill="#24303E">
+41.01
+</text>
+<text x="20" y="226" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="13.709677419354838" opacity="1" fill="#24303E" font-weight="bold">
+Mirrored edge
+</text>
+<rect x="191" y="202" width="279" height="13" opacity="1" fill="#1B6F99" stroke="none"/>
+<text x="478" y="214" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="11.290322580645162" opacity="1" fill="#24303E">
+41.01
+</text>
+<rect x="191" y="223" width="426" height="13" opacity="1" fill="#C96622" stroke="none"/>
+<text x="625" y="235" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="11.290322580645162" opacity="1" fill="#24303E">
+62.59
+</text>
+<rect x="20" y="278" width="17" height="13" opacity="1" fill="#1B6F99" stroke="none"/>
+<text x="46" y="290" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#24303E">
+First witness
+</text>
+<rect x="185" y="278" width="17" height="13" opacity="1" fill="#C96622" stroke="none"/>
+<text x="211" y="290" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#24303E">
+Second witness
+</text>
+<text x="369" y="290" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#24303E">
+Witnesses ordered by world Y, then X.
+</text>
+</svg>

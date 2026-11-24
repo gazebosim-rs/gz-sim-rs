@@ -1,0 +1,646 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use super::*;
+
+#[test]
+fn positive_tensors_have_a_realizable_mass_and_survive_native_loading() -> Result<()> {
+    for input in ["0", "1025", "NaN", "junk"] {
+        assert!(Args::try_parse_from(["study", "--divisor", input]).is_err());
+    }
+    for d in ["1", "1.25", "5"] {
+        let args = Args::try_parse_from(["study", "--ticks", "1", "--divisor", d])?;
+        let sdf = sdformat::load_str(
+            &fixture(&args.trial),
+            "serial-impact.sdf",
+            &sdformat::NoResources,
+        )?;
+        let arm = sdf.worlds[0]
+            .models
+            .iter()
+            .find(|m| m.name == "gripper")
+            .unwrap();
+        for (name, mass, dims) in LINKS {
+            let link = arm.links.iter().find(|link| link.name == name).unwrap();
+            assert_eq!(link.inertial.mass, mass);
+            assert_eq!(link.inertial.pose.transform.translation, [0.; 3]);
+            assert!(
+                matches!(link.collisions[0].geometry, sdformat::Geometry::Box {size} if size==dims)
+            );
+        }
+        let r = run(args.trial)?;
+        assert!((r.native_robot_mass_kg - 2.46).abs() < 1e-12);
+        for (i, row) in r.native_left_tensor_kg_m2.iter().enumerate() {
+            assert!((row[i] - r.tensors_kg_m2[3][i]).abs() < 1e-15);
+        }
+        for t in r.tensors_kg_m2 {
+            for i in 0..3 {
+                assert!(t[i] > 0. && t[i] < t[(i + 1) % 3] + t[(i + 2) % 3]);
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn touching_setup_matches_and_native_impulse_explains_parcel_momentum() -> Result<()> {
+    let args = Args::try_parse_from(["study", "--ticks", "2"])?;
+    let r = run(args.trial)?;
+    let p = &r.incoming[5];
+    assert!((p.xyz[0] + 0.03 - (r.incoming[3].xyz[0] - 0.009)).abs() < 1e-14);
+    assert_eq!(p.v, [0.75, 0., 0.]);
+    let compare = compare::against_fine(&r)?;
+    assert!((0.04..0.05).contains(&compare.primary.left_ns));
+    assert!(compare.primary_vs_fine.impulse_percent.unwrap() < 5.);
+    assert!(compare.primary_vs_fine.max_translation_mm < 0.5);
+    let m = 0.2 * (p.v[0] - r.samples[0].bodies[5].v[0]);
+    assert!((m - r.samples[0].impact.left_ns).abs() < 1e-12);
+    Ok(())
+}
+
+#[test]
+fn missed_strike_leaves_a_ballistic_parcel() -> Result<()> {
+    let r =
+        run(Args::try_parse_from(["study", "--miss", "--ticks", "2", "--substeps", "8"])?.trial)?;
+    let c = compare::against_fine(&r)?;
+    assert_eq!(c.primary.left_ns, 0.);
+    assert!(c.primary_vs_fine.impulse_percent.is_none());
+    for s in r.samples {
+        let p = &s.bodies[5];
+        let dt = f64::from(s.ms) * 0.001;
+        assert_eq!(p.v[0], 0.75);
+        assert!((p.v[2] + 9.81 * dt).abs() < 1e-12);
+        assert!((p.xyz[0] + 0.099 - 0.75 * dt).abs() < 1e-12);
+    }
+    Ok(())
+}
+
+#[test]
+fn refined_native_impact_handles_the_concentrated_mass_control() -> Result<()> {
+    let args = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--substeps",
+        "1000",
+        "--ticks",
+        "2",
+    ])?;
+    let r = run(args.trial)?;
+    let c = compare::against_fine(&r)?;
+    assert!(c.primary_vs_fine.impulse_percent.unwrap() < 3.);
+    assert!(c.primary_vs_fine.max_translation_mm < 0.1);
+    assert!(c.primary_vs_fine.max_rotation_deg < 0.2);
+    Ok(())
+}
+
+#[test]
+fn refining_the_extreme_mass_distribution_keeps_the_driven_axes_below_their_speed_caps()
+-> Result<()> {
+    let r = run(Args::try_parse_from(["study", "--divisor", "16", "--substeps", "64"])?.trial)?;
+    assert!(r.samples[0].impact.left_ns > 0.);
+    for s in r.samples {
+        assert!(s.joint_velocity[1].abs() <= 0.8);
+        assert!(s.joint_velocity[5].abs() <= 0.6);
+    }
+    Ok(())
+}
+
+#[test]
+fn both_approach_faces_select_only_the_strike_and_the_miss_spends_no_extra_steps() -> Result<()> {
+    for option in ["--right", "--miss", "--automatic"] {
+        let mut args = Args::try_parse_from([
+            "study",
+            "--divisor",
+            "1.75",
+            "--substeps",
+            "1000",
+            "--ticks",
+            "4",
+            option,
+        ])?;
+        args.trial.automatic = true;
+        let r = run(args.trial)?;
+        let selected = r.samples.iter().map(|s| s.native_steps).collect::<Vec<_>>();
+        if option == "--miss" {
+            assert_eq!(selected, [1; 4]);
+        } else {
+            assert_eq!(selected, [1000, 1, 1, 1]);
+            let i = &r.samples[0].impact;
+            assert!(if option == "--right" {
+                i.right_ns > 0.045 && i.left_ns == 0.
+            } else {
+                i.left_ns > 0.045 && i.right_ns == 0.
+            });
+            let normal = 0.2 * (r.samples[0].bodies[5].v[0] - r.incoming[5].v[0]);
+            assert!((normal - i.normal_on_parcel_ns[0]).abs() < 1e-9);
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn authored_faces_rebind_after_reset_and_reject_mixed_modes() -> Result<()> {
+    let args = Args::try_parse_from(["study", "--automatic", "--substeps", "8"])?;
+    let xml = fixture(&args.trial);
+    let load = |text: &str| {
+        load_world_with_sdf_step(
+            text,
+            "impact.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::MultiFidelity,
+        )
+    };
+    for axis in ["+x", "-x", "+y", "-y", "+z", "-z"] {
+        load(&xml.replace("<incoming_face>-x", &format!("<incoming_face>{axis}")))?;
+    }
+    for invalid in [
+        "q</incoming_face>",
+        "-x</incoming_face><project_planar>true</project_planar>",
+    ] {
+        assert!(load(&xml.replace("-x</incoming_face>", invalid)).is_err());
+    }
+    let mut sim = load(&xml)?;
+    let mut impulses = Vec::new();
+    for _ in 0..2 {
+        sim.step_exact(1)?;
+        let r = gz_sim_scene::primary_contact::last_refinement(&sim).unwrap();
+        assert_eq!(r.requested_pairs.len(), 1);
+        impulses.push(r.requested_pairs[0].normal_impulse);
+        sim.reset()?;
+        assert!(gz_sim_scene::primary_contact::last_refinement(&sim).is_none());
+    }
+    assert_eq!(impulses[0], impulses[1]);
+    Ok(())
+}
+
+#[test]
+fn removing_the_velocity_motor_still_leaves_a_physical_spindle_stop() -> Result<()> {
+    let max_speed = |cap: &str| -> Result<f64> {
+        let args = Args::try_parse_from([
+            "study",
+            "--passive-spindle",
+            cap,
+            "--automatic",
+            "--substeps",
+            "64",
+        ])?;
+        let r = run(args.trial)?;
+        Ok(r.samples
+            .iter()
+            .map(|s| s.joint_velocity[1].abs())
+            .fold(0., f64::max))
+    };
+    assert!(max_speed("capped")? < 0.81);
+    assert!(max_speed("uncapped")? > 3.);
+    Ok(())
+}
+
+#[test]
+fn a_predicted_arrival_without_load_does_not_spend_the_next_strike() -> Result<()> {
+    let r = run(Args::try_parse_from([
+        "study",
+        "--automatic",
+        "--divisor",
+        "1.75",
+        "--substeps",
+        "1000",
+        "--gap-um",
+        "1200",
+        "--ticks",
+        "3",
+    ])?
+    .trial)?;
+    let steps = r.samples.iter().map(|s| s.native_steps).collect::<Vec<_>>();
+    assert_eq!(steps, [1, 1000, 1000]);
+    assert_eq!(r.samples[1].impact.left_ns, 0.);
+    assert!(r.samples[2].impact.left_ns > 0.02);
+    Ok(())
+}
+
+#[test]
+fn timing_compares_every_native_body_without_changing_the_actuator_clock() -> Result<()> {
+    for options in [
+        &[][..],
+        &["--automatic", "--substeps", "4"][..],
+        &["--first-native-steps", "12"][..],
+        &["--first-native-steps", "1", "--substeps", "4"][..],
+        &["--passive-spindle", "capped", "--substeps", "4"][..],
+    ] {
+        let a = Args::try_parse_from(
+            ["impact", "--ticks", "2", "--timing-runs", "2"]
+                .into_iter()
+                .chain(options.iter().copied()),
+        )?;
+        let r = run(a.trial)?;
+        let timed = serde_json::to_value(timing::measure(&r, 2)?)?;
+        assert_eq!(
+            timed["native_calls_per_tick"],
+            serde_json::to_value(r.samples.iter().map(|s| s.native_steps).collect::<Vec<_>>())?
+        );
+        let rows = timed["step_ns_by_run"].as_array().unwrap();
+        assert_eq!(rows.len(), 2);
+        for row in rows {
+            let ns = row.as_array().unwrap();
+            assert_eq!(ns.len(), 2);
+            assert!(ns.iter().all(|t| t.as_u64().unwrap() > 0));
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn failed_native_timing_never_returns_a_partial_latency_sample() -> Result<()> {
+    let mut reference = run(Args::try_parse_from(["study", "--ticks", "1"])?.trial)?;
+    // The native grid cannot represent more intervals than nanoseconds.
+    reference.trial.substeps = u32::MAX;
+    assert!(timing::measure(&reference, 1).is_err());
+    // Admission must also fail before timing when the SDF policy is invalid.
+    reference.trial.substeps = 0;
+    reference.trial.automatic = true;
+    assert!(timing::measure(&reference, 1).is_err());
+    assert!(run(reference.trial).is_err());
+    Ok(())
+}
+
+#[test]
+fn impact_iteration_budget_only_applies_to_the_selected_interval() -> Result<()> {
+    for arguments in [
+        vec!["study", "--impact-iterations", "8"],
+        vec!["study", "--automatic", "--impact-iterations", "0"],
+        vec!["study", "--automatic", "--impact-iterations", "33"],
+        vec!["study", "--impact-pgs", "8"],
+        vec!["study", "--automatic", "--impact-pgs", "0"],
+    ] {
+        assert!(Args::try_parse_from(arguments).is_err());
+    }
+    let trial = Args::try_parse_from([
+        "study",
+        "--automatic",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "3",
+        "--substeps",
+        "40",
+        "--ticks",
+        "3",
+    ])?
+    .trial;
+    assert!(fixture(&trial).contains("<solver_iterations>8</solver_iterations>"));
+    assert!(fixture(&trial).contains("<pgs_iterations>3</pgs_iterations>"));
+    let run = run(trial)?;
+    assert_eq!(
+        run.samples
+            .iter()
+            .map(|s| s.native_steps)
+            .collect::<Vec<_>>(),
+        [40, 1, 1]
+    );
+    assert!(run.samples[0].impact.left_ns > 0.);
+    Ok(())
+}
+
+#[test]
+fn matched_spindle_tail_preserves_the_actual_first_contact_solver() -> Result<()> {
+    let trial = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--automatic",
+        "--stop-guard",
+        "--substeps",
+        "4",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "16",
+        "--ticks",
+        "2",
+    ])?
+    .trial;
+    let measured = run(trial)?;
+    let comparison = compare::against_fine(&measured)?;
+    assert_eq!(comparison.primary.refined_public_ms[0], 1);
+    assert!(comparison.primary.left_ns > 0.);
+    Ok(())
+}
+
+#[test]
+fn cold_contact_uses_the_short_solve_only_at_the_qualified_entry() -> Result<()> {
+    for side in [false, true] {
+        let mut trial = Args::try_parse_from([
+            "study",
+            "--automatic",
+            "--divisor",
+            "1.75",
+            "--substeps",
+            "500",
+            "--touching-budget",
+            "--ticks",
+            "3",
+        ])?
+        .trial;
+        trial.right = side;
+        let sharp = run(trial.clone())?;
+        assert_eq!(sharp.samples[0].native_steps, 4);
+        assert!(sharp.samples[1..].iter().all(|s| s.native_steps == 1));
+        let mut manual = trial.clone();
+        manual.touching_budget = false;
+        manual.substeps = 4;
+        manual.impact_iterations = Some(8);
+        manual.impact_pgs = Some(16);
+        let control = run(manual)?;
+        for (a, b) in sharp.samples.iter().zip(control.samples) {
+            assert_eq!(a.bodies, b.bodies);
+            assert_eq!(a.impact.normal_on_parcel_ns, b.impact.normal_on_parcel_ns);
+        }
+        trial.gap_um = 50;
+        let gap = run(trial.clone())?;
+        trial.touching_budget = false;
+        let ordinary = run(trial.clone())?;
+        assert_eq!(gap.samples[0].native_steps, 500);
+        assert_eq!(gap.samples[0].bodies, ordinary.samples[0].bodies);
+        trial.gap_um = 0;
+        trial.touching_budget = true;
+        trial.miss = true;
+        assert!(
+            run(trial.clone())?
+                .samples
+                .iter()
+                .all(|s| s.native_steps == 1)
+        );
+        trial.miss = false;
+        trial.divisor = 16.;
+        trial.stop_guard = true;
+        let limited = run(trial)?;
+        assert_eq!(limited.samples[0].native_steps, 500);
+        assert!(limited.samples[0].speed_stop_floor > 4);
+    }
+    Ok(())
+}
+
+#[test]
+fn mounted_guide_prevents_the_delayed_solver_switch_from_launching_the_unloaded_arm() -> Result<()>
+{
+    let args = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--automatic",
+        "--gap-um",
+        "1200",
+        "--substeps",
+        "64",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "8",
+        "--ticks",
+        "3",
+        "--guide-hz",
+        "100000",
+    ])?;
+    for right in [false, true] {
+        let r = run(Trial {
+            right,
+            ..args.trial.clone()
+        })?;
+        let before = &r.samples[1];
+        assert_eq!(r.samples[0].native_steps, 1);
+        assert_eq!(before.native_steps, 64);
+        assert_eq!(before.impact.first_end_ns, None);
+        for state in &before.bodies[..5] {
+            assert!(state.v.iter().map(|v| v * v).sum::<f64>().sqrt() < 0.35);
+        }
+        let strike = &r.samples[2].impact;
+        let (loaded, other) = if right {
+            (strike.right_ns, strike.left_ns)
+        } else {
+            (strike.left_ns, strike.right_ns)
+        };
+        assert!(
+            strike
+                .first_end_ns
+                .is_some_and(|n| (2_000_000..3_000_000).contains(&n))
+        );
+        assert!((0.024..0.029).contains(&loaded) && other == 0.);
+    }
+    Ok(())
+}
+
+#[test]
+fn early_parallel_jaw_loading_matches_the_fine_impulse_on_both_sides() -> Result<()> {
+    let args = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--automatic",
+        "--gap-um",
+        "50",
+        "--substeps",
+        "64",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "8",
+        "--guide-hz",
+        "100000",
+        "--early-face-step-ns",
+        "25",
+        "--early-face-max-steps",
+        "4096",
+        "--ticks",
+        "1",
+    ])?;
+    for right in [false, true] {
+        let trial = Trial {
+            right,
+            ..args.trial.clone()
+        };
+        let primary = run(trial.clone())?;
+        let Some([fine, rest]) = primary.first_early_schedule.as_deref() else {
+            panic!("expected the fine prefix and the remaining impact grid");
+        };
+        assert_eq!(
+            (fine.duration, fine.native_steps, rest.native_steps),
+            (Duration::from_nanos(93_750), 3750, 58)
+        );
+        let continuous = run(Trial {
+            automatic: false,
+            substeps: 40_000,
+            ..trial.clone()
+        })?;
+        assert_eq!(continuous.incoming, primary.incoming);
+        let hit = |r: &Run| {
+            let i = &r.samples[0].impact;
+            (
+                i.left_ns + i.right_ns,
+                i.first_end_ns,
+                i.normal_on_parcel_ns,
+            )
+        };
+        let (impulse, onset, normal) = hit(&primary);
+        let (expected, fine_onset, fine_normal) = hit(&continuous);
+        assert!(impulse > 0.04);
+        assert_eq!((impulse, onset), (expected, fine_onset));
+        // The public reducer groups point impulses by body before summing the substeps.
+        for (measured, fine) in normal.into_iter().zip(fine_normal) {
+            assert!((measured - fine).abs() <= 4. * f64::EPSILON * expected);
+        }
+        // Tail comparisons with the speed guard must reproduce the incoming state of
+        // the next public tick even when the first interval uses two solver settings.
+        let matched = run(Trial {
+            stop_guard: true,
+            ..trial
+        })?;
+        let cmp = compare::against_fine(&matched)?;
+        assert_eq!(cmp.primary_vs_fine.max_translation_mm, 0.);
+    }
+    Ok(())
+}
+
+#[test]
+fn released_jaw_retains_the_measured_pulse_and_resets_to_the_same_schedule() -> Result<()> {
+    let base = Args::try_parse_from([
+        "study",
+        "--automatic",
+        "--substeps",
+        "64",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "8",
+        "--divisor",
+        "1.75",
+        "--guide-hz",
+        "100000",
+        "--gap-um",
+        "35",
+        "--early-face-step-ns",
+        "25",
+        "--early-face-max-steps",
+        "4096",
+        "--ticks",
+        "1",
+    ])?
+    .trial;
+    let mut staged = base.clone();
+    staged.early_face_tail_step_ns = Some(125);
+    staged.early_face_guard_ns = Some(2000);
+    let original = run(base.clone())?;
+    let fast = run(staged.clone())?;
+    assert_eq!(original.samples[0].native_steps, 2560);
+    assert_eq!(fast.samples[0].native_steps, 2118);
+    assert_eq!(
+        fast.samples[0].impact.left_ns,
+        original.samples[0].impact.left_ns
+    );
+    let observed = serde_json::to_value(strike::audit(staged.clone(), true)?)?;
+    let control = serde_json::to_value(strike::audit(base, true)?)?;
+    assert_eq!(observed["pulses"], control["pulses"]);
+    for pulse in control["pulses"].as_array().unwrap() {
+        let reaction = |audit: &serde_json::Value| {
+            audit["samples"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|sample| sample["end_ns"] == pulse["end_ns"])
+                .expect("recorded end of each loaded pulse")["transmitted"]
+                .as_object()
+                .expect("measured reaction through the finger and wrist")
+                .clone()
+        };
+        assert_eq!(reaction(&observed), reaction(&control));
+    }
+    let (mut sim, _, _) = load_robot(&staged, &fixture(&staged))?;
+    sim.step_exact(1)?;
+    let first = gz_sim_scene::primary_contact::last_refinement(&sim)
+        .unwrap()
+        .clone();
+    assert_eq!(first.realized_face_schedule().unwrap().len(), 3);
+    sim.reset()?;
+    assert!(gz_sim_scene::primary_contact::last_refinement(&sim).is_none());
+    let observed = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let sink = observed.clone();
+    let epoch = sim.epoch();
+    gz_sim_scene::primary_contact::set_refined_observer(&mut sim, move |clock, cut| {
+        assert_eq!(clock.epoch, epoch);
+        sink.lock().unwrap().push(cut.elapsed);
+    })?;
+    sim.step_exact(1)?;
+    let second = gz_sim_scene::primary_contact::last_refinement(&sim).unwrap();
+    assert_eq!(
+        first.realized_face_schedule(),
+        second.realized_face_schedule()
+    );
+    assert_eq!(first.interval, second.interval);
+    let rows = observed.lock().unwrap();
+    assert_eq!(rows.len(), first.interval.native_steps as usize);
+    assert_eq!(rows.last(), Some(&Duration::from_millis(1)));
+    assert!(rows.windows(2).all(|pair| pair[0] < pair[1]));
+    Ok(())
+}
+
+/// Reproduce the rejected 125 ns approach on a matched independently initialized
+/// robot. Even fine steps throughout the predicted 4 µs contact window cannot
+/// restore the incoming state of the vibrating mounted guide.
+#[test]
+fn coarse_preflight_splits_the_fifty_micron_right_jaw_reaction() -> Result<()> {
+    let trial = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--gap-um",
+        "50",
+        "--guide-hz",
+        "100000",
+        "--right",
+        "--impact-pulses",
+        "--ticks",
+        "1",
+    ])?
+    .trial;
+    let run_schedule = |parts: &[(u32, u32)]| -> Result<Run> {
+        let mut start = 0;
+        let mut schedule = vec![];
+        for &(end, step) in parts {
+            let duration = end - start;
+            let iterations = if end == 1_000_000 {
+                ContactSolverIterations {
+                    temporal: 8,
+                    pgs: Some(8),
+                    relaxation: None,
+                }
+            } else {
+                4.into()
+            };
+            schedule.push(ContactSegment {
+                duration: Duration::from_nanos(duration.into()),
+                native_steps: duration.div_ceil(step),
+                iterations,
+            });
+            start = end;
+        }
+        let mut trial = trial.clone();
+        trial.first_native_steps = Some(schedule.iter().map(|s| s.native_steps).sum());
+        run_with_first_solver(trial, None, Some(schedule))
+    };
+    let fine = run_schedule(&[(93_750, 25), (1_000_000, 15_625)])?;
+    let staged = run_schedule(&[
+        (64_500, 125),
+        (68_500, 25),
+        (93_750, 125),
+        (1_000_000, 15_625),
+    ])?;
+    assert_eq!(fine.incoming, staged.incoming);
+    let a = fine.samples[0].impact.pulses.as_ref().unwrap();
+    let b = staged.samples[0].impact.pulses.as_ref().unwrap();
+    assert_eq!(a.len() + 1, b.len());
+    assert!(
+        a.iter()
+            .chain(b)
+            .all(|p| p.jaw == "right" && p.normal_impulse_ns > 0.)
+    );
+    Ok(())
+}

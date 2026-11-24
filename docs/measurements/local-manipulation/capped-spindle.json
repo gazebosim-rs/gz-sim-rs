@@ -1,0 +1,321 @@
+{
+  "dynamic": {
+    "carried_peak_abs_speed_rad_s": [
+      0.6000032367463485,
+      0.2200002865240885
+    ],
+    "carried_ticks": 1050,
+    "final_support_n": 1.9619998951888882,
+    "first_jaw": [
+      [
+        1274,
+        0.09704572841073947
+      ],
+      [
+        1274,
+        0.10204183655137958
+      ]
+    ],
+    "held_impulses_ns": [
+      0.00938075133167883,
+      0.009369361465752058,
+      0.0,
+      0.0
+    ],
+    "lift_m": 0.1265951618180413,
+    "loaded_refusal": null,
+    "park_at": [],
+    "parked_ticks": 0,
+    "peak_abs_speed_rad_s": [
+      0.6000055095747523,
+      0.2200002865240885
+    ],
+    "peak_wrist_rad": 0.006554304275633083,
+    "release_support_ns": 0.011101767675430873,
+    "retained_command": null,
+    "wake_at": []
+  },
+  "full_step_p95_ns": [
+    803112,
+    851912
+  ],
+  "max_all_link_angular_velocity_error_rad_s": 0.0032310771341812214,
+  "max_all_link_position_error_m": 4.790105440068609e-06,
+  "max_all_link_rotation_error_rad": 1.508530444377527e-05,
+  "max_all_link_velocity_error_m_s": 0.0011222720374758609,
+  "max_angular_momentum_error_kg_m2_s": 4.259586894737826e-05,
+  "max_coordinate_error": [
+    2.2003523447722273e-09,
+    3.257620395658023e-09,
+    4.4569512702707925e-07,
+    3.685965277721787e-07,
+    8.476743539527663e-07
+  ],
+  "max_coordinate_rate_error": [
+    5.20847039980149e-06,
+    8.07664965882856e-06,
+    0.0028754105258232874,
+    0.0011513411003388628,
+    0.0007236798814617249
+  ],
+  "max_impulse_error_ns": [
+    1.5022724918212216e-07,
+    1.2705038118787648e-07,
+    8.018819022525409e-07,
+    2.1688317471428228e-07
+  ],
+  "max_kinetic_plus_gravitational_energy_error_j": 9.352224877190451e-06,
+  "max_linear_momentum_error_kg_m_s": 7.706817293763566e-05,
+  "park_window_p95_ns": [
+    908352,
+    40510
+  ],
+  "switched": {
+    "carried_peak_abs_speed_rad_s": [
+      0.6000032367436607,
+      0.2200002865225042
+    ],
+    "carried_ticks": 1050,
+    "final_support_n": 1.9620001737938957,
+    "first_jaw": [
+      [
+        1274,
+        0.09704557818349029
+      ],
+      [
+        1274,
+        0.10204196360176077
+      ]
+    ],
+    "held_impulses_ns": [
+      0.009380751331413075,
+      0.009369361466292591,
+      0.0,
+      0.0
+    ],
+    "lift_m": 0.1265951618103166,
+    "loaded_refusal": "fidelity transition deferred: mounted robot has an external contact",
+    "park_at": [
+      1000,
+      9000
+    ],
+    "parked_ticks": 750,
+    "peak_abs_speed_rad_s": [
+      0.6000055095748897,
+      0.2200002865225042
+    ],
+    "peak_wrist_rad": 0.006554304275655287,
+    "release_support_ns": 0.011101767674768621,
+    "retained_command": [
+      12.0,
+      12.0,
+      2.0
+    ],
+    "wake_at": [
+      1251,
+      9501
+    ]
+  },
+  "fixture": "examples/worlds/local_robot_capped_spindle.sdf",
+  "dt_ns": 1000000,
+  "timing": {
+    "processor": "Ryzen 9 9950X3D, logical CPU 7, shared host with concurrent builds",
+    "order": [
+      "dynamic",
+      "switched"
+    ],
+    "three_paired_release_runs_ns": {
+      "full_step_p95_ns": [
+        [
+          803112,
+          851912
+        ],
+        [
+          825333,
+          1271834
+        ],
+        [
+          1313275,
+          1253454
+        ]
+      ],
+      "park_window_p95_ns": [
+        [
+          908352,
+          40510
+        ],
+        [
+          828073,
+          44860
+        ],
+        [
+          1340684,
+          48181
+        ]
+      ]
+    },
+    "median_paired_switched_over_dynamic": {
+      "full_step_p95_ns": 1.0607636294813176,
+      "park_window_p95_ns": 0.044597248643697594
+    }
+  },
+  "first_oblique_impact": {
+    "tick_ms": 263,
+    "normal_impulse_ns": [
+      0.057175281027111204,
+      0.057175281027111204
+    ],
+    "projectile_command_at_ms": 41,
+    "native_regression": "off_center_collision_restores_private_cap_spins_before_the_impact_solve"
+  },
+  "coverage": {
+    "changed_production": {
+      "crates/gz-physics-rapier/src/joints/parked_robot.rs": {
+        "mapped_lines": [
+          19,
+          19
+        ],
+        "mapped_regions": [
+          47,
+          48
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints/parked_speed.rs": {
+        "mapped_lines": [
+          155,
+          159
+        ],
+        "mapped_regions": [
+          286,
+          289
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints/speed.rs": {
+        "mapped_lines": [
+          12,
+          12
+        ],
+        "mapped_regions": [
+          20,
+          20
+        ]
+      },
+      "crates/gz-physics-rapier/src/lib.rs": {
+        "mapped_lines": [
+          3,
+          3
+        ],
+        "mapped_regions": [
+          5,
+          5
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints.rs": {
+        "mapped_lines": [
+          1,
+          1
+        ],
+        "mapped_regions": [
+          2,
+          2
+        ]
+      },
+      "crates/gz-physics-rapier/src/initial.rs": {
+        "mapped_lines": [
+          1,
+          1
+        ],
+        "mapped_regions": [
+          2,
+          2
+        ]
+      },
+      "crates/gz-physics-rapier/src/articulation_support.rs": {
+        "mapped_lines": [
+          37,
+          37
+        ],
+        "mapped_regions": [
+          63,
+          63
+        ]
+      },
+      "crates/gz-sim-cli/examples/parked_spindle.rs": {
+        "mapped_lines": [
+          20,
+          20
+        ],
+        "mapped_regions": [
+          44,
+          45
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "solver",
+        "sha256": "6a5d0968bb1f9ee78b90eb17b91239f1ad45638b1e01b86bf34be5801137cf79"
+      },
+      {
+        "case": "app",
+        "sha256": "b51fedc83774fbd3ddc2f0b396150f030ffa488e30104ce7eb0f563083227b35"
+      },
+      {
+        "case": "product",
+        "sha256": "44ea9b6b610dcbb707028eb6620453f3f44a363491eb2136408baa721720cc8d"
+      }
+    ],
+    "combined": {
+      "mapped_lines": [
+        248,
+        252
+      ],
+      "mapped_regions": [
+        469,
+        474
+      ]
+    }
+  },
+  "native_replays": {
+    "dynamic": {
+      "body_poses_and_shapes_checked": 3765,
+      "captured_ms": {
+        "carrying": 3960.0,
+        "first_grasp": 1360.0,
+        "parked": 1080.0,
+        "parked_again": 9200.0,
+        "released": 8600.0,
+        "supported": 8360.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 251,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 251,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9915%2F",
+      "frames_sha256": "604d9d6f24a502e4f258e27dbc3c09228f52dc23048411a4094ba32770a44683"
+    },
+    "switched": {
+      "body_poses_and_shapes_checked": 3765,
+      "captured_ms": {
+        "carrying": 3960.0,
+        "first_grasp": 1360.0,
+        "parked": 1080.0,
+        "parked_again": 9200.0,
+        "released": 8600.0,
+        "supported": 8360.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 251,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 251,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9914%2F",
+      "frames_sha256": "9eee077c266591d4f2b366fc6d3cd2f5a6751b91e3671f0f25d64ec14d826d08"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!-- A loaded material vertex slides across a finite horizontal face between two impact events. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="fixed" type="ignored"><max_step_size>0.000004</max_step_size><real_time_factor>0.01</real_time_factor></physics>
+    <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
+      <native_steps>8</native_steps><solver_iterations>4</solver_iterations>
+      <pgs_iterations>1</pgs_iterations><relaxation_iterations>1</relaxation_iterations>
+      <pair><foot>default::rocker::foot</foot><support>default::lift::pad</support><project_segment_endpoint>true</project_segment_endpoint><certify_segment_friction_work>true</certify_segment_friction_work><follow_sliding_vertex>true</follow_sliding_vertex></pair>
+    </plugin>
+    <model name="rocker">
+      <pose>2.01887242683207941e-5 -5.05641152757551406e-5 4.24471086293151945e-2 3.10865830701658664e-5 -4.70425286459088268e-18 -8.99436694059979478e-5</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>1.74292286276101827e-1 1.05600069371766428e-1 -4.02460346691170201e-1</linear_velocity><angular_velocity>-1.08087394316543772e0 1.78398392098175473e0 -7.07873678833745700e-7</angular_velocity>
+      </plugin>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system">
+        <exact_revolute_locks>true</exact_revolute_locks>
+      </plugin>
+      <link name="foot">
+        <inertial><mass>1</mass><inertia><ixx>0.0201</ixx><iyy>0.0201</iyy><izz>0.025</izz></inertia></inertial>
+        <collision name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><surface><friction><ode><mu>0.5</mu><mu2>0.5</mu2></ode></friction></surface></collision>
+        <visual name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><material><diffuse>0.92 0.46 0.12 1</diffuse></material></visual>
+      </link>
+      <link name="upper">
+        <pose>0 0 0.14 0 0 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.0201</ixx><iyy>0.0201</iyy><izz>0.025</izz></inertia></inertial>
+        <collision name="c"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><surface><friction><ode><mu>0.5</mu><mu2>0.5</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><material><diffuse>0.90 0.73 0.21 1</diffuse></material></visual>
+      </link>
+      <joint name="hinge" type="revolute">
+        <parent>foot</parent><child>upper</child>
+        <axis><xyz>1 0 0</xyz><limit><lower>0</lower><upper>0</upper></limit></axis>
+      </joint>
+    </model>
+    <model name="lift">
+      <pose>1.65000000000000008e-1 0.00000000000000000e0 -7.75560000000000138e-2 0.00000000000000000e0 -0.00000000000000000e0 0.00000000000000000e0</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system">
+        <linear_velocity>0 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="pad">
+        <collision name="platform"><geometry><box><size>0.66 0.36 0.12</size></box></geometry><surface><friction><ode><mu>0.5</mu><mu2>0.5</mu2></ode></friction></surface></collision>
+        <visual name="platform"><geometry><box><size>0.66 0.36 0.12</size></box></geometry><material><diffuse>0.15 0.48 0.73 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

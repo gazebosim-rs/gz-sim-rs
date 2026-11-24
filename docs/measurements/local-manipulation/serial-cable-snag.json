@@ -1,0 +1,430 @@
+{
+  "base_world_sha256": "0371c12f203493118b884fa6ec9c2f1de36f134beebf5aa7470b6031985c9a26",
+  "clock_s": 0.001,
+  "trigger_force_n": 0.032373,
+  "command_ceiling_rad": 2.8,
+  "mechanical_upper_stop_rad": 2.9,
+  "cases": [
+    {
+      "case": "clear",
+      "events": [
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 1.353953764857111e-05,
+          "spindle_rad": 2.3499894004872233,
+          "stage": "Transport",
+          "tick": 5400
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.46220220870404,
+          "spindle_rad": 2.3499894021611274,
+          "stage": "Placing",
+          "tick": 9400
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.46000749543938274,
+          "spindle_rad": 1.8043584182795804,
+          "stage": "Opening",
+          "tick": 10227
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.46005674339312086,
+          "spindle_rad": 1.5565877658633291,
+          "stage": "Withdrawn",
+          "tick": 10602
+        }
+      ],
+      "matched_clear_prefix_ticks": null,
+      "measurements": {
+        "final_center_m": [
+          -0.002908669599189154,
+          0.4627112404689962,
+          0.6050000000000001
+        ],
+        "final_pad_squeeze_n": 0.0,
+        "final_peak_material_speed_m_s": 0.0,
+        "final_support_load_n": [
+          -0.0,
+          0.21581999999999785
+        ],
+        "max_spindle_rad": 2.3503770025510167,
+        "maximum_axial_strain": 0.0008313596433062731,
+        "mean_airborne_gravity_support_n": [
+          0.007854680751217001,
+          0.2073651335179168
+        ],
+        "minimum_retained_squeeze_n": 2.1729243456715936,
+        "minimum_robot_bar_gap_m": 0.4192319735782664,
+        "minimum_unenrolled_box_gap_m": 0.1128577992665877,
+        "opening_support_dwell_mean_n": 0.2143990186146884,
+        "opening_tick": 10228,
+        "peak_momentum_residual_ns": 5.17786356303173e-18,
+        "second_pass_minimum_crossing_gap_m": null,
+        "snags": []
+      },
+      "reset_identical_ticks": 13102,
+      "viewer": {
+        "body_poses_and_shapes_checked": 3645,
+        "captured_ms": {
+          "event-01-Transport": 5400.0,
+          "event-02-Placing": 9400.0,
+          "event-03-Opening": 10227.0,
+          "event-04-Withdrawn": 10602.0,
+          "pickup": 0.0,
+          "rest": 13102.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 135,
+        "independent_particle_positions_checked": 1485,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 135,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9962%2F"
+      },
+      "sha256": {
+        "replay/frames.jsonl": "9d1219d75b55f1da1108331575294ac432a67eafc7aec0e8d0b42ca4d08f5604",
+        "events.json": "e55ec00e601877d8bf41f2b91f1e1b9430aff69a840fa8220041d57f75c25bc6",
+        "particle-frames.json": "7db89c8fb34644e7d837be401842c3f157afa760a6016b228059040602378bc8",
+        "trace.json": "0d80aa483e4a11e79083722dcc57b50b817c2d6d21afe7503667ec8f3708d793"
+      }
+    },
+    {
+      "case": "snag",
+      "events": [
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 1.353953764857111e-05,
+          "spindle_rad": 2.3499894004872233,
+          "stage": "Transport",
+          "tick": 5400
+        },
+        {
+          "bar_force_n": 0.44706245215790585,
+          "carriage_y_m": 0.14594988277251056,
+          "spindle_rad": 2.349989403530754,
+          "stage": "Backoff",
+          "tick": 7014
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.04295766118400127,
+          "spindle_rad": 2.349989402353195,
+          "stage": "Raising",
+          "tick": 8476
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.04297595629366673,
+          "spindle_rad": 2.799989585887939,
+          "stage": "Transport",
+          "tick": 9476
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.46199744623863537,
+          "spindle_rad": 2.7999895936189882,
+          "stage": "Placing",
+          "tick": 13476
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.4600095811661713,
+          "spindle_rad": 1.8025763525728467,
+          "stage": "Opening",
+          "tick": 14987
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.46000409685176197,
+          "spindle_rad": 1.554806996821132,
+          "stage": "Withdrawn",
+          "tick": 15362
+        }
+      ],
+      "matched_clear_prefix_ticks": 7013,
+      "measurements": {
+        "final_center_m": [
+          -0.0019639756287722896,
+          0.4486878292675583,
+          0.6050000000000001
+        ],
+        "final_pad_squeeze_n": 0.0,
+        "final_peak_material_speed_m_s": 0.0,
+        "final_support_load_n": [
+          -0.0,
+          0.21581999999999785
+        ],
+        "max_spindle_rad": 2.800669030610575,
+        "maximum_axial_strain": 0.0008385969377604496,
+        "mean_airborne_gravity_support_n": [
+          0.007854680751217001,
+          0.2073651335179168
+        ],
+        "minimum_retained_squeeze_n": 2.163503720429393,
+        "minimum_robot_bar_gap_m": 0.048535019866907406,
+        "minimum_unenrolled_box_gap_m": 0.1174228965454154,
+        "opening_support_dwell_mean_n": 0.21525154009696515,
+        "opening_tick": 14988,
+        "peak_momentum_residual_ns": 4.942870313816251e-18,
+        "second_pass_minimum_crossing_gap_m": 0.007152376476429113,
+        "snags": [
+          {
+            "cumulative_force_magnitude_ns": 0.004858459605448549,
+            "detection_tick": 7014,
+            "first_retreat_command_tick": 7015,
+            "last_loaded_tick": 7356,
+            "max_forward_overshoot_m": 0.012006914926490114,
+            "peak_force_n": 0.44706245215790585,
+            "retreat_distance_m": 0.10299222158850929
+          }
+        ]
+      },
+      "reset_identical_ticks": 17862,
+      "viewer": {
+        "body_poses_and_shapes_checked": 5022,
+        "captured_ms": {
+          "event-01-Transport": 5400.0,
+          "event-02-Backoff": 7014.0,
+          "event-03-Raising": 8476.0,
+          "event-04-Transport": 9476.0,
+          "event-05-Placing": 13476.0,
+          "event-06-Opening": 14987.0,
+          "event-07-Withdrawn": 15362.0,
+          "pickup": 0.0,
+          "rest": 17862.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 186,
+        "independent_particle_positions_checked": 2046,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 186,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9961%2F"
+      },
+      "sha256": {
+        "replay/frames.jsonl": "569fdaf61e8a83d7bcebe0e87477c3e9ef5499436b8310f892301608ac3d914d",
+        "events.json": "efa72f1cb628c2a288a1600e43e8e5a8bed41c74f1bff39562c1634ae5c6c9c9",
+        "particle-frames.json": "ce4176372ffb28c7d69e44f3b9a1a74e951dcc2d715746972fa7f9c4a2c17477",
+        "trace.json": "916e591a6c2abc9beda0ac3736707436259476ed7bc46e909029c5dfdc108af7"
+      }
+    },
+    {
+      "case": "limit",
+      "events": [
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 1.353953764857111e-05,
+          "spindle_rad": 2.3499894004872233,
+          "stage": "Transport",
+          "tick": 5400
+        },
+        {
+          "bar_force_n": 0.44706245215790585,
+          "carriage_y_m": 0.14594988277251056,
+          "spindle_rad": 2.349989403530754,
+          "stage": "Backoff",
+          "tick": 7014
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.0429587565126428,
+          "spindle_rad": 2.3499894016280565,
+          "stage": "Raising",
+          "tick": 8476
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.04297658705830696,
+          "spindle_rad": 2.7999895830261208,
+          "stage": "Transport",
+          "tick": 9476
+        },
+        {
+          "bar_force_n": 0.4242689580054524,
+          "carriage_y_m": 0.12966605361430353,
+          "spindle_rad": 2.799989592648002,
+          "stage": "Backoff",
+          "tick": 10825
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 0.026668391193414413,
+          "spindle_rad": 2.799989590002101,
+          "stage": "Returning",
+          "tick": 12287
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": -0.00016932817993844994,
+          "spindle_rad": 2.7999895968564927,
+          "stage": "Placing",
+          "tick": 15787
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 9.504923080765067e-06,
+          "spindle_rad": 0.7966216281039427,
+          "stage": "Opening",
+          "tick": 18820
+        },
+        {
+          "bar_force_n": 0.0,
+          "carriage_y_m": 7.177233723277104e-06,
+          "spindle_rad": 0.5487855379082065,
+          "stage": "Withdrawn",
+          "tick": 19195
+        }
+      ],
+      "matched_clear_prefix_ticks": 7013,
+      "measurements": {
+        "final_center_m": [
+          0.003907413468104145,
+          0.0015723922729334492,
+          0.5250000000000001
+        ],
+        "final_pad_squeeze_n": 0.0,
+        "final_peak_material_speed_m_s": 0.0,
+        "final_support_load_n": [
+          0.21581999999999785,
+          -0.0
+        ],
+        "max_spindle_rad": 2.800595345529206,
+        "maximum_axial_strain": 0.000957217298320101,
+        "mean_airborne_gravity_support_n": [
+          0.007854680751217001,
+          0.2073651335179168
+        ],
+        "minimum_retained_squeeze_n": 2.1400485929402637,
+        "minimum_robot_bar_gap_m": 0.005163544293610285,
+        "minimum_unenrolled_box_gap_m": 0.11714548988666987,
+        "opening_support_dwell_mean_n": 0.21602492479277866,
+        "opening_tick": 18821,
+        "peak_momentum_residual_ns": 5.1107404694685434e-18,
+        "second_pass_minimum_crossing_gap_m": null,
+        "snags": [
+          {
+            "cumulative_force_magnitude_ns": 0.009282716779766017,
+            "detection_tick": 7014,
+            "first_retreat_command_tick": 7015,
+            "last_loaded_tick": 7352,
+            "max_forward_overshoot_m": 0.011982954471918522,
+            "peak_force_n": 0.44706245215790585,
+            "retreat_distance_m": 0.10299112625986775
+          },
+          {
+            "cumulative_force_magnitude_ns": 0.005447770998992763,
+            "detection_tick": 10825,
+            "first_retreat_command_tick": 10826,
+            "last_loaded_tick": 11158,
+            "max_forward_overshoot_m": 0.009188636800772337,
+            "peak_force_n": 0.4242689580054524,
+            "retreat_distance_m": 0.10299766242088912
+          }
+        ]
+      },
+      "reset_identical_ticks": 21695,
+      "viewer": {
+        "body_poses_and_shapes_checked": 6102,
+        "captured_ms": {
+          "event-01-Transport": 5400.0,
+          "event-02-Backoff": 7014.0,
+          "event-03-Raising": 8476.0,
+          "event-04-Transport": 9476.0,
+          "event-05-Backoff": 10825.0,
+          "event-06-Returning": 12287.0,
+          "event-07-Placing": 15787.0,
+          "event-08-Opening": 18820.0,
+          "event-09-Withdrawn": 19195.0,
+          "pickup": 0.0,
+          "rest": 21695.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 226,
+        "independent_particle_positions_checked": 2486,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 226,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9963%2F"
+      },
+      "sha256": {
+        "replay/frames.jsonl": "2e20fc27199fa2c752c10d9df284356fac2574dd315355cfe6ceffa3b329f603",
+        "events.json": "41270c47c00ea38c05d593f09548ddc8739ca8be515f639ceca2ab90c485052d",
+        "particle-frames.json": "b4ef095f185ef67c7fd48010fbd61b0e99ea4819131a87bda2d0f35ad0667e70",
+        "trace.json": "28f1ce6661609d1f301824a70e72ea9f27dd4f33541a5641ce8988c994320ae0"
+      }
+    }
+  ],
+  "scoped_release_regressions": 11,
+  "changed_source_coverage": {
+    "changed_production": {
+      "crates/gz-sim-cli/examples/serial_cable.rs": {
+        "mapped_lines": [
+          5,
+          6
+        ],
+        "mapped_regions": [
+          7,
+          9
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag.rs": {
+        "mapped_lines": [
+          122,
+          127
+        ],
+        "mapped_regions": [
+          252,
+          278
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/controller.rs": {
+        "mapped_lines": [
+          126,
+          127
+        ],
+        "mapped_regions": [
+          187,
+          188
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/qualification.rs": {
+        "mapped_lines": [
+          114,
+          114
+        ],
+        "mapped_regions": [
+          201,
+          203
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "app",
+        "sha256": "be99d2ac55fbddec633f2e66a3d9e9b450df649a8b67da65d5c47f6bec998526"
+      },
+      {
+        "case": "product",
+        "sha256": "cd007ca993fb97725ce39e5c188b34c9789ad3e4045d62432e6af853a699fbf8"
+      }
+    ],
+    "mapped_lines": [
+      367,
+      374
+    ],
+    "mapped_regions": [
+      647,
+      678
+    ]
+  },
+  "coverage_method": "LLVM exports per exact optimized test and recording binary, combined by mapped source line/region coordinates excluding test-only source. Each product replay, event, particle reading and trace independently matched the uninstrumented run byte for byte."
+}

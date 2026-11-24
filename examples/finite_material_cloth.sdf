@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="two_ms" type="ignored"><max_step_size>0.002</max_step_size></physics>
+    <model name="roller">
+      <pose>0 0 0.46 0 0 0</pose>
+      <link name="guide">
+        <inertial><pose>0 0 0 0.15 -0.20 0.13</pose><mass>0.4</mass>
+          <inertia><ixx>0.008</ixx><iyy>0.009</iyy><izz>0.0035</izz></inertia></inertial>
+        <collision name="capsule"><geometry><capsule><radius>0.08</radius><length>0.30</length></capsule></geometry></collision>
+        <visual name="blue"><geometry><capsule><radius>0.08</radius><length>0.30</length></capsule></geometry>
+          <material><diffuse>0.10 0.40 0.69 1</diffuse></material></visual>
+      </link>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0.04 -0.03 0.02</linear_velocity><angular_velocity>1.1 0.7 0.5</angular_velocity>
+      </plugin>
+    </model>
+    <plugin name="gz::sim::systems::FreeRotation" filename="gz-sim-free-rotation-system">
+      <link>default::roller::guide</link>
+    </plugin>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <capsule link="default::roller::guide" coupling="two_way"/>
+      <cloth name="material" substeps="4" iterations="8" radius="0.02" self_contact="false" capsule_contact="material" conserve_angular_momentum="true" friction="0" stretch="0.00001" bend="0.00001" columns="2" shear="0.00001">
+        <particle position="0.25818416466909 -0.4896 0.80282423891753" velocity="-0.60 -0.03 -1.446424222385869" mass="0.04"/>
+        <particle position="0.25818416466909 0.1904 0.80282423891753" velocity="-0.60 -0.03 -1.446424222385869" mass="0.06"/>
+        <particle position="-0.24589916177605 -0.4896 1.0228242389175" velocity="-0.60 -0.03 -1.446424222385869" mass="0.015"/>
+        <particle position="-0.24589916177605 0.1904 1.0228242389175" velocity="-0.60 -0.03 -1.446424222385869" mass="0.04"/>
+      </cloth>
+    </plugin>
+  </world>
+</sdf>

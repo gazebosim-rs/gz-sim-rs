@@ -1,0 +1,253 @@
+{
+  "production_commit": "6b202dcae0c3a0b5de4203378c495628725ffaff",
+  "test_commit": "86abafda6da851662683d3e149019b0914304975",
+  "vendor_package_import": "2467dff0923354740f91c8896f21da890ace7880",
+  "published_archive_sha256": "f4588855e9c5451702147b5c6ddff4d93887f1e59c9504b6ac3571818f6ec3d2",
+  "coverage": {
+    "instrumentation": "-C instrument-coverage on workspace units and rapier3d_f64; release; each object profiled/exported on its own; sum unique mapped changed line and region coordinates (OR across the independent exports)",
+    "changed_lines_and_regions": {
+      "gz-physics-rapier": [
+        [
+          6,
+          6
+        ],
+        [
+          8,
+          8
+        ]
+      ],
+      "gz-sim-scene": [
+        [
+          13,
+          13
+        ],
+        [
+          23,
+          23
+        ]
+      ],
+      "rapier3d-f64-0.36.1": [
+        [
+          135,
+          137
+        ],
+        [
+          206,
+          210
+        ]
+      ],
+      "gz-physics-multifidelity": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "objects": [
+      {
+        "test_object": "mounted_robot_switching-c4e65e47dbd96e04",
+        "object_sha256": "601ae7e572b3c9c7fcee31759ed2a4aaa435b544c529ce639d998b8f678156a5",
+        "individual_profile_sha256": "3bec1c0d74c10b5260e80120993789b383e10de321f6f1160407753f9ef462ed",
+        "test_results": "ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"
+      },
+      {
+        "test_object": "mounted_robot_switching-d95538593f187728",
+        "object_sha256": "e0ab5fb6727e5dbb56b29ff511290924a938ece4574de38d1d02f2da7996aaa1",
+        "individual_profile_sha256": "7cc1e1f82d03ae6931579211c891bf9cba695a98ec73660eeb427048665994d0",
+        "test_results": "ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"
+      },
+      {
+        "test_object": "native_slider_isolation-6014b12757146fb6",
+        "object_sha256": "e43cdf4aa8a074aa04c9a76d98207f78c270073b495f92aa254f8f527394734f",
+        "individual_profile_sha256": "21c4f7a1f45d29640fba3c997d241ee10c7e63ab2b998ef9fc87a7c15a870362",
+        "test_results": "ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"
+      },
+      {
+        "test_object": "reduced_slider_travel-20d99c256cc9a607",
+        "object_sha256": "a035977a160692d812c5bb6fb6f0ccf1ef86fbafd428098fbc179a5f5c4b5f17",
+        "individual_profile_sha256": "39d452d470a18fc0ac7263d454f0f98eb43fae3e6ada45b44c772922fe2f4531",
+        "test_results": "ok. 6 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out"
+      },
+      {
+        "test_object": "reduced_wrist_slider-7cc729b983cee906",
+        "object_sha256": "61900dc67549a539344c65d5817eb6fe823d5b69dc61adeb45309f7829c0024c",
+        "individual_profile_sha256": "ccd33892c979274030cd7be8a93d65afd29580ff5fca63913401d8a8fda047aa",
+        "test_results": "ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"
+      },
+      {
+        "test_object": "rotated_inertia_frames-df1065120883cf35",
+        "object_sha256": "b3f31d356c116c03fd2bdd9174cc4b6b6bdec2107fc0c8ccbf73b92910cb1d32",
+        "individual_profile_sha256": "0a5c480f38f69b1010f5b233df392b8a4dc245400f00eeb73032c90a97a92425",
+        "test_results": "ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"
+      }
+    ]
+  },
+  "timing": {
+    "cpu": "AMD Ryzen 9 9950X3D, Linux affinity CPU 2",
+    "sample_ticks_per_run": 401,
+    "unmeasured_initial_repetitions": 20,
+    "public_tick_s": 1e-06,
+    "quantile_order": [
+      "p50",
+      "p95",
+      "p99"
+    ],
+    "control_base": "13449df545a7c9f358d25eb2c642e56381da73b3",
+    "control_scene_admission_patch_sha256": "58a0299178ef0e031df39c406b2d972840d18a95f245c87431e6a2299e2bed2f",
+    "benchmark_source": "288adc72dd9fb6bef52010541c06d86223eb27df",
+    "binary_sha256": {
+      "original": "acc7cd39a9c2fe19906dae22671525d7ed6a5a6b00ca4b0b958e45eefecec82e",
+      "candidate": "91bf71aae969a751171755dd947e0a0e06903d455958de74c54cfd6f06d8b40b"
+    },
+    "runs": {
+      "original": [
+        {
+          "repetition": 1,
+          "before_ns": [
+            8600,
+            10190,
+            12210
+          ],
+          "impulse_N_s": 0.066534226803,
+          "impact_ns": [
+            8700,
+            10860,
+            12940
+          ]
+        },
+        {
+          "repetition": 2,
+          "before_ns": [
+            8730,
+            12930,
+            15140
+          ],
+          "impulse_N_s": 0.066534226803,
+          "impact_ns": [
+            8820,
+            12360,
+            14130
+          ]
+        },
+        {
+          "repetition": 3,
+          "before_ns": [
+            8800,
+            13340,
+            14790
+          ],
+          "impulse_N_s": 0.066534226803,
+          "impact_ns": [
+            8900,
+            13040,
+            14630
+          ]
+        },
+        {
+          "repetition": 4,
+          "before_ns": [
+            8680,
+            10520,
+            12820
+          ],
+          "impulse_N_s": 0.066534226803,
+          "impact_ns": [
+            8770,
+            10810,
+            14791
+          ]
+        },
+        {
+          "repetition": 5,
+          "before_ns": [
+            8730,
+            10700,
+            12270
+          ],
+          "impulse_N_s": 0.066534226803,
+          "impact_ns": [
+            8810,
+            10840,
+            12030
+          ]
+        }
+      ],
+      "candidate": [
+        {
+          "repetition": 1,
+          "before_ns": [
+            8600,
+            10930,
+            13270
+          ],
+          "impulse_N_s": 0.072993187965,
+          "impact_ns": [
+            9090,
+            11330,
+            13180
+          ]
+        },
+        {
+          "repetition": 2,
+          "before_ns": [
+            8670,
+            11150,
+            14360
+          ],
+          "impulse_N_s": 0.072993187965,
+          "impact_ns": [
+            9140,
+            11180,
+            12921
+          ]
+        },
+        {
+          "repetition": 3,
+          "before_ns": [
+            8600,
+            10460,
+            12380
+          ],
+          "impulse_N_s": 0.072993187965,
+          "impact_ns": [
+            9080,
+            10940,
+            13250
+          ]
+        },
+        {
+          "repetition": 4,
+          "before_ns": [
+            8670,
+            13000,
+            16030
+          ],
+          "impulse_N_s": 0.072993187965,
+          "impact_ns": [
+            9190,
+            13960,
+            15250
+          ]
+        },
+        {
+          "repetition": 5,
+          "before_ns": [
+            8600,
+            10800,
+            12390
+          ],
+          "impulse_N_s": 0.072993187965,
+          "impact_ns": [
+            9100,
+            11290,
+            13240
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="fixed" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="arm">
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system"/>
+      <link name="base"><collision name="c"><geometry><sphere><radius>0.14</radius></sphere></geometry></collision></link>
+      <link name="tip">
+        <pose>0 0.65 0 0 0 0</pose>
+        <collision name="c"><geometry><sphere><radius>0.14</radius></sphere></geometry></collision>
+      </link>
+      <joint name="elbow" type="revolute"><parent>base</parent><child>tip</child><axis><xyz>0 0 1</xyz></axis></joint>
+    </model>
+    <model name="ram">
+      <pose>-1.4 0.65 0 0 0 0</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system">
+        <linear_velocity>2 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="head"><collision name="c"><geometry><box><size>0.32 0.26 0.32</size></box></geometry></collision></link>
+    </model>
+  </world>
+</sdf>

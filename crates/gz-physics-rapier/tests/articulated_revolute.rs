@@ -544,3 +544,107 @@ fn velocity_admission_covers_both_current_and_reset_construction_values() {
     steps(&mut backend, 100);
     assert!((backend.joint_state(joint).unwrap().position - 0.2).abs() < 1e-8);
 }
+
+#[test]
+fn two_contact_observations_recover_the_hinged_pads_mobility_and_impulse_work() {
+    use gz_physics_rapier::{ArticulatedContactSample, ArticulatedContactSite};
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let link = b
+        .spawn(BodySpec {
+            shape: Shape::Sphere { radius: 0.2 },
+            position: [0.5, 0., 0.],
+            mass: Some(1.),
+            velocity: [0.; 3],
+        })
+        .unwrap();
+    b.add_reduced_revolute(None, link, [0.; 3], [0., 0., 1.])
+        .unwrap();
+    steps(&mut b, 1);
+    let sites = [-0.1, 0.1].map(|x| ArticulatedContactSite {
+        body: link,
+        local_point: [x, 0., 0.],
+    });
+    let query = b.prepare_articulated_contacts(&sites).unwrap();
+    let sample = query.sample();
+    let moment = 0.5_f64.powi(2) + 0.4 * 0.2_f64.powi(2);
+    let radii = [0.4, 0.6];
+    let mut blocks = vec![];
+    for (i, r) in radii.into_iter().enumerate() {
+        for (j, s) in radii.into_iter().enumerate() {
+            let block = sample.mobility(i, j).unwrap();
+            for (a, row) in block.iter().enumerate() {
+                for (c, &actual) in row.iter().enumerate() {
+                    let expected = if a == 1 && c == 1 { r * s / moment } else { 0. };
+                    assert!((actual - expected).abs() < 1e-12);
+                }
+            }
+            blocks.push(block);
+        }
+    }
+    assert_eq!(
+        ArticulatedContactSample::from_measurement(
+            sample.world_points.clone(),
+            sample.velocities.clone(),
+            sample.dofs,
+            sample.links,
+            blocks.clone()
+        )
+        .unwrap(),
+        *sample
+    );
+    assert!(sample.mobility(2, 0).is_none() && sample.mobility(0, 2).is_none());
+    let zero = query.commit(&[[0., 0.3, 0.], [0., -0.2, 0.]]).unwrap();
+    assert!(zero.kinetic_energy_change.abs() < 1e-14);
+    let driven = b
+        .prepare_articulated_contacts(&sites)
+        .unwrap()
+        .commit(&[[0., 0., 0.], [0., 0.2, 0.]])
+        .unwrap();
+    let omega = 0.6 * 0.2 / moment;
+    assert!((driven.kinetic_energy_change - 0.5 * moment * omega * omega).abs() < 1e-12);
+    for (v, r) in driven.after_velocities.iter().zip(radii) {
+        assert!((v[1] - r * omega).abs() < 1e-12);
+    }
+}
+
+#[test]
+fn malformed_contact_measurements_do_not_create_an_operator() {
+    use gz_physics_rapier::ArticulatedContactSample;
+    for (points, speeds, blocks, dofs, links) in [
+        (0, 0, 0, 1, 1),
+        (17, 17, 289, 1, 1),
+        (2, 1, 4, 1, 1),
+        (2, 2, 3, 1, 1),
+        (2, 2, 4, 1, 0),
+        (2, 2, 4, 1, usize::MAX),
+        (2, 2, 4, 0, 1),
+        (2, 2, 4, 8, 1),
+    ] {
+        assert_eq!(
+            ArticulatedContactSample::from_measurement(
+                vec![[0.; 3]; points],
+                vec![[0.; 3]; speeds],
+                dofs,
+                links,
+                vec![[[0.; 3]; 3]; blocks]
+            ),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+    for (point, speed, mobility) in [
+        (f64::NAN, 0., 0.),
+        (0., f64::INFINITY, 0.),
+        (0., 0., f64::NEG_INFINITY),
+    ] {
+        assert_eq!(
+            ArticulatedContactSample::from_measurement(
+                vec![[point; 3]],
+                vec![[speed; 3]],
+                1,
+                1,
+                vec![[[mobility; 3]; 3]]
+            ),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+}

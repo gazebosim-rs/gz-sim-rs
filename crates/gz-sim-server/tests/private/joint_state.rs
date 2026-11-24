@@ -15,6 +15,7 @@ fn metadata() -> JointStatePublication {
         model_name: "arm".into(),
         topic: "/m18/joint_state".into(),
         joints: vec![JointStateJointPublication {
+            kind: gz_sim_scene::JointStateKind::Revolute,
             id: 11,
             name: "hinge".into(),
             parent: "base".into(),
@@ -32,6 +33,7 @@ fn metadata() -> JointStatePublication {
 }
 fn sample() -> JointStateSample {
     JointStateSample {
+        second_axes: Vec::new(),
         time: Duration::new(2, 123),
         epoch: 4,
         revision: 9,
@@ -160,12 +162,15 @@ fn joint_state_invalid_wire_identity_metadata_measurements_and_stamp_never_encod
     }
 }
 fn server(xml: &str) -> Server {
+    server_with_engine(xml, PhysicsEngine::Rapier)
+}
+fn server_with_engine(xml: &str, engine: PhysicsEngine) -> Server {
     let simulation = load_world_with_sdf_step(
         xml,
         "server-m18.sdf",
         "default",
         &sdformat::NoResources,
-        PhysicsEngine::Rapier,
+        engine,
     )
     .unwrap();
     let mut config = zenoh::Config::default();
@@ -1241,4 +1246,140 @@ fn paired_channels_cannot_alias_each_other_after_remapping_before_world_io() {
     assert_eq!(prepared.len(), 2);
     assert!(prepared.contains_key(&active.network_config.topic_key("/chosen/dynamic").unwrap()));
     assert!(prepared.contains_key(&active.network_config.topic_key("/chosen/static").unwrap()));
+}
+
+#[test]
+fn slider_packets_retain_prismatic_type_and_meter_coordinates() {
+    let mut m = metadata();
+    m.joints[0].kind = gz_sim_scene::JointStateKind::Prismatic;
+    let state = sample();
+    let msg = packet(&m, 7, &state).unwrap();
+    assert_eq!(
+        msg.joint[0].r#type,
+        gz_sim_proto::msgs::joint::Type::Prismatic as i32
+    );
+    assert_eq!(
+        msg.joint[0].axis1.as_ref().unwrap().position,
+        state.joints[0].position
+    );
+}
+
+#[test]
+fn the_live_cpu_transfer_robot_reports_real_slider_positions_on_its_native_topic() {
+    let mut server = server_with_engine(
+        include_str!("../../../../examples/worlds/local_robot_serial_transfer.sdf"),
+        PhysicsEngine::MultiFidelity,
+    );
+    let stream = &server.joint_states[0];
+    let subscriber = server
+        .world_io
+        .session
+        .declare_subscriber(stream.endpoint.clone())
+        .wait()
+        .unwrap();
+    let rail = stream.metadata.joints[0].id;
+    gz_sim_scene::JointForceCommand::set_batch(&mut server.simulation, [(rail, 2.)]).unwrap();
+    server.set_paused(false);
+    for _ in 0..10 {
+        server.update().unwrap();
+    }
+    let packet = receive(&subscriber);
+    assert_eq!(packet.name, "gripper");
+    assert_eq!(packet.joint.len(), 5);
+    assert_eq!(packet.header.unwrap().stamp.unwrap().nsec, 10_000_000);
+    for (msg, (id, entity)) in packet.joint.iter().zip(&server.joint_states[0].joints) {
+        if msg.name == "wrist" {
+            assert_eq!(
+                msg.r#type,
+                gz_sim_proto::msgs::joint::Type::Universal as i32
+            );
+            assert_eq!(u64::from(msg.id), *id);
+            let native = server
+                .simulation
+                .world()
+                .get::<gz_sim_scene::UniversalJointSample>(*entity)
+                .unwrap();
+            for (i, axis) in [msg.axis1.as_ref().unwrap(), msg.axis2.as_ref().unwrap()]
+                .iter()
+                .enumerate()
+            {
+                assert_eq!(
+                    (axis.position, axis.velocity),
+                    (native.state.position[i], native.state.velocity[i])
+                );
+            }
+            continue;
+        }
+        assert!(msg.axis2.is_none());
+        let kind = if msg.name == "spindle" {
+            gz_sim_proto::msgs::joint::Type::Screw
+        } else {
+            gz_sim_proto::msgs::joint::Type::Prismatic
+        };
+        assert_eq!(msg.r#type, kind as i32);
+        assert_eq!(u64::from(msg.id), *id);
+        let axis = msg.axis1.as_ref().unwrap();
+        let reading = server
+            .simulation
+            .world()
+            .get::<gz_sim_scene::JointSample>(*entity)
+            .unwrap();
+        assert_eq!(
+            (axis.position, axis.velocity),
+            (reading.state.position, reading.state.velocity)
+        );
+    }
+    assert!(packet.joint[0].axis1.as_ref().unwrap().position > 0.);
+}
+
+#[test]
+fn dual_axis_packets_require_one_finite_second_reading_for_each_matching_joint() {
+    use gz_sim_scene::JointStateKind;
+    let mut m = metadata();
+    let mut s = sample();
+    let second = JointStateValue {
+        id: s.joints[0].id,
+        position: -0.125,
+        velocity: 0.75,
+    };
+    for (kind, expected) in [
+        (
+            JointStateKind::Universal,
+            gz_sim_proto::msgs::joint::Type::Universal,
+        ),
+        (
+            JointStateKind::Revolute2,
+            gz_sim_proto::msgs::joint::Type::Revolute2,
+        ),
+    ] {
+        m.joints[0].kind = kind;
+        s.second_axes.clear();
+        assert!(packet(&m, 7, &s).is_none());
+        s.second_axes.push(second);
+        let msg = packet(&m, 7, &s).unwrap();
+        assert_eq!(msg.joint[0].r#type, expected as i32);
+        assert_eq!(msg.joint[0].axis2.as_ref().unwrap().velocity, 0.75);
+        for bad in [
+            JointStateValue {
+                id: second.id + 1,
+                ..second
+            },
+            JointStateValue {
+                position: f64::NAN,
+                ..second
+            },
+            JointStateValue {
+                velocity: f64::INFINITY,
+                ..second
+            },
+        ] {
+            s.second_axes[0] = bad;
+            assert!(packet(&m, 7, &s).is_none());
+        }
+        s.second_axes = vec![second, second];
+        assert!(packet(&m, 7, &s).is_none());
+    }
+    m.joints[0].kind = JointStateKind::Revolute;
+    s.second_axes = vec![second];
+    assert!(packet(&m, 7, &s).is_none());
 }

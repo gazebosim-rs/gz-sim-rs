@@ -76,7 +76,7 @@ fn lifecycle_cli_is_explicit_rapier_only_and_refuses_camera_domain_expansion() {
     assert!(
         String::from_utf8(unsupported.stderr)
             .unwrap()
-            .contains("--web-lifecycle requires the Rapier physics engine")
+            .contains("--web-lifecycle requires the Rapier, multifidelity, distributed, or gpu-batch physics engine")
     );
     assert!(unsupported.stdout.is_empty());
 }
@@ -274,9 +274,20 @@ fn tpe_selection_preserves_headless_output_and_rejects_unknown_engines() {
     assert!(
         String::from_utf8(result.stderr)
             .unwrap()
-            .contains("expected rapier or tpe")
+            .contains("expected rapier, tpe, multifidelity, distributed, or gpu-batch")
     );
     assert!(result.stdout.is_empty());
+}
+
+#[test]
+fn a_worker_path_cannot_enable_distributed_physics_implicitly() {
+    let result = command(&[fixture(), "--physics-worker", "/missing/physics_worker"]);
+    assert!(!result.status.success());
+    assert!(result.stdout.is_empty());
+    assert!(
+        String::from_utf8_lossy(&result.stderr)
+            .contains("explicit physics worker requires a distributed, cubic multifidelity or resident GPU world")
+    );
 }
 
 #[test]
@@ -640,4 +651,77 @@ fn viewer_opt_in_rejects_invalid_modes_and_releases_its_listener_on_exit() {
     );
     // Actual process exit must join its bridge and release the owned port.
     let _released = std::net::TcpListener::bind(address).unwrap();
+}
+
+#[test]
+fn local_worker_count_requires_a_distributed_engine_and_an_admitted_width() {
+    for width in ["1","9"] {
+        let output=command(&[fixture(),"--physics-engine","distributed","--physics-workers",width]);
+        assert!(!output.status.success());
+        assert!(String::from_utf8_lossy(&output.stderr).contains("--physics-workers"));
+    }
+    let output=command(&[fixture(),"--physics-workers","4"]);
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("--physics-workers requires --physics-engine distributed"));
+}
+
+#[test]
+fn recording_and_playback_refuse_unrecorded_worlds_and_solver_selections_before_io() {
+    let dir = tempfile::tempdir().unwrap();
+    let capture = dir.path().join("unused");
+    let name = capture.to_str().unwrap();
+    let wrong_world = command(&[
+        fixture(),
+        "--server",
+        "--web-viewer",
+        "9011",
+        "--web-lifecycle",
+        "--world",
+        "factory",
+        "--record-scene",
+        name,
+    ]);
+    assert_eq!(wrong_world.status.code(), Some(1));
+    assert!(
+        String::from_utf8(wrong_world.stderr)
+            .unwrap()
+            .contains("admitted default viewer world")
+    );
+    assert!(!capture.exists());
+
+    let play = |option: &str, value: &str| {
+        command(&[
+            name,
+            "--server",
+            "--web-viewer",
+            "9011",
+            "--replay",
+            option,
+            value,
+        ])
+    };
+    let wrong_world = play("--world", "factory");
+    assert_eq!(wrong_world.status.code(), Some(1));
+    assert!(
+        String::from_utf8(wrong_world.stderr)
+            .unwrap()
+            .contains("recorded default world")
+    );
+    for engine in ["rapier", "multifidelity"] {
+        let result = play("--physics-engine", engine);
+        assert_eq!(result.status.code(), Some(2));
+        let error = String::from_utf8(result.stderr).unwrap();
+        assert!(
+            error.contains("--physics-engine") && error.contains("--replay"),
+            "{error}"
+        );
+        assert!(result.stdout.is_empty());
+    }
+    let wrong_input = command(&[fixture(), "--server", "--web-viewer", "9011", "--replay"]);
+    assert_eq!(wrong_input.status.code(), Some(1));
+    assert!(
+        String::from_utf8(wrong_input.stderr)
+            .unwrap()
+            .contains("recording needs a local directory")
+    );
 }

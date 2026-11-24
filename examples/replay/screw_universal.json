@@ -1,0 +1,80 @@
+{
+  "seed": "two-axis-wrist-v1",
+  "commands": [
+    {
+      "op": "joint_effort",
+      "joint": "default::robot::spindle",
+      "effort": 2.0
+    },
+    {
+      "op": "universal_torque",
+      "joint": "default::robot::wrist",
+      "torque_nm": [
+        1.0,
+        -1.5
+      ]
+    },
+    {
+      "op": "universal_torque",
+      "joint": "default::robot::wrist",
+      "torque_nm": [
+        -0.2,
+        0.25
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "step",
+      "count": 180
+    },
+    {
+      "op": "joint_effort",
+      "joint": "default::robot::spindle",
+      "effort": 0
+    },
+    {
+      "op": "universal_torque",
+      "joint": "default::robot::wrist",
+      "torque_nm": [
+        0,
+        0
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "reset"
+    },
+    {
+      "op": "joint_effort",
+      "joint": "default::robot::spindle",
+      "effort": 2.0
+    },
+    {
+      "op": "universal_torque",
+      "joint": "default::robot::wrist",
+      "torque_nm": [
+        1.0,
+        -1.5
+      ]
+    },
+    {
+      "op": "universal_torque",
+      "joint": "default::robot::wrist",
+      "torque_nm": [
+        -0.2,
+        0.25
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "step",
+      "count": 180
+    }
+  ]
+}

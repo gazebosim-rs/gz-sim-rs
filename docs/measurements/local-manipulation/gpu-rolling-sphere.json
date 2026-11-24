@@ -1,0 +1,401 @@
+{
+  "adapter": "NVIDIA GeForce RTX 5090",
+  "driver": "595.99.02",
+  "gpu_dt_us": 250,
+  "precision": "f64",
+  "rapier_dt_us": 31.25,
+  "retention": {
+    "max_pressed_pulse_displacement_m": 0.0002945154931211502,
+    "minimum_opposing_impulse_ns": 0.016636834139645618,
+    "pulse_ns": 0.024,
+    "raised_pulse_displacement_m_at_300_ms": 0.022687514410714926,
+    "released_displacement_m_at_400_ms": 0.012244870944397135
+  },
+  "rows": [
+    {
+      "angular_balance_nms": 1.0926725019580474e-19,
+      "case": "oblique strike",
+      "final_speed_m_s": 0.6317384921085929,
+      "final_spin_rad_s": -28.715386004936043,
+      "final_x_m": 0.721670786716218,
+      "first_ms": [
+        21,
+        21
+      ],
+      "friction_work_j": [
+        -0.04113132384899503,
+        -0.010079861124614327,
+        -0.11554811666376322
+      ],
+      "impulse_gpu_native_ns": [
+        1.243961450160102,
+        0.7643835624208544
+      ],
+      "initial_x": 0.503,
+      "linear_balance_ns": 1.5621919925995496e-17,
+      "max_ball_error_m": 0.03995061506108636,
+      "max_friction_cone_excess_ns": 1.3877787807814457e-17,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 0.00018314922960131202,
+      "max_spin_error_rad_s": 15.867187367478845,
+      "max_tip_error_m": 0.032427152878708475,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.7095380395149954,
+      "native_final_spin_rad_s": -32.30322634768895,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 2.0328790734103208e-20,
+      "case": "positive slide",
+      "final_speed_m_s": 0.2857142857142882,
+      "final_spin_rad_s": -12.9870129870131,
+      "final_x_m": 1.2165190527677545,
+      "first_ms": [
+        null,
+        null
+      ],
+      "friction_work_j": [
+        -0.14952356498830968,
+        -0.0018285714285714413,
+        0.0
+      ],
+      "impulse_gpu_native_ns": [
+        0.0,
+        0.0
+      ],
+      "initial_x": 1.1,
+      "linear_balance_ns": 6.559423143537302e-18,
+      "max_ball_error_m": 0.000034389542714739637,
+      "max_friction_cone_excess_ns": 1.734723475976807e-18,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 3.0185197141619295e-6,
+      "max_spin_error_rad_s": 0.004869656855415627,
+      "max_tip_error_m": 0.0001315524809322483,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.285667822380015,
+      "native_final_spin_rad_s": -12.991882643868516,
+      "rolling_ms": 39
+    },
+    {
+      "angular_balance_nms": 2.0328790734103208e-20,
+      "case": "negative slide",
+      "final_speed_m_s": -0.2857142857142882,
+      "final_spin_rad_s": 12.9870129870131,
+      "final_x_m": 0.9834809472322199,
+      "first_ms": [
+        null,
+        null
+      ],
+      "friction_work_j": [
+        -0.14952356498830968,
+        -0.0018285714285714413,
+        0.0
+      ],
+      "impulse_gpu_native_ns": [
+        0.0,
+        0.0
+      ],
+      "initial_x": 1.1,
+      "linear_balance_ns": 6.559423143537302e-18,
+      "max_ball_error_m": 0.00003438954274085785,
+      "max_friction_cone_excess_ns": 1.734723475976807e-18,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 3.0185197141619295e-6,
+      "max_spin_error_rad_s": 0.004869656855415627,
+      "max_tip_error_m": 0.0001315524809322483,
+      "mu": 0.3,
+      "native_final_speed_m_s": -0.285667822380015,
+      "native_final_spin_rad_s": 12.991882643868516,
+      "rolling_ms": 39
+    },
+    {
+      "angular_balance_nms": 0.0,
+      "case": "stationary miss",
+      "final_speed_m_s": 0.0,
+      "final_spin_rad_s": 0.0,
+      "final_x_m": 1.1,
+      "first_ms": [
+        null,
+        null
+      ],
+      "friction_work_j": [
+        -0.14952356498830968,
+        0.0,
+        0.0
+      ],
+      "impulse_gpu_native_ns": [
+        0.0,
+        0.0
+      ],
+      "initial_x": 1.1,
+      "linear_balance_ns": 0.0,
+      "max_ball_error_m": 0.000023646243311331583,
+      "max_friction_cone_excess_ns": 1.734723475976807e-18,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 3.0185197141619295e-6,
+      "max_spin_error_rad_s": 0.0,
+      "max_tip_error_m": 0.0001315524809322483,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.0,
+      "native_final_spin_rad_s": -0.0,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 8.978549240895584e-20,
+      "case": "off-centre A",
+      "final_speed_m_s": 0.5199203910701979,
+      "final_spin_rad_s": -23.63274504864536,
+      "final_x_m": 0.724505257109216,
+      "first_ms": [
+        32,
+        32
+      ],
+      "friction_work_j": [
+        -0.12572730827216033,
+        -0.038887564700020964,
+        -0.021274480033841643
+      ],
+      "impulse_gpu_native_ns": [
+        0.18292870083788376,
+        0.1642951677170311
+      ],
+      "initial_x": 0.516,
+      "linear_balance_ns": 5.5328314527115326e-17,
+      "max_ball_error_m": 0.03168629041513174,
+      "max_friction_cone_excess_ns": 6.938893903907228e-18,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 1.6844455570520103e-6,
+      "max_spin_error_rad_s": 13.47230592998071,
+      "max_tip_error_m": 0.0019916860856166473,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.6251849126263277,
+      "native_final_spin_rad_s": -28.43802111708629,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 8.893845946170154e-20,
+      "case": "off-centre B",
+      "final_speed_m_s": 0.4666667075964118,
+      "final_spin_rad_s": -21.212123072564175,
+      "final_x_m": 0.7107109911972138,
+      "first_ms": [
+        40,
+        40
+      ],
+      "friction_work_j": [
+        -0.13944540689442547,
+        -0.025069508950392852,
+        -0.028727356287859496
+      ],
+      "impulse_gpu_native_ns": [
+        0.09888868802087485,
+        0.10309803380518963
+      ],
+      "initial_x": 0.525,
+      "linear_balance_ns": 1.1817803680091998e-17,
+      "max_ball_error_m": 0.008433651377959804,
+      "max_friction_cone_excess_ns": 1.734723475976807e-18,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 1.2355795771634808e-6,
+      "max_spin_error_rad_s": 2.264152360968776,
+      "max_tip_error_m": 0.0001336782517526124,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.48591942428357443,
+      "native_final_spin_rad_s": -22.098018887676837,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 2.0328790734103208e-20,
+      "case": "grazing strike",
+      "final_speed_m_s": 0.3137710515787364,
+      "final_spin_rad_s": -14.262320526306201,
+      "final_x_m": 0.6442808808568203,
+      "first_ms": [
+        55,
+        55
+      ],
+      "friction_work_j": [
+        -0.15087870251141539,
+        -0.0018124261522060685,
+        -0.000010687150920436285
+      ],
+      "impulse_gpu_native_ns": [
+        0.03447104542287343,
+        0.03448935745984637
+      ],
+      "initial_x": 0.533,
+      "linear_balance_ns": 6.559423143537302e-18,
+      "max_ball_error_m": 0.0019536427425948183,
+      "max_friction_cone_excess_ns": 1.734723475976807e-18,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 1.497203484135615e-6,
+      "max_spin_error_rad_s": 1.1341996171415054,
+      "max_tip_error_m": 0.0001314680292634677,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.3074741950340469,
+      "native_final_spin_rad_s": -13.982950235130879,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 6.860966872759833e-20,
+      "case": "centered press",
+      "final_speed_m_s": 0.11911827299854082,
+      "final_spin_rad_s": -5.414466954479129,
+      "final_x_m": 0.4982495797410474,
+      "first_ms": [
+        30,
+        30
+      ],
+      "friction_work_j": [
+        0.0,
+        1.4492707461588228e-19,
+        -0.004819945493259409
+      ],
+      "impulse_gpu_native_ns": [
+        4.811770203288415,
+        4.80146212544229
+      ],
+      "initial_x": 0.48,
+      "linear_balance_ns": 1.1926223897340549e-17,
+      "max_ball_error_m": 0.0008437200322876912,
+      "max_friction_cone_excess_ns": 0.0,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 7.352429079595942e-7,
+      "max_spin_error_rad_s": 0.052766989943604514,
+      "max_tip_error_m": 0.0006829448886181052,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.11846195139934085,
+      "native_final_spin_rad_s": -5.430362092023119,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 1.8994713842177685e-19,
+      "case": "low friction",
+      "final_speed_m_s": 0.7144619870946879,
+      "final_spin_rad_s": -32.47554486794036,
+      "final_x_m": 0.8231943941895744,
+      "first_ms": [
+        21,
+        21
+      ],
+      "friction_work_j": [
+        -0.042086815647440524,
+        -0.022535084607484213,
+        -0.0037237555629868017
+      ],
+      "impulse_gpu_native_ns": [
+        0.19088230683267446,
+        0.17831924995725812
+      ],
+      "initial_x": 0.503,
+      "linear_balance_ns": 2.7403209909571125e-17,
+      "max_ball_error_m": 0.008815388528758652,
+      "max_friction_cone_excess_ns": 6.938893903907228e-18,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 0.0,
+      "max_spin_error_rad_s": 10.004295609298302,
+      "max_tip_error_m": 0.0015323401954771669,
+      "mu": 0.1,
+      "native_final_speed_m_s": 0.7834800349070424,
+      "native_final_spin_rad_s": -35.63938061287165,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 6.860966872759833e-20,
+      "case": "pressed pulse",
+      "final_speed_m_s": 0.3331625709899783,
+      "final_spin_rad_s": -15.143753226817198,
+      "final_x_m": 0.5104944506854445,
+      "first_ms": [
+        30,
+        30
+      ],
+      "friction_work_j": [
+        0.0,
+        -0.0026233587361032744,
+        -0.0063976446810422504
+      ],
+      "impulse_gpu_native_ns": [
+        4.813668805636227,
+        4.803582134979071
+      ],
+      "initial_x": 0.48,
+      "linear_balance_ns": 1.1926223897340549e-17,
+      "max_ball_error_m": 0.0008009515535788597,
+      "max_friction_cone_excess_ns": 0.0,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 9.17976455915563e-7,
+      "max_spin_error_rad_s": 0.06426828304388543,
+      "max_tip_error_m": 0.0006869129580865721,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.33150951252289984,
+      "native_final_spin_rad_s": -15.196613458879096,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 8.978549240895584e-20,
+      "case": "raised pulse",
+      "final_speed_m_s": 0.42857142857143016,
+      "final_spin_rad_s": -19.480519480519554,
+      "final_x_m": 0.536089314535716,
+      "first_ms": [
+        null,
+        null
+      ],
+      "friction_work_j": [
+        0.0,
+        -0.0020571428571428633,
+        0.0
+      ],
+      "impulse_gpu_native_ns": [
+        0.0,
+        0.0
+      ],
+      "initial_x": 0.48,
+      "linear_balance_ns": 1.1194387430912833e-17,
+      "max_ball_error_m": 0.00003925030841633161,
+      "max_friction_cone_excess_ns": 0.0,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": 0.0,
+      "max_spin_error_rad_s": 0.005211682715195565,
+      "max_tip_error_m": 0.00001782581480475031,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.42845571730741766,
+      "native_final_spin_rad_s": -19.48573116323475,
+      "rolling_ms": null
+    },
+    {
+      "angular_balance_nms": 0.0,
+      "case": "raised control",
+      "final_speed_m_s": 0.0,
+      "final_spin_rad_s": 0.0,
+      "final_x_m": 0.48,
+      "first_ms": [
+        null,
+        null
+      ],
+      "friction_work_j": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impulse_gpu_native_ns": [
+        0.0,
+        0.0
+      ],
+      "initial_x": 0.48,
+      "linear_balance_ns": 0.0,
+      "max_ball_error_m": 0.000023646243311331583,
+      "max_friction_cone_excess_ns": 0.0,
+      "max_positive_contact_work_j": 0.0,
+      "max_positive_friction_work_j": -0.0,
+      "max_spin_error_rad_s": 0.0,
+      "max_tip_error_m": 0.00001782581480475031,
+      "mu": 0.3,
+      "native_final_speed_m_s": 0.0,
+      "native_final_spin_rad_s": -0.0,
+      "rolling_ms": null
+    }
+  ],
+  "ticks": 400
+}

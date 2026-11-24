@@ -1,0 +1,763 @@
+{
+  "step_s": 0.001,
+  "cable_mass_kg": 0.022,
+  "rail_assembly_mass_kg": 2.46,
+  "guard": {
+    "supported_weight_fraction_below": 0.75,
+    "min_squeeze_n": 0.3,
+    "positive_filtered_drag_n": 0.003,
+    "required_forward_travel_m": 0.0007,
+    "brake_limit_n": 45.0,
+    "brake_decay_s": 0.004
+  },
+  "cases": [
+    {
+      "arrests": [
+        {
+          "delay_after_cable_contact_ms": 68,
+          "detection_rigid_gap_m": 0.004597906459310287,
+          "detection_tick": 7082,
+          "filtered_drag_n": 0.04250096119255232,
+          "first_cable_contact_tick": 7014,
+          "first_command_n": -5.838083123325875,
+          "first_command_tick": 7083,
+          "first_nonpositive_rail_speed_tick": 7183,
+          "forward_speed_at_detection_m_s": 0.20850123340719534,
+          "jaw_payload_up_n": 0.10084890796737468,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.00944917019391367,
+          "unloaded_travel_m": 0.00020850123340719533
+        },
+        {
+          "delay_after_cable_contact_ms": 82,
+          "detection_rigid_gap_m": 0.040493639111557365,
+          "detection_tick": 10914,
+          "filtered_drag_n": 0.040151818786479526,
+          "first_cable_contact_tick": 10832,
+          "first_command_n": -4.335362304905663,
+          "first_command_tick": 10915,
+          "first_nonpositive_rail_speed_tick": 11051,
+          "forward_speed_at_detection_m_s": 0.15483263274933062,
+          "jaw_payload_up_n": 0.19852951269646218,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.008837853614126118,
+          "unloaded_travel_m": 0.0
+        }
+      ],
+      "cable_contact_ticks": 987,
+      "case": "original",
+      "first_open_tick": 18899,
+      "first_rigid_pad_impact_tick": 7106,
+      "minimum_rigid_clearance_m": 0.0,
+      "minimum_transport_squeeze_n": 2.1074803984931827,
+      "peak_cable_momentum_residual_ns": 4.942870313816251e-18,
+      "peak_cable_strain": 0.0016582611076876308,
+      "release_dwell_mean_n": 0.2125442778540614,
+      "reset_identical_ticks": 21773,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "source",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": null,
+      "returned_to_source": true,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.17354838164326578
+      ],
+      "rigid_pad_impulse_sum_ns": 0.17354838164326578
+    },
+    {
+      "arrests": [
+        {
+          "delay_after_cable_contact_ms": 33,
+          "detection_rigid_gap_m": 0.01182228345608508,
+          "detection_tick": 7047,
+          "filtered_drag_n": 0.0077708296419430915,
+          "first_cable_contact_tick": 7014,
+          "first_command_n": -45.0,
+          "first_command_tick": 7048,
+          "first_nonpositive_rail_speed_tick": 7103,
+          "forward_speed_at_detection_m_s": 0.20601698118641312,
+          "jaw_payload_up_n": 0.15839779552707028,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.0012322624135057691,
+          "unloaded_travel_m": 0.000823608212820072
+        },
+        {
+          "delay_after_cable_contact_ms": 47,
+          "detection_rigid_gap_m": 0.04498715946940545,
+          "detection_tick": 10875,
+          "filtered_drag_n": 0.01622775125527578,
+          "first_cable_contact_tick": 10828,
+          "first_command_n": -45.0,
+          "first_command_tick": 10876,
+          "first_nonpositive_rail_speed_tick": 10937,
+          "forward_speed_at_detection_m_s": 0.15746937088649643,
+          "jaw_payload_up_n": 0.15319037906493732,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.0007678358264566199,
+          "unloaded_travel_m": 0.0007862104060813886
+        }
+      ],
+      "cable_contact_ticks": 750,
+      "case": "tall",
+      "first_open_tick": 18861,
+      "first_rigid_pad_impact_tick": null,
+      "minimum_rigid_clearance_m": 0.008050035979278372,
+      "minimum_transport_squeeze_n": 2.1413405420694773,
+      "peak_cable_momentum_residual_ns": 5.430759915714485e-18,
+      "peak_cable_strain": 0.0009753609271414554,
+      "release_dwell_mean_n": 0.2164233755995462,
+      "reset_identical_ticks": 21735,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "source",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": null,
+      "returned_to_source": true,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.0
+      ],
+      "rigid_pad_impulse_sum_ns": 0.0
+    },
+    {
+      "arrests": [
+        {
+          "delay_after_cable_contact_ms": 28,
+          "detection_rigid_gap_m": 0.0049798460839091145,
+          "detection_tick": 6265,
+          "filtered_drag_n": 0.040089909317806725,
+          "first_cable_contact_tick": 6237,
+          "first_command_n": -12.114378029937882,
+          "first_command_tick": 6266,
+          "first_nonpositive_rail_speed_tick": 6359,
+          "forward_speed_at_detection_m_s": 0.43265462292905277,
+          "jaw_payload_up_n": 0.003630443678030353,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.017702867022296925,
+          "unloaded_travel_m": 0.00559860292898555
+        },
+        {
+          "delay_after_cable_contact_ms": 39,
+          "detection_rigid_gap_m": 0.04250632338994737,
+          "detection_tick": 9434,
+          "filtered_drag_n": 0.04082176759323171,
+          "first_cable_contact_tick": 9395,
+          "first_command_n": -8.836837336187969,
+          "first_command_tick": 9435,
+          "first_nonpositive_rail_speed_tick": 9576,
+          "forward_speed_at_detection_m_s": 0.3155995981522701,
+          "jaw_payload_up_n": 0.07950098587401952,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.01838939674037271,
+          "unloaded_travel_m": 0.004988953785095521
+        }
+      ],
+      "cable_contact_ticks": 924,
+      "case": "original-fast",
+      "first_open_tick": 17417,
+      "first_rigid_pad_impact_tick": 6277,
+      "minimum_rigid_clearance_m": 0.0,
+      "minimum_transport_squeeze_n": 2.082616071167091,
+      "peak_cable_momentum_residual_ns": 6.521512117348217e-18,
+      "peak_cable_strain": 0.0026968104414739624,
+      "release_dwell_mean_n": 0.21790482421822652,
+      "reset_identical_ticks": 20291,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "source",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": null,
+      "returned_to_source": true,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.49970119568698385
+      ],
+      "rigid_pad_impulse_sum_ns": 0.49970119568698385
+    },
+    {
+      "arrests": [
+        {
+          "delay_after_cable_contact_ms": 114,
+          "detection_rigid_gap_m": 0.04796608748665609,
+          "detection_tick": 7128,
+          "filtered_drag_n": 0.0334100301287753,
+          "first_cable_contact_tick": 7014,
+          "first_command_n": -45.0,
+          "first_command_tick": 7129,
+          "first_nonpositive_rail_speed_tick": 7182,
+          "forward_speed_at_detection_m_s": 0.2113373334386551,
+          "jaw_payload_up_n": 0.1615969832060822,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.001284791026850085,
+          "unloaded_travel_m": 0.0008450304667042046
+        }
+      ],
+      "cable_contact_ticks": 591,
+      "case": "snag",
+      "first_open_tick": 15097,
+      "first_rigid_pad_impact_tick": null,
+      "minimum_rigid_clearance_m": 0.04796608748665609,
+      "minimum_transport_squeeze_n": 2.158815004267099,
+      "peak_cable_momentum_residual_ns": 5.0993533323478896e-18,
+      "peak_cable_strain": 0.0009530638812536019,
+      "release_dwell_mean_n": 0.21369013595018865,
+      "reset_identical_ticks": 17971,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "shelf",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": 0.007483237727396043,
+      "returned_to_source": false,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.0
+      ],
+      "rigid_pad_impulse_sum_ns": 0.0
+    },
+    {
+      "arrests": [],
+      "cable_contact_ticks": 153,
+      "case": "rub",
+      "first_open_tick": 10226,
+      "first_rigid_pad_impact_tick": null,
+      "minimum_rigid_clearance_m": 0.0764581419865023,
+      "minimum_transport_squeeze_n": 2.1628377059634745,
+      "peak_cable_momentum_residual_ns": 4.942870313816251e-18,
+      "peak_cable_strain": 0.0008320710550031585,
+      "release_dwell_mean_n": 0.22160818505133292,
+      "reset_identical_ticks": 13100,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "shelf",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": 4.390576927137957e-06,
+      "returned_to_source": false,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.0
+      ],
+      "rigid_pad_impulse_sum_ns": 0.0
+    },
+    {
+      "arrests": [],
+      "cable_contact_ticks": 0,
+      "case": "fast",
+      "first_open_tick": 8557,
+      "first_rigid_pad_impact_tick": null,
+      "minimum_rigid_clearance_m": 0.4193824276499456,
+      "minimum_transport_squeeze_n": 2.1680335181124066,
+      "peak_cable_momentum_residual_ns": 5.4224506272444794e-18,
+      "peak_cable_strain": 0.0008313596433062731,
+      "release_dwell_mean_n": 0.2217054802895791,
+      "reset_identical_ticks": 11431,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "shelf",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": null,
+      "returned_to_source": false,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.0
+      ],
+      "rigid_pad_impulse_sum_ns": 0.0
+    },
+    {
+      "arrests": [
+        {
+          "delay_after_cable_contact_ms": null,
+          "detection_rigid_gap_m": 0.46782387567252104,
+          "detection_tick": 6061,
+          "filtered_drag_n": -0.06971762254087094,
+          "first_cable_contact_tick": null,
+          "first_command_n": -45.0,
+          "first_command_tick": 6062,
+          "first_nonpositive_rail_speed_tick": 6077,
+          "forward_speed_at_detection_m_s": 0.08206078937340888,
+          "jaw_payload_up_n": 0.0,
+          "mode": "LostGrip",
+          "peak_forward_overshoot_m": 0.0002713960221504882,
+          "unloaded_travel_m": 0.0
+        }
+      ],
+      "cable_contact_ticks": 0,
+      "case": "lost",
+      "first_open_tick": null,
+      "first_rigid_pad_impact_tick": null,
+      "minimum_rigid_clearance_m": 0.42003681748768223,
+      "minimum_transport_squeeze_n": 0.0,
+      "peak_cable_momentum_residual_ns": 1.537095582556979e-17,
+      "peak_cable_strain": 0.0009127777087811761,
+      "release_dwell_mean_n": null,
+      "reset_identical_ticks": 8561,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "source",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": null,
+      "returned_to_source": false,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.0
+      ],
+      "rigid_pad_impulse_sum_ns": 0.0
+    },
+    {
+      "arrests": [],
+      "cable_contact_ticks": 0,
+      "case": "clear",
+      "first_open_tick": 10233,
+      "first_rigid_pad_impact_tick": null,
+      "minimum_rigid_clearance_m": 0.4192319735782664,
+      "minimum_transport_squeeze_n": 2.172924345671594,
+      "peak_cable_momentum_residual_ns": 5.17786356303173e-18,
+      "peak_cable_strain": 0.0008313596433062731,
+      "release_dwell_mean_n": 0.2221011793567467,
+      "reset_identical_ticks": 13107,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "shelf",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": null,
+      "returned_to_source": false,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.0
+      ],
+      "rigid_pad_impulse_sum_ns": 0.0
+    },
+    {
+      "arrests": [
+        {
+          "delay_after_cable_contact_ms": 8,
+          "detection_rigid_gap_m": 0.013591531665002958,
+          "detection_tick": 6245,
+          "filtered_drag_n": 0.013232757319336472,
+          "first_cable_contact_tick": 6237,
+          "first_command_n": -45.0,
+          "first_command_tick": 6246,
+          "first_nonpositive_rail_speed_tick": 6304,
+          "forward_speed_at_detection_m_s": 0.42578909985147967,
+          "jaw_payload_up_n": 0.1442147140024798,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.004854997507678038,
+          "unloaded_travel_m": 0.0008512085294241917
+        },
+        {
+          "delay_after_cable_contact_ms": 23,
+          "detection_rigid_gap_m": 0.04389949126428181,
+          "detection_tick": 9428,
+          "filtered_drag_n": 0.006899657694471284,
+          "first_cable_contact_tick": 9405,
+          "first_command_n": -45.0,
+          "first_command_tick": 9429,
+          "first_nonpositive_rail_speed_tick": 9496,
+          "forward_speed_at_detection_m_s": 0.33023469492171525,
+          "jaw_payload_up_n": 0.11253785702749884,
+          "mode": "Backoff",
+          "peak_forward_overshoot_m": 0.0029280352413023902,
+          "unloaded_travel_m": 0.0009892062085801925
+        }
+      ],
+      "cable_contact_ticks": 706,
+      "case": "fast-tall",
+      "first_open_tick": 17407,
+      "first_rigid_pad_impact_tick": null,
+      "minimum_rigid_clearance_m": 0.003467923544001479,
+      "minimum_transport_squeeze_n": 2.053432316485443,
+      "peak_cable_momentum_residual_ns": 5.330331429033654e-18,
+      "peak_cable_strain": 0.001129954587979931,
+      "release_dwell_mean_n": 0.21688051402516303,
+      "reset_identical_ticks": 20281,
+      "rest_peak_speed_m_s": 0.0,
+      "rest_support": "source",
+      "rest_support_mean_n": 0.21581999999999785,
+      "retry_crossing_clearance_m": null,
+      "returned_to_source": true,
+      "rigid_pad_impulse_left_right_ns": [
+        0.0,
+        0.0
+      ],
+      "rigid_pad_impulse_sum_ns": 0.0
+    }
+  ],
+  "timing": {
+    "cpu_affinity": [
+      25
+    ],
+    "release_executable_sha256": "43bd63fda35f515e0b32672d512a078c97d643950097c3fb873299c4cd8c4c24",
+    "active_brake": {
+      "p50_ns": 165671,
+      "p95_ns": 216460,
+      "p99_ns": 246641,
+      "ticks": 52428
+    },
+    "normal_stop": {
+      "p50_ns": 169560,
+      "p95_ns": 289611,
+      "p99_ns": 321561,
+      "ticks": 52428
+    },
+    "physical_ticks_per_route": 13107,
+    "runs": [
+      {
+        "active_braking": false,
+        "p95_ns": 305661,
+        "tick_count": 13107,
+        "total_measured_ms": 3302.9555
+      },
+      {
+        "active_braking": true,
+        "p95_ns": 235541,
+        "tick_count": 13107,
+        "total_measured_ms": 2366.263258
+      },
+      {
+        "active_braking": true,
+        "p95_ns": 186881,
+        "tick_count": 13107,
+        "total_measured_ms": 2184.967673
+      },
+      {
+        "active_braking": false,
+        "p95_ns": 193651,
+        "tick_count": 13107,
+        "total_measured_ms": 2220.482138
+      },
+      {
+        "active_braking": true,
+        "p95_ns": 218971,
+        "tick_count": 13107,
+        "total_measured_ms": 2253.851682
+      },
+      {
+        "active_braking": false,
+        "p95_ns": 232340,
+        "tick_count": 13107,
+        "total_measured_ms": 2446.126698
+      },
+      {
+        "active_braking": false,
+        "p95_ns": 195491,
+        "tick_count": 13107,
+        "total_measured_ms": 2171.650454
+      },
+      {
+        "active_braking": true,
+        "p95_ns": 184941,
+        "tick_count": 13107,
+        "total_measured_ms": 2158.869304
+      }
+    ]
+  },
+  "browser": {
+    "tall": {
+      "body_poses_and_shapes_checked": 6156,
+      "captured_ms": {
+        "event-10875-Backoff": 10875.0,
+        "event-12336-Returning": 12336.0,
+        "event-15836-Placing": 15836.0,
+        "event-18860-Opening": 18860.0,
+        "event-19235-Withdrawn": 19235.0,
+        "event-5400-Transport": 5400.0,
+        "event-7047-Backoff": 7047.0,
+        "event-8507-Raising": 8507.0,
+        "event-9507-Transport": 9507.0,
+        "first-cable-contact": 7014.0,
+        "rest": 21735.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 228,
+      "independent_particle_positions_checked": 2508,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 228,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9970%2F"
+    },
+    "original": {
+      "body_poses_and_shapes_checked": 6183,
+      "captured_ms": {
+        "event-10914-Backoff": 10914.0,
+        "event-12377-Returning": 12377.0,
+        "event-15877-Placing": 15877.0,
+        "event-18898-Opening": 18898.0,
+        "event-19273-Withdrawn": 19273.0,
+        "event-5400-Transport": 5400.0,
+        "event-7082-Backoff": 7082.0,
+        "event-8543-Raising": 8543.0,
+        "event-9543-Transport": 9543.0,
+        "first-cable-contact": 7014.0,
+        "first-rigid-contact": 7106.0,
+        "rest": 21773.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 229,
+      "independent_particle_positions_checked": 2519,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 229,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9971%2F"
+    },
+    "fast-tall": {
+      "body_poses_and_shapes_checked": 5751,
+      "captured_ms": {
+        "event-10890-Returning": 10890.0,
+        "event-14390-Placing": 14390.0,
+        "event-17406-Opening": 17406.0,
+        "event-17781-Withdrawn": 17781.0,
+        "event-5400-Transport": 5400.0,
+        "event-6245-Backoff": 6245.0,
+        "event-7705-Raising": 7705.0,
+        "event-8705-Transport": 8705.0,
+        "event-9428-Backoff": 9428.0,
+        "first-cable-contact": 6237.0,
+        "rest": 20281.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 213,
+      "independent_particle_positions_checked": 2343,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 213,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9972%2F"
+    }
+  },
+  "coverage": {
+    "changed_production": {
+      "crates/gz-sim-cli/examples/serial_cable.rs": {
+        "mapped_lines": [
+          5,
+          6
+        ],
+        "mapped_regions": [
+          7,
+          9
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/controller.rs": {
+        "mapped_lines": [
+          10,
+          10
+        ],
+        "mapped_regions": [
+          14,
+          14
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile.rs": {
+        "mapped_lines": [
+          44,
+          44
+        ],
+        "mapped_regions": [
+          91,
+          92
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/braking.rs": {
+        "mapped_lines": [
+          101,
+          107
+        ],
+        "mapped_regions": [
+          193,
+          212
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/braking_qualification.rs": {
+        "mapped_lines": [
+          113,
+          113
+        ],
+        "mapped_regions": [
+          257,
+          258
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/braking_plot.rs": {
+        "mapped_lines": [
+          65,
+          65
+        ],
+        "mapped_regions": [
+          116,
+          123
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/braking_cost.rs": {
+        "mapped_lines": [
+          57,
+          58
+        ],
+        "mapped_regions": [
+          140,
+          149
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "app",
+        "sha256": "128b3f2b05451d518a3af56b70ea84b00de99a3976ac0436ad41d01897f30132"
+      },
+      {
+        "case": "product",
+        "sha256": "234255aaf43198b35479bc85cb11944682f5b7ed7af69f87a927334bff862b60"
+      }
+    ],
+    "mapped_lines": [
+      395,
+      403
+    ],
+    "mapped_regions": [
+      818,
+      857
+    ]
+  },
+  "release_tests": 21,
+  "parity": {
+    "all_nine_native_archives_and_every_logged_tick_match_between_instrumented_and_plain_recordings": true,
+    "controls_with_and_without_brake_match_byte_for_byte_at_every_tick": [
+      "clear",
+      "fast",
+      "rub"
+    ],
+    "comparison_sha256": "f470b498cdbe5425e2ca9a269733d1f9c65a2160db50a58d3bb8d7a930dc6da8"
+  },
+  "coverage_method": "Separately exported instrumented release example and test executables, merged by identical changed production source coordinates. No test-only source in denominator.",
+  "additional_unpinned_timings": {
+    "final": {
+      "active_brake": {
+        "p50_ns": 153860,
+        "p95_ns": 193460,
+        "p99_ns": 238221,
+        "ticks": 52428
+      },
+      "normal_stop": {
+        "p50_ns": 154851,
+        "p95_ns": 190840,
+        "p99_ns": 230960,
+        "ticks": 52428
+      },
+      "physical_ticks_per_route": 13107,
+      "runs": [
+        {
+          "active_braking": false,
+          "p95_ns": 186070,
+          "tick_count": 13107,
+          "total_measured_ms": 2080.048893
+        },
+        {
+          "active_braking": true,
+          "p95_ns": 185910,
+          "tick_count": 13107,
+          "total_measured_ms": 2069.365552
+        },
+        {
+          "active_braking": true,
+          "p95_ns": 169690,
+          "tick_count": 13107,
+          "total_measured_ms": 2034.344718
+        },
+        {
+          "active_braking": false,
+          "p95_ns": 178851,
+          "tick_count": 13107,
+          "total_measured_ms": 2055.251017
+        },
+        {
+          "active_braking": true,
+          "p95_ns": 223231,
+          "tick_count": 13107,
+          "total_measured_ms": 2156.148344
+        },
+        {
+          "active_braking": false,
+          "p95_ns": 204070,
+          "tick_count": 13107,
+          "total_measured_ms": 2127.623865
+        },
+        {
+          "active_braking": false,
+          "p95_ns": 190571,
+          "tick_count": 13107,
+          "total_measured_ms": 2093.872769
+        },
+        {
+          "active_braking": true,
+          "p95_ns": 177281,
+          "tick_count": 13107,
+          "total_measured_ms": 2067.968586
+        }
+      ]
+    },
+    "publication": {
+      "active_brake": {
+        "p50_ns": 175790,
+        "p95_ns": 262831,
+        "p99_ns": 303041,
+        "ticks": 52428
+      },
+      "normal_stop": {
+        "p50_ns": 162810,
+        "p95_ns": 234331,
+        "p99_ns": 285221,
+        "ticks": 52428
+      },
+      "physical_ticks_per_route": 13107,
+      "runs": [
+        {
+          "active_braking": false,
+          "p95_ns": 266081,
+          "tick_count": 13107,
+          "total_measured_ms": 2404.467867
+        },
+        {
+          "active_braking": true,
+          "p95_ns": 290881,
+          "tick_count": 13107,
+          "total_measured_ms": 2636.538727
+        },
+        {
+          "active_braking": true,
+          "p95_ns": 245911,
+          "tick_count": 13107,
+          "total_measured_ms": 2398.33818
+        },
+        {
+          "active_braking": false,
+          "p95_ns": 255231,
+          "tick_count": 13107,
+          "total_measured_ms": 2291.112531
+        },
+        {
+          "active_braking": true,
+          "p95_ns": 234941,
+          "tick_count": 13107,
+          "total_measured_ms": 2389.618911
+        },
+        {
+          "active_braking": false,
+          "p95_ns": 176610,
+          "tick_count": 13107,
+          "total_measured_ms": 2143.774986
+        },
+        {
+          "active_braking": false,
+          "p95_ns": 180051,
+          "tick_count": 13107,
+          "total_measured_ms": 2087.780879
+        },
+        {
+          "active_braking": true,
+          "p95_ns": 248361,
+          "tick_count": 13107,
+          "total_measured_ms": 2441.003622
+        }
+      ]
+    }
+  }
+}

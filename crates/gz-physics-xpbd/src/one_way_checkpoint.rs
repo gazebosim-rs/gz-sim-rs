@@ -1,0 +1,332 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+//! A cold construction and committed publication for externally prescribed boundary owners.
+use super::*;
+use crate::collision::PlaneFrictionLaw;
+use serde::{Deserialize, Serialize};
+pub const MAX_ONE_WAY_PARTICLES: usize = 4096;
+const MAX_ROWS: usize = 32768;
+// The first three variants retain the binary and named representations of legacy seeds.
+#[derive(Clone, Copy, Serialize, Deserialize)]
+enum ConstructionTopology {
+    Particles,
+    Cable,
+    Cloth(usize),
+    DampedCloth {
+        columns: usize,
+        coefficient: f64,
+    },
+    PlaneFriction {
+        material: MaterialTopology,
+        bend_damping: Option<f64>,
+        coefficient: f64,
+    },
+    ProjectedPlaneFriction {
+        material: MaterialTopology,
+        bend_damping: Option<f64>,
+        coefficient: f64,
+    },
+    ArrestingPlaneFriction {
+        material: MaterialTopology,
+        bend_damping: Option<f64>,
+        coefficient: f64,
+    },
+}
+#[derive(Clone, Serialize, Deserialize)]
+pub struct OneWayConstruction {
+    particles: Vec<Particle>,
+    constraints: Vec<DistanceConstraint>,
+    bending: Vec<DihedralConstraint>,
+    config: SolverConfig,
+    topology: ConstructionTopology,
+    conserve_momentum: bool,
+}
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+pub struct OneWayState {
+    pub particles: Vec<([f64; 3], [f64; 3])>,
+    pub reactions: Vec<BoundaryImpulse>,
+    pub path_substeps: u32,
+}
+impl SoftBody {
+    fn admits_one_way_cut(&self) -> bool {
+        self.particles.len() <= MAX_ONE_WAY_PARTICLES
+            && self.constraints.len() <= MAX_ROWS
+            && self.bending.len() <= MAX_ROWS
+            && self.self_contact.is_none()
+            && self.surface.is_none()
+            && self.pads.is_none()
+            && self.contacts.pad_samples.is_empty()
+            && self.capsule_material.is_none()
+    }
+    /// Digest only the immutable equations of motion. Public particle coordinates,
+    /// velocities and reactions can change at every cut. A cached value is shared by
+    /// sequential steps and is invalidated by a change of structural formulation.
+    pub fn one_way_identity(&self) -> Result<[u8; 32], XpbdError> {
+        use sha2::{Digest, Sha256};
+        if !self.admits_one_way_cut() {
+            return Err(XpbdError::MaterialCheckpoint);
+        }
+        Ok(*self.one_way_identity.get_or_init(|| {
+            let mut h = Sha256::new();
+            h.update(b"gz-one-way-material-law-01");
+            h.update([u8::from(self.momentum_rows.is_some())]);
+            let topology = match self.topology {
+                MaterialTopology::Particles => 0,
+                MaterialTopology::Cable => 1,
+                MaterialTopology::Cloth(n) => 2 + n as u64,
+            };
+            h.update(topology.to_le_bytes());
+            let cfg = self.config;
+            h.update(cfg.iterations.to_le_bytes());
+            h.update(cfg.substeps.to_le_bytes());
+            for value in cfg
+                .gravity
+                .into_iter()
+                .chain([cfg.friction, cfg.particle_radius])
+            {
+                h.update(value.to_le_bytes());
+            }
+            h.update((self.particles.len() as u64).to_le_bytes());
+            for p in &self.particles {
+                h.update(p.inverse_mass.to_le_bytes());
+            }
+            h.update((self.constraints.len() as u64).to_le_bytes());
+            for (c, d) in self.constraints.iter().zip(&self.rest_directions) {
+                h.update((c.a as u64).to_le_bytes());
+                h.update((c.b as u64).to_le_bytes());
+                for v in [c.compliance, c.rest_length]
+                    .into_iter()
+                    .chain(d.to_array())
+                {
+                    h.update(v.to_le_bytes());
+                }
+            }
+            h.update((self.bending.len() as u64).to_le_bytes());
+            for b in &self.bending {
+                for i in b.vertices {
+                    h.update((i as u64).to_le_bytes());
+                }
+                h.update(b.rest_angle.to_le_bytes());
+                h.update(b.compliance.to_le_bytes());
+            }
+            if self.bending_damping > 0. {
+                h.update(b"dihedral-damping");
+                h.update(self.bending_damping.to_le_bytes());
+            }
+            if let Some(coefficient) = self.contacts.static_plane_friction {
+                match self.contacts.plane_friction_law {
+                    PlaneFrictionLaw::StaticOnly => h.update(b"static-plane-friction"),
+                    PlaneFrictionLaw::Projected => {
+                        h.update(b"projected-plane-and-cuboid-face-friction-01")
+                    }
+                    PlaneFrictionLaw::WithSlipArrest => {
+                        h.update(b"projected-plane-and-cuboid-face-friction-02")
+                    }
+                }
+                h.update(coefficient.to_le_bytes());
+            }
+            h.finalize().into()
+        }))
+    }
+    /// Capture reset particles and structural rest data from a seed with no published reactions.
+    pub fn one_way_construction(&self) -> Result<OneWayConstruction, XpbdError> {
+        if !self.admits_one_way_cut()
+            || !self.reactions.is_empty()
+            || self.sweep_refinements != 0
+            || self.path_substeps != 0
+        {
+            return Err(XpbdError::MaterialCheckpoint);
+        }
+        // Rest directions are derived from the construction positions even for inextensible rows.
+        let seed = OneWayConstruction {
+            particles: self.particles.clone(),
+            constraints: self.constraints.clone(),
+            bending: self.bending.clone(),
+            config: self.config,
+            topology: if let Some(coefficient) = self.contacts.static_plane_friction {
+                let material = self.topology;
+                let bend_damping = (self.bending_damping > 0.).then_some(self.bending_damping);
+                match self.contacts.plane_friction_law {
+                    PlaneFrictionLaw::StaticOnly => ConstructionTopology::PlaneFriction {
+                        material,
+                        bend_damping,
+                        coefficient,
+                    },
+                    PlaneFrictionLaw::Projected => ConstructionTopology::ProjectedPlaneFriction {
+                        material,
+                        bend_damping,
+                        coefficient,
+                    },
+                    PlaneFrictionLaw::WithSlipArrest => {
+                        ConstructionTopology::ArrestingPlaneFriction {
+                            material,
+                            bend_damping,
+                            coefficient,
+                        }
+                    }
+                }
+            } else {
+                match self.topology {
+                    MaterialTopology::Particles => ConstructionTopology::Particles,
+                    MaterialTopology::Cable => ConstructionTopology::Cable,
+                    MaterialTopology::Cloth(columns) if self.bending_damping > 0. => {
+                        ConstructionTopology::DampedCloth {
+                            columns,
+                            coefficient: self.bending_damping,
+                        }
+                    }
+                    MaterialTopology::Cloth(columns) => ConstructionTopology::Cloth(columns),
+                }
+            },
+            conserve_momentum: self.momentum_rows.is_some(),
+        };
+        let rebuilt = Self::from_one_way_construction(&seed)?;
+        if rebuilt.rest_directions != self.rest_directions {
+            return Err(XpbdError::MaterialCheckpoint);
+        }
+        Ok(seed)
+    }
+    pub fn from_one_way_construction(seed: &OneWayConstruction) -> Result<Self, XpbdError> {
+        let n = seed.particles.len();
+        if n > MAX_ONE_WAY_PARTICLES
+            || seed.config.self_contact
+            || seed.constraints.len() > MAX_ROWS
+            || seed.bending.len() > MAX_ROWS
+        {
+            return Err(XpbdError::MaterialCheckpoint);
+        }
+        let (topology, damping, plane) = match seed.topology {
+            ConstructionTopology::Particles => (MaterialTopology::Particles, None, None),
+            ConstructionTopology::Cable => (MaterialTopology::Cable, None, None),
+            ConstructionTopology::Cloth(width) => (MaterialTopology::Cloth(width), None, None),
+            ConstructionTopology::DampedCloth {
+                columns,
+                coefficient,
+            } => (MaterialTopology::Cloth(columns), Some(coefficient), None),
+            ConstructionTopology::PlaneFriction {
+                material,
+                bend_damping,
+                coefficient,
+            }
+            | ConstructionTopology::ArrestingPlaneFriction {
+                material,
+                bend_damping,
+                coefficient,
+            }
+            | ConstructionTopology::ProjectedPlaneFriction {
+                material,
+                bend_damping,
+                coefficient,
+            } => (material, bend_damping, Some(coefficient)),
+        };
+        if let MaterialTopology::Cloth(width) = topology
+            && (width < 2 || !n.is_multiple_of(width) || n / width < 2)
+        {
+            return Err(XpbdError::MaterialCheckpoint);
+        }
+        let mut body = Self::new(
+            seed.particles.clone(),
+            seed.constraints.clone(),
+            seed.config,
+        )?;
+        body.topology = topology;
+        for b in &seed.bending {
+            if b.vertices.iter().any(|&i| i >= n)
+                || b.vertices
+                    .iter()
+                    .enumerate()
+                    .any(|(i, v)| b.vertices[..i].contains(v))
+                || !b.rest_angle.is_finite()
+                || !b.compliance.is_finite()
+                || b.compliance < 0.
+            {
+                return Err(XpbdError::MaterialCheckpoint);
+            }
+        }
+        body.bending.clone_from(&seed.bending);
+        body.bending_lambdas.resize(body.bending.len(), 0.);
+        if let Some(coefficient) = damping {
+            if coefficient == 0. {
+                return Err(XpbdError::MaterialCheckpoint);
+            }
+            body = body
+                .with_bending_damping(coefficient)
+                .map_err(|_| XpbdError::MaterialCheckpoint)?;
+        }
+        if let Some(coefficient) = plane {
+            if coefficient <= 0. {
+                return Err(XpbdError::MaterialCheckpoint);
+            }
+            body = body
+                .with_static_plane_friction(coefficient)
+                .map_err(|_| XpbdError::MaterialCheckpoint)?;
+            body.contacts.plane_friction_law = match seed.topology {
+                ConstructionTopology::PlaneFriction { .. } => PlaneFrictionLaw::StaticOnly,
+                ConstructionTopology::ProjectedPlaneFriction { .. } => PlaneFrictionLaw::Projected,
+                _ => PlaneFrictionLaw::WithSlipArrest,
+            };
+        }
+        if seed.conserve_momentum {
+            body = body.with_angular_momentum_conservation();
+        }
+        Ok(body)
+    }
+    /// The predictor rebuilds gradients and clears every contact and structural multiplier on the
+    /// next substep. Velocities, positions and public interval reactions are the continuation.
+    pub fn one_way_state(&self) -> Result<OneWayState, XpbdError> {
+        if !self.admits_one_way_cut()
+            || self.sweep_refinements != 0
+            || self.self_impulse != Default::default()
+        {
+            return Err(XpbdError::MaterialCheckpoint);
+        }
+        let state = OneWayState {
+            particles: self
+                .particles
+                .iter()
+                .map(|p| (p.position, p.velocity))
+                .collect(),
+            reactions: self.reactions.clone(),
+            path_substeps: self.path_substeps,
+        };
+        self.validate_one_way_state(&state)?;
+        Ok(state)
+    }
+    pub fn validate_one_way_state(&self, s: &OneWayState) -> Result<(), XpbdError> {
+        if !self.admits_one_way_cut()
+            || s.particles.len() != self.particles.len()
+            || s.reactions.len() > 4096
+            || s.path_substeps > 16384
+            || s.particles
+                .iter()
+                .any(|(x, v)| !DVec3::from(*x).is_finite() || !DVec3::from(*v).is_finite())
+            || s.reactions.iter().enumerate().any(|(i, r)| {
+                r.boundary != i
+                    || !DVec3::from(r.linear).is_finite()
+                    || !DVec3::from(r.angular).is_finite()
+            })
+        {
+            return Err(XpbdError::MaterialCheckpoint);
+        }
+        Ok(())
+    }
+    pub fn install_one_way_state(&mut self, s: OneWayState) -> Result<(), XpbdError> {
+        self.validate_one_way_state(&s)?;
+        for (p, (x, v)) in self.particles.iter_mut().zip(s.particles) {
+            p.position = x;
+            p.velocity = v;
+        }
+        // A one-way publication contains no articulated-pad impulses.
+        if let Some(loads) = &mut self.contacts.pad_loads {
+            loads.begin();
+            loads.publish();
+        }
+        self.reactions = s.reactions;
+        self.path_substeps = s.path_substeps;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+#[path = "../tests/private/damped_checkpoint.rs"]
+mod damped_checkpoint;

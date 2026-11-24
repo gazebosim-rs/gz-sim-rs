@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0.4 0 -9.81</gravity>
+    <physics name="accuracy" type="ignored"><max_step_size>0.001</max_step_size><real_time_factor>0.12</real_time_factor></physics>
+    <plugin name="gz::sim::systems::GpuBatch" filename="gz-sim-gpu-batch-system">
+      <observe every="1"/>
+      <environment id="9" profile="sphere-plane" friction="0.16" native_handoff="true" execution="native">
+        <a link="ball_9::body" linear="1.15 0.11 -0.35" angular="0.3 -1.5 2.4"/>
+        <plane link="lane_9::surface"/>
+      </environment>
+      <environment id="31" profile="sphere-plane" friction="0.16" native_handoff="true" execution="gpu">
+        <a link="ball_31::body" linear="1.15 0.11 -0.35" angular="0.3 -1.5 2.4"/>
+        <plane link="lane_31::surface"/>
+      </environment>
+      <environment id="80" profile="sphere-plane" friction="0.16" native_handoff="true" execution="native">
+        <a link="ball_80::body" linear="1.15 0.11 -0.35" angular="0.3 -1.5 2.4"/>
+        <plane link="lane_80::surface"/>
+      </environment>
+    </plugin>
+    <model name="ball_9">
+      <pose>-0.67 1.78 0.48 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>1.25</mass><inertia><ixx>0.01125</ixx><iyy>0.01125</iyy><izz>0.01125</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.15</radius></sphere></geometry></collision>
+        <visual name="shell"><geometry><sphere><radius>0.15</radius></sphere></geometry><material><diffuse>0.20 0.69 0.91 1</diffuse></material></visual>
+        <visual name="spin"><pose>0 0 0.138 0 0 0</pose><geometry><sphere><radius>0.027</radius></sphere></geometry><material><diffuse>0.96 0.94 0.90 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="lane_9">
+      <static>true</static><pose>0 1.78 0 0 0.075 0</pose>
+      <link name="surface">
+        <collision name="halfspace"><geometry><plane><normal>0 0 1</normal><size>3.6 0.9</size></plane></geometry></collision>
+        <visual name="plate"><pose>0 0 -0.0275 0 0 0</pose><geometry><box><size>3.6 0.9 0.055</size></box></geometry><material><diffuse>0.38 0.44 0.50 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="ball_31">
+      <pose>-0.67 0.0 0.48 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>1.25</mass><inertia><ixx>0.01125</ixx><iyy>0.01125</iyy><izz>0.01125</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.15</radius></sphere></geometry></collision>
+        <visual name="shell"><geometry><sphere><radius>0.15</radius></sphere></geometry><material><diffuse>0.92 0.55 0.16 1</diffuse></material></visual>
+        <visual name="spin"><pose>0 0 0.138 0 0 0</pose><geometry><sphere><radius>0.027</radius></sphere></geometry><material><diffuse>0.96 0.94 0.90 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="lane_31">
+      <static>true</static><pose>0 0.0 0 0 0.075 0</pose>
+      <link name="surface">
+        <collision name="halfspace"><geometry><plane><normal>0 0 1</normal><size>3.6 0.9</size></plane></geometry></collision>
+        <visual name="plate"><pose>0 0 -0.0275 0 0 0</pose><geometry><box><size>3.6 0.9 0.055</size></box></geometry><material><diffuse>0.38 0.44 0.50 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="ball_80">
+      <pose>-0.67 -1.83 0.48 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>1.25</mass><inertia><ixx>0.01125</ixx><iyy>0.01125</iyy><izz>0.01125</izz></inertia></inertial>
+        <collision name="ball"><geometry><sphere><radius>0.15</radius></sphere></geometry></collision>
+        <visual name="shell"><geometry><sphere><radius>0.15</radius></sphere></geometry><material><diffuse>0.41 0.77 0.38 1</diffuse></material></visual>
+        <visual name="spin"><pose>0 0 0.138 0 0 0</pose><geometry><sphere><radius>0.027</radius></sphere></geometry><material><diffuse>0.96 0.94 0.90 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="lane_80">
+      <static>true</static><pose>0 -1.83 0 0 0.075 0</pose>
+      <link name="surface">
+        <collision name="halfspace"><geometry><plane><normal>0 0 1</normal><size>3.6 0.9</size></plane></geometry></collision>
+        <visual name="plate"><pose>0 0 -0.0275 0 0 0</pose><geometry><box><size>3.6 0.9 0.055</size></box></geometry><material><diffuse>0.38 0.44 0.50 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

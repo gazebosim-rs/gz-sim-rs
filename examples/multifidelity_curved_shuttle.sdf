@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A cubic shuttle carries a falling payload around a closed path in 3.6 seconds. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="five_ms" type="ignored">
+      <max_step_size>0.005</max_step_size>
+    </physics>
+    <model name="platform">
+      <pose>0 0 0.1 0 0 0</pose>
+      <link name="body">
+        <collision name="deck"><geometry><box><size>2 1 0.2</size></box></geometry></collision>
+        <visual name="deck_visual">
+          <geometry><box><size>2 1 0.2</size></box></geometry>
+          <material><diffuse>0.04 0.30 0.72 1</diffuse></material>
+        </visual>
+      </link>
+      <plugin filename="gz-sim-prescribed-motion-system" name="gz::sim::systems::PrescribedMotion">
+        <trajectory end="repeat">
+          <waypoint time_ns="0" displacement="0 0 0" velocity="0 0 0"/>
+          <waypoint time_ns="205000000" displacement="0 0 0" velocity="0 0 0"/>
+          <waypoint time_ns="1400250000" displacement="0.55 0.2 0.25" velocity="0.05 0.2 0"/>
+          <waypoint time_ns="2200350000" displacement="0.45 0.44 0.20" velocity="-0.3 0 0"/>
+          <waypoint time_ns="3600000000" displacement="0 0 0" velocity="0 0 0"/>
+        </trajectory>
+      </plugin>
+    </model>
+    <model name="cargo">
+      <!-- The cargo falls 15 mm before making contact with the shuttle. -->
+      <pose>0 0 0.315 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1.2</mass>
+          <inertia><ixx>0.02</ixx><iyy>0.02</iyy><izz>0.032</izz></inertia>
+        </inertial>
+        <collision name="box"><geometry><box><size>0.4 0.4 0.2</size></box></geometry></collision>
+        <visual name="box_visual">
+          <geometry><box><size>0.4 0.4 0.2</size></box></geometry>
+          <material><diffuse>0.95 0.25 0.04 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

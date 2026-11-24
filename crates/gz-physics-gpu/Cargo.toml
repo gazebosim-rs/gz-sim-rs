@@ -1,0 +1,48 @@
+[package]
+name = "gz-physics-gpu"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[features]
+native-handoff = ["dep:rapier3d-f64", "dep:bevy_tasks"]
+
+[dependencies]
+glam.workspace = true
+bevy_tasks = { version = "=0.20.0", default-features = false, features = ["multi_threaded"], optional = true }
+rapier3d-f64 = { workspace = true, optional = true }
+bevy_ecs.workspace = true
+gz-sim-core = { path = "../gz-sim-core" }
+thiserror.workspace = true
+wgpu = { version = "=30.0.1", default-features = false, features = ["std", "vulkan", "naga-ir"] }
+naga = "=30.0.1"
+pollster = "=0.4.0"
+serde = { version = "=1.0.229", features = ["derive"] }
+bincode = "=1.3.3"
+sha2 = "=0.10.9"
+bytemuck = { version = "=1.25.2", features = ["derive"] }
+
+[dev-dependencies]
+plotters = { version = "=0.3.7", default-features = false, features = ["svg_backend", "line_series"] }
+rapier3d-f64.workspace = true
+tempfile = "=3.25.0"
+gz-physics-rapier = { path = "../gz-physics-rapier" }
+gz-physics-xpbd = { path = "../gz-physics-xpbd" }
+gz-sim-cli = { path = "../gz-sim-cli", default-features = false }
+serde_json = "=1.0.149"
+
+[lints]
+workspace = true
+
+[[example]]
+name = "native_pair_batch"
+required-features = ["native-handoff"]
+
+[[example]]
+name = "native_support_batch"
+required-features = ["native-handoff"]
+
+[[example]]
+name = "native_staging"
+required-features = ["native-handoff"]

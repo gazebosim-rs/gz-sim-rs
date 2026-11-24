@@ -1,0 +1,528 @@
+{
+  "baseline": "53e5b50136e5795c8b765ad591dddaf39c740777",
+  "method": "LLVM source-coordinate union across the all-feature XPBD tests, local scene regressions, the robot example tests, and the executed fold-patch command. Changed regions start on a changed source line. The full workspace qualification uses its own policy.",
+  "changed": {
+    "lines": [
+      494,
+      500
+    ],
+    "regions": [
+      973,
+      1008
+    ]
+  },
+  "by_crate": {
+    "gz-physics-xpbd": {
+      "lines": [
+        170,
+        172
+      ],
+      "regions": [
+        297,
+        302
+      ]
+    },
+    "gz-sim-cli": {
+      "lines": [
+        297,
+        301
+      ],
+      "regions": [
+        612,
+        640
+      ]
+    },
+    "gz-sim-scene": {
+      "lines": [
+        27,
+        27
+      ],
+      "regions": [
+        64,
+        66
+      ]
+    }
+  },
+  "files": {
+    "crates/gz-physics-xpbd/src/collision.rs": {
+      "lines": [
+        13,
+        13
+      ],
+      "regions": [
+        26,
+        26
+      ]
+    },
+    "crates/gz-physics-xpbd/src/collision/compliant.rs": {
+      "lines": [
+        38,
+        39
+      ],
+      "regions": [
+        81,
+        84
+      ]
+    },
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": [
+        11,
+        11
+      ],
+      "regions": [
+        9,
+        9
+      ]
+    },
+    "crates/gz-physics-xpbd/src/one_way_checkpoint.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        2,
+        2
+      ]
+    },
+    "crates/gz-physics-xpbd/src/pad_loads.rs": {
+      "lines": [
+        14,
+        14
+      ],
+      "regions": [
+        23,
+        24
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        3,
+        3
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/arm_sheet.rs": {
+      "lines": [
+        22,
+        22
+      ],
+      "regions": [
+        43,
+        43
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/fold_hold.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        1,
+        1
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/fold_mesh.rs": {
+      "lines": [
+        14,
+        14
+      ],
+      "regions": [
+        10,
+        10
+      ]
+    },
+    "crates/gz-sim-scene/src/deformable/config.rs": {
+      "lines": [
+        27,
+        27
+      ],
+      "regions": [
+        64,
+        66
+      ]
+    },
+    "crates/gz-physics-xpbd/src/pad_samples.rs": {
+      "lines": [
+        93,
+        94
+      ],
+      "regions": [
+        156,
+        157
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/fold_patch.rs": {
+      "lines": [
+        259,
+        263
+      ],
+      "regions": [
+        555,
+        583
+      ]
+    }
+  },
+  "xpbd_full_source_coordinate_union": {
+    "lines": [
+      9142,
+      9511
+    ],
+    "regions": [
+      18387,
+      19059
+    ]
+  },
+  "browser_and_plot": {
+    "browser": {
+      "particle-3": {
+        "renderer": "WebGPU",
+        "frames": 13,
+        "body_poses_and_shapes_checked": 325,
+        "independent_particle_positions_checked": 156,
+        "reset_ms": 1650.0,
+        "captured_ms": {
+          "end": 1950.0,
+          "hold": 1800.0,
+          "matched": 1650.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9769%2F",
+        "arm_visuals_matching_native_reference": 104,
+        "rewind_to_physical_ms": 1650.0
+      },
+      "particle-5": {
+        "renderer": "WebGPU",
+        "frames": 13,
+        "body_poses_and_shapes_checked": 429,
+        "independent_particle_positions_checked": 260,
+        "reset_ms": 1650.0,
+        "captured_ms": {
+          "end": 1950.0,
+          "hold": 1800.0,
+          "matched": 1650.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9770%2F",
+        "arm_visuals_matching_native_reference": 104,
+        "rewind_to_physical_ms": 1650.0
+      },
+      "particle-7": {
+        "renderer": "WebGPU",
+        "frames": 13,
+        "body_poses_and_shapes_checked": 533,
+        "independent_particle_positions_checked": 364,
+        "reset_ms": 1650.0,
+        "captured_ms": {
+          "end": 1950.0,
+          "hold": 1800.0,
+          "matched": 1650.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9771%2F",
+        "arm_visuals_matching_native_reference": 104,
+        "rewind_to_physical_ms": 1650.0
+      },
+      "patch-3": {
+        "renderer": "WebGPU",
+        "frames": 13,
+        "body_poses_and_shapes_checked": 325,
+        "independent_particle_positions_checked": 156,
+        "reset_ms": 1650.0,
+        "captured_ms": {
+          "end": 1950.0,
+          "hold": 1800.0,
+          "matched": 1650.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9772%2F",
+        "arm_visuals_matching_native_reference": 104,
+        "rewind_to_physical_ms": 1650.0
+      },
+      "patch-5": {
+        "renderer": "WebGPU",
+        "frames": 13,
+        "body_poses_and_shapes_checked": 429,
+        "independent_particle_positions_checked": 260,
+        "reset_ms": 1650.0,
+        "captured_ms": {
+          "end": 1950.0,
+          "hold": 1800.0,
+          "matched": 1650.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9773%2F",
+        "arm_visuals_matching_native_reference": 104,
+        "rewind_to_physical_ms": 1650.0
+      },
+      "patch-7": {
+        "renderer": "WebGPU",
+        "frames": 13,
+        "body_poses_and_shapes_checked": 533,
+        "independent_particle_positions_checked": 364,
+        "reset_ms": 1650.0,
+        "captured_ms": {
+          "end": 1950.0,
+          "hold": 1800.0,
+          "matched": 1650.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9774%2F",
+        "arm_visuals_matching_native_reference": 104,
+        "rewind_to_physical_ms": 1650.0
+      }
+    },
+    "independent_geometry": {
+      "particle-3": {
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "closest_panels": {
+          "core_distance_m": 0.02200000001226785,
+          "pair_indices": [
+            0,
+            9
+          ],
+          "skin_clearance_m": 1.2267849930358565e-11,
+          "time_ns": 1675000000
+        },
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010684955858487704,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.00031504414151229537,
+            "time_ns": 1675000000
+          },
+          {
+            "core_distance_m": 0.010684951064996739,
+            "pair_indices": [
+              1,
+              7
+            ],
+            "skin_clearance_m": -0.00031504893500326064,
+            "time_ns": 1675000000
+          }
+        ]
+      },
+      "particle-5": {
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "closest_panels": {
+          "core_distance_m": 0.02200200153232993,
+          "pair_indices": [
+            2,
+            19
+          ],
+          "skin_clearance_m": 2.00153232993161e-06,
+          "time_ns": 1650000000
+        },
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010682575236878293,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.00031742476312170663,
+            "time_ns": 1700000000
+          },
+          {
+            "core_distance_m": 0.010682613233825019,
+            "pair_indices": [
+              1,
+              15
+            ],
+            "skin_clearance_m": -0.00031738676617498046,
+            "time_ns": 1700000000
+          }
+        ]
+      },
+      "particle-7": {
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "closest_panels": {
+          "core_distance_m": 0.022002001532329875,
+          "pair_indices": [
+            7,
+            29
+          ],
+          "skin_clearance_m": 2.001532329876099e-06,
+          "time_ns": 1650000000
+        },
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010681271909527612,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0003187280904723873,
+            "time_ns": 1750000000
+          },
+          {
+            "core_distance_m": 0.010681325462969675,
+            "pair_indices": [
+              1,
+              23
+            ],
+            "skin_clearance_m": -0.0003186745370303244,
+            "time_ns": 1750000000
+          }
+        ]
+      },
+      "patch-3": {
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "closest_panels": {
+          "core_distance_m": 0.022001296484310866,
+          "pair_indices": [
+            2,
+            8
+          ],
+          "skin_clearance_m": 1.296484310867041e-06,
+          "time_ns": 1725000000
+        },
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010685526240450355,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.00031447375954964454,
+            "time_ns": 1675000000
+          },
+          {
+            "core_distance_m": 0.010685535889358031,
+            "pair_indices": [
+              1,
+              7
+            ],
+            "skin_clearance_m": -0.0003144641106419682,
+            "time_ns": 1675000000
+          }
+        ]
+      },
+      "patch-5": {
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "closest_panels": {
+          "core_distance_m": 0.02200200153232993,
+          "pair_indices": [
+            2,
+            19
+          ],
+          "skin_clearance_m": 2.00153232993161e-06,
+          "time_ns": 1650000000
+        },
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.01068301460752872,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.00031698539247127996,
+            "time_ns": 1700000000
+          },
+          {
+            "core_distance_m": 0.010683058295792284,
+            "pair_indices": [
+              1,
+              22
+            ],
+            "skin_clearance_m": -0.00031694170420771585,
+            "time_ns": 1700000000
+          }
+        ]
+      },
+      "patch-7": {
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "closest_panels": {
+          "core_distance_m": 0.022002001532329875,
+          "pair_indices": [
+            7,
+            29
+          ],
+          "skin_clearance_m": 2.001532329876099e-06,
+          "time_ns": 1650000000
+        },
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010681273252606349,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0003187267473936505,
+            "time_ns": 1725000000
+          },
+          {
+            "core_distance_m": 0.010681310104920948,
+            "pair_indices": [
+              1,
+              23
+            ],
+            "skin_clearance_m": -0.0003186898950790513,
+            "time_ns": 1725000000
+          }
+        ]
+      }
+    },
+    "force_reconstruction": {
+      "particle-3": {
+        "verified_force_steps": 300,
+        "steps_with_load": 300,
+        "first_loaded_step": 1,
+        "last_loaded_step": 300,
+        "last_100_steps_mean_mN": 17.982178719030884
+      },
+      "patch-3": {
+        "verified_force_steps": 300,
+        "steps_with_load": 2,
+        "first_loaded_step": 1,
+        "last_loaded_step": 3,
+        "last_100_steps_mean_mN": 0.0
+      },
+      "particle-5": {
+        "verified_force_steps": 300,
+        "steps_with_load": 0,
+        "first_loaded_step": null,
+        "last_loaded_step": null,
+        "last_100_steps_mean_mN": 0.0
+      },
+      "patch-5": {
+        "verified_force_steps": 300,
+        "steps_with_load": 0,
+        "first_loaded_step": null,
+        "last_loaded_step": null,
+        "last_100_steps_mean_mN": 0.0
+      },
+      "particle-7": {
+        "verified_force_steps": 300,
+        "steps_with_load": 0,
+        "first_loaded_step": null,
+        "last_loaded_step": null,
+        "last_100_steps_mean_mN": 0.0
+      },
+      "patch-7": {
+        "verified_force_steps": 300,
+        "steps_with_load": 0,
+        "first_loaded_step": null,
+        "last_loaded_step": null,
+        "last_100_steps_mean_mN": 0.0
+      }
+    },
+    "numerical_tool_coverage": {
+      "tools/physics-audit/numerics/src/bin/fold_patch_forces.rs": {
+        "lines": [
+          228,
+          231
+        ],
+        "regions": [
+          431,
+          449
+        ]
+      }
+    }
+  }
+}

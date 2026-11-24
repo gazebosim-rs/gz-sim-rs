@@ -1,0 +1,2920 @@
+{
+  "precorrection_archive_pairs_bit_identical_with_direct": 19,
+  "monitor_only_prepost_frame_pairs_bit_identical": 19,
+  "guarded_equals_monitor_pose_pairs": 4,
+  "cases": [
+    {
+      "case": "p1000-c1-u0.28-n0-t6200-d65-direct",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9733,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6886855039391886,
+      "shelf_pad_tray_final_n": [
+        3.924000000000027,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "349117850b4f15e549c385d3812d58912a484020fc21a42eaf37d47c9aaa3a23",
+      "measurement_sha256": "0006294857716580abc8b60185f15de34814a821fdbf374d81db618212c63c0b",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        7.143118196476473,
+        7.183166447963338
+      ],
+      "final_center_m": [
+        0.0005404461762171923,
+        0.45926972471033484,
+        0.6149483779386937
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n0-t6200-d65-guarded",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9733,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6886855039391886,
+      "shelf_pad_tray_final_n": [
+        3.924000000000027,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "349117850b4f15e549c385d3812d58912a484020fc21a42eaf37d47c9aaa3a23",
+      "measurement_sha256": "0006294857716580abc8b60185f15de34814a821fdbf374d81db618212c63c0b",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        7.143118196476473,
+        7.183166447963338
+      ],
+      "final_center_m": [
+        0.0005404461762171923,
+        0.45926972471033484,
+        0.6149483779386937
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n0-t6200-d65-observe",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9733,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6886855039391886,
+      "shelf_pad_tray_final_n": [
+        3.924000000000027,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "349117850b4f15e549c385d3812d58912a484020fc21a42eaf37d47c9aaa3a23",
+      "measurement_sha256": "0006294857716580abc8b60185f15de34814a821fdbf374d81db618212c63c0b",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        7.143118196476473,
+        7.183166447963338
+      ],
+      "final_center_m": [
+        0.0005404461762171923,
+        0.45926972471033484,
+        0.6149483779386937
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n12-t6200-d65-direct",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.78,
+      "contact_steps": 65,
+      "alarm_ms": 6203,
+      "repeat_ms": 6252,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8258,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.6605532307233732,
+        0.0,
+        2.687682999467295
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "fdc456d5eb84bb7c846a462ff0e02a9bc18e8007106ea08b22481d38616b14ea",
+      "measurement_sha256": "f5645758f1463419b5e7a0e0b433164d56bf50508958299f40e0698dc3c4a194",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.776881336834774,
+        4.746286914035366
+      ],
+      "final_center_m": [
+        0.002347224205890063,
+        0.3406866817655709,
+        0.5709735040389975
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n12-t6200-d65-guarded",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.78,
+      "contact_steps": 65,
+      "alarm_ms": 6203,
+      "repeat_ms": 6252,
+      "lifts": [
+        {
+          "first_contact_ms": 6263,
+          "start_gaps_m": [
+            -0.00404262422984894,
+            -0.0221572850301808
+          ],
+          "initial_mean_upward_force_n": 115.25322582295216,
+          "initial_mean_total_normal_force_n": 181.6718189918458,
+          "resume_ms": null,
+          "resume_gaps_m": null,
+          "clear_for_ms": 0,
+          "peak_spindle_position_rad": 1.605319454311303
+        }
+      ],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.7757678769773464,
+        0.0,
+        3.120980948105734
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "f931512f2521e00319bdf64e6f935a461aa4c734c01032f3c46cb992b1fee3e8",
+      "measurement_sha256": "092dcf2bc74ff0763f969ab1055587f8456884eecb416d70b8fb08d88cab826d",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.77064104801428,
+        4.739872307431791
+      ],
+      "final_center_m": [
+        -0.000439998293716418,
+        0.34060806908951097,
+        0.5709672793905023
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n12-t6200-d65-observe",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.78,
+      "contact_steps": 65,
+      "alarm_ms": 6203,
+      "repeat_ms": 6252,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.8760800687035997,
+        0.0,
+        2.736770598949627
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "927e721757481c4dbe539398e61d8a8d63506ebf755d93c1596381b9bec4d071",
+      "measurement_sha256": "0b3ccbd1a7c1a4364ebdbc42d66ca515de2a07268ed28080d097b5fbb4b7663e",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.576474327005511,
+        4.588152402103206
+      ],
+      "final_center_m": [
+        0.006867808508874381,
+        0.3383945011604441,
+        0.5734174912963605
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n6-t6200-d65-direct",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.39,
+      "contact_steps": 65,
+      "alarm_ms": 6204,
+      "repeat_ms": 6253,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8328,
+      "supported_recovery_open_ms": 9420,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.689145244380558,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000027,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "1cf45510db9fa560c2bd10a06f9fa327014b25f4430a99ab82f0bd68f2405998",
+      "measurement_sha256": "b6869bbbff26b8b8af57b03434d04784a4c4b9a81966c63160914c8d637230ce",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        9.553585602307736,
+        9.576837721862162
+      ],
+      "final_center_m": [
+        0.0009475135734907962,
+        0.4596671006305959,
+        0.6149482923910095
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n6-t6200-d65-guarded",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.39,
+      "contact_steps": 65,
+      "alarm_ms": 6204,
+      "repeat_ms": 6253,
+      "lifts": [],
+      "preload_reduction_start_ms": 8776,
+      "lower_ms": 8328,
+      "supported_recovery_open_ms": 9439,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.689160893531677,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000027,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "9f4202c00abf258b6eb37318de8289e3942904c6561214d9bc27c03490b18875",
+      "measurement_sha256": "7d0fc1929fa92557fd47b65102885e465179954c6dd51a43bf81855ac18447e3",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        9.553585602307736,
+        9.576837721862162
+      ],
+      "final_center_m": [
+        0.0009483359797430729,
+        0.45967158303508376,
+        0.6149482923923839
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n6-t6200-d65-observe",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.39,
+      "contact_steps": 65,
+      "alarm_ms": 6204,
+      "repeat_ms": 6253,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.8746173732858005,
+        0.0,
+        2.9841514405361385
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "959e0795c35ddf1dac4ee1e5f7593c5a3ede9a8231bb2da152625b4c7db38ea2",
+      "measurement_sha256": "a18b69ade7cb70e46677863d684c499ae037dd5e621d4f522c93fc6bac3766df",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.626620418564499,
+        4.6401242475389175
+      ],
+      "final_center_m": [
+        0.0025943933338620426,
+        0.33868126661283376,
+        0.5731258541786535
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n8-t6200-d65-direct",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.52,
+      "contact_steps": 65,
+      "alarm_ms": 6203,
+      "repeat_ms": 6252,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        13.246668005893241,
+        27.750023664434924,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "0caca1403c753b8c8de80c4db1604fe71701445803c2dc2f8cf9fb919f243ac5",
+      "measurement_sha256": "7afb87354d3d280ca365ee6f07287cf40aad29b6214ee73814710a2f856de512",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        10.22927610631894,
+        8.816180814200097
+      ],
+      "final_center_m": [
+        0.0008519187599964981,
+        0.3612708962513065,
+        0.6205396848324276
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n8-t6200-d65-guarded",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.52,
+      "contact_steps": 65,
+      "alarm_ms": 6203,
+      "repeat_ms": 6252,
+      "lifts": [
+        {
+          "first_contact_ms": 6291,
+          "start_gaps_m": [
+            1.897979056901533e-05,
+            -0.018157970248353777
+          ],
+          "initial_mean_upward_force_n": 85.36525472477233,
+          "initial_mean_total_normal_force_n": 89.25407728905168,
+          "resume_ms": 6696,
+          "resume_gaps_m": [
+            0.019771412373637567,
+            0.0014928935620605877
+          ],
+          "clear_for_ms": 30,
+          "peak_spindle_position_rad": 1.85591991820362
+        }
+      ],
+      "preload_reduction_start_ms": 9192,
+      "lower_ms": 8742,
+      "supported_recovery_open_ms": 9768,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.689302884931785,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000294106957,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "640c529f55281e200cb855675815c9c7a9671287f6c4945a75df1c615ef6ddae",
+      "measurement_sha256": "6897a9ffc9d5a8622102f1d5e8b58fd5ed99042d17e24bfecbf75432099522ce",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        9.486367459584736,
+        9.496118438975008
+      ],
+      "final_center_m": [
+        0.0009394561312916251,
+        0.45943803264186767,
+        0.6149485050705252
+      ]
+    },
+    {
+      "case": "p1000-c1-u0.28-n8-t6200-d65-observe",
+      "incoming_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1",
+      "pulse_ns": 0.52,
+      "contact_steps": 65,
+      "alarm_ms": 6203,
+      "repeat_ms": 6252,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.8588565377199995,
+        0.0,
+        2.9174587835116985
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013123384065836703,
+      "native_frames_sha256": "006bec403508c1e31d57a31d597c9c9d7e146700b0518c811c9e6fa0850fa3f2",
+      "measurement_sha256": "f415490757fdb4fc1ff041326a05c3580f8144296c68bceb0659785e726397a2",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.601292638403956,
+        4.613258541068235
+      ],
+      "final_center_m": [
+        0.0027024596471287065,
+        0.337770331899366,
+        0.5743634639771911
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n0-t6201-d64-direct",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9726,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6889129341074693,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "b98a3092f5e87e68e2153100bd9a138a8c38cfd8d6296de4230311f2d7a64401",
+      "measurement_sha256": "707779d8199cbb97ff5db285421c1277936ec5391a88d07a66af2624edbe559b",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        7.143119820822696,
+        7.18316603137388
+      ],
+      "final_center_m": [
+        0.0005345201404814847,
+        0.45926817672389747,
+        0.6149483779147873
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n0-t6201-d64-guarded",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9726,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6889129341074693,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "b98a3092f5e87e68e2153100bd9a138a8c38cfd8d6296de4230311f2d7a64401",
+      "measurement_sha256": "707779d8199cbb97ff5db285421c1277936ec5391a88d07a66af2624edbe559b",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        7.143119820822696,
+        7.18316603137388
+      ],
+      "final_center_m": [
+        0.0005345201404814847,
+        0.45926817672389747,
+        0.6149483779147873
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n0-t6201-d64-observe",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9726,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6889129341074693,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "b98a3092f5e87e68e2153100bd9a138a8c38cfd8d6296de4230311f2d7a64401",
+      "measurement_sha256": "707779d8199cbb97ff5db285421c1277936ec5391a88d07a66af2624edbe559b",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        7.143119820822696,
+        7.18316603137388
+      ],
+      "final_center_m": [
+        0.0005345201404814847,
+        0.45926817672389747,
+        0.6149483779147873
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n12-t6201-d64-direct",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.768,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8256,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        1.2026198519490654,
+        0.0,
+        2.7972073247184417
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "9ba250b9644ccfd69b2d3b47933451a2410cd79e6f0d2dea0d6e53152015de57",
+      "measurement_sha256": "26af8e92fc2e089aa1208a84864d0725be0af621badf433ce4b93a4290343bf7",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.826945429074234,
+        4.777473882973532
+      ],
+      "final_center_m": [
+        -0.0035797254132403106,
+        0.33703680371908445,
+        0.5741066531376482
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n12-t6201-d64-guarded",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.768,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [
+        {
+          "first_contact_ms": 6264,
+          "start_gaps_m": [
+            -0.003951135211181012,
+            -0.02185800425212983
+          ],
+          "initial_mean_upward_force_n": 69.98016451175062,
+          "initial_mean_total_normal_force_n": 101.96890343534278,
+          "resume_ms": null,
+          "resume_gaps_m": null,
+          "clear_for_ms": 0,
+          "peak_spindle_position_rad": 1.6095071834326387
+        }
+      ],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.7113882714643786,
+        0.0,
+        2.690378928467774
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "9d41f91590e26989aefd659e5c339c1f4a1676eaab775f28d60df94b82345e87",
+      "measurement_sha256": "a56ad6a764af0ba711322c4cead81f8b9949b8c7347d1fd6e89bc3c2b830262d",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.806985886802809,
+        4.766153507547941
+      ],
+      "final_center_m": [
+        -0.0014643141411194872,
+        0.33938261964983085,
+        0.5721615044696128
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n12-t6201-d64-observe",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.768,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.7995777824442248,
+        0.0,
+        3.277951341328245
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "080ba36697f89481a3df6f9b7a973f5f89d8d180952dc9ed5b2ccf77ddd189de",
+      "measurement_sha256": "19003436c21bb403663c30cb6621b770ec32c90b398606ae1d430d233ad7010a",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.581182939780019,
+        4.590603294283858
+      ],
+      "final_center_m": [
+        0.0072775169751352784,
+        0.3383350763427942,
+        0.5728857937788793
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n6-t6201-d64-direct",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.384,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8326,
+      "supported_recovery_open_ms": 9448,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6890068213470264,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "365e4b39a6f6acce5c78b2fccc1cf883b482861a2ea1333e8713150e29f829d3",
+      "measurement_sha256": "d6c1f6080ae5f28fe56ac4f6d1acd4030dff6d05413ee122e2464269602095de",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        9.558334211348296,
+        9.58174130568058
+      ],
+      "final_center_m": [
+        0.0008953837411562861,
+        0.4595783798300644,
+        0.6149482943856628
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n6-t6201-d64-guarded",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.384,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": 8806,
+      "lower_ms": 8326,
+      "supported_recovery_open_ms": 9486,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6896589120886203,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "97a2a68a0bd7ea70de07da791846828a711987fe5c309227ab9567dfb72b2ac8",
+      "measurement_sha256": "d8417dbfdeeb810cb061a426a6d3e7354f90499c082a5b442ee9781ad49602fb",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        9.558334211348296,
+        9.58174130568058
+      ],
+      "final_center_m": [
+        0.0008952256710355487,
+        0.45958905503769953,
+        0.6149482943905038
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n6-t6201-d64-observe",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.384,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.9248694678594902,
+        0.0,
+        3.062065735351618
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "7e43dc0585926fd91fffe343f00dbbb7a34a42ebe893238e0317eba9c4a3ee00",
+      "measurement_sha256": "cbc630cae15af6cc69c47a64a340f2b0a80dc4cdf810e449ff28418b78984055",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.629053384160833,
+        4.642559326286838
+      ],
+      "final_center_m": [
+        0.00254403728140447,
+        0.33867799044815144,
+        0.5731558360444187
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n8-t6201-d64-direct",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.512,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 13276,
+      "supported_recovery_open_ms": 13918,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6888422166106145,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "d87d514ae9ea0c3186099fe7c68d517ba5c7027309ce135411745742c4b75446",
+      "measurement_sha256": "8d432fb9877e0cbc1e85e90c7538600f354c36976ca5aad35b86b84c050207c7",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        9.643615453609872,
+        9.34025729034015
+      ],
+      "final_center_m": [
+        0.0002629402644125263,
+        0.45651864171010387,
+        0.6149481546884783
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n8-t6201-d64-guarded",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.512,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": 13304,
+      "lower_ms": 13276,
+      "supported_recovery_open_ms": 13962,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6886223788967127,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "ec03ef02b71d03f8f90e32726cc0c3d55a44fa1d84ce836706e4c5f27243e3cc",
+      "measurement_sha256": "630912cc156e52fc0ba58ba67d66a4a48e73d23d741a798da610f5bf80b9c085",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        9.643615453609872,
+        9.34025729034015
+      ],
+      "final_center_m": [
+        0.0002595786548600064,
+        0.4565155799261416,
+        0.6149481546999196
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.28-n8-t6201-d64-observe",
+      "incoming_sha256": "12d4c4852f8aaff93760cadbd7167264672fd642f9c01d86c33b9d6f7d889228",
+      "pulse_ns": 0.512,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.8737027022649743,
+        0.0,
+        3.012113469298527
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.013124378142856117,
+      "native_frames_sha256": "5ec05db9b36ded0a0e786016fdd6d7b93ae01a5ae388e8f1ae79f00a6cea7330",
+      "measurement_sha256": "2ae2f6001ca4bfb09c0d8cd432b4d220edbf8c2b55ccfc1c7d819e5eb310674e",
+      "sdf_sha256": "9dfd8fee62218d6c3ae7bb3313cfc9e61253ceeab71d71fda2f7a9c25feb73fc",
+      "mean_pad_normal_n_during_traverse": [
+        4.603717943122535,
+        4.615704386652895
+      ],
+      "final_center_m": [
+        0.0027004498824274217,
+        0.33779255583228407,
+        0.5742283976443935
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.35-n8-t6201-d64-direct",
+      "incoming_sha256": "cf55837be6624393321a6d2174ecb0c338e2ef71131f8999c0b4c7e5d9fce983",
+      "pulse_ns": 0.512,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8326,
+      "supported_recovery_open_ms": 9522,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.689191035763982,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.0180686224419231,
+      "native_frames_sha256": "eb723c7225152901afa538eb687ebb9664a643edef69c413cc452c3213e438f0",
+      "measurement_sha256": "be1ded0fda7becd8670b078a6f147315f0c8d2c434f8292b06609c10ac27bd16",
+      "sdf_sha256": "7e8f839f4b54c4012983c28169445841aa71a29fa3df99a7a783a4d039f00010",
+      "mean_pad_normal_n_during_traverse": [
+        9.571883389036222,
+        9.582851843047775
+      ],
+      "final_center_m": [
+        0.0008476126447845935,
+        0.459512063794841,
+        0.6149482295442563
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.35-n8-t6201-d64-guarded",
+      "incoming_sha256": "cf55837be6624393321a6d2174ecb0c338e2ef71131f8999c0b4c7e5d9fce983",
+      "pulse_ns": 0.512,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": 8974,
+      "lower_ms": 8326,
+      "supported_recovery_open_ms": 9584,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.688732193937001,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.0180686224419231,
+      "native_frames_sha256": "29d5b8d5127fc19b51352c257dcc01b7a347f3b744440e7e8e059b6fefb4aa81",
+      "measurement_sha256": "95e057a0989efdeba1b514a26f58d1e3ccd52038a76e8f85f4bbd20064e7a936",
+      "sdf_sha256": "7e8f839f4b54c4012983c28169445841aa71a29fa3df99a7a783a4d039f00010",
+      "mean_pad_normal_n_during_traverse": [
+        9.571883389036222,
+        9.582851843047775
+      ],
+      "final_center_m": [
+        0.000848619359097795,
+        0.45951408788563164,
+        0.6149482295569195
+      ]
+    },
+    {
+      "case": "p1000-c2-u0.35-n8-t6201-d64-observe",
+      "incoming_sha256": "cf55837be6624393321a6d2174ecb0c338e2ef71131f8999c0b4c7e5d9fce983",
+      "pulse_ns": 0.512,
+      "contact_steps": 64,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.31552378993936747,
+        0.0,
+        4.452486797060557
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.0180686224419231,
+      "native_frames_sha256": "45cdf01e916076b926493566035ae28424d1ccc8e6ed08788645d666d092659b",
+      "measurement_sha256": "3fac1c3e18a3f5fe13d5e7ae67d545990938d03c9f46649af851a5cf032e3445",
+      "sdf_sha256": "7e8f839f4b54c4012983c28169445841aa71a29fa3df99a7a783a4d039f00010",
+      "mean_pad_normal_n_during_traverse": [
+        12.809112484006645,
+        5.21279917787909
+      ],
+      "final_center_m": [
+        -0.011176563584895632,
+        0.3417935641977861,
+        0.567314699032453
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n0-t6201-d64-direct",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9992,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6886264419725623,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "a0d22b69872c1772dce9d8bcd1753e0b9bf251f8369cd911f1f92245f59d7309",
+      "measurement_sha256": "0779a5829bc5942e46493d4735b3908767ec6bf4c3178f58e9b9b5228a017766",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        7.135772794644795,
+        7.17388265195773
+      ],
+      "final_center_m": [
+        0.0006064076398440397,
+        0.4592189262782961,
+        0.6149483858744256
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n0-t6201-d64-guarded",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9992,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6886264419725623,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "a0d22b69872c1772dce9d8bcd1753e0b9bf251f8369cd911f1f92245f59d7309",
+      "measurement_sha256": "0779a5829bc5942e46493d4735b3908767ec6bf4c3178f58e9b9b5228a017766",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        7.135772794644795,
+        7.17388265195773
+      ],
+      "final_center_m": [
+        0.0006064076398440397,
+        0.4592189262782961,
+        0.6149483858744256
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n0-t6201-d64-observe",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9992,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.6886264419725623,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "a0d22b69872c1772dce9d8bcd1753e0b9bf251f8369cd911f1f92245f59d7309",
+      "measurement_sha256": "0779a5829bc5942e46493d4735b3908767ec6bf4c3178f58e9b9b5228a017766",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        7.135772794644795,
+        7.17388265195773
+      ],
+      "final_center_m": [
+        0.0006064076398440397,
+        0.4592189262782961,
+        0.6149483858744256
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n12-t6201-d64-direct",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.768,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8258,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.7181487375044501,
+        0.0,
+        2.660538802404254
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "679b0a3209450e059d8736515fbc0f42355d4348c75abaa4cf9386e2c75317f9",
+      "measurement_sha256": "2b69372edef29dd3878678fc8438dd102e53a1a7741fb45a4f1daaa9a4271372",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        4.71716657207708,
+        4.730908335383407
+      ],
+      "final_center_m": [
+        0.003800717508006036,
+        0.3391080563398826,
+        0.5724865889623553
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n12-t6201-d64-guarded",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.768,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8258,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.7181487375044501,
+        0.0,
+        2.660538802404254
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "679b0a3209450e059d8736515fbc0f42355d4348c75abaa4cf9386e2c75317f9",
+      "measurement_sha256": "2b69372edef29dd3878678fc8438dd102e53a1a7741fb45a4f1daaa9a4271372",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        4.71716657207708,
+        4.730908335383407
+      ],
+      "final_center_m": [
+        0.003800717508006036,
+        0.3391080563398826,
+        0.5724865889623553
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n12-t6201-d64-observe",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.768,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.6592915081554961,
+        0.0,
+        2.76646198094262
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "65200af5ad033e45e91840f17ca143113fb08a5ad70bdfdbdc4d03d11d0b0b33",
+      "measurement_sha256": "30b7a9d6f6f6cc2d70b8c1e64e2f049d3817ee1b3ac71e69ea7be383f78ac833",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        4.5866598990793435,
+        4.591020215709639
+      ],
+      "final_center_m": [
+        0.0019242405694989062,
+        0.34070213588879167,
+        0.5711091889823179
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n6-t6201-d64-direct",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.384,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8328,
+      "supported_recovery_open_ms": 9592,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6891878015611006,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000015,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "89b1a1d3bd31750191d66880f0029d90dacb3b6281c9f822942faafb2260d8c2",
+      "measurement_sha256": "6156eb758e834d19607b80ddce5b6433995f11116c537d140255f9c8c6000c25",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        9.53769476581754,
+        9.562525522017204
+      ],
+      "final_center_m": [
+        0.0008821162177677262,
+        0.4593750712394971,
+        0.614948381570015
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n6-t6201-d64-guarded",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.384,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": 8830,
+      "lower_ms": 8328,
+      "supported_recovery_open_ms": 9620,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6888731601888844,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "3174f3779d5a476830d5ff75b6d9bdf6f3242dbadc80aca44ca5cecec1e43485",
+      "measurement_sha256": "4fbe4033368490f592f68a70492a5e2f6b5a350e2c37c4206a27540d9bde74a6",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        9.53769476581754,
+        9.562525522017204
+      ],
+      "final_center_m": [
+        0.0008718471850436265,
+        0.459358763154664,
+        0.6149483815744798
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n6-t6201-d64-observe",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.384,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 8132,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 4.327428707899632,
+      "shelf_pad_tray_final_n": [
+        3.9653472405549905,
+        0.5734143706612171,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "01c1478dd2c8526a4496a10a2c8bac0de092f622ec245071cdb9147eca3444b0",
+      "measurement_sha256": "fa4de809d9c250968fc90be087deb61fc6f60ebd7b743fda933d98a4916cac21",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        7.658682002067774,
+        6.637183250202898
+      ],
+      "final_center_m": [
+        -0.0081523124437319,
+        0.43441167286749865,
+        0.6149540146093367
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n8-t6201-d64-direct",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.512,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8274,
+      "supported_recovery_open_ms": 9080,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.688888424713527,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000015,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "bd44c7fb4dc3e84243c25bebe9346468bb9a2a64ba48188bd503384a87050777",
+      "measurement_sha256": "bfa3872e51546b98187d754d0fdbee07de24e9db19a921e0d286f24f33b8c01d",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        9.491865079787017,
+        9.446822276471421
+      ],
+      "final_center_m": [
+        0.0009450436414429417,
+        0.46282791201209655,
+        0.6149482347156925
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n8-t6201-d64-guarded",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.512,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": 8302,
+      "lower_ms": 8274,
+      "supported_recovery_open_ms": 9112,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.68882644611585,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "0681a377275c119a72c5636d5fcc48533a2dfabe54b9ea075fe56acfa3f83fd4",
+      "measurement_sha256": "5346a3d1661d8e74211ad9dfac6f33b5bc328282533d1402919f2b374a10c250",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        9.491865079787017,
+        9.446822276471421
+      ],
+      "final_center_m": [
+        0.0009426473580642783,
+        0.4628234645603524,
+        0.6149482347258742
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.28-n8-t6201-d64-observe",
+      "incoming_sha256": "3b1e42e8a0d89252e92c55dcda0395406ee2ed51b15634a5e2ec762076f851e9",
+      "pulse_ns": 0.512,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.7278949774453464,
+        0.0,
+        2.678520926815905
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.015834671186174952,
+      "native_frames_sha256": "80f267bf09ef0855f29e04b630d11592e5df570fe77a81f8140c2607ecb7fe59",
+      "measurement_sha256": "ca1362a997f637026a843caf9862078e7073eb8f1f2e70595f1e72be2cda18f9",
+      "sdf_sha256": "f54a507ea1831b231c13094372fb7e99714c435555e879add2dae5f2c3893f39",
+      "mean_pad_normal_n_during_traverse": [
+        4.603370991113629,
+        4.6134660055161225
+      ],
+      "final_center_m": [
+        0.002727691729180687,
+        0.33911098842308496,
+        0.5725282654148418
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.35-n8-t6201-d64-direct",
+      "incoming_sha256": "e7a61267fc90c6e96bd9f72ddfe467438ceb10136774c652043aa04a29010127",
+      "pulse_ns": 0.512,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8328,
+      "supported_recovery_open_ms": 9684,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6888665568983776,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.018486330826478322,
+      "native_frames_sha256": "ef965a351397684f5a9e9a3ead27be83b5f83ded2823955686108e4585da85f8",
+      "measurement_sha256": "df610291f308119aa56e5104cde37c043a9d883e97fb211d5b686fbd3afd7877",
+      "sdf_sha256": "04a6cf1c7fa1b357a06de1f7e92e86075fb2a479b327363c041c5fff41f12424",
+      "mean_pad_normal_n_during_traverse": [
+        9.550269598211182,
+        9.56903038508527
+      ],
+      "final_center_m": [
+        0.000831133401101468,
+        0.45918155098706664,
+        0.6149483900569424
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.35-n8-t6201-d64-guarded",
+      "incoming_sha256": "e7a61267fc90c6e96bd9f72ddfe467438ceb10136774c652043aa04a29010127",
+      "pulse_ns": 0.512,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": 8940,
+      "lower_ms": 8328,
+      "supported_recovery_open_ms": 9738,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6892444742469155,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.018486330826478322,
+      "native_frames_sha256": "0adc406c379a6dd1df34e185f000d3d535bf517b6fae47443ec458ca6a13103d",
+      "measurement_sha256": "0095d34ac1357acac9cae19be9c0b9dc35a31db628b7681b054747fb8f618e85",
+      "sdf_sha256": "04a6cf1c7fa1b357a06de1f7e92e86075fb2a479b327363c041c5fff41f12424",
+      "mean_pad_normal_n_during_traverse": [
+        9.550269598211182,
+        9.56903038508527
+      ],
+      "final_center_m": [
+        0.0008548843147998951,
+        0.4592062757904888,
+        0.6149483900692244
+      ]
+    },
+    {
+      "case": "p2000-c2-u0.35-n8-t6201-d64-observe",
+      "incoming_sha256": "e7a61267fc90c6e96bd9f72ddfe467438ceb10136774c652043aa04a29010127",
+      "pulse_ns": 0.512,
+      "contact_steps": 32,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 8160,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 4.8995326473662,
+      "shelf_pad_tray_final_n": [
+        4.026558149667158,
+        1.2883231013976062,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.018486330826478322,
+      "native_frames_sha256": "504a4ea4cab197def34cb840ae625bb14a30a3fbfd9394ef155540a8ca245ac4",
+      "measurement_sha256": "7bb1fd2dd97c68dad179a5a1994e3bfc1bee2eed95fce114b1fc2fc8466d621e",
+      "sdf_sha256": "04a6cf1c7fa1b357a06de1f7e92e86075fb2a479b327363c041c5fff41f12424",
+      "mean_pad_normal_n_during_traverse": [
+        7.870484360575529,
+        6.470081080038823
+      ],
+      "final_center_m": [
+        -0.011500357528740283,
+        0.42543883682712724,
+        0.6152578498177578
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n0-t6201-d64-direct",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9656,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.690594772759529,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "ee4cd2092a4ef92e77b6a38f47dd05a8566b7230cdaf73f17c6977907060cd4a",
+      "measurement_sha256": "0da1cb728179924ed4d2be266c2d0cf9c1e23b4655108ab7f460dd800c023c0d",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        7.146027206053117,
+        7.188678394839256
+      ],
+      "final_center_m": [
+        0.0009161592072974096,
+        0.4590495151507598,
+        0.6149484292645446
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n0-t6201-d64-guarded",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9656,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.690594772759529,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "ee4cd2092a4ef92e77b6a38f47dd05a8566b7230cdaf73f17c6977907060cd4a",
+      "measurement_sha256": "0da1cb728179924ed4d2be266c2d0cf9c1e23b4655108ab7f460dd800c023c0d",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        7.146027206053117,
+        7.188678394839256
+      ],
+      "final_center_m": [
+        0.0009161592072974096,
+        0.4590495151507598,
+        0.6149484292645446
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n0-t6201-d64-observe",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.0,
+      "contact_steps": 0,
+      "alarm_ms": null,
+      "repeat_ms": null,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 9656,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 3.690594772759529,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "ee4cd2092a4ef92e77b6a38f47dd05a8566b7230cdaf73f17c6977907060cd4a",
+      "measurement_sha256": "0da1cb728179924ed4d2be266c2d0cf9c1e23b4655108ab7f460dd800c023c0d",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        7.146027206053117,
+        7.188678394839256
+      ],
+      "final_center_m": [
+        0.0009161592072974096,
+        0.4590495151507598,
+        0.6149484292645446
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n12-t6201-d64-direct",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.768,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8256,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.9626981168850414,
+        0.0,
+        3.6832995760261187
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "691a3e64edabd26ff4f2b3ff91ea45fc7006738b5729110089c2b5b09f9e1ad1",
+      "measurement_sha256": "f0f1fe34be244faea15636c503d34d727b18dd0239ee1c8ed464450aea36f024",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        4.72216789812811,
+        4.728026088453342
+      ],
+      "final_center_m": [
+        0.005242220998137748,
+        0.3404976099654353,
+        0.570996544601528
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n12-t6201-d64-guarded",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.768,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [
+        {
+          "first_contact_ms": 6266,
+          "start_gaps_m": [
+            -0.008825809339958794,
+            -0.026734703575018642
+          ],
+          "initial_mean_upward_force_n": 19.28505795188876,
+          "initial_mean_total_normal_force_n": 59.02003722484285,
+          "resume_ms": null,
+          "resume_gaps_m": null,
+          "clear_for_ms": 0,
+          "peak_spindle_position_rad": 1.6011646840138862
+        }
+      ],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.9543914837430594,
+        0.0,
+        3.684035754491859
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "4dd7fdf7ff0d4d80bbbc3a891db4985ced22fdb0b9bbe9b858978c9f53ef953f",
+      "measurement_sha256": "7a8f92db469b5ab5b75b2b165138041f3f4924e4255b90229b1998d754568833",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        4.71981028037188,
+        4.7280432179811305
+      ],
+      "final_center_m": [
+        0.005535471559577407,
+        0.34064142332819686,
+        0.5710024917663173
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n12-t6201-d64-observe",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.768,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.8328822652057812,
+        0.0,
+        2.458309773773817
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "17f8d9477afc1ce89a12838cc54cf8ea7f35db42316e8fa26b10530465632aff",
+      "measurement_sha256": "355d5338c32ba2a933c7964ef4dad26fcc3b2c653af26bda15765604b7217b2c",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        4.5776908201635464,
+        4.591105266690593
+      ],
+      "final_center_m": [
+        0.003351430726135557,
+        0.34162270577661097,
+        0.5706630351321119
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n6-t6201-d64-direct",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.384,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8326,
+      "supported_recovery_open_ms": 9488,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.689979277544083,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "236b114ab561d21c4c46240801ab2e4e6de5fffcc3a57c8a3e5575e052b3e7af",
+      "measurement_sha256": "aded2d3a706e788d9c6a4ebba2d757ccd367fb51516851c9212a7c2b5eef257b",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        9.585160684941407,
+        9.609788243554268
+      ],
+      "final_center_m": [
+        0.0011030018951344563,
+        0.4597925748555349,
+        0.6149482580177233
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n6-t6201-d64-guarded",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.384,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": 8740,
+      "lower_ms": 8326,
+      "supported_recovery_open_ms": 10348,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6886079575598365,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.9240000000000155,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "727ec12c9f5577c0c14cd9db07e30d965a2df765ff76f1e16342280effe83bb9",
+      "measurement_sha256": "e05269c4b646ca50309c080c3c68127a549bd3cf082689f00988f83a37b57b5d",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        9.585160684941407,
+        9.609788243554268
+      ],
+      "final_center_m": [
+        0.001208808990004774,
+        0.46002911307730604,
+        0.6149482580258747
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n6-t6201-d64-observe",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.384,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.91334941457946,
+        0.0,
+        3.0973593109523434
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "68bd7cd07b56162472dceb49a26e8754de39211205be0b400ddab899adf7489a",
+      "measurement_sha256": "8e131d8a4a7f22a7224bcae8e1ab3decab85ac3b864ac0bc5fbe0a0eaedb225e",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        4.62723967463889,
+        4.641275145693932
+      ],
+      "final_center_m": [
+        0.0026561975658540345,
+        0.33875432163601726,
+        0.5730725109678486
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n8-t6201-d64-direct",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.512,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        13.589282103980004,
+        27.74527764224453,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "4f3bf050fc909867b1f4a6e267ec0194c6f030874304e176c4ee87b448c51d9a",
+      "measurement_sha256": "c103d4e168e6e7de14f242565463bc699a1dbed25bd4e62b534be0575afa3b42",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        10.255903551016356,
+        8.820016799948545
+      ],
+      "final_center_m": [
+        0.0012009541864698558,
+        0.36085326924785227,
+        0.6204419683367675
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n8-t6201-d64-guarded",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.512,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [
+        {
+          "first_contact_ms": 6290,
+          "start_gaps_m": [
+            5.996616524321652e-05,
+            -0.018282665750879695
+          ],
+          "initial_mean_upward_force_n": 83.54072536172919,
+          "initial_mean_total_normal_force_n": 87.0033614050825,
+          "resume_ms": 6688,
+          "resume_gaps_m": [
+            0.01984806149030957,
+            0.001477332570083173
+          ],
+          "clear_for_ms": 30,
+          "peak_spindle_position_rad": 1.8539630854693114
+        }
+      ],
+      "preload_reduction_start_ms": 9174,
+      "lower_ms": 8732,
+      "supported_recovery_open_ms": 10640,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.688586487917655,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000688832369,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "21f52d0b0b2d805ef6e2098a781c766cb96ee17ccc8ea890834ef70abb51f447",
+      "measurement_sha256": "3e3c949a2266fcb081854abb6a1f837dc99d3e9060da3050214307efc58eb720",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        9.513398212787676,
+        9.519653325735364
+      ],
+      "final_center_m": [
+        0.0010022559471390986,
+        0.45971462424280046,
+        0.6149492616011933
+      ]
+    },
+    {
+      "case": "p500-c2-u0.28-n8-t6201-d64-observe",
+      "incoming_sha256": "a861321128500687750070d0d5e7894855ccde08da553d491eae17f7179759ed",
+      "pulse_ns": 0.512,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        0.8811677689699037,
+        0.0,
+        3.414273449863001
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.010918837547847178,
+      "native_frames_sha256": "0403eae09f78b6a4b37a0be4b9889139e4c59d5ace44630d0bb6e97839c10b76",
+      "measurement_sha256": "886425654df6ff28d249a226ba019acbb2c24e86d10d672435eef58c9a5f3e6b",
+      "sdf_sha256": "9bdfa6245fdfc9490d3962a9f791d580d3077163aa8c129dc5bfad0da3be2bfb",
+      "mean_pad_normal_n_during_traverse": [
+        4.63617587487771,
+        4.624784528860857
+      ],
+      "final_center_m": [
+        0.004171292471445109,
+        0.3407324142710998,
+        0.5711748623838503
+      ]
+    },
+    {
+      "case": "p500-c2-u0.35-n8-t6201-d64-direct",
+      "incoming_sha256": "efba0d8f7d02c8eb47b128e1cc018c8fc8ceb298769fdce20bc7fe608d7b6f14",
+      "pulse_ns": 0.512,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": 8326,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.901287689623367,
+        27.04849869658703,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.017988558679511057,
+      "native_frames_sha256": "13c40ff6864eef26401d57db97cc79b1b47a88c373cee64cf1a5174f77e47fbd",
+      "measurement_sha256": "887423d7318a7bdd993916beee93f2ec86b5bf7a166cb7ef07006e45622aa6d3",
+      "sdf_sha256": "02f6a345ddc479452401aa81986902355429b625df5a4299a6a655b90829c98c",
+      "mean_pad_normal_n_during_traverse": [
+        9.611095151030213,
+        9.618787497971201
+      ],
+      "final_center_m": [
+        0.001851399972643109,
+        0.45960210451877337,
+        0.6152671944724687
+      ]
+    },
+    {
+      "case": "p500-c2-u0.35-n8-t6201-d64-guarded",
+      "incoming_sha256": "efba0d8f7d02c8eb47b128e1cc018c8fc8ceb298769fdce20bc7fe608d7b6f14",
+      "pulse_ns": 0.512,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": 9114,
+      "lower_ms": 8326,
+      "supported_recovery_open_ms": 10838,
+      "ordinary_open_ms": null,
+      "mean_at_recovery_open_n": 3.6887942407023835,
+      "mean_at_ordinary_open_n": null,
+      "shelf_pad_tray_final_n": [
+        3.924000000000016,
+        0.0,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.017988558679511057,
+      "native_frames_sha256": "7349b5506e18c18af6c573bbfd4048099aa7a674975aa162bd350c6fc2f0081a",
+      "measurement_sha256": "baf8186613b5422027351f634d333f8806e937e7c0ef1c379b668f0e4df72c49",
+      "sdf_sha256": "02f6a345ddc479452401aa81986902355429b625df5a4299a6a655b90829c98c",
+      "mean_pad_normal_n_during_traverse": [
+        9.611095151030213,
+        9.618787497971201
+      ],
+      "final_center_m": [
+        0.0011137288907815757,
+        0.4597477408129597,
+        0.6149481629363167
+      ]
+    },
+    {
+      "case": "p500-c2-u0.35-n8-t6201-d64-observe",
+      "incoming_sha256": "efba0d8f7d02c8eb47b128e1cc018c8fc8ceb298769fdce20bc7fe608d7b6f14",
+      "pulse_ns": 0.512,
+      "contact_steps": 128,
+      "alarm_ms": 6204,
+      "repeat_ms": 6254,
+      "lifts": [],
+      "preload_reduction_start_ms": null,
+      "lower_ms": null,
+      "supported_recovery_open_ms": null,
+      "ordinary_open_ms": 8528,
+      "mean_at_recovery_open_n": null,
+      "mean_at_ordinary_open_n": 4.903890694890698,
+      "shelf_pad_tray_final_n": [
+        4.0024345077837316,
+        1.2087305007181646,
+        0.0
+      ],
+      "barrier_impulse_ns": 0.0,
+      "minimum_barrier_gap_m": 0.017988558679511057,
+      "native_frames_sha256": "f15a1ab039162a7e0e39de66285e33094ede6ed06baa6c4f82b7ca0c3d5694ef",
+      "measurement_sha256": "224675e327ab93a6bc6d4c10a69a82397f88123508b97813132269819dd0e394",
+      "sdf_sha256": "02f6a345ddc479452401aa81986902355429b625df5a4299a6a655b90829c98c",
+      "mean_pad_normal_n_during_traverse": [
+        8.030294274517344,
+        6.329558509699431
+      ],
+      "final_center_m": [
+        -0.010242611458090594,
+        0.4260426756986742,
+        0.6149615331399271
+      ]
+    }
+  ],
+  "trajectory_vs_fine": [
+    {
+      "physics_us": 1000,
+      "interval_ms": [
+        0,
+        6200
+      ],
+      "sample_count": 156,
+      "max_center_error_vs_500us_mm": 2.2319300552067145,
+      "center_error_ms": 6200,
+      "max_angle_error_vs_500us_rad": 0.016763315627911522,
+      "angle_error_ms": 2480,
+      "final_center_error_mm": 2.2319300552067145
+    },
+    {
+      "physics_us": 1000,
+      "interval_ms": [
+        6240,
+        18000
+      ],
+      "sample_count": 295,
+      "max_center_error_vs_500us_mm": 37.745418997502625,
+      "center_error_ms": 7280,
+      "max_angle_error_vs_500us_rad": 0.2542982631121451,
+      "angle_error_ms": 8000,
+      "final_center_error_mm": 3.284121697751885
+    },
+    {
+      "physics_us": 2000,
+      "interval_ms": [
+        0,
+        6200
+      ],
+      "sample_count": 156,
+      "max_center_error_vs_500us_mm": 4.952354607114548,
+      "center_error_ms": 6200,
+      "max_angle_error_vs_500us_rad": 0.05093859758516814,
+      "angle_error_ms": 2480,
+      "final_center_error_mm": 4.952354607114548
+    },
+    {
+      "physics_us": 2000,
+      "interval_ms": [
+        6240,
+        18000
+      ],
+      "sample_count": 295,
+      "max_center_error_vs_500us_mm": 45.74932092148328,
+      "center_error_ms": 7560,
+      "max_angle_error_vs_500us_rad": 0.2555412236905082,
+      "angle_error_ms": 8720,
+      "final_center_error_mm": 3.1094118991218904
+    }
+  ],
+  "units": {
+    "pulse_ns": "newton seconds",
+    "contact_steps": "number of public physics solves with the external force configured",
+    "shelf_pad_tray_final_n": "mean over final 500 ms in shelf, both jaws, pickup-tray order",
+    "trajectory_vs_fine": "native visual center and shortest quaternion angle, common 40 ms samples",
+    "audit_start_sample": [
+      "upward shelf force N",
+      "total normal shelf force N",
+      "left pad normal force N",
+      "right pad normal force N",
+      "oriented bottom above shelf top m",
+      "all-orientation lower bound over shelf m"
+    ]
+  },
+  "qualification_source_parent": "4e035633a5ca3e0d75087219bab41d09f813f16f",
+  "native_contact_audit": [
+    {
+      "control_ms": 1,
+      "final_jaw_n": [
+        0.0,
+        0.0
+      ],
+      "final_upward_n": 3.9240002941069214,
+      "force_n": 8,
+      "lifts": [
+        {
+          "clear": {
+            "all_orientation_gap_m": 0.0014928935620606154,
+            "bottom_gap_m": 0.019771412373637554,
+            "max_shelf_normal_n": 0.0,
+            "min_individual_jaw_n": 13.331709040431887,
+            "ms": 6696
+          },
+          "mean_incoming_total_normal_n": 89.25407728905168,
+          "mean_incoming_upward_n": 85.36525472477233,
+          "ms": 6291,
+          "start_sample": [
+            85.36525472477233,
+            89.25407728905168,
+            13.514062088251205,
+            14.242451406172151,
+            1.8979790568973698e-05,
+            -0.01815797024835375
+          ]
+        }
+      ],
+      "open_window": {
+        "max_upward_n": 3.69985191343267,
+        "mean_upward_n": 3.689302884931785,
+        "min_upward_n": 3.678235700110952,
+        "ms": 9768,
+        "native_solves": 30
+      },
+      "physics_us": 1000
+    },
+    {
+      "control_ms": 2,
+      "final_jaw_n": [
+        0.0,
+        0.0
+      ],
+      "final_upward_n": 3.924000688832284,
+      "force_n": 8,
+      "lifts": [
+        {
+          "clear": {
+            "all_orientation_gap_m": 0.0014773325700832007,
+            "bottom_gap_m": 0.0198480614903096,
+            "max_shelf_normal_n": 0.0,
+            "min_individual_jaw_n": 13.444560701876322,
+            "ms": 6688
+          },
+          "mean_incoming_total_normal_n": 87.0033614050825,
+          "mean_incoming_upward_n": 83.54072536172919,
+          "ms": 6290,
+          "start_sample": [
+            0.0,
+            0.0,
+            13.558812231410107,
+            11.999594551631557,
+            5.9966165243174885e-05,
+            -0.018282665750879667
+          ]
+        }
+      ],
+      "open_window": {
+        "max_upward_n": 4.357174703177894,
+        "mean_upward_n": 3.6885864879176546,
+        "min_upward_n": 3.397406410231685,
+        "ms": 10640,
+        "native_solves": 60
+      },
+      "physics_us": 500
+    },
+    {
+      "control_ms": 2,
+      "final_jaw_n": [
+        0.0,
+        0.0
+      ],
+      "final_upward_n": 3.9239999999999817,
+      "force_n": 8,
+      "lifts": [],
+      "open_window": {
+        "max_upward_n": 3.718215986999973,
+        "mean_upward_n": 3.688622378896712,
+        "min_upward_n": 3.6572090158772634,
+        "ms": 13962,
+        "native_solves": 30
+      },
+      "physics_us": 1000
+    },
+    {
+      "control_ms": 2,
+      "final_jaw_n": [
+        0.0,
+        0.0
+      ],
+      "final_upward_n": 3.9239999999999853,
+      "force_n": 8,
+      "lifts": [],
+      "open_window": {
+        "max_upward_n": 3.6927281445606788,
+        "mean_upward_n": 3.68882644611585,
+        "min_upward_n": 3.684774703204463,
+        "ms": 9112,
+        "native_solves": 15
+      },
+      "physics_us": 2000
+    },
+    {
+      "control_ms": 1,
+      "final_jaw_n": [
+        0.0,
+        0.0
+      ],
+      "final_upward_n": 0.775767876977346,
+      "force_n": 12,
+      "lifts": [
+        {
+          "clear": null,
+          "mean_incoming_total_normal_n": 181.6718189918458,
+          "mean_incoming_upward_n": 115.25322582295216,
+          "ms": 6263,
+          "start_sample": [
+            115.25322582295216,
+            181.6718189918458,
+            28.30591307893356,
+            14.100351969060975,
+            -0.004042624229848912,
+            -0.022157285030180773
+          ]
+        }
+      ],
+      "open_window": null,
+      "physics_us": 1000
+    }
+  ],
+  "prior_qualification": {
+    "legacy": {
+      "trials": 4,
+      "terminal_decisions_preserved": 4,
+      "identical_frame_archives": 4,
+      "changed_open_times_ms": []
+    },
+    "offset": {
+      "trials": 44,
+      "terminal_decisions_preserved": 44,
+      "identical_frame_archives": 42,
+      "changed_open_times_ms": [
+        {
+          "case": "m1-u0.7-x+10-t250-guarded",
+          "prior": 8445,
+          "current": 8446
+        },
+        {
+          "case": "m1-u0.7-x-10-t250-guarded",
+          "prior": 8352,
+          "current": 8362
+        }
+      ]
+    },
+    "receiver": {
+      "trials": 32,
+      "terminal_decisions_preserved": 32,
+      "identical_frame_archives": 25,
+      "changed_open_times_ms": [
+        {
+          "case": "x+10-y+8-t4450-n8-guarded",
+          "prior": 9567,
+          "current": 9578
+        },
+        {
+          "case": "x+10-y+8-t6200-n8-guarded",
+          "prior": 9563,
+          "current": 9580
+        },
+        {
+          "case": "x+10-y-8-t4450-n8-guarded",
+          "prior": 9277,
+          "current": 9311
+        },
+        {
+          "case": "x-10-y+8-t4450-n8-guarded",
+          "prior": 9684,
+          "current": 9693
+        },
+        {
+          "case": "x-10-y+8-t6200-n8-guarded",
+          "prior": 9830,
+          "current": 9859
+        },
+        {
+          "case": "x-10-y-8-t4450-n8-guarded",
+          "prior": 9266,
+          "current": 9284
+        },
+        {
+          "case": "x-10-y-8-t6200-n8-guarded",
+          "prior": 9880,
+          "current": 9914
+        }
+      ]
+    },
+    "additional_1.24_kg": {
+      "bit_identical_frames_sha256": "3e3cbb2c51b119ae852612cf6e461316c1cdcaea24dc19ce59593fb839e387bc"
+    }
+  },
+  "viewers": {
+    "9940": {
+      "frames": 455,
+      "body_poses_and_shapes_checked": 9555,
+      "reset_ms": 0.0,
+      "coordinate_tolerance": 1e-12,
+      "captured_ms": {
+        "alarm": 6203.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "finish": 18000.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6252.0,
+        "start": 0.0
+      }
+    },
+    "9943": {
+      "frames": 456,
+      "body_poses_and_shapes_checked": 9576,
+      "reset_ms": 0.0,
+      "coordinate_tolerance": 1e-12,
+      "captured_ms": {
+        "alarm": 6203.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "edge": 6263.0,
+        "finish": 18000.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6252.0,
+        "start": 0.0
+      }
+    },
+    "9941": {
+      "frames": 459,
+      "body_poses_and_shapes_checked": 9639,
+      "reset_ms": 0.0,
+      "coordinate_tolerance": 1e-12,
+      "captured_ms": {
+        "alarm": 6203.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "edge": 6291.0,
+        "finish": 18000.0,
+        "lower": 8742.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6252.0,
+        "resume": 6696.0,
+        "return_open": 9768.0,
+        "start": 0.0
+      }
+    },
+    "9942": {
+      "frames": 457,
+      "body_poses_and_shapes_checked": 9597,
+      "reset_ms": 0.0,
+      "coordinate_tolerance": 1e-12,
+      "captured_ms": {
+        "alarm": 6204.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "edge": 6290.0,
+        "finish": 18000.0,
+        "lower": 8732.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6254.0,
+        "resume": 6688.0,
+        "return_open": 10640.0,
+        "start": 0.0
+      }
+    }
+  },
+  "changed_coverage": {
+    "baseline": "5fea1a8",
+    "object_sha256": {
+      "tests": "6764dd39af6796adc737a49f629ac7629eca51b603bf35ca69767354f46303c2",
+      "app": "1293919250fd9e9e28b9ba83df4d4396a3b4bf80987af09302781976226b4bd8"
+    },
+    "lines": [
+      425,
+      428
+    ],
+    "regions": [
+      664,
+      691
+    ],
+    "files": {
+      "crates/gz-sim-cli/examples/serial_transfer.rs": {
+        "lines": [
+          61,
+          61
+        ],
+        "missed_lines": [],
+        "regions": [
+          122,
+          126
+        ],
+        "missed_regions": [
+          [
+            314,
+            75,
+            314,
+            76
+          ],
+          [
+            316,
+            68,
+            316,
+            69
+          ],
+          [
+            371,
+            86,
+            371,
+            87
+          ],
+          [
+            453,
+            82,
+            453,
+            83
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/obstacle.rs": {
+        "lines": [
+          35,
+          37
+        ],
+        "missed_lines": [
+          [
+            120
+          ],
+          [
+            124
+          ]
+        ],
+        "regions": [
+          59,
+          65
+        ],
+        "missed_regions": [
+          [
+            196,
+            48,
+            196,
+            49
+          ],
+          [
+            200,
+            56,
+            200,
+            57
+          ],
+          [
+            201,
+            33,
+            201,
+            34
+          ],
+          [
+            202,
+            32,
+            202,
+            33
+          ],
+          [
+            120,
+            25,
+            120,
+            33
+          ],
+          [
+            124,
+            29,
+            124,
+            37
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/carry.rs": {
+        "lines": [
+          184,
+          185
+        ],
+        "missed_lines": [
+          [
+            239
+          ]
+        ],
+        "regions": [
+          243,
+          253
+        ],
+        "missed_regions": [
+          [
+            235,
+            63,
+            235,
+            64
+          ],
+          [
+            236,
+            58,
+            236,
+            59
+          ],
+          [
+            239,
+            24,
+            239,
+            30
+          ],
+          [
+            247,
+            60,
+            247,
+            61
+          ],
+          [
+            248,
+            74,
+            248,
+            75
+          ],
+          [
+            271,
+            72,
+            271,
+            73
+          ],
+          [
+            281,
+            72,
+            281,
+            73
+          ],
+          [
+            360,
+            66,
+            360,
+            67
+          ],
+          [
+            482,
+            92,
+            482,
+            93
+          ],
+          [
+            332,
+            39,
+            332,
+            40
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/pull.rs": {
+        "lines": [
+          7,
+          7
+        ],
+        "missed_lines": [],
+        "regions": [
+          15,
+          15
+        ],
+        "missed_regions": []
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/cycle.rs": {
+        "lines": [
+          132,
+          132
+        ],
+        "missed_lines": [],
+        "regions": [
+          213,
+          220
+        ],
+        "missed_regions": [
+          [
+            120,
+            73,
+            120,
+            74
+          ],
+          [
+            125,
+            57,
+            125,
+            58
+          ],
+          [
+            126,
+            59,
+            126,
+            60
+          ],
+          [
+            131,
+            47,
+            131,
+            48
+          ],
+          [
+            136,
+            54,
+            136,
+            55
+          ],
+          [
+            137,
+            53,
+            137,
+            54
+          ],
+          [
+            160,
+            29,
+            160,
+            30
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/payload.rs": {
+        "lines": [
+          6,
+          6
+        ],
+        "missed_lines": [],
+        "regions": [
+          12,
+          12
+        ],
+        "missed_regions": []
+      }
+    }
+  },
+  "native_route_checks": {
+    "feedback_cases": 57,
+    "body_hash_and_first_alarm_matched_between_policies": 19,
+    "direct_and_guarded_last_repeated_alarm_state_matched": 19,
+    "bit_exact_loaded_resets_all_captured_visual_poses_and_outcomes": 57,
+    "independent_force_cases": 5,
+    "public_control_cost_intervals_in_each_of_two_batches": 18009
+  },
+  "recorded_control_interval_cost_during_concurrent_qualification": {
+    "cpu_affinity": 9,
+    "cpu": "AMD Ryzen 9 9950X3D",
+    "control_ms": 2,
+    "downward_n": 8,
+    "order": "Latin square, one pinned thread, ordinary full primitive recording",
+    "summary": {
+      "500": {
+        "p50_ns": 995923,
+        "p95_ns": 1123414,
+        "p99_ns": 1228064
+      },
+      "1000": {
+        "p50_ns": 357961,
+        "p95_ns": 523561,
+        "p99_ns": 606362
+      },
+      "2000": {
+        "p50_ns": 259781,
+        "p95_ns": 448582,
+        "p99_ns": 3201100
+      }
+    },
+    "blocks": [
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 1002943,
+        "p95_ns": 1123414,
+        "p99_ns": 1418755,
+        "physics_us": 500,
+        "recovery_open_ms": 10640,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 530612,
+        "p95_ns": 670482,
+        "p99_ns": 4874144,
+        "physics_us": 1000,
+        "recovery_open_ms": 13962,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 270621,
+        "p95_ns": 797012,
+        "p99_ns": 3509681,
+        "physics_us": 2000,
+        "recovery_open_ms": 9112,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 259781,
+        "p95_ns": 448582,
+        "p99_ns": 3201100,
+        "physics_us": 2000,
+        "recovery_open_ms": 9112,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 995923,
+        "p95_ns": 1133644,
+        "p99_ns": 1228064,
+        "physics_us": 500,
+        "recovery_open_ms": 10640,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 347521,
+        "p95_ns": 486962,
+        "p99_ns": 581222,
+        "physics_us": 1000,
+        "recovery_open_ms": 13962,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 357961,
+        "p95_ns": 523561,
+        "p99_ns": 606362,
+        "physics_us": 1000,
+        "recovery_open_ms": 13962,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 194541,
+        "p95_ns": 275891,
+        "p99_ns": 323841,
+        "physics_us": 2000,
+        "recovery_open_ms": 9112,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 654452,
+        "p95_ns": 1038143,
+        "p99_ns": 1089173,
+        "physics_us": 500,
+        "recovery_open_ms": 10640,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      }
+    ]
+  },
+  "recorded_control_interval_cost": {
+    "cpu_affinity": 9,
+    "cpu": "AMD Ryzen 9 9950X3D",
+    "control_ms": 2,
+    "downward_n": 8,
+    "order": "three interleaved blocks per physics step after the other serial studies finished, on a shared workstation",
+    "summary": {
+      "500": {
+        "p50_ns": 641932,
+        "p95_ns": 716713,
+        "p99_ns": 786113
+      },
+      "1000": {
+        "p50_ns": 318731,
+        "p95_ns": 352731,
+        "p99_ns": 378011
+      },
+      "2000": {
+        "p50_ns": 153520,
+        "p95_ns": 172780,
+        "p99_ns": 186170
+      }
+    },
+    "blocks": [
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 651432,
+        "p95_ns": 716713,
+        "p99_ns": 786113,
+        "physics_us": 500,
+        "recovery_open_ms": 10640,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 320201,
+        "p95_ns": 352731,
+        "p99_ns": 378011,
+        "physics_us": 1000,
+        "recovery_open_ms": 13962,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 151540,
+        "p95_ns": 171081,
+        "p99_ns": 186170,
+        "physics_us": 2000,
+        "recovery_open_ms": 9112,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 153520,
+        "p95_ns": 172780,
+        "p99_ns": 186001,
+        "physics_us": 2000,
+        "recovery_open_ms": 9112,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 619062,
+        "p95_ns": 653652,
+        "p99_ns": 684812,
+        "physics_us": 500,
+        "recovery_open_ms": 10640,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 318731,
+        "p95_ns": 354491,
+        "p99_ns": 397771,
+        "physics_us": 1000,
+        "recovery_open_ms": 13962,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 313661,
+        "p95_ns": 336191,
+        "p99_ns": 350771,
+        "physics_us": 1000,
+        "recovery_open_ms": 13962,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 456,
+        "mode": "GuardedCarry",
+        "p50_ns": 155711,
+        "p95_ns": 178211,
+        "p99_ns": 189561,
+        "physics_us": 2000,
+        "recovery_open_ms": 9112,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 641932,
+        "p95_ns": 751603,
+        "p99_ns": 791452,
+        "physics_us": 500,
+        "recovery_open_ms": 10640,
+        "sampled_control_intervals": 2001,
+        "shelf_release_ms": null
+      }
+    ]
+  }
+}

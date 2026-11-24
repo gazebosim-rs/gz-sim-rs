@@ -1,0 +1,16 @@
+{
+  "seed": "local-contact",
+  "commands": [
+    {"op":"step","count":1},
+    {"op":"paused_tick"},
+    {"op":"step","count":3},
+    {"op":"reset"},
+    {"op":"step","count":4},
+    {"op":"reset"},
+    {"op":"set_contact_refinement","enabled":false},
+    {"op":"paused_tick"},
+    {"op":"step","count":1},
+    {"op":"set_contact_refinement","enabled":true},
+    {"op":"step","count":3}
+  ]
+}

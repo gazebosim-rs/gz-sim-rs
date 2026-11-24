@@ -700,15 +700,16 @@ fn individually_finite_targets_with_overflowing_continuous_error_are_command_ref
     // Server keeps its previous target only for InvalidCommand. A finite scalar
     // whose continuous subtraction overflows belongs to that same refusal class,
     // rather than being reported as a terminal physics ownership failure.
-    let error = request(
-        JointControllerMode::Position,
-        f64::MAX,
-        -f64::MAX,
-        2.0,
-        3.0,
-        Duration::from_millis(1),
-    )
-    .map_err(command_error);
+    let error = Actuation::Reduced
+        .request(
+            JointControllerMode::Position,
+            f64::MAX,
+            -f64::MAX,
+            2.0,
+            3.0,
+            Duration::from_millis(1),
+        )
+        .map_err(command_error);
     assert!(matches!(
         error,
         Err(JointControllerCommandError::InvalidCommand)
@@ -829,6 +830,7 @@ fn shared_joint_admission_refuses_an_axis_removed_after_controller_configuration
         Some("rapier"),
         false,
         &["base_hinge", "tip_hinge"],
+        false,
     )
     .unwrap_err();
     assert!(

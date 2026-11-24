@@ -1,0 +1,522 @@
+{
+  "baseline": "041b1adbd12c6d75678cc246ca00c0b546a457c8",
+  "method": "LLVM source-coordinate union for changed simulator production Rust against the baseline. Each object is matched to its collected profile. The full XPBD source union includes the all-feature package coverage and scene and example regression profiles. The workspace qualification is a separate gate.",
+  "changed": {
+    "lines": [
+      440,
+      442
+    ],
+    "regions": [
+      885,
+      914
+    ]
+  },
+  "by_crate": {
+    "gz-physics-xpbd": {
+      "lines": [
+        18,
+        18
+      ],
+      "regions": [
+        10,
+        10
+      ]
+    },
+    "gz-sim-cli": {
+      "lines": [
+        355,
+        357
+      ],
+      "regions": [
+        727,
+        756
+      ]
+    },
+    "gz-sim-scene": {
+      "lines": [
+        67,
+        67
+      ],
+      "regions": [
+        148,
+        148
+      ]
+    }
+  },
+  "xpbd_source": {
+    "lines": [
+      9156,
+      9525
+    ],
+    "regions": [
+      18395,
+      19067
+    ]
+  },
+  "passed_regressions": {
+    "kernel": 159,
+    "scene_lib": 318,
+    "scene": 98,
+    "example": 54
+  },
+  "verified_trials": {
+    "mesh-5": {
+      "ticks": 3700,
+      "max_relative_support_error_in_sampling_windows": 0.00028511074667347813,
+      "first_confirmed_stage": 35,
+      "last_two_peak_force_n": 0.0011011615316669277,
+      "bracket": {
+        "loaded_aperture_m": 0.043237584874836615,
+        "loaded_stage": 35,
+        "open_aperture_m": 0.04323881735155437,
+        "open_stage": 34
+      }
+    },
+    "mesh-7": {
+      "ticks": 3900,
+      "max_relative_support_error_in_sampling_windows": 5.8111613864264555e-05,
+      "first_confirmed_stage": 37,
+      "last_two_peak_force_n": 0.001282525865893325,
+      "bracket": {
+        "loaded_aperture_m": 0.0431908357392551,
+        "loaded_stage": 37,
+        "open_aperture_m": 0.043192062183573396,
+        "open_stage": 36
+      }
+    },
+    "mesh-5-fine": {
+      "ticks": 3900,
+      "max_relative_support_error_in_sampling_windows": 3.832922977564657e-05,
+      "first_confirmed_stage": 37,
+      "last_two_peak_force_n": 0.0013009874759340589,
+      "bracket": {
+        "loaded_aperture_m": 0.04323511268273057,
+        "loaded_stage": 37,
+        "open_aperture_m": 0.04323634168563846,
+        "open_stage": 36
+      }
+    },
+    "mesh-7-fine": {
+      "ticks": 3900,
+      "max_relative_support_error_in_sampling_windows": 3.7632606767257215e-05,
+      "first_confirmed_stage": 37,
+      "last_two_peak_force_n": 0.0010984060946381312,
+      "bracket": {
+        "loaded_aperture_m": 0.04319081811618354,
+        "loaded_stage": 37,
+        "open_aperture_m": 0.04319205087139459,
+        "open_stage": 36
+      }
+    },
+    "mesh-5-fixed": {
+      "ticks": 3700,
+      "max_relative_support_error_in_sampling_windows": 3.8135819813378546e-05,
+      "first_confirmed_stage": null,
+      "last_two_peak_force_n": 0.0,
+      "bracket": null
+    },
+    "mesh-7-fixed": {
+      "ticks": 3900,
+      "max_relative_support_error_in_sampling_windows": 3.819714809893959e-05,
+      "first_confirmed_stage": null,
+      "last_two_peak_force_n": 0.0,
+      "bracket": null
+    }
+  },
+  "gz_web_rs": {
+    "browser": {
+      "mesh-5": {
+        "renderer": "WebGPU",
+        "frames": 215,
+        "body_poses_and_shapes_checked": 7095,
+        "independent_particle_positions_checked": 4300,
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "closure": 5350.0,
+          "held": 1650.0,
+          "mid_sweep": 3500.0,
+          "previous": 5150.0,
+          "threshold": 5250.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9776%2F"
+      },
+      "mesh-7": {
+        "renderer": "WebGPU",
+        "frames": 223,
+        "body_poses_and_shapes_checked": 9143,
+        "independent_particle_positions_checked": 6244,
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "closure": 5550.0,
+          "held": 1650.0,
+          "mid_sweep": 3600.0,
+          "previous": 5350.0,
+          "threshold": 5450.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9777%2F"
+      },
+      "mesh-5-fine": {
+        "renderer": "WebGPU",
+        "frames": 223,
+        "body_poses_and_shapes_checked": 7359,
+        "independent_particle_positions_checked": 4460,
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "closure": 5550.0,
+          "held": 1650.0,
+          "mid_sweep": 3600.0,
+          "previous": 5350.0,
+          "threshold": 5450.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9778%2F"
+      },
+      "mesh-7-fine": {
+        "renderer": "WebGPU",
+        "frames": 223,
+        "body_poses_and_shapes_checked": 9143,
+        "independent_particle_positions_checked": 6244,
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "closure": 5550.0,
+          "held": 1650.0,
+          "mid_sweep": 3600.0,
+          "previous": 5350.0,
+          "threshold": 5450.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9779%2F"
+      },
+      "mesh-5-fixed": {
+        "renderer": "WebGPU",
+        "frames": 215,
+        "body_poses_and_shapes_checked": 7095,
+        "independent_particle_positions_checked": 4300,
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "closure": 5350.0,
+          "held": 1650.0,
+          "mid_sweep": 3500.0,
+          "previous": 5150.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9783%2F"
+      },
+      "mesh-7-fixed": {
+        "renderer": "WebGPU",
+        "frames": 223,
+        "body_poses_and_shapes_checked": 9143,
+        "independent_particle_positions_checked": 6244,
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "closure": 5550.0,
+          "held": 1650.0,
+          "mid_sweep": 3600.0,
+          "previous": 5350.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9784%2F"
+      }
+    },
+    "geometry": {
+      "mesh-5": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.01042798044121068,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005720195587893186,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010427579182916504,
+            "pair_indices": [
+              1,
+              15
+            ],
+            "skin_clearance_m": -0.0005724208170834952,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02200003785656736,
+          "pair_indices": [
+            2,
+            19
+          ],
+          "skin_clearance_m": 3.785656736005061e-08,
+          "time_ns": 5250000000
+        },
+        "cross_panel_triangle_pairs": 13760,
+        "frames": 215,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 3.634194653077266e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 10320
+      },
+      "mesh-7": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010428040924112744,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005719590758872552,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010421486372427477,
+            "pair_indices": [
+              1,
+              23
+            ],
+            "skin_clearance_m": -0.0005785136275725227,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02200003788904358,
+          "pair_indices": [
+            6,
+            28
+          ],
+          "skin_clearance_m": 3.7889043579680814e-08,
+          "time_ns": 5475000000
+        },
+        "cross_panel_triangle_pairs": 32112,
+        "frames": 223,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 2.2593697573090876e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 16056
+      },
+      "mesh-5-fine": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.01042798044121068,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005720195587893186,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010427579182916504,
+            "pair_indices": [
+              1,
+              15
+            ],
+            "skin_clearance_m": -0.0005724208170834952,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02200000081186768,
+          "pair_indices": [
+            2,
+            19
+          ],
+          "skin_clearance_m": 8.11867680722278e-10,
+          "time_ns": 5475000000
+        },
+        "cross_panel_triangle_pairs": 14272,
+        "frames": 223,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 3.6179738032247194e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 10704
+      },
+      "mesh-7-fine": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010428040924112744,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005719590758872552,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010421486372427477,
+            "pair_indices": [
+              1,
+              23
+            ],
+            "skin_clearance_m": -0.0005785136275725227,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.022000003591249862,
+          "pair_indices": [
+            7,
+            29
+          ],
+          "skin_clearance_m": 3.5912498634604884e-09,
+          "time_ns": 5475000000
+        },
+        "cross_panel_triangle_pairs": 32112,
+        "frames": 223,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 2.244166080368412e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 16056
+      },
+      "mesh-5-fixed": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.01042798044121068,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005720195587893186,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010427579182916504,
+            "pair_indices": [
+              1,
+              15
+            ],
+            "skin_clearance_m": -0.0005724208170834952,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.0220000477522019,
+          "pair_indices": [
+            4,
+            19
+          ],
+          "skin_clearance_m": 4.775220190100793e-08,
+          "time_ns": 5075000000
+        },
+        "cross_panel_triangle_pairs": 13760,
+        "frames": 215,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 3.6323273789693605e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 10320
+      },
+      "mesh-7-fixed": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010428040924112744,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005719590758872552,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010421486372427477,
+            "pair_indices": [
+              1,
+              23
+            ],
+            "skin_clearance_m": -0.0005785136275725227,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02200004197252612,
+          "pair_indices": [
+            7,
+            29
+          ],
+          "skin_clearance_m": 4.1972526121369924e-08,
+          "time_ns": 5275000000
+        },
+        "cross_panel_triangle_pairs": 32112,
+        "frames": 223,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 2.2587880691166823e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 16056
+      }
+    },
+    "measurements": {
+      "mesh-5": {
+        "verified_ticks": 3700,
+        "verified_windows": 37,
+        "checked_native_jaw_apertures": 148,
+        "maximum_native_aperture_error_m": 0.0,
+        "first_sustained_stage": 35,
+        "threshold_n": 0.0001,
+        "window_ticks": 20,
+        "matched_native_approach_frames": 67
+      },
+      "mesh-7": {
+        "verified_ticks": 3900,
+        "verified_windows": 39,
+        "checked_native_jaw_apertures": 156,
+        "maximum_native_aperture_error_m": 0.0,
+        "first_sustained_stage": 37,
+        "threshold_n": 0.0001,
+        "window_ticks": 20,
+        "matched_native_approach_frames": 67
+      },
+      "mesh-5-fine": {
+        "verified_ticks": 3900,
+        "verified_windows": 39,
+        "checked_native_jaw_apertures": 156,
+        "maximum_native_aperture_error_m": 0.0,
+        "first_sustained_stage": 37,
+        "threshold_n": 0.0001,
+        "window_ticks": 20
+      },
+      "mesh-7-fine": {
+        "verified_ticks": 3900,
+        "verified_windows": 39,
+        "checked_native_jaw_apertures": 156,
+        "maximum_native_aperture_error_m": 0.0,
+        "first_sustained_stage": 37,
+        "threshold_n": 0.0001,
+        "window_ticks": 20
+      },
+      "mesh-5-fixed": {
+        "verified_ticks": 3700,
+        "verified_windows": 37,
+        "checked_native_jaw_apertures": 148,
+        "maximum_native_aperture_error_m": 0.0,
+        "first_sustained_stage": null,
+        "threshold_n": 0.0001,
+        "window_ticks": 20,
+        "matched_primary_prefix_ticks": 3500,
+        "extra_fixed_target_ticks": 200
+      },
+      "mesh-7-fixed": {
+        "verified_ticks": 3900,
+        "verified_windows": 39,
+        "checked_native_jaw_apertures": 156,
+        "maximum_native_aperture_error_m": 0.0,
+        "first_sustained_stage": null,
+        "threshold_n": 0.0001,
+        "window_ticks": 20,
+        "matched_primary_prefix_ticks": 3700,
+        "extra_fixed_target_ticks": 200
+      }
+    },
+    "numerical_tool_coverage": {
+      "tools/physics-audit/numerics/src/bin/fold_closure_forces.rs": {
+        "lines": [
+          230,
+          231
+        ],
+        "regions": [
+          487,
+          505
+        ]
+      }
+    }
+  }
+}

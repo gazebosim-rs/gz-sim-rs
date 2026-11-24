@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 use gz_sim_proto::{msgs::Boolean, prost::Message};
 use std::{
-    net::TcpListener,
     process::{Child, Command, Stdio},
     sync::{
         Arc,
@@ -15,7 +14,7 @@ use zenoh::{Wait, pubsub::Subscriber, sample::Sample};
 
 pub struct Network {
     directory: tempfile::TempDir,
-    reservation: Option<TcpListener>,
+    listener: zenoh::Session,
     pub partition: String,
 }
 impl Network {
@@ -26,40 +25,41 @@ impl Network {
             std::process::id(),
             directory.path().file_name().unwrap().to_str().unwrap()
         );
-        let reservation = TcpListener::bind("127.0.0.1:0").unwrap();
-        let endpoint = format!("tcp/127.0.0.1:{}", reservation.local_addr().unwrap().port());
         let scouting =
             serde_json::json!({"multicast":{"enabled":false},"gossip":{"enabled":false}});
-        for (name, config) in [
-            (
-                "server",
-                serde_json::json!({"mode":"peer","listen":{"endpoints":[endpoint]},"scouting":scouting}),
-            ),
-            (
-                "client",
-                serde_json::json!({"mode":"peer","listen":{"endpoints":["tcp/127.0.0.1:0"]},"connect":{"endpoints":[endpoint],"timeout_ms":2000},"scouting":scouting,"transport":{"shared_memory":{"enabled":false}}}),
-            ),
-        ] {
-            std::fs::write(
-                directory.path().join(format!("{name}.json")),
-                serde_json::to_vec(&config).unwrap(),
-            )
+        let config = serde_json::json!({
+            "mode":"peer", "listen":{"endpoints":["tcp/127.0.0.1:0"]},
+            "connect":{"endpoints":[]}, "scouting":scouting,
+            "transport":{"shared_memory":{"enabled":false}}
+        });
+        let listener = zenoh::open(zenoh::Config::from_json5(&config.to_string()).unwrap())
+            .wait()
             .unwrap();
-        }
+        let locators = listener.info().locators().wait();
+        assert_eq!(locators.len(), 1);
+        let endpoint = locators[0].to_string();
+        assert!(endpoint.starts_with("tcp/127.0.0.1:") && !endpoint.ends_with(":0"));
+        let client = serde_json::json!({
+            "mode":"client", "listen":{"endpoints":[]},
+            "connect":{"endpoints":[endpoint],"timeout_ms":2000}, "scouting":scouting,
+            "transport":{"shared_memory":{"enabled":false}}
+        });
+        std::fs::write(
+            directory.path().join("client.json"),
+            serde_json::to_vec(&client).unwrap(),
+        )
+        .unwrap();
         Self {
             directory,
-            reservation: Some(reservation),
+            listener,
             partition,
         }
     }
-    fn configure(&self, command: &mut Command, name: &str) {
+    fn configure(&self, command: &mut Command) {
         command
             .env("GZ_IP", "127.0.0.1")
             .env("GZ_PARTITION", &self.partition)
-            .env(
-                "ZENOH_CONFIG",
-                self.directory.path().join(format!("{name}.json")),
-            )
+            .env("ZENOH_CONFIG", self.directory.path().join("client.json"))
             .env_remove("GZ_RELAY")
             .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
             .env_remove("LD_PRELOAD")
@@ -69,33 +69,40 @@ impl Network {
             .env("GZ_TRANSPORT_TOPIC_STATISTICS", "0");
     }
     pub fn spawn_server(&mut self, command: &mut Command) -> Child {
-        self.configure(command, "server");
+        self.configure(command);
         command.stdout(Stdio::piped()).stderr(Stdio::piped());
-        // A stolen port fails the child's bind; it cannot become a passing peer.
-        self.reservation.take();
         command.spawn().unwrap()
     }
     pub fn configure_native(&self, command: &mut Command, peer: &crate::zenoh_peer::NativePeer) {
-        self.configure(command, "client");
+        self.configure(command);
         peer.configure_runtime(command);
         command.stdout(Stdio::piped()).stderr(Stdio::piped());
     }
     pub fn session(&self) -> zenoh::Session {
-        zenoh::open(zenoh::Config::from_file(self.directory.path().join("client.json")).unwrap())
-            .wait()
-            .unwrap()
+        self.listener.clone()
     }
     pub fn key(&self, topic: &str) -> String {
         format!("@/{}@{topic}", self.partition)
     }
     pub fn control(&self, session: &zenoh::Session, bytes: Vec<u8>) {
         let key = self.key("/world/default/control");
-        let replies = session
-            .get(key.clone())
-            .payload(bytes)
+        let control = session
+            .declare_querier(key.clone())
             .timeout(Duration::from_secs(5))
             .wait()
             .unwrap();
+        let changes = control.matching_listener().wait().unwrap();
+        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        while !control.matching_status().wait().unwrap().matching() {
+            assert!(
+                changes
+                    .recv_timeout(deadline.saturating_duration_since(std::time::Instant::now()))
+                    .unwrap()
+                    .is_some(),
+                "world control service never matched"
+            );
+        }
+        let replies = control.get().payload(bytes).wait().unwrap();
         let sample = replies
             .recv_timeout(Duration::from_secs(5))
             .unwrap()

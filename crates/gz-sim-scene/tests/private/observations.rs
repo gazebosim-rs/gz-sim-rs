@@ -44,6 +44,7 @@ fn observers_consume_committed_link_state_and_resolve_restored_public_ids() {
             link: link_id,
             rotation: sensor_rotation,
             reference: DQuat::from_array(pose.rotation) * sensor_rotation,
+            initial_velocity: DVec3::ZERO,
             previous_velocity: DVec3::ZERO,
             schedule: SampleSchedule::new(0.0).unwrap(),
             sdf_rate_hz: 0.0,
@@ -129,4 +130,25 @@ fn observers_consume_committed_link_state_and_resolve_restored_public_ids() {
         sample.reading.as_ref().unwrap().specific_force,
         [0.0, 9.81, 0.0],
     );
+}
+
+#[test]
+fn composed_valid_native_frames_fit_the_published_rotation_budget() {
+    let q = DQuat::from_rotation_y(1.2) * (1. + 4.9e-13);
+    let parent = WorldPose {
+        translation: [0.; 3],
+        rotation: q.to_array(),
+    };
+    let identity = WorldPose {
+        translation: [0.; 3],
+        rotation: DQuat::IDENTITY.to_array(),
+    };
+    assert_eq!(parent.compose(identity).rotation, parent.rotation);
+    let result = DQuat::from_array(parent.inverse().compose(parent).rotation);
+    assert!((result.length_squared() - 1.).abs() < 1e-15);
+    let malformed = WorldPose {
+        rotation: [0., 0., 0., 0.5],
+        ..identity
+    };
+    assert_eq!(identity.compose(malformed).rotation, malformed.rotation);
 }

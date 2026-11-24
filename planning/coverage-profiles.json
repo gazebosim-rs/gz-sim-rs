@@ -4,6 +4,7 @@
     "headless": {
       "exclude_packages": [
         "gz-camera-output",
+        "gz-physics-gpu",
         "gz-render-client",
         "gz-render-frame",
         "gz-render-protocol",
@@ -14,12 +15,14 @@
       ],
       "runner": "cpu",
       "features": [
-        "gz-sim-cli/rgb-camera"
+        "gz-sim-cli/rgb-camera",
+        "gz-sim-cli/landing-audit"
       ]
     },
     "renderer": {
       "packages": [
         "gz-camera-output",
+        "gz-physics-gpu",
         "gz-render-client",
         "gz-render-frame",
         "gz-render-protocol",
@@ -33,9 +36,13 @@
       ],
       "features": [
         "gz-renderer/gpu",
-        "gz-sim-cli/rgb-camera"
+        "gz-sim-cli/rgb-camera",
+        "gz-sim-cli/gpu-batch"
       ],
-      "runner": "vulkan"
+      "runner": "vulkan",
+      "consumer_packages": [
+        "gz-physics-distributed"
+      ]
     }
   },
   "excluded_sources": [],

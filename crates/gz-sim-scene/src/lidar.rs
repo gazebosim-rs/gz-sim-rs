@@ -85,6 +85,7 @@ impl LidarNoise {
 #[derive(Component, Clone)]
 pub(super) struct Lidar {
     link: u64,
+    exclude_parent_body: bool,
     model: PlanarLidar,
     schedule: SampleSchedule,
     noise: Option<Box<LidarNoise>>,
@@ -175,10 +176,20 @@ pub(super) fn spawn(
         "CPU lidar type",
     )?;
     require(
-        backend.is_some_and(|backend| backend.engine() == "rapier"),
+        backend.is_some_and(|backend| {
+            matches!(backend.engine(), "rapier" | "distributed" | "distributed-pool" | "multifidelity")
+        }),
         &name,
         "non-IMU sensors",
     )?;
+    if context.engine == PhysicsEngine::MultiFidelity {
+        let rigid_world = sdf
+            .worlds
+            .iter()
+            .find(|world| world.name == context.world)
+            .is_some_and(|world| !world.plugins.iter().any(deformable::is_plugin));
+        require(rigid_world, &name, "CPU lidar on deformable geometry")?;
+    }
     require(
         sim.world()
             .iter_entities()
@@ -288,6 +299,7 @@ pub(super) fn spawn(
         publication,
         Lidar {
             link: parent.id,
+            exclude_parent_body: !parent.link.collisions.is_empty(),
             model: ray_model,
             schedule,
             noise,
@@ -364,7 +376,11 @@ fn sample(
                 return Ok(None);
             }
             let parent = identities.get(sensor.link).ok_or("missing lidar link")?;
-            let body = bodies.get(parent).map_err(|error| error.to_string())?;
+            let excluded = if sensor.exclude_parent_body {
+                Some(bodies.get(parent).map_err(|error|error.to_string())?.id())
+            } else {
+                None
+            };
             let rotation = DQuat::from_array(pose.rotation);
             let Lidar { model, noise, .. } = &mut *sensor;
             let mut ranges = Vec::with_capacity(model.config().samples);
@@ -375,7 +391,7 @@ fn sample(
                         pose.translation,
                         direction,
                         model.config().range_max,
-                        Some(body.id()),
+                        excluded,
                     )
                     .map_err(|error| error.to_string())?;
                 let range = match noise.as_mut() {

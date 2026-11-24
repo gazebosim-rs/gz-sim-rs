@@ -81,6 +81,12 @@ impl RapierBackend {
         let Some(servo) = servo else {
             return Ok(None);
         };
+        if joint.initial.exact_lock {
+            return Err(PhysicsError::Unsupported {
+                engine: "rapier",
+                capability: "motor on an exact revolute lock",
+            });
+        }
         let Handle::Reduced(handle) = joint.handle else {
             return Err(PhysicsError::Unsupported {
                 engine: "rapier",

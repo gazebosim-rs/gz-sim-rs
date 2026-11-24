@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!-- A force-driven slider is held at its upper stop while a sphere strikes off center. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="local" type="ignored"><max_step_size>0.000001</max_step_size></physics>
+    <model name="wrist_rig">
+      <plugin name="gz::sim::systems::ReducedScalarJoints" filename="gz-sim-reduced-scalar-joints-system"/>
+      <plugin name="gz::sim::systems::ApplyJointForce" filename="gz-sim-apply-joint-force-system">
+        <joint_name>slider</joint_name>
+      </plugin>
+      <plugin name="gz::sim::systems::ContactMaterial" filename="gz-sim-contact-material-system">
+        <restitution link="finger">0.6</restitution>
+      </plugin>
+      <link name="wrist"><pose>0 0 0.1 0 0 0</pose>
+        <inertial><mass>0.4</mass><inertia><ixx>0.0002666666666666667</ixx><iyy>0.0002666666666666667</iyy><izz>0.0004266666666666667</izz></inertia></inertial>
+        <collision name="hub"><geometry><box><size>0.08 0.08 0.04</size></box></geometry></collision>
+        <visual name="hub"><geometry><box><size>0.08 0.08 0.04</size></box></geometry><material><diffuse>0.28 0.58 0.76 1</diffuse></material></visual>
+        <visual name="guide"><pose>0 0.052 0.008 0 0 0</pose><geometry><box><size>0.009 0.105 0.008</size></box></geometry><material><diffuse>0.28 0.58 0.76 1</diffuse></material></visual>
+      </link>
+      <joint name="hinge" type="revolute"><parent>world</parent><child>wrist</child><axis><xyz>0 0 1</xyz></axis></joint>
+      <link name="finger"><pose>0 0.1 0.1 0 0 0</pose>
+        <inertial><mass>0.08</mass><inertia><ixx>0.00009659333333333334</ixx><iyy>0.00006882666666666667</iyy><izz>0.00003208666666666667</izz></inertia></inertial>
+        <collision name="finger"><geometry><box><size>0.018 0.067 0.10</size></box></geometry>
+          <surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface>
+        </collision>
+        <visual name="finger"><geometry><box><size>0.018 0.067 0.10</size></box></geometry><material><diffuse>0.96 0.55 0.13 1</diffuse></material></visual>
+      </link>
+      <joint name="slider" type="prismatic"><parent>wrist</parent><child>finger</child><axis><xyz>1 0 0</xyz><limit><lower>-0.04</lower><upper>0</upper></limit></axis></joint>
+    </model>
+    <model name="parcel"><pose>-0.02405 0.12 0.1 0 0 0</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0.75 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <plugin name="gz::sim::systems::ContactMaterial" filename="gz-sim-contact-material-system">
+        <restitution link="body">0.6</restitution>
+      </plugin>
+      <link name="body">
+        <inertial><mass>0.2</mass><inertia><ixx>0.000018</ixx><iyy>0.000018</iyy><izz>0.000018</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.015</radius></sphere></geometry>
+          <surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface>
+        </collision>
+        <visual name="sphere"><geometry><sphere><radius>0.015</radius></sphere></geometry><material><diffuse>0.72 0.29 0.20 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

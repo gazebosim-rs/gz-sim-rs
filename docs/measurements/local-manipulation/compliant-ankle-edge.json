@@ -1,0 +1,786 @@
+{
+  "cases": [
+    {
+      "case": "strike",
+      "grids": [
+        {
+          "end_angle_rad": -0.02661859117418804,
+          "end_pressure_area_m2": 0.02928060421089846,
+          "first_hard_public_impulse_ns": 0.20784681065474986,
+          "first_hard_time_s": 0.0325,
+          "hard_angular_impulse_nms": [
+            -8.810942726347047e-05,
+            0.049916925985482336,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.21812043105608292,
+          "hard_total_ns": 0.35716223306871403,
+          "max_angle_error_rad": 0.00018919967150060613,
+          "max_cumulative_plantar_normal_error_ns": 0.0004772639889927266,
+          "max_cumulative_plantar_shear_error_ns": 0.00015270193301525348,
+          "max_cumulative_shank_error_ns": 0.001945183801346284,
+          "max_joint_speed_error_rad_s": 0.01178855504557376,
+          "max_loaded_endpoint_gap_m": 2.2056939608106063e-11,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.028883326236418816,
+          "max_shank_trajectory_error_m": 3.290391862320532e-05,
+          "max_swept_overhang_bound_m": 0.02905656183183748,
+          "max_tick_momentum_residual_ns": 0.00011485856867554284,
+          "min_mean_plantar_force_n": 5.540505716468856,
+          "min_plantar_force_during_strike_n": 7.565739309303234,
+          "min_pressure_area_m2": 0.02928060421089846,
+          "min_shank_swept_margin_m": -0.00032799226846811014,
+          "plantar_boundary_work_j": -0.0005040139604639512,
+          "plantar_impulse_ns": [
+            -0.2149047118934692,
+            -8.18167436906431e-06,
+            0.6717459325959729
+          ],
+          "substeps": 2
+        },
+        {
+          "end_angle_rad": -0.026620859092281148,
+          "end_pressure_area_m2": 0.02946097931378972,
+          "first_hard_public_impulse_ns": 0.20665662062197754,
+          "first_hard_time_s": 0.0325,
+          "hard_angular_impulse_nms": [
+            4.9173396596768405e-05,
+            0.049930338887313505,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.2194964219486466,
+          "hard_total_ns": 0.3572360800787655,
+          "max_angle_error_rad": 9.452933876552896e-05,
+          "max_cumulative_plantar_normal_error_ns": 0.00030701364504603923,
+          "max_cumulative_plantar_shear_error_ns": 9.804290547626993e-05,
+          "max_cumulative_shank_error_ns": 0.002036123899194553,
+          "max_joint_speed_error_rad_s": 0.012643834795473902,
+          "max_loaded_endpoint_gap_m": 6.311587641416594e-10,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.028890978826868335,
+          "max_shank_trajectory_error_m": 1.645620001334366e-05,
+          "max_swept_overhang_bound_m": 0.02897757360262289,
+          "max_tick_momentum_residual_ns": 5.551901150605126e-05,
+          "min_mean_plantar_force_n": 5.549986432165586,
+          "min_plantar_force_during_strike_n": 7.595348527513389,
+          "min_pressure_area_m2": 0.02946097931378972,
+          "min_shank_swept_margin_m": -0.00020719309831107352,
+          "plantar_boundary_work_j": -0.0005053684808521029,
+          "plantar_impulse_ns": [
+            -0.21490139594431382,
+            1.0648918337277517e-05,
+            0.6717362077700496
+          ],
+          "substeps": 4
+        },
+        {
+          "end_angle_rad": -0.026619226908209618,
+          "end_pressure_area_m2": 0.029569218016282973,
+          "first_hard_public_impulse_ns": 0.20756363426923585,
+          "first_hard_time_s": 0.032375,
+          "hard_angular_impulse_nms": [
+            1.0257981581651247e-06,
+            0.0499278764178565,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.218722111424508,
+          "hard_total_ns": 0.35723680892969384,
+          "max_angle_error_rad": 4.72463500170682e-05,
+          "max_cumulative_plantar_normal_error_ns": 0.0001357633343366249,
+          "max_cumulative_plantar_shear_error_ns": 4.343422070651748e-05,
+          "max_cumulative_shank_error_ns": 0.00037470146328064113,
+          "max_joint_speed_error_rad_s": 0.002080371487110877,
+          "max_loaded_endpoint_gap_m": -9.596129446620694e-12,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.02889435020860645,
+          "max_shank_trajectory_error_m": 8.229185454072294e-06,
+          "max_swept_overhang_bound_m": 0.028937636889205524,
+          "max_tick_momentum_residual_ns": 2.830058440493899e-05,
+          "min_mean_plantar_force_n": 5.553896909431282,
+          "min_plantar_force_during_strike_n": 7.9300399353106865,
+          "min_pressure_area_m2": 0.029569218016282973,
+          "min_shank_swept_margin_m": -8.669635549006483e-05,
+          "plantar_boundary_work_j": -0.0005053850973954408,
+          "plantar_impulse_ns": [
+            -0.2148975124600461,
+            -1.1104344172809462e-06,
+            0.6717234737371867
+          ],
+          "substeps": 8
+        },
+        {
+          "end_angle_rad": -0.026619256066044216,
+          "end_pressure_area_m2": 0.029617084660842785,
+          "first_hard_public_impulse_ns": 0.20776640633026647,
+          "first_hard_time_s": 0.03234375,
+          "hard_angular_impulse_nms": [
+            -1.0938606919424786e-05,
+            0.04992301781074948,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.2189281508046785,
+          "hard_total_ns": 0.35723295998087606,
+          "max_angle_error_rad": 2.3618723927077562e-05,
+          "max_cumulative_plantar_normal_error_ns": 6.370922910314825e-05,
+          "max_cumulative_plantar_shear_error_ns": 2.038523983161067e-05,
+          "max_cumulative_shank_error_ns": 0.00017192940225002618,
+          "max_joint_speed_error_rad_s": 0.0009501055670038117,
+          "max_loaded_endpoint_gap_m": -6.060776880367769e-12,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.028896196857841006,
+          "max_shank_trajectory_error_m": 4.114860612242354e-06,
+          "max_swept_overhang_bound_m": 0.02891783612176426,
+          "max_tick_momentum_residual_ns": 1.4222831894891917e-05,
+          "min_mean_plantar_force_n": 5.555640753188302,
+          "min_plantar_force_during_strike_n": 7.996924981864573,
+          "min_pressure_area_m2": 0.029617084660842785,
+          "min_shank_swept_margin_m": -4.145585902101478e-05,
+          "plantar_boundary_work_j": -0.0005055204211942402,
+          "plantar_impulse_ns": [
+            -0.2148894922174188,
+            -7.332178696074473e-07,
+            0.6716983962737438
+          ],
+          "substeps": 16
+        },
+        {
+          "end_angle_rad": -0.026615747583324818,
+          "end_pressure_area_m2": 0.029636589253381765,
+          "first_hard_public_impulse_ns": 0.20907833024907602,
+          "first_hard_time_s": 0.03234375,
+          "hard_angular_impulse_nms": [
+            0.00034922057987455427,
+            0.049979112814611204,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.21935891510114347,
+          "hard_total_ns": 0.35756057505738875,
+          "max_angle_error_rad": 1.180819643418693e-05,
+          "max_cumulative_plantar_normal_error_ns": 9.545209734163063e-05,
+          "max_cumulative_plantar_shear_error_ns": 3.0374700569546498e-05,
+          "max_cumulative_shank_error_ns": 0.0012175090381830733,
+          "max_joint_speed_error_rad_s": 0.007265512164826349,
+          "max_loaded_endpoint_gap_m": 9.43137234976632e-12,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.028897785817161015,
+          "max_shank_trajectory_error_m": 2.0574989590396593e-06,
+          "max_swept_overhang_bound_m": 0.028908607627149245,
+          "max_tick_momentum_residual_ns": 6.8631076427135736e-06,
+          "min_mean_plantar_force_n": 5.556461452959359,
+          "min_plantar_force_during_strike_n": 8.000973561896306,
+          "min_pressure_area_m2": 0.029636589253381765,
+          "min_shank_swept_margin_m": -2.6300847955613216e-05,
+          "plantar_boundary_work_j": -0.0005056165225394055,
+          "plantar_impulse_ns": [
+            -0.21488105222774576,
+            1.8531381750166315e-05,
+            0.6716728653501155
+          ],
+          "substeps": 32
+        }
+      ],
+      "reference_halving_max_shank_impulse_delta_ns": 2.5922042290460467e-12,
+      "reference_hard_at_34ms_ns": 0.2188505955602113,
+      "reference_hard_onset_s": 0.032320429639004396,
+      "reference_impact_ns": 0.20672166115460228,
+      "reference_plantar_impulse_xz_ns": [
+        -0.21488477991976404,
+        0.6716836774590151
+      ],
+      "reference_shank_total_ns": 0.3572495495229552,
+      "reference_first_loaded_public_impulse_ns": 0.2079383357325165,
+      "first_loaded_public_tick": 65,
+      "viewer": {
+        "body_poses_and_shapes_checked": 606,
+        "captured_ms": {
+          "end": 50.0,
+          "impact": 32.5,
+          "start": 0.0,
+          "toe": 11.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 101,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 101,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9944%2F"
+      },
+      "replay_sha256": "eccfc440dbb217cfddb4640dc931697c8d623e0393e3246c1399c7646189838e",
+      "trace_sha256": "0285d2aa899ba88560d1b84a8764bd482ba9f10465299f97d53f37c1af65cb4d"
+    },
+    {
+      "case": "miss",
+      "grids": [
+        {
+          "end_angle_rad": -0.057040396519741667,
+          "end_pressure_area_m2": 0.06642466028422457,
+          "first_hard_public_impulse_ns": null,
+          "first_hard_time_s": null,
+          "hard_angular_impulse_nms": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.0,
+          "hard_total_ns": 0.0,
+          "max_angle_error_rad": 0.0003062323487359256,
+          "max_cumulative_plantar_normal_error_ns": 0.0003346585981421901,
+          "max_cumulative_plantar_shear_error_ns": 0.00010712556011002738,
+          "max_cumulative_shank_error_ns": 0.0,
+          "max_joint_speed_error_rad_s": 0.0014042990419325108,
+          "max_loaded_endpoint_gap_m": null,
+          "max_loaded_shank_points": 0,
+          "max_overhang_m": 0.02788628291508871,
+          "max_shank_trajectory_error_m": 5.322176602157205e-05,
+          "max_swept_overhang_bound_m": 0.028201559560414906,
+          "max_tick_momentum_residual_ns": 1.4251951564573437e-07,
+          "min_mean_plantar_force_n": 5.540505716468856,
+          "min_plantar_force_during_strike_n": null,
+          "min_pressure_area_m2": 0.06642466028422457,
+          "min_shank_swept_margin_m": 0.036255766004830645,
+          "plantar_boundary_work_j": -7.849899684417155e-05,
+          "plantar_impulse_ns": [
+            -0.17974090860719505,
+            -5.764235180105991e-19,
+            0.5618387472527357
+          ],
+          "substeps": 2
+        },
+        {
+          "end_angle_rad": -0.05688715078837663,
+          "end_pressure_area_m2": 0.06642206493872627,
+          "first_hard_public_impulse_ns": null,
+          "first_hard_time_s": null,
+          "hard_angular_impulse_nms": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.0,
+          "hard_total_ns": 0.0,
+          "max_angle_error_rad": 0.0001529866173708913,
+          "max_cumulative_plantar_normal_error_ns": 0.00015852823859963117,
+          "max_cumulative_plantar_shear_error_ns": 5.074740502000741e-05,
+          "max_cumulative_shank_error_ns": 0.0,
+          "max_joint_speed_error_rad_s": 0.0006638422132247968,
+          "max_loaded_endpoint_gap_m": null,
+          "max_loaded_shank_points": 0,
+          "max_overhang_m": 0.027899130478678924,
+          "max_shank_trajectory_error_m": 2.66181685306357e-05,
+          "max_swept_overhang_bound_m": 0.028056752157348964,
+          "max_tick_momentum_residual_ns": 6.930177931275991e-08,
+          "min_mean_plantar_force_n": 5.549986432165586,
+          "min_plantar_force_during_strike_n": null,
+          "min_pressure_area_m2": 0.06642206493872627,
+          "min_shank_swept_margin_m": 0.036445575987079044,
+          "plantar_boundary_work_j": -7.876464698728134e-05,
+          "plantar_impulse_ns": [
+            -0.17968858743887967,
+            1.7111395920126993e-18,
+            0.5616753063353928
+          ],
+          "substeps": 4
+        },
+        {
+          "end_angle_rad": -0.05681062696177741,
+          "end_pressure_area_m2": 0.06642076911739472,
+          "first_hard_public_impulse_ns": null,
+          "first_hard_time_s": null,
+          "hard_angular_impulse_nms": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.0,
+          "hard_total_ns": 0.0,
+          "max_angle_error_rad": 7.646279077166973e-05,
+          "max_cumulative_plantar_normal_error_ns": 7.708023151442589e-05,
+          "max_cumulative_plantar_shear_error_ns": 2.4675098630327907e-05,
+          "max_cumulative_shank_error_ns": 0.0,
+          "max_joint_speed_error_rad_s": 0.0003224797980365679,
+          "max_loaded_endpoint_gap_m": null,
+          "max_loaded_shank_points": 0,
+          "max_overhang_m": 0.027905547134026182,
+          "max_shank_trajectory_error_m": 1.3310817642175653e-05,
+          "max_swept_overhang_bound_m": 0.02798435435697379,
+          "max_tick_momentum_residual_ns": 3.428736277449016e-08,
+          "min_mean_plantar_force_n": 5.553896909431282,
+          "min_plantar_force_during_strike_n": null,
+          "min_pressure_area_m2": 0.06642076911739472,
+          "min_shank_swept_margin_m": 0.036540472042641325,
+          "plantar_boundary_work_j": -7.876981938589837e-05,
+          "plantar_impulse_ns": [
+            -0.17966439925309946,
+            1.733697752624151e-17,
+            0.5615997518044816
+          ],
+          "substeps": 8
+        },
+        {
+          "end_angle_rad": -0.05677238792730063,
+          "end_pressure_area_m2": 0.06642012163132525,
+          "first_hard_public_impulse_ns": null,
+          "first_hard_time_s": null,
+          "hard_angular_impulse_nms": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.0,
+          "hard_total_ns": 0.0,
+          "max_angle_error_rad": 3.822375629489172e-05,
+          "max_cumulative_plantar_normal_error_ns": 3.799538542570424e-05,
+          "max_cumulative_plantar_shear_error_ns": 1.2163295683820241e-05,
+          "max_cumulative_shank_error_ns": 0.0,
+          "max_joint_speed_error_rad_s": 0.00015887141261261561,
+          "max_loaded_endpoint_gap_m": null,
+          "max_loaded_shank_points": 0,
+          "max_overhang_m": 0.027908753824599286,
+          "max_shank_trajectory_error_m": 6.655839801006072e-06,
+          "max_swept_overhang_bound_m": 0.027948156600104232,
+          "max_tick_momentum_residual_ns": 1.7068842299981233e-08,
+          "min_mean_plantar_force_n": 5.555640753188302,
+          "min_plantar_force_during_strike_n": null,
+          "min_pressure_area_m2": 0.06642012163132525,
+          "min_shank_swept_margin_m": 0.03658791826055155,
+          "plantar_boundary_work_j": -7.877302564240789e-05,
+          "plantar_impulse_ns": [
+            -0.1796527988713073,
+            6.7933466505723226e-18,
+            0.561563517935008
+          ],
+          "substeps": 16
+        },
+        {
+          "end_angle_rad": -0.05675327421472992,
+          "end_pressure_area_m2": 0.06641979799689979,
+          "first_hard_public_impulse_ns": null,
+          "first_hard_time_s": null,
+          "hard_angular_impulse_nms": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.0,
+          "hard_total_ns": 0.0,
+          "max_angle_error_rad": 1.9110043724179793e-05,
+          "max_cumulative_plantar_normal_error_ns": 1.8861851573070965e-05,
+          "max_cumulative_plantar_shear_error_ns": 6.038193665347524e-06,
+          "max_cumulative_shank_error_ns": 0.0,
+          "max_joint_speed_error_rad_s": 7.885015557462793e-05,
+          "max_loaded_endpoint_gap_m": null,
+          "max_loaded_shank_points": 0,
+          "max_overhang_m": 0.027910356756732424,
+          "max_shank_trajectory_error_m": 3.3280246605022294e-06,
+          "max_swept_overhang_bound_m": 0.02793005794406508,
+          "max_tick_momentum_residual_ns": 8.517752316698946e-09,
+          "min_mean_plantar_force_n": 5.556461452959359,
+          "min_plantar_force_during_strike_n": null,
+          "min_pressure_area_m2": 0.06641979799689979,
+          "min_shank_swept_margin_m": 0.03661164098044478,
+          "plantar_boundary_work_j": -7.880784620286688e-05,
+          "plantar_impulse_ns": [
+            -0.17964712166152114,
+            -1.4082287562744594e-17,
+            0.56154578545343
+          ],
+          "substeps": 32
+        }
+      ],
+      "reference_halving_max_shank_impulse_delta_ns": 0.0,
+      "reference_hard_at_34ms_ns": 0.0,
+      "reference_hard_onset_s": null,
+      "reference_impact_ns": 0.0,
+      "reference_plantar_impulse_xz_ns": [
+        -0.17964152668072816,
+        0.56152831002924
+      ],
+      "reference_shank_total_ns": 0.0,
+      "reference_first_loaded_public_impulse_ns": 0,
+      "first_loaded_public_tick": null,
+      "viewer": {
+        "body_poses_and_shapes_checked": 606,
+        "captured_ms": {
+          "end": 50.0,
+          "impact": 32.5,
+          "start": 0.0,
+          "toe": 11.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 101,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 101,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9945%2F"
+      },
+      "replay_sha256": "a1971fa7b3d8ca4b0b9dc81e2dcdd6dee999924fa0eec8165f0022e3680969a3",
+      "trace_sha256": "64a9312782f8cf080d8b69a6d3a9f49626f96aa48a45781c1260d2bf814ceea9"
+    },
+    {
+      "case": "full",
+      "grids": [
+        {
+          "end_angle_rad": -0.025547324210875955,
+          "end_pressure_area_m2": 0.028090769224841106,
+          "first_hard_public_impulse_ns": 0.20757504995994158,
+          "first_hard_time_s": 0.0325,
+          "hard_angular_impulse_nms": [
+            8.550688235656825e-05,
+            0.050037592017667124,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.21903941384923836,
+          "hard_total_ns": 0.3580370286223574,
+          "max_angle_error_rad": 0.00018913409687714572,
+          "max_cumulative_plantar_normal_error_ns": 0.0005062953828176564,
+          "max_cumulative_plantar_shear_error_ns": 0.00016198265322137084,
+          "max_cumulative_shank_error_ns": 0.0020767152540486777,
+          "max_joint_speed_error_rad_s": 0.012922315514515822,
+          "max_loaded_endpoint_gap_m": 1.7896087389779325e-11,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.0,
+          "max_shank_trajectory_error_m": 3.292829787413495e-05,
+          "max_swept_overhang_bound_m": 0.0,
+          "max_tick_momentum_residual_ns": 0.0001136145119338131,
+          "min_mean_plantar_force_n": 4.544133889739689,
+          "min_plantar_force_during_strike_n": 4.544133889739689,
+          "min_pressure_area_m2": 0.028090769224841106,
+          "min_shank_swept_margin_m": -0.0003365116814465492,
+          "plantar_boundary_work_j": 0.0,
+          "plantar_impulse_ns": [
+            -0.21175703071822968,
+            -8.403017918281282e-06,
+            0.6619054833953659
+          ],
+          "substeps": 2
+        },
+        {
+          "end_angle_rad": -0.025552779606692964,
+          "end_pressure_area_m2": 0.028423206024944317,
+          "first_hard_public_impulse_ns": 0.20788768856434695,
+          "first_hard_time_s": 0.032375,
+          "hard_angular_impulse_nms": [
+            -4.365657472796886e-05,
+            0.050044552251152716,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.21900504318323258,
+          "hard_total_ns": 0.3580793164146056,
+          "max_angle_error_rad": 9.450169643422657e-05,
+          "max_cumulative_plantar_normal_error_ns": 0.00022760623659245915,
+          "max_cumulative_plantar_shear_error_ns": 7.282586297369109e-05,
+          "max_cumulative_shank_error_ns": 0.00038999252121685313,
+          "max_joint_speed_error_rad_s": 0.001869311197786716,
+          "max_loaded_endpoint_gap_m": -5.761238708323901e-12,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.0,
+          "max_shank_trajectory_error_m": 1.6468047959254036e-05,
+          "max_swept_overhang_bound_m": 0.0,
+          "max_tick_momentum_residual_ns": 5.712281723070965e-05,
+          "min_mean_plantar_force_n": 4.594523447116653,
+          "min_plantar_force_during_strike_n": 4.594523447116653,
+          "min_pressure_area_m2": 0.028423206024944317,
+          "min_shank_swept_margin_m": -0.00015614091288905,
+          "plantar_boundary_work_j": 0.0,
+          "plantar_impulse_ns": [
+            -0.21176597116672255,
+            -3.5757897722304945e-06,
+            0.6619334205439198
+          ],
+          "substeps": 4
+        },
+        {
+          "end_angle_rad": -0.025556568523751252,
+          "end_pressure_area_m2": 0.028575579089031494,
+          "first_hard_public_impulse_ns": 0.20690750336796668,
+          "first_hard_time_s": 0.032375,
+          "hard_angular_impulse_nms": [
+            -3.7183101032525017e-06,
+            0.05004985975565682,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.21896031222864026,
+          "hard_total_ns": 0.3580958460630219,
+          "max_angle_error_rad": 4.723422265127605e-05,
+          "max_cumulative_plantar_normal_error_ns": 0.00013538293823223135,
+          "max_cumulative_plantar_shear_error_ns": 4.324794975149593e-05,
+          "max_cumulative_shank_error_ns": 0.0008918117498710465,
+          "max_joint_speed_error_rad_s": 0.005225862371531387,
+          "max_loaded_endpoint_gap_m": 1.432464702411096e-10,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.0,
+          "max_shank_trajectory_error_m": 8.235013526872449e-06,
+          "max_swept_overhang_bound_m": 0.0,
+          "max_tick_momentum_residual_ns": 2.7667427824756366e-05,
+          "min_mean_plantar_force_n": 4.616922920197763,
+          "min_plantar_force_during_strike_n": 4.616922920197763,
+          "min_pressure_area_m2": 0.028575579089031494,
+          "min_shank_swept_margin_m": -9.58201051426705e-05,
+          "plantar_boundary_work_j": 0.0,
+          "plantar_impulse_ns": [
+            -0.2117779050759124,
+            4.922154024569113e-06,
+            0.6619709575716586
+          ],
+          "substeps": 8
+        },
+        {
+          "end_angle_rad": -0.025556116426228858,
+          "end_pressure_area_m2": 0.02864916392672993,
+          "first_hard_public_impulse_ns": 0.20881721904659603,
+          "first_hard_time_s": 0.03234375,
+          "hard_angular_impulse_nms": [
+            -5.761006126100342e-05,
+            0.05003865311749373,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.2191668484134129,
+          "hard_total_ns": 0.35801160906675467,
+          "max_angle_error_rad": 2.3612920249337782e-05,
+          "max_cumulative_plantar_normal_error_ns": 9.620124323894697e-05,
+          "max_cumulative_plantar_shear_error_ns": 3.0658790976939576e-05,
+          "max_cumulative_shank_error_ns": 0.0011192470680659594,
+          "max_joint_speed_error_rad_s": 0.0066176849662489545,
+          "max_loaded_endpoint_gap_m": 4.0549869018136064e-11,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.0,
+          "max_shank_trajectory_error_m": 4.117755935149373e-06,
+          "max_swept_overhang_bound_m": 0.0,
+          "max_tick_momentum_residual_ns": 1.3681237983078719e-05,
+          "min_mean_plantar_force_n": 4.6261978819950595,
+          "min_plantar_force_during_strike_n": 4.6261978819950595,
+          "min_pressure_area_m2": 0.02864916392672993,
+          "min_shank_swept_margin_m": -5.067781053428789e-05,
+          "plantar_boundary_work_j": 0.0,
+          "plantar_impulse_ns": [
+            -0.21176956379822207,
+            1.630644503654361e-05,
+            0.6619452509486343
+          ],
+          "substeps": 16
+        },
+        {
+          "end_angle_rad": -0.02555940509004156,
+          "end_pressure_area_m2": 0.028686579199510773,
+          "first_hard_public_impulse_ns": 0.20762791466669506,
+          "first_hard_time_s": 0.0323125,
+          "hard_angular_impulse_nms": [
+            3.2852811031272913e-07,
+            0.05004795688093708,
+            0.0
+          ],
+          "hard_at_34ms_ns": 0.2186583115199182,
+          "hard_total_ns": 0.35814797671783505,
+          "max_angle_error_rad": 1.1805408089198e-05,
+          "max_cumulative_plantar_normal_error_ns": 3.394234680420549e-05,
+          "max_cumulative_plantar_shear_error_ns": 1.0860285375169365e-05,
+          "max_cumulative_shank_error_ns": 0.000171400451142667,
+          "max_joint_speed_error_rad_s": 0.0009952216662217905,
+          "max_loaded_endpoint_gap_m": -2.8279600883251987e-12,
+          "max_loaded_shank_points": 2,
+          "max_overhang_m": 0.0,
+          "max_shank_trajectory_error_m": 2.058940478973364e-06,
+          "max_swept_overhang_bound_m": 0.0,
+          "max_tick_momentum_residual_ns": 7.056529564644046e-06,
+          "min_mean_plantar_force_n": 4.632568747700246,
+          "min_plantar_force_during_strike_n": 4.632568747700246,
+          "min_pressure_area_m2": 0.028686579199510773,
+          "min_shank_swept_margin_m": -2.0648395156052407e-05,
+          "plantar_boundary_work_j": 0.0,
+          "plantar_impulse_ns": [
+            -0.21177852827695628,
+            -3.1743976220681125e-07,
+            0.661972695065909
+          ],
+          "substeps": 32
+        }
+      ],
+      "reference_halving_max_shank_impulse_delta_ns": 5.967448757360216e-14,
+      "reference_hard_at_34ms_ns": 0.21878124714339173,
+      "reference_hard_onset_s": 0.03230089765776435,
+      "reference_impact_ns": 0.2064667929706257,
+      "reference_plantar_impulse_xz_ns": [
+        -0.21177839245562782,
+        0.6619722747131488
+      ],
+      "reference_shank_total_ns": 0.3581536378061303,
+      "reference_first_loaded_public_impulse_ns": 0.20779931511783772,
+      "first_loaded_public_tick": 65,
+      "viewer": {
+        "body_poses_and_shapes_checked": 606,
+        "captured_ms": {
+          "end": 50.0,
+          "impact": 32.5,
+          "start": 0.0,
+          "toe": 11.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 101,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 101,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9946%2F"
+      },
+      "replay_sha256": "56136b11aa420078c50b336ca17fff9e57f37cf31aea1d5d7a870197526e7263",
+      "trace_sha256": "fee85b6015ddad1666bc2a38e53fcc32764170d6e563de0b89404a10a3311736"
+    }
+  ],
+  "dt_s": 0.0005,
+  "first_command_tick": 33,
+  "reference_steps_per_public_tick": 64,
+  "ticks": 100,
+  "torque_nm": -0.45,
+  "fixture_sha256": "1102292de72da59edab1305a6adc1971bf4776874d14dbed0d74443741148fec",
+  "coverage": {
+    "changed_production": {
+      "crates/gz-physics-rapier/src/joints/coated_ankle.rs": {
+        "mapped_lines": [
+          84,
+          87
+        ],
+        "mapped_regions": [
+          108,
+          112
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints/coated_ankle/edge.rs": {
+        "mapped_lines": [
+          116,
+          125
+        ],
+        "mapped_regions": [
+          185,
+          192
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints.rs": {
+        "mapped_lines": [
+          0,
+          0
+        ],
+        "mapped_regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-rapier/src/lib.rs": {
+        "mapped_lines": [
+          0,
+          0
+        ],
+        "mapped_regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole/ankle.rs": {
+        "mapped_lines": [
+          13,
+          13
+        ],
+        "mapped_regions": [
+          32,
+          33
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole/config.rs": {
+        "mapped_lines": [
+          5,
+          5
+        ],
+        "mapped_regions": [
+          7,
+          8
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole.rs": {
+        "mapped_lines": [
+          2,
+          2
+        ],
+        "mapped_regions": [
+          2,
+          2
+        ]
+      },
+      "crates/gz-physics-multifidelity/src/lib.rs": {
+        "mapped_lines": [
+          18,
+          18
+        ],
+        "mapped_regions": [
+          14,
+          14
+        ]
+      },
+      "crates/gz-sim-cli/examples/compliant_ankle_edge.rs": {
+        "mapped_lines": [
+          242,
+          250
+        ],
+        "mapped_regions": [
+          397,
+          416
+        ]
+      },
+      "crates/gz-sim-cli/examples/compliant_ankle_edge/reference.rs": {
+        "mapped_lines": [
+          96,
+          96
+        ],
+        "mapped_regions": [
+          213,
+          213
+        ]
+      },
+      "crates/gz-sim-cli/examples/compliant_ankle/reference.rs": {
+        "mapped_lines": [
+          22,
+          24
+        ],
+        "mapped_regions": [
+          34,
+          41
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "native",
+        "sha256": "3857724e99786c46b14b57438fd729996e9244a6bd42e2285bd4431b33fc18ab"
+      },
+      {
+        "case": "ankle",
+        "sha256": "cce62f8f70a0b4ddd12de59c8ea9c2cdb52247fda3e50a049997ee39ed04d039"
+      },
+      {
+        "case": "previous",
+        "sha256": "452f34b2f24d44d284574515645929a8459247b977d50cc92429171f9b3c614b"
+      },
+      {
+        "case": "product",
+        "sha256": "95931f63a8f0cc382e4418aa8c51722bd428f8fc20c2922eac3e14b97b77c4eb"
+      }
+    ],
+    "method": "Per-executable LLVM profile, fatal mapping warnings, unique mapped changed production line and region coordinates; opt-level 1 dependency tests and opt-level 3 example.",
+    "mapped_lines": [
+      598,
+      620
+    ],
+    "mapped_regions": [
+      992,
+      1031
+    ]
+  },
+  "scoped_release_tests": {
+    "scene-tests": 32,
+    "rapier-tests": 101,
+    "example-final": 2
+  }
+}

@@ -1,0 +1,147 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use super::reference::{angles, servo};
+use gz_physics_gpu::PlanarArmLane as Lane;
+use rapier3d_f64::prelude::*;
+
+pub struct Native {
+    pub(super) world: PhysicsWorld,
+    pub(super) links: [RigidBodyHandle; 2],
+}
+impl Native {
+    pub fn new(l: &Lane) -> Self {
+        Self::new_with_limits(l, [None; 2])
+    }
+    pub fn new_with_limits(l: &Lane, limits: [Option<[f64; 2]>; 2]) -> Self {
+        let mut world = PhysicsWorld::new();
+        world.gravity = Vector::new(0., 0., -l.gravity);
+        world.integration_parameters.dt = 0.001 / 8.;
+        let fixed = world.insert_body(RigidBodyBuilder::fixed());
+        let q = angles(l);
+        let points = l.points();
+        let total = l.mass[1] + l.tip_mass;
+        let c = (l.mass[1] * l.center[1] + l.tip_mass * l.length[1]) / total;
+        let inertia = l.inertia[1]
+            + l.mass[1] * (l.center[1] - c).powi(2)
+            + l.tip_mass * (l.length[1] - c).powi(2);
+        let body = |w: &mut PhysicsWorld, x: f64, z: f64, angle: f64, m: f64, com: f64, i: f64| {
+            w.insert_body(
+                RigidBodyBuilder::dynamic()
+                    .translation(Vector::new(x, 0., z))
+                    .rotation(Vector::new(0., -angle, 0.))
+                    .additional_mass_properties(MassProperties::new(
+                        Vector::new(com, 0., 0.),
+                        m,
+                        Vector::splat(i),
+                    ))
+                    .can_sleep(false),
+            )
+        };
+        let a = body(
+            &mut world,
+            0.,
+            0.,
+            q[0],
+            l.mass[0],
+            l.center[0],
+            l.inertia[0],
+        );
+        let b = body(
+            &mut world,
+            points[0][0],
+            points[0][1],
+            q[0] + q[1],
+            total,
+            c,
+            inertia,
+        );
+        // Fixed joint frames define the physical starting pose. Multibody coordinates start at zero.
+        for ((parent, child, x, angle), limit) in [(fixed, a, 0., q[0]), (a, b, l.length[0], q[1])]
+            .into_iter()
+            .zip(limits)
+        {
+            let mut hinge = RevoluteJointBuilder::new(-Vector::Y)
+                .local_anchor1(Vector::X * x)
+                .build();
+            if let Some(limit) = limit {
+                hinge.set_limits(limit);
+            }
+            hinge.data.local_frame1.rotation =
+                Rotation::from_rotation_y(-angle) * hinge.data.local_frame1.rotation;
+            let id = world.insert_multibody_joint(parent, child, hinge).unwrap();
+            // Rapier seeds each free angular DOF with 0.1 viscous damping. The
+            // fixture supplies all damping through the same torque-limited servo.
+            let (tree, _) = world.multibody_joints.get_mut(id).unwrap();
+            tree.damping_mut().fill(0.0);
+            if child == b && l.speed != [0.; 2] {
+                tree.forward_kinematics(&world.bodies, true);
+                tree.generalized_velocity_mut()
+                    .as_mut_slice()
+                    .copy_from_slice(&l.speed);
+                let [w1, w2] = l.speed;
+                let omega1 = -Vector::Y * w1;
+                let omega2 = -Vector::Y * (w1 + w2);
+                let elbow = Vector::new(points[0][0], 0., points[0][1]);
+                for (id, omega, velocity) in
+                    [(a, omega1, Vector::ZERO), (b, omega2, omega1.cross(elbow))]
+                {
+                    let rb = &mut world.bodies[id];
+                    let center = *rb.rotation() * Vector::X * if id == a { l.center[0] } else { c };
+                    rb.set_angvel(omega, true);
+                    rb.set_linvel(velocity + omega.cross(center), true);
+                }
+            }
+        }
+        Self {
+            world,
+            links: [a, b],
+        }
+    }
+    pub fn step(&mut self, l: &Lane) {
+        for _ in 0..8 {
+            self.step_once(l);
+        }
+    }
+    pub fn step_once(&mut self, l: &Lane) {
+        self.step_with_motor(l, [0.; 2], [0.; 2]);
+    }
+    pub fn angles(&self) -> [f64; 2] {
+        let abs = self.links.map(|id| {
+            let x = *self.world.bodies[id].rotation() * Vector::X;
+            x.z.atan2(x.x)
+        });
+        [abs[0], abs[1] - abs[0]]
+    }
+    pub fn rates(&self) -> [f64; 2] {
+        let rate = self.links.map(|id| -self.world.bodies[id].angvel().y);
+        [rate[0], rate[1] - rate[0]]
+    }
+    pub fn step_with_motor(
+        &mut self,
+        l: &Lane,
+        velocity_mode: [f64; 2],
+        demand: [f64; 2],
+    ) -> [f64; 2] {
+        let relative = self.rates();
+        let mut torque = servo(l, self.angles(), relative);
+        for i in 0..2 {
+            if velocity_mode[i] == 1. {
+                torque[i] = (l.damping[i] * (demand[i] - relative[i]))
+                    .clamp(-l.effort_limit[i], l.effort_limit[i]);
+            }
+        }
+        let [a, b] = torque;
+        for (id, t) in self.links.into_iter().zip([a - b, b]) {
+            let rb = &mut self.world.bodies[id];
+            rb.reset_torques(true);
+            rb.add_torque(-Vector::Y * t, true);
+        }
+        self.world.step();
+        torque
+    }
+    pub fn tip(&self, l: &Lane) -> [f64; 2] {
+        let link = &self.world.bodies[self.links[1]];
+        let p = link.translation() + *link.rotation() * Vector::X * l.length[1];
+        [p.x, p.z]
+    }
+}

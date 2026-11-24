@@ -1,0 +1,114 @@
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="clock" type="ignored">
+      <max_step_size>0.0005</max_step_size>
+    </physics>
+    <model name="rig">
+      <pose>0 0 0.095 0 0 0</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0.08 0 -0.8</linear_velocity>
+        <angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="foot">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.004533333333333334</ixx>
+            <iyy>0.011999999999999999</iyy>
+            <izz>0.014133333333333333</izz>
+          </inertia>
+        </inertial>
+        <collision name="shape">
+          <geometry>
+            <box>
+              <size>0.36 0.2 0.12</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="foot">
+          <geometry>
+            <box>
+              <size>0.36 0.2 0.12</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.11 0.72 0.64 1</ambient>
+            <diffuse>0.11 0.72 0.64 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="upper">
+        <pose>0 0 0.14 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.0024</ixx>
+            <iyy>0.0020333333333333336</iyy>
+            <izz>0.0020333333333333336</izz>
+          </inertia>
+        </inertial>
+        <collision name="shape">
+          <geometry>
+            <box>
+              <size>0.1 0.12 0.12</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="upper">
+          <geometry>
+            <box>
+              <size>0.1 0.12 0.12</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.43 0.84 1</ambient>
+            <diffuse>0.2 0.43 0.84 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="weld" type="fixed">
+        <parent>foot</parent>
+        <child>upper</child>
+      </joint>
+    </model>
+    <model name="platform">
+      <pose>0 0 -0.025 0 0 0</pose>
+      <link name="deck">
+        <collision name="shape">
+          <geometry>
+            <box>
+              <size>0.8 0.6 0.05</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="deck">
+          <geometry>
+            <box>
+              <size>0.8 0.6 0.05</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.52 0.2 1</ambient>
+            <diffuse>0.85 0.52 0.2 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>4</mass>
+          <inertia>
+            <ixx>0.12083333333333333</ixx>
+            <iyy>0.2141666666666667</iyy>
+            <izz>0.3333333333333333</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>-0.05 0 0.2</linear_velocity>
+        <angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+    </model>
+  </world>
+</sdf>

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <plugin name="gz::sim::systems::ContactPromotion" filename="gz-sim-contact-promotion-system">
+      <model>default::arm</model>
+      <obstacle>default::payload::body</obstacle>
+      <initial_tier>prescribed</initial_tier>
+    </plugin>
+    <model name="arm">
+      <pose>0 0 0.5 0 0 0</pose>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system"/>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>-1 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="base">
+        <inertial><mass>2</mass><inertia><ixx>0.01568</ixx><iyy>0.01568</iyy><izz>0.01568</izz></inertia></inertial>
+        <collision name="base_shape"><geometry><sphere><radius>0.14</radius></sphere></geometry></collision>
+        <visual name="surface"><geometry><sphere><radius>0.14</radius></sphere></geometry><material><diffuse>0.08 0.42 0.68 1</diffuse></material></visual>
+        <visual name="beam"><pose>0 0.1625 0 0 0 0</pose><geometry><box><size>0.035 0.325 0.025</size></box></geometry><material><diffuse>0.08 0.42 0.68 1</diffuse></material></visual>
+      </link>
+      <link name="tip">
+        <pose>0 0.65 0 0 0 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.00784</ixx><iyy>0.00784</iyy><izz>0.00784</izz></inertia></inertial>
+        <collision name="tip_shape"><geometry><sphere><radius>0.14</radius></sphere></geometry></collision>
+        <visual name="surface"><geometry><sphere><radius>0.14</radius></sphere></geometry><material><diffuse>0.12 0.65 0.62 1</diffuse></material></visual>
+        <visual name="beam"><pose>0 -0.1625 0 0 0 0</pose><geometry><box><size>0.035 0.325 0.025</size></box></geometry><material><diffuse>0.12 0.65 0.62 1</diffuse></material></visual>
+      </link>
+      <joint name="elbow" type="revolute">
+        <parent>base</parent><child>tip</child><pose relative_to="__model__">0 0.325 0 0 0 0</pose>
+        <axis><xyz>0 0 1</xyz></axis>
+      </joint>
+    </model>
+    <model name="payload">
+      <pose>-0.86 0.71 0.5 0 0 0</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>2 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="body">
+        <inertial><mass>0.2</mass><inertia><ixx>0.0008</ixx><iyy>0.0008</iyy><izz>0.0008</izz></inertia></inertial>
+        <collision name="payload_shape"><geometry><sphere><radius>0.1</radius></sphere></geometry></collision>
+        <visual name="surface"><geometry><sphere><radius>0.1</radius></sphere></geometry><material><diffuse>0.95 0.4 0.08 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

@@ -52,7 +52,7 @@ struct Status<'a> {
 impl Player {
     pub fn open(path: &Path, now: Instant) -> io::Result<Self> {
         let archive = Archive::open(path)?;
-        let clock = Clock::new(archive.stamps.clone(), now)?;
+        let clock = Clock::from_origin(archive.stamps.clone(), archive.origin, now)?;
         let assets = PlaybackAssets::new(archive.assets.clone())?;
         let prefix = assets.as_ref().map(PlaybackAssets::prefix);
         // Validate the largest possible transport counters and rewritten asset
@@ -176,14 +176,22 @@ impl Player {
             }
         };
         let frame = self.archive.frame(self.clock.frame())?;
+        // Reset opens a new presentation epoch. Its acknowledgement is the zero-time
+        // control fence required by primitive-v1. The first credited frame carries the
+        // original physical checkpoint timestamp in both the scene and replay status.
+        let reset_fence = ok && matches!(control.action, web::Action::Reset);
         let ack = web::Ack {
             version: 1,
             kind: "ack",
             request_id: control.request_id,
             ok,
             epoch: self.clock.epoch(),
-            seconds: frame.scene.seconds,
-            nanoseconds: frame.scene.nanoseconds,
+            seconds: if reset_fence { 0 } else { frame.scene.seconds },
+            nanoseconds: if reset_fence {
+                0
+            } else {
+                frame.scene.nanoseconds
+            },
             paused: !self.clock.playing(),
             error: (!ok).then_some("playback control refused by the current cursor state"),
         };

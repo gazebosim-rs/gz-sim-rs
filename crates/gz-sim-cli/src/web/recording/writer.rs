@@ -35,52 +35,57 @@ fn invalid(message: &'static str) -> io::Error {
 impl Recorder {
     /// Called before the first physics tick. File creation/resource copying and
     /// readiness wait are confined to startup, never to a simulation step.
+    #[cfg(test)]
     pub fn start(path: &Path, captured: Option<&CapturedAssets>) -> io::Result<Self> {
+        Self::start_from(path, captured, Default::default())
+    }
+    pub fn start_from(
+        path: &Path,
+        captured: Option<&CapturedAssets>,
+        origin: super::clock::Origin,
+    ) -> io::Result<Self> {
         let prefix = captured
             .map_or("http://127.0.0.1:1", CapturedAssets::prefix)
             .to_owned();
         let files = captured.map_or_else(BTreeMap::new, |assets| assets.files().clone());
+        Self::from_files(path, prefix, files, origin)
+    }
+
+    pub(super) fn from_files(
+        path: &Path,
+        prefix: String,
+        files: BTreeMap<String, Bytes>,
+        origin: super::clock::Origin,
+    ) -> io::Result<Self> {
         let (sender, receiver) = mpsc::sync_channel(8);
         let (ready, readiness) = mpsc::sync_channel(1);
         let path = path.to_owned();
-        let header = lines::encode(&Record::Header { version: 1 }, lines::LINE_BYTES)?;
+        let record = if origin.version() == 1 {
+            Record::Header { version: 1 }
+        } else {
+            Record::CheckpointHeader { version: 2, origin }
+        };
+        let header = lines::encode(&record, lines::LINE_BYTES)?;
         let bytes = header.len() as u64;
         let worker = thread::Builder::new()
             .name("gz-scene-record".into())
             .spawn(move || {
-                let prepared = prepare(&path, &files);
-                match prepared {
-                    Ok((mut stream, assets)) => {
-                        stream.write_all(&header)?;
-                        let _ = ready.send(Ok(()));
-                        run(&path, &mut stream, receiver, prefix, files, assets)
-                    }
-                    Err(error) => {
-                        let _ = ready.send(Err(io::Error::new(error.kind(), error.to_string())));
-                        Err(error)
-                    }
-                }
+                let (mut stream, assets) = prepare(&path, &files)?;
+                stream.write_all(&header)?;
+                let _ = ready.send(());
+                run(&path, &mut stream, receiver, prefix, files, assets)
             })?;
-        match readiness.recv() {
-            Ok(Ok(())) => Ok(Self {
-                sender: Some(sender),
-                worker: Some(worker),
-                frames: 0,
-                bytes,
-                failed: false,
-            }),
-            result => {
-                drop(sender);
-                let _ = worker.join();
-                match result {
-                    Ok(Err(error)) => Err(error),
-                    _ => Err(io::Error::new(
-                        io::ErrorKind::BrokenPipe,
-                        "recording worker failed during startup",
-                    )),
-                }
-            }
+        let mut recorder = Self {
+            sender: Some(sender),
+            worker: Some(worker),
+            frames: 0,
+            bytes,
+            failed: false,
+        };
+        if readiness.recv().is_err() {
+            return Err(recorder.stopped_error());
         }
+        Ok(recorder)
     }
 
     pub fn healthy(&self) -> bool {
@@ -102,14 +107,24 @@ impl Recorder {
         if self.failed {
             return Err(invalid("recording already failed"));
         }
-        let result = self.submit(scene, catalog, outcomes);
+        let result = self.submit(scene, catalog, outcomes, false);
         if result.is_err() {
             self.failed = true;
             self.sender.take();
         }
         result
     }
-    fn submit(&mut self, scene: String, catalog: String, outcomes: Vec<Outcome>) -> io::Result<()> {
+    pub(super) fn submit_offline(&mut self, scene: String, catalog: String) -> io::Result<()> {
+        self.submit(scene, catalog, Vec::new(), true)
+    }
+
+    fn submit(
+        &mut self,
+        scene: String,
+        catalog: String,
+        outcomes: Vec<Outcome>,
+        offline: bool,
+    ) -> io::Result<()> {
         if self.frames >= 4096 {
             return Err(invalid("recording exceeds 4096 frames"));
         }
@@ -127,19 +142,28 @@ impl Recorder {
             return Err(invalid("recording exceeds 64 MiB stream bound"));
         }
         let length = bytes.len() as u64;
-        self.sender
+        let sender = self
+            .sender
             .as_ref()
-            .ok_or_else(|| invalid("recording sender absent"))?
-            .try_send(Message::Frame(bytes))
-            .map_err(|error| match error {
-                mpsc::TrySendError::Full(_) => io::Error::new(
-                    io::ErrorKind::WouldBlock,
-                    "recording writer Busy; committed capture was not retried",
-                ),
-                mpsc::TrySendError::Disconnected(_) => {
-                    io::Error::new(io::ErrorKind::BrokenPipe, "recording writer stopped")
-                }
-            })?;
+            .ok_or_else(|| invalid("recording sender absent"))?;
+        if offline {
+            // No physics tick is waiting. Backpressure is safe and deterministic.
+            if sender.send(Message::Frame(bytes)).is_err() {
+                return Err(self.stopped_error());
+            }
+        } else {
+            sender
+                .try_send(Message::Frame(bytes))
+                .map_err(|error| match error {
+                    mpsc::TrySendError::Full(_) => io::Error::new(
+                        io::ErrorKind::WouldBlock,
+                        "recording writer Busy; committed capture was not retried",
+                    ),
+                    mpsc::TrySendError::Disconnected(_) => {
+                        io::Error::new(io::ErrorKind::BrokenPipe, "recording writer stopped")
+                    }
+                })?;
+        }
         self.frames += 1;
         self.bytes += length;
         Ok(())
@@ -154,14 +178,22 @@ impl Recorder {
             .ok_or_else(|| invalid("failed recording cannot finalize"))?
             .send(Message::Finish)
             .map_err(|_| io::Error::new(io::ErrorKind::BrokenPipe, "recording writer stopped"));
-        let result = self
-            .worker
+        self.join_worker()?;
+        submitted
+    }
+
+    fn stopped_error(&mut self) -> io::Error {
+        self.join_worker().err().unwrap_or_else(|| {
+            io::Error::new(io::ErrorKind::BrokenPipe, "recording writer stopped")
+        })
+    }
+
+    fn join_worker(&mut self) -> io::Result<()> {
+        self.worker
             .take()
-            .expect("owned recording worker")
+            .ok_or_else(|| invalid("recording worker already joined"))?
             .join()
-            .map_err(|_| io::Error::other("recording worker panicked"))?;
-        submitted?;
-        result
+            .map_err(|_| io::Error::other("recording worker panicked"))?
     }
 }
 impl Drop for Recorder {
@@ -247,9 +279,9 @@ fn run(
     let stream_bytes = bytes.len() as u64;
     let stream_sha256 = archive::digest(&bytes);
     // Refuse inconsistent native capture before marking any archive complete.
-    Archive::admit(bytes.into(), frames, prefix.clone(), files)?;
+    let archive = Archive::admit(bytes.into(), frames, prefix.clone(), files)?;
     let manifest = Manifest {
-        version: 1,
+        version: archive.origin.version(),
         complete: true,
         frames,
         stream_bytes,

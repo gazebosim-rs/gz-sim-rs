@@ -1,0 +1,134 @@
+{
+  "review_code_revision": "f8ed3fb42153669f297c7d86724de9c5828d9078",
+  "profile": "renderer",
+  "test_results": {
+    "passed": 1921,
+    "failed": 0,
+    "ignored": 76
+  },
+  "coverage_json_sha256": "772230a769926f56dd39e796bf59ef8283110fac6dbcdacc7d38471cc2cc261a",
+  "qualification": "failed",
+  "policy": "Every production crate must exceed 95% of both lines and regions.",
+  "crates": {
+    "gz-camera-output": {
+      "lines": {
+        "covered": 1674,
+        "total": 1698
+      },
+      "regions": {
+        "covered": 2315,
+        "total": 2398
+      }
+    },
+    "gz-physics-gpu": {
+      "lines": {
+        "covered": 1408,
+        "total": 4668
+      },
+      "regions": {
+        "covered": 2158,
+        "total": 7432
+      }
+    },
+    "gz-render-client": {
+      "lines": {
+        "covered": 423,
+        "total": 431
+      },
+      "regions": {
+        "covered": 655,
+        "total": 670
+      }
+    },
+    "gz-render-frame": {
+      "lines": {
+        "covered": 212,
+        "total": 213
+      },
+      "regions": {
+        "covered": 295,
+        "total": 296
+      }
+    },
+    "gz-render-protocol": {
+      "lines": {
+        "covered": 182,
+        "total": 185
+      },
+      "regions": {
+        "covered": 274,
+        "total": 280
+      }
+    },
+    "gz-render-scene": {
+      "lines": {
+        "covered": 346,
+        "total": 347
+      },
+      "regions": {
+        "covered": 425,
+        "total": 426
+      }
+    },
+    "gz-render-worker": {
+      "lines": {
+        "covered": 570,
+        "total": 576
+      },
+      "regions": {
+        "covered": 686,
+        "total": 699
+      }
+    },
+    "gz-renderer": {
+      "lines": {
+        "covered": 973,
+        "total": 993
+      },
+      "regions": {
+        "covered": 1207,
+        "total": 1251
+      }
+    },
+    "gz-sim-cli": {
+      "lines": {
+        "covered": 6248,
+        "total": 7854
+      },
+      "regions": {
+        "covered": 10450,
+        "total": 13428
+      }
+    },
+    "gz-sim-core": {
+      "lines": {
+        "covered": 405,
+        "total": 417
+      },
+      "regions": {
+        "covered": 585,
+        "total": 610
+      }
+    },
+    "gz-sim-proto": {
+      "lines": {
+        "covered": 189,
+        "total": 190
+      },
+      "regions": {
+        "covered": 329,
+        "total": 340
+      }
+    },
+    "gz-sim-scene": {
+      "lines": {
+        "covered": 22364,
+        "total": 29391
+      },
+      "regions": {
+        "covered": 34101,
+        "total": 45233
+      }
+    }
+  }
+}

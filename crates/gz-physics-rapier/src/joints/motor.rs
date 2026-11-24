@@ -31,10 +31,28 @@ impl Joints {
         id: JointId,
         motor: Option<JointVelocityMotor>,
     ) -> Result<(), PhysicsError> {
-        self.records.get(&id).ok_or(PhysicsError::MissingJoint)?;
+        let joint = self.records.get(&id).ok_or(PhysicsError::MissingJoint)?;
+        if matches!(joint.initial.motion, JointMotion::Universal(_)) && motor.is_some() {
+            return Err(PhysicsError::Unsupported {
+                engine: "rapier",
+                capability: "scalar motor on a universal joint",
+            });
+        }
+        if matches!(joint.initial.motion, JointMotion::Ball) && motor.is_some() {
+            return Err(PhysicsError::Unsupported {
+                engine: "rapier",
+                capability: "scalar motor on a ball joint",
+            });
+        }
+        if joint.initial.exact_lock && motor.is_some() {
+            return Err(PhysicsError::Unsupported {
+                engine: "rapier",
+                capability: "motor on an exact revolute lock",
+            });
+        }
         if motor.is_some_and(|motor| {
             !motor.target_velocity.is_finite()
-                || !motor.max_force.is_finite()
+                || !joint.initial.admits_effort(motor.max_force)
                 || motor.max_force < 0.0
         }) {
             return Err(PhysicsError::InvalidValue);
@@ -47,8 +65,34 @@ impl Joints {
         world: &PhysicsWorld,
         dt: f64,
     ) -> Result<(), PhysicsError> {
+        // The kinematic witnesses for a speed stop must remain on their
+        // angular chart over the public step, like other rotating boundaries.
+        if self
+            .speed_caps
+            .values()
+            .flatten()
+            .flatten()
+            .any(|cap| cap.limit() * dt > std::f64::consts::FRAC_PI_4)
+        {
+            return Err(PhysicsError::InvalidValue);
+        }
+        for (&(_, axis), handle) in &self.universal_motors {
+            let motor = &world
+                .impulse_joints
+                .get(*handle)
+                .expect("registered wrist motor")
+                .data
+                .motors[if axis == 0 {
+                JointAxis::AngX
+            } else {
+                JointAxis::AngY
+            } as usize];
+            if !(motor.target_vel * dt).is_finite() || !(motor.max_force * dt).is_finite() {
+                return Err(PhysicsError::InvalidValue);
+            }
+        }
         for joint in self.records.values() {
-            if let Some(motor) = data(world, joint.handle).motor(JointAxis::AngX)
+            if let Some(motor) = data(world, joint.handle).motor(joint.initial.motor_axis())
                 && (!(motor.target_vel * dt).is_finite() || !(motor.max_force * dt).is_finite())
             {
                 return Err(PhysicsError::InvalidValue);
@@ -65,14 +109,16 @@ impl RapierBackend {
         motor: Option<JointVelocityMotor>,
     ) -> Result<(), PhysicsError> {
         self.joints.validate_motor(id, motor)?;
+        let axis = self.joints.records[&id].initial.motor_axis();
         let handle = self.joints.records[&id].handle;
-        // Joint construction already disables sleeping for dynamic endpoints.
+        let child = self.bodies[&self.joints.records[&id].initial.child].0;
+        let wake = motor.is_some() && self.parked_robots.values().any(|members| members.contains(&child));
         let data = match handle {
             Handle::Impulse(handle) => {
                 &mut self
                     .world
                     .impulse_joints
-                    .get_mut(handle, false)
+                    .get_mut(handle, wake)
                     .expect("registered joint handle")
                     .data
             }
@@ -90,13 +136,13 @@ impl RapierBackend {
             }
         };
         if let Some(motor) = motor {
-            data.set_motor_model(JointAxis::AngX, MotorModel::AccelerationBased)
-                .set_motor_velocity(JointAxis::AngX, motor.target_velocity, 1.0)
-                .set_motor_max_force(JointAxis::AngX, motor.max_force);
+            data.set_motor_model(axis, MotorModel::AccelerationBased)
+                .set_motor_velocity(axis, motor.target_velocity, 1.0)
+                .set_motor_max_force(axis, motor.max_force);
         } else {
-            data.motor_axes.remove(JointAxesMask::ANG_X);
+            data.motor_axes.remove(axis.into());
             // A later re-enable must not resurrect an old warm-start impulse.
-            data.motors[JointAxis::AngX as usize] = JointMotor::default();
+            data.motors[axis as usize] = JointMotor::default();
         }
         Ok(())
     }

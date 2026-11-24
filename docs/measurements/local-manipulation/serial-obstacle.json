@@ -1,0 +1,509 @@
+{
+  "ordinary_step_ms": 1,
+  "steps_per_trial": 18000,
+  "coverage": {
+    "baseline": "b40578f",
+    "object_sha256": {
+      "tests": "c1fcdd344ed69047712772a8f11d600661fb546a384c64cf0cf798a0ad8f2572",
+      "app": "9e1c6c94706f1ff28b0d0f9377a4b2fc8d9452f3d491c89d9962e7999db662ea"
+    },
+    "lines": [
+      216,
+      217
+    ],
+    "regions": [
+      342,
+      354
+    ],
+    "files": {
+      "crates/gz-sim-cli/examples/serial_transfer.rs": {
+        "lines": [
+          55,
+          55
+        ],
+        "missed_lines": [],
+        "regions": [
+          93,
+          96
+        ],
+        "missed_regions": [
+          [
+            186,
+            64,
+            186,
+            65
+          ],
+          [
+            343,
+            67,
+            343,
+            68
+          ],
+          [
+            343,
+            69,
+            343,
+            70
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/obstacle.rs": {
+        "lines": [
+          161,
+          162
+        ],
+        "missed_lines": [
+          [
+            212
+          ]
+        ],
+        "regions": [
+          249,
+          258
+        ],
+        "missed_regions": [
+          [
+            20,
+            77,
+            20,
+            78
+          ],
+          [
+            22,
+            97,
+            22,
+            98
+          ],
+          [
+            103,
+            83,
+            103,
+            84
+          ],
+          [
+            103,
+            94,
+            103,
+            95
+          ],
+          [
+            130,
+            63,
+            130,
+            64
+          ],
+          [
+            175,
+            59,
+            175,
+            60
+          ],
+          [
+            177,
+            65,
+            177,
+            66
+          ],
+          [
+            178,
+            63,
+            178,
+            64
+          ],
+          [
+            212,
+            18,
+            212,
+            19
+          ]
+        ]
+      }
+    }
+  },
+  "trials": {
+    "clear-obstacle": {
+      "measurement": {
+        "obstacle": {
+          "parts": {
+            "default::gripper::carriage": {
+              "minimum_gap_m": 0.37799995609189985,
+              "nearest_tick": 5943,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::left": {
+              "minimum_gap_m": 0.02631979822186547,
+              "nearest_tick": 5767,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::nut": {
+              "minimum_gap_m": 0.21110378951379646,
+              "nearest_tick": 289,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::palm": {
+              "minimum_gap_m": 0.17164011107254387,
+              "nearest_tick": 658,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::right": {
+              "minimum_gap_m": 0.026318602437445777,
+              "nearest_tick": 5444,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::parcel::box": {
+              "minimum_gap_m": 0.018748691446980652,
+              "nearest_tick": 5790,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "first_sweep_hit": null,
+          "first_obstacle_reaction_tick": null,
+          "abort_tick": null,
+          "abort_on_measured_contact": false,
+          "post_abort_ticks": 0,
+          "both_pads_supporting_after_abort_ticks": 0,
+          "peak_carriage_travel_m": 0.4630674959798969
+        },
+        "lift_mm": 126.07045106947423,
+        "lateral_payload_at_arrival_mm": 462.43610482383735,
+        "lateral_carriage_at_arrival_mm": 462.3844461920979,
+        "parcel_carried_on_both_pads_ticks": 4001,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 0.450427448194046,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.01317862491567734,
+        "pickup_ready_ticks": 0,
+        "release_tick": 14074,
+        "dwell_ms_at_release": 30,
+        "shelf_mean_at_release_n": 1.8443231172744985,
+        "shelf_relative_speed_at_release_m_s": 7.61544169831865e-07,
+        "final_shelf_load_n": 1.9620000000000135,
+        "final_tray_load_n": 0.0,
+        "final_pad_load_n": 0.0,
+        "final_parcel_position_m": [
+          1.4114845435224374e-05,
+          0.4601583701051514,
+          0.6149442797296604
+        ],
+        "final_palm_position_m": [
+          -5.392863662643688e-06,
+          0.46001273723384106,
+          0.8223228043010385
+        ]
+      },
+      "viewer": {
+        "body_poses_and_shapes_checked": 9492,
+        "captured_ms": {
+          "crossing": 5800.0,
+          "event": 14074.0,
+          "finish": 18000.0,
+          "lift": 3680.0,
+          "start": 0.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 452,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 452,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9901%2F"
+      }
+    },
+    "low-clearance": {
+      "measurement": {
+        "obstacle": {
+          "parts": {
+            "default::gripper::carriage": {
+              "minimum_gap_m": 0.41774551281760575,
+              "nearest_tick": 4372,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::left": {
+              "minimum_gap_m": 0.1845,
+              "nearest_tick": 0,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::nut": {
+              "minimum_gap_m": 0.21110378951379646,
+              "nearest_tick": 289,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::palm": {
+              "minimum_gap_m": 0.17164011107254387,
+              "nearest_tick": 658,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::right": {
+              "minimum_gap_m": 0.16231728295060283,
+              "nearest_tick": 4234,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::parcel::box": {
+              "minimum_gap_m": 0.1768403316084197,
+              "nearest_tick": 4233,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "first_sweep_hit": {
+            "tick": 3700,
+            "part": "default::gripper::right",
+            "travel_m": 0.16969675802180126
+          },
+          "first_obstacle_reaction_tick": null,
+          "abort_tick": 3700,
+          "abort_on_measured_contact": false,
+          "post_abort_ticks": 14301,
+          "both_pads_supporting_after_abort_ticks": 14301,
+          "peak_carriage_travel_m": 0.0001592348380448693
+        },
+        "lift_mm": 66.3689038904961,
+        "lateral_payload_at_arrival_mm": 0.12091236900540761,
+        "lateral_carriage_at_arrival_mm": 0.01036710407262519,
+        "parcel_carried_on_both_pads_ticks": 4001,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 0.37147114489151156,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.0,
+        "pickup_ready_ticks": 0,
+        "release_tick": null,
+        "dwell_ms_at_release": null,
+        "shelf_mean_at_release_n": null,
+        "shelf_relative_speed_at_release_m_s": null,
+        "final_shelf_load_n": 0.0,
+        "final_tray_load_n": 0.0,
+        "final_pad_load_n": 14.05419225900797,
+        "final_parcel_position_m": [
+          7.863097822532412e-06,
+          4.32090321399819e-05,
+          0.6015615740626804
+        ],
+        "final_palm_position_m": [
+          -3.199368846754597e-06,
+          1.3419993669420543e-05,
+          0.7626392650291359
+        ]
+      },
+      "viewer": {
+        "body_poses_and_shapes_checked": 9492,
+        "captured_ms": {
+          "crossing": 5800.0,
+          "event": 3700.0,
+          "finish": 18000.0,
+          "lift": 3700.0,
+          "start": 0.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 452,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 452,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9902%2F"
+      }
+    },
+    "contact-stop": {
+      "measurement": {
+        "obstacle": {
+          "parts": {
+            "default::gripper::carriage": {
+              "minimum_gap_m": 0.37822802850756315,
+              "nearest_tick": 5418,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::left": {
+              "minimum_gap_m": 0.05306381823759139,
+              "nearest_tick": 5424,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::nut": {
+              "minimum_gap_m": 0.19813905580382987,
+              "nearest_tick": 5398,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::palm": {
+              "minimum_gap_m": 0.13769876308012857,
+              "nearest_tick": 5419,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::right": {
+              "minimum_gap_m": -6.683852938452664e-05,
+              "nearest_tick": 5424,
+              "peak_normal_force_n": 67.73390670080401,
+              "normal_impulse_ns": 0.1310503559589404,
+              "peak_force_vector_n": [
+                -3.7599871383522395e-15,
+                -67.7338921877384,
+                0.04434019678225379
+              ]
+            },
+            "default::parcel::box": {
+              "minimum_gap_m": 0.014543183868940325,
+              "nearest_tick": 5397,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "first_sweep_hit": {
+            "tick": 3700,
+            "part": "default::gripper::right",
+            "travel_m": 0.16969675802180126
+          },
+          "first_obstacle_reaction_tick": 5396,
+          "abort_tick": 5396,
+          "abort_on_measured_contact": true,
+          "post_abort_ticks": 12605,
+          "both_pads_supporting_after_abort_ticks": 12605,
+          "peak_carriage_travel_m": 0.1648685329857155
+        },
+        "lift_mm": 66.3689038904961,
+        "lateral_payload_at_arrival_mm": 0.1325170491817573,
+        "lateral_carriage_at_arrival_mm": 0.012017218810686483,
+        "parcel_carried_on_both_pads_ticks": 4001,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 1.7335145445744526,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.0,
+        "pickup_ready_ticks": 0,
+        "release_tick": null,
+        "dwell_ms_at_release": null,
+        "shelf_mean_at_release_n": null,
+        "shelf_relative_speed_at_release_m_s": null,
+        "final_shelf_load_n": 0.0,
+        "final_tray_load_n": 0.0,
+        "final_pad_load_n": 14.054188368934314,
+        "final_parcel_position_m": [
+          -1.2319788233875584e-06,
+          5.3033833166508053e-05,
+          0.6015587887538263
+        ],
+        "final_palm_position_m": [
+          -3.0217176586135963e-06,
+          1.3262883360902089e-05,
+          0.7626392650949695
+        ]
+      },
+      "viewer": {
+        "body_poses_and_shapes_checked": 9492,
+        "captured_ms": {
+          "crossing": 5800.0,
+          "event": 5396.0,
+          "finish": 18000.0,
+          "lift": 3680.0,
+          "start": 0.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 452,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 452,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9903%2F"
+      }
+    }
+  },
+  "historical_transfer": {
+    "transfer.json": "0fcffbfb7351c0cf785281d3362fcaa3d6da130f9bca425c8dcf46447e519877",
+    "transfer/frames.jsonl": "d4304060673838256512259d8427fc1539e345980c763aee1fcfb9fa1fe4d119"
+  }
+}

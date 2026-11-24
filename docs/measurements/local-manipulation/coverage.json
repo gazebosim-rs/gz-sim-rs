@@ -1,0 +1,441 @@
+{
+  "phase_changed_lines": {
+    "phase_baseline": "675203c5bcbed3b79a46380435a4aaf57d34f7cc",
+    "measured_tree": "1688ed50ee53623f16cbea9ed8364c1f54a91808",
+    "files": {
+      "crates/gz-physics-multifidelity/src/lib.rs": {
+        "covered": 6,
+        "executable": 6,
+        "uncovered": []
+      },
+      "crates/gz-physics-rapier/src/articulation.rs": {
+        "covered": 5,
+        "executable": 5,
+        "uncovered": []
+      },
+      "crates/gz-physics-rapier/src/contact_interval.rs": {
+        "covered": 1,
+        "executable": 1,
+        "uncovered": []
+      },
+      "crates/gz-physics-rapier/src/initial.rs": {
+        "covered": 1,
+        "executable": 1,
+        "uncovered": []
+      },
+      "crates/gz-physics-rapier/src/joints.rs": {
+        "covered": 9,
+        "executable": 9,
+        "uncovered": []
+      },
+      "crates/gz-physics-rapier/src/joints/motor.rs": {
+        "covered": 3,
+        "executable": 3,
+        "uncovered": []
+      },
+      "crates/gz-physics-rapier/src/joints/parked_robot.rs": {
+        "covered": 198,
+        "executable": 201,
+        "uncovered": [
+          47,
+          153,
+          244
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints/robot.rs": {
+        "covered": 22,
+        "executable": 22,
+        "uncovered": []
+      },
+      "crates/gz-physics-rapier/src/joints/spring.rs": {
+        "covered": 65,
+        "executable": 65,
+        "uncovered": []
+      },
+      "crates/gz-physics-rapier/src/lib.rs": {
+        "covered": 2,
+        "executable": 2,
+        "uncovered": []
+      },
+      "crates/gz-physics/src/joint_drive.rs": {
+        "covered": 44,
+        "executable": 44,
+        "uncovered": []
+      },
+      "crates/gz-physics/src/lib.rs": {
+        "covered": 0,
+        "executable": 0,
+        "uncovered": []
+      },
+      "crates/gz-sim-scene/src/articulation.rs": {
+        "covered": 21,
+        "executable": 22,
+        "uncovered": [
+          340
+        ]
+      },
+      "crates/gz-sim-scene/src/grasp_guard.rs": {
+        "covered": 26,
+        "executable": 26,
+        "uncovered": []
+      },
+      "crates/gz-sim-scene/src/joints.rs": {
+        "covered": 31,
+        "executable": 31,
+        "uncovered": []
+      },
+      "crates/gz-sim-scene/src/lib.rs": {
+        "covered": 6,
+        "executable": 6,
+        "uncovered": []
+      }
+    },
+    "missing": [],
+    "covered": 440,
+    "executable": 444
+  },
+  "core_ordinary": {
+    "regular_executable_files": 69,
+    "line_coordinates": {
+      "covered": 10230,
+      "total": 10741,
+      "percent": 95.24252862861931
+    },
+    "llvm_regions_lower_bound": {
+      "denominator": 19719,
+      "covered_at_least": 18756,
+      "percent_at_least": 95.11638521223186
+    }
+  },
+  "rapier_ordinary": {
+    "lines": {
+      "covered": 21110,
+      "count": 22130,
+      "percent": 95.39087211929507
+    },
+    "regions": {
+      "covered": 34735,
+      "count": 36524,
+      "percent": 95.10185083780527
+    }
+  },
+  "rapier_with_optional_features": {
+    "lines": {
+      "covered": 25562,
+      "count": 28363,
+      "percent": 90.12445792053026
+    },
+    "regions": {
+      "covered": 41969,
+      "count": 47048,
+      "percent": 89.20464206767556
+    }
+  },
+  "multifidelity_with_optional_features": {
+    "crate": "gz-physics-multifidelity",
+    "required": "strictly more than 95% for both metrics",
+    "features": [
+      "partition-checkpoint",
+      "landing-audit"
+    ],
+    "sources": {
+      "contact_window.rs": {
+        "lines": [
+          156,
+          158
+        ],
+        "regions": [
+          242,
+          247
+        ]
+      },
+      "floating_tree.rs": {
+        "lines": [
+          146,
+          156
+        ],
+        "regions": [
+          141,
+          152
+        ]
+      },
+      "lib.rs": {
+        "lines": [
+          1506,
+          1542
+        ],
+        "regions": [
+          1467,
+          1519
+        ]
+      }
+    },
+    "line_and_region_totals": {
+      "lines": [
+        1808,
+        1856,
+        97.41379310344827,
+        0
+      ],
+      "regions": [
+        1850,
+        1918,
+        96.4546402502607,
+        0
+      ]
+    },
+    "aggregate_profiles": [
+      "debug-qualified",
+      "release-only-extended",
+      "direct-local"
+    ],
+    "passed": true,
+    "unrelated_historical_golden_excluded": true
+  },
+  "integrated_scene_changed_lines": {
+    "crates/gz-sim-scene/src/joints.rs": {
+      "executable_lines": [
+        135,
+        136,
+        137,
+        138,
+        140,
+        216,
+        224,
+        225,
+        226,
+        235,
+        236,
+        237,
+        238,
+        240,
+        241,
+        242,
+        243,
+        245,
+        246,
+        266,
+        281,
+        283,
+        294,
+        338,
+        339,
+        340,
+        341,
+        342,
+        343,
+        344,
+        345,
+        347,
+        348,
+        349,
+        457,
+        459,
+        460,
+        461,
+        462,
+        463,
+        464,
+        466,
+        467,
+        468,
+        469,
+        470,
+        471,
+        472,
+        473,
+        474,
+        475,
+        476,
+        478
+      ],
+      "covered_by_candidate": [
+        135,
+        136,
+        137,
+        138,
+        140,
+        216,
+        224,
+        225,
+        226,
+        235,
+        236,
+        237,
+        238,
+        240,
+        241,
+        242,
+        243,
+        245,
+        246,
+        266,
+        281,
+        283,
+        294,
+        338,
+        339,
+        340,
+        341,
+        342,
+        343,
+        344,
+        345,
+        347,
+        348,
+        349,
+        457,
+        459,
+        460,
+        461,
+        462,
+        463,
+        464,
+        466,
+        467,
+        468,
+        469,
+        470,
+        471,
+        472,
+        473,
+        474,
+        475,
+        478
+      ],
+      "additionally_covered_by_new_control": [
+        476
+      ],
+      "still_uncovered": []
+    },
+    "crates/gz-sim-scene/src/lib.rs": {
+      "executable_lines": [
+        2200,
+        2201,
+        2209,
+        2211,
+        2212,
+        2213,
+        2214,
+        2215,
+        2216,
+        2217
+      ],
+      "covered_by_candidate": [
+        2200,
+        2201,
+        2209,
+        2211,
+        2212,
+        2213,
+        2214,
+        2215,
+        2216,
+        2217
+      ],
+      "additionally_covered_by_new_control": [],
+      "still_uncovered": []
+    },
+    "crates/gz-sim-scene/src/articulation.rs": {
+      "executable_lines": [
+        80,
+        85,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        113
+      ],
+      "covered_by_candidate": [
+        80,
+        85,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        113
+      ],
+      "additionally_covered_by_new_control": [
+        98
+      ],
+      "still_uncovered": []
+    },
+    "crates/gz-sim-scene/src/grasp_guard.rs": {
+      "executable_lines": [
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        50,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "covered_by_candidate": [
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        50,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "additionally_covered_by_new_control": [],
+      "still_uncovered": []
+    }
+  }
+}

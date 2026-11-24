@@ -1,0 +1,83 @@
+{
+  "seed": "wrist-commands-v1",
+  "commands": [
+    {
+      "op": "ball_torque",
+      "joint": "default::held::bearing",
+      "torque_nm": [
+        3,
+        -12,
+        5
+      ]
+    },
+    {
+      "op": "ball_torque",
+      "joint": "default::held::bearing",
+      "torque_nm": [
+        15,
+        -12,
+        7
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "step",
+      "count": 240
+    },
+    {
+      "op": "ball_torque",
+      "joint": "default::held::bearing",
+      "torque_nm": [
+        -15,
+        20,
+        -8
+      ]
+    },
+    {
+      "op": "step",
+      "count": 260
+    },
+    {
+      "op": "ball_torque",
+      "joint": "default::held::bearing",
+      "torque_nm": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "reset"
+    },
+    {
+      "op": "ball_torque",
+      "joint": "default::held::bearing",
+      "torque_nm": [
+        3,
+        -12,
+        5
+      ]
+    },
+    {
+      "op": "ball_torque",
+      "joint": "default::held::bearing",
+      "torque_nm": [
+        15,
+        -12,
+        7
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "step",
+      "count": 240
+    }
+  ]
+}

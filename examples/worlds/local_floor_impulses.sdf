@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -10</gravity>
+    <physics name="local" type="ignored"><max_step_size>0.005</max_step_size></physics>
+    <model name="table"><static>true</static><link name="deck">
+      <collision name="floor"><pose>0 0 -0.015 0 0 0</pose><geometry><box><size>1.05 0.54 0.03</size></box></geometry></collision>
+      <visual name="zero"><pose>0 -0.217 0.003 0 0 0</pose><geometry><box><size>1 0.012 0.006</size></box></geometry><material><diffuse>0.76 0.76 0.72 1</diffuse></material></visual>
+      <visual name="gauge_sliding_0"><pose>-0.336 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+      <visual name="gauge_sliding_1"><pose>-0.313 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+      <visual name="gauge_sliding_2"><pose>-0.290 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+      <visual name="gauge_sliding_3"><pose>-0.267 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+      <visual name="gauge_sliding_4"><pose>-0.244 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+      <visual name="gauge_falling_0"><pose>-0.006 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+      <visual name="gauge_falling_1"><pose>0.017 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+      <visual name="gauge_falling_2"><pose>0.040 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+      <visual name="gauge_falling_3"><pose>0.063 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+      <visual name="gauge_falling_4"><pose>0.086 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+      <visual name="gauge_on_pad_0"><pose>0.314 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+      <visual name="gauge_on_pad_1"><pose>0.337 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+      <visual name="gauge_on_pad_2"><pose>0.360 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+      <visual name="gauge_on_pad_3"><pose>0.383 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+      <visual name="gauge_on_pad_4"><pose>0.406 -0.217 0.012 0 0 0</pose><geometry><sphere><radius>0.0075</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+      <visual name="floor"><pose>0 0 -0.015 0 0 0</pose><geometry><box><size>1.05 0.54 0.03</size></box></geometry><material><diffuse>0.34 0.43 0.46 1</diffuse></material></visual>
+        <visual name="sliding_0"><pose>-0.29 -0.12 0.025 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+        <visual name="sliding_1"><pose>-0.29 -0.06 0.025 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+        <visual name="sliding_2"><pose>-0.29 0 0.025 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+        <visual name="sliding_3"><pose>-0.29 0.06 0.025 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+        <visual name="sliding_4"><pose>-0.29 0.12 0.025 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.95 0.45 0.12 1</diffuse></material></visual>
+        <visual name="falling_0"><pose>0.04 -0.12 0.115 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+        <visual name="falling_1"><pose>0.04 -0.06 0.115 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+        <visual name="falling_2"><pose>0.04 0 0.115 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+        <visual name="falling_3"><pose>0.04 0.06 0.115 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+        <visual name="falling_4"><pose>0.04 0.12 0.115 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.24 0.68 0.95 1</diffuse></material></visual>
+        <visual name="on_pad_0"><pose>0.36 -0.12 0.155 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+        <visual name="on_pad_1"><pose>0.36 -0.06 0.155 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+        <visual name="on_pad_2"><pose>0.36 0 0.155 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+        <visual name="on_pad_3"><pose>0.36 0.06 0.155 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+        <visual name="on_pad_4"><pose>0.36 0.12 0.155 0 0 0</pose><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.75 0.40 0.88 1</diffuse></material></visual>
+    </link></model>
+    <model name="spacer"><static>true</static><pose>-0.47 0 0.04 0 0 0</pose><link name="end">
+      <collision name="edge"><geometry><box><size>0.02 0.4 0.08</size></box></geometry></collision>
+      <visual name="edge"><geometry><box><size>0.02 0.4 0.08</size></box></geometry><material><diffuse>0.55 0.64 0.66 1</diffuse></material></visual>
+    </link></model>
+    <model name="support"><link name="pad"><pose>0.36 0 0.11 0 0 0</pose>
+      <inertial><mass>2</mass><inertia><ixx>0.02</ixx><iyy>0.01</iyy><izz>0.02</izz></inertia></inertial>
+      <collision name="pad"><geometry><box><size>0.13 0.36 0.04</size></box></geometry></collision>
+      <visual name="pad"><geometry><box><size>0.13 0.36 0.04</size></box></geometry><material><diffuse>0.30 0.68 0.41 1</diffuse></material></visual>
+    </link><joint name="hinge" type="revolute"><parent>world</parent><child>pad</child><axis><xyz>0 0 1</xyz></axis></joint></model>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <box link="default::spacer::end" coupling="one_way"/>
+      <plane point="0 0 0" normal="0 0 1"/>
+      <box link="default::support::pad" coupling="articulated_wrench" normal_compliance="0.0001"/>
+      <cable name="sliding" plane_impulses="true" pad_loads="true" substeps="2" iterations="4" radius="0.025" self_contact="false" friction="0.25" stretch="0.00001" bend="0.0001">
+        <particle position="-0.29 -0.12 0.025" mass="0.12" velocity="0.8 0 0"/>
+        <particle position="-0.29 -0.06 0.025" mass="0.12" velocity="0.8 0 0"/>
+        <particle position="-0.29 0 0.025" mass="0.12" velocity="0.8 0 0"/>
+        <particle position="-0.29 0.06 0.025" mass="0.12" velocity="0.8 0 0"/>
+        <particle position="-0.29 0.12 0.025" mass="0.12" velocity="0.8 0 0"/>
+      </cable>
+      <cable name="falling" plane_impulses="true" pad_loads="true" substeps="2" iterations="4" radius="0.025" self_contact="false" friction="0.25" stretch="0.00001" bend="0.0001">
+        <particle position="0.04 -0.12 0.115" mass="0.2" velocity="0 0 0"/>
+        <particle position="0.04 -0.06 0.115" mass="0.2" velocity="0 0 0"/>
+        <particle position="0.04 0 0.115" mass="0.2" velocity="0 0 0"/>
+        <particle position="0.04 0.06 0.115" mass="0.2" velocity="0 0 0"/>
+        <particle position="0.04 0.12 0.115" mass="0.2" velocity="0 0 0"/>
+      </cable>
+      <cable name="on_pad" plane_impulses="true" pad_loads="true" substeps="2" iterations="4" radius="0.025" self_contact="false" friction="0.25" stretch="0.00001" bend="0.0001">
+        <particle position="0.36 -0.12 0.155" mass="0.06" velocity="0 0 0"/>
+        <particle position="0.36 -0.06 0.155" mass="0.06" velocity="0 0 0"/>
+        <particle position="0.36 0 0.155" mass="0.06" velocity="0 0 0"/>
+        <particle position="0.36 0.06 0.155" mass="0.06" velocity="0 0 0"/>
+        <particle position="0.36 0.12 0.155" mass="0.06" velocity="0 0 0"/>
+      </cable>
+      <particle_visual material="sliding" particle="0" visual="default::table::deck::sliding_0"/>
+      <particle_visual material="sliding" particle="1" visual="default::table::deck::sliding_1"/>
+      <particle_visual material="sliding" particle="2" visual="default::table::deck::sliding_2"/>
+      <particle_visual material="sliding" particle="3" visual="default::table::deck::sliding_3"/>
+      <particle_visual material="sliding" particle="4" visual="default::table::deck::sliding_4"/>
+      <particle_visual material="falling" particle="0" visual="default::table::deck::falling_0"/>
+      <particle_visual material="falling" particle="1" visual="default::table::deck::falling_1"/>
+      <particle_visual material="falling" particle="2" visual="default::table::deck::falling_2"/>
+      <particle_visual material="falling" particle="3" visual="default::table::deck::falling_3"/>
+      <particle_visual material="falling" particle="4" visual="default::table::deck::falling_4"/>
+      <particle_visual material="on_pad" particle="0" visual="default::table::deck::on_pad_0"/>
+      <particle_visual material="on_pad" particle="1" visual="default::table::deck::on_pad_1"/>
+      <particle_visual material="on_pad" particle="2" visual="default::table::deck::on_pad_2"/>
+      <particle_visual material="on_pad" particle="3" visual="default::table::deck::on_pad_3"/>
+      <particle_visual material="on_pad" particle="4" visual="default::table::deck::on_pad_4"/>
+    </plugin>
+  </world>
+</sdf>

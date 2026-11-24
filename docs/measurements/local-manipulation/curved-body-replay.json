@@ -1,0 +1,537 @@
+{
+  "record_count": 1203,
+  "physics_source": "522a03f",
+  "analytic_assumptions": {
+    "mass_kg": 0.25,
+    "radius_m": 0.045,
+    "length_including_caps_m": 0.21,
+    "tilt_deg": 30,
+    "initial_center_z_m": 0.32,
+    "gravity_m_s2": 9.81
+  },
+  "bodies": {
+    "cylinder": {
+      "ballistic_first_ms": 205.21604567671446,
+      "first_active_ms": 205,
+      "first_normal_impulse_ns": 0.3060395761065499,
+      "final_support_n": 2.4527549558511557
+    },
+    "capsule": {
+      "ballistic_first_ms": 213.24084184453855,
+      "first_active_ms": 213,
+      "first_normal_impulse_ns": 0.21978268313597812,
+      "final_support_n": 2.452509069801868
+    }
+  },
+  "viewer": {
+    "body_poses_and_shapes_checked": 183,
+    "captured_ms": {
+      "before": 200.0,
+      "both": 220.0,
+      "first": 210.0,
+      "settled": 600.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      70.0,
+      80.0,
+      90.0,
+      100.0,
+      110.0,
+      120.0,
+      130.0,
+      140.0,
+      150.0,
+      160.0,
+      170.0,
+      180.0,
+      190.0,
+      200.0,
+      210.0,
+      220.0,
+      230.0,
+      240.0,
+      250.0,
+      260.0,
+      270.0,
+      280.0,
+      290.0,
+      300.0,
+      310.0,
+      320.0,
+      330.0,
+      340.0,
+      350.0,
+      360.0,
+      370.0,
+      380.0,
+      390.0,
+      400.0,
+      410.0,
+      420.0,
+      430.0,
+      440.0,
+      450.0,
+      460.0,
+      470.0,
+      480.0,
+      490.0,
+      500.0,
+      510.0,
+      520.0,
+      530.0,
+      540.0,
+      550.0,
+      560.0,
+      570.0,
+      580.0,
+      590.0,
+      600.0
+    ],
+    "frames": 61,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 61,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10034%2F"
+  },
+  "coverage": {
+    "crates/gz-assets/src/mesh.rs": {
+      "lines": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      },
+      "regions": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      }
+    },
+    "crates/gz-assets/src/mesh/capsule.rs": {
+      "lines": {
+        "hit": 57,
+        "total": 57,
+        "missing": []
+      },
+      "regions": {
+        "hit": 109,
+        "total": 109,
+        "missing": []
+      }
+    },
+    "crates/gz-assets/src/mesh/stl.rs": {
+      "lines": {
+        "hit": 13,
+        "total": 13,
+        "missing": []
+      },
+      "regions": {
+        "hit": 18,
+        "total": 19,
+        "missing": [
+          [
+            174,
+            56,
+            174,
+            64
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs": {
+      "lines": {
+        "hit": 11,
+        "total": 11,
+        "missing": []
+      },
+      "regions": {
+        "hit": 20,
+        "total": 22,
+        "missing": [
+          [
+            180,
+            70,
+            180,
+            71
+          ],
+          [
+            245,
+            59,
+            245,
+            60
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/src/lib.rs": {
+      "lines": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      },
+      "regions": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/src/web.rs": {
+      "lines": {
+        "hit": 22,
+        "total": 22,
+        "missing": []
+      },
+      "regions": {
+        "hit": 41,
+        "total": 44,
+        "missing": [
+          [
+            696,
+            82,
+            696,
+            83
+          ],
+          [
+            698,
+            37,
+            698,
+            38
+          ],
+          [
+            699,
+            57,
+            699,
+            58
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/src/web/assets.rs": {
+      "lines": {
+        "hit": 58,
+        "total": 58,
+        "missing": []
+      },
+      "regions": {
+        "hit": 101,
+        "total": 102,
+        "missing": [
+          [
+            435,
+            75,
+            435,
+            76
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/src/web/recording/mod.rs": {
+      "lines": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      },
+      "regions": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/src/web/snapshot.rs": {
+      "lines": {
+        "hit": 6,
+        "total": 6,
+        "missing": []
+      },
+      "regions": {
+        "hit": 18,
+        "total": 18,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-scene/src/local_replay.rs": {
+      "lines": {
+        "hit": 4,
+        "total": 4,
+        "missing": []
+      },
+      "regions": {
+        "hit": 5,
+        "total": 5,
+        "missing": []
+      }
+    }
+  },
+  "visual_qualification": {
+    "base": "e69b2151cacaf14337dbfdd75c178559b78c0e6c",
+    "source": "81ad27bfdc232264bf95aad351d7d0f7e369d3dd",
+    "native_geometry": {
+      "frame": "simulation Z-up, glTF Y-up",
+      "vertices": 2050,
+      "triangles": 4096,
+      "barrel_length": "SDF length",
+      "baked_instance_scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "coverage": {
+      "totals": {
+        "gz-assets": {
+          "production": {
+            "lines": [
+              70,
+              70
+            ],
+            "regions": [
+              128,
+              128
+            ]
+          },
+          "including_tests": {
+            "lines": [
+              143,
+              143
+            ],
+            "regions": [
+              321,
+              321
+            ]
+          }
+        },
+        "gz-sim-cli": {
+          "production": {
+            "lines": [
+              50,
+              50
+            ],
+            "regions": [
+              96,
+              96
+            ]
+          },
+          "including_tests": {
+            "lines": [
+              145,
+              145
+            ],
+            "regions": [
+              318,
+              318
+            ]
+          }
+        }
+      },
+      "files": {
+        "crates/gz-assets/src/mesh.rs": {
+          "lines": [
+            0,
+            0
+          ],
+          "regions": [
+            0,
+            0
+          ]
+        },
+        "crates/gz-assets/src/mesh/capsule.rs": {
+          "lines": [
+            57,
+            57
+          ],
+          "regions": [
+            109,
+            109
+          ]
+        },
+        "crates/gz-assets/src/mesh/stl.rs": {
+          "lines": [
+            13,
+            13
+          ],
+          "regions": [
+            19,
+            19
+          ]
+        },
+        "crates/gz-assets/tests/capsule_visual.rs": {
+          "lines": [
+            73,
+            73
+          ],
+          "regions": [
+            193,
+            193
+          ]
+        },
+        "crates/gz-sim-cli/src/web/assets.rs": {
+          "lines": [
+            44,
+            44
+          ],
+          "regions": [
+            78,
+            78
+          ]
+        },
+        "crates/gz-sim-cli/src/web/snapshot.rs": {
+          "lines": [
+            6,
+            6
+          ],
+          "regions": [
+            18,
+            18
+          ]
+        },
+        "crates/gz-sim-cli/tests/private/capsule_assets.rs": {
+          "lines": [
+            95,
+            95
+          ],
+          "regions": [
+            222,
+            222
+          ]
+        }
+      },
+      "executables": {
+        "asset-generators": {
+          "build_id": "fdefc4b29918d5a841b6381f44bb12dd4f2608a8",
+          "sha256": "e529e8b0c9992280686cccc248db134f677b2104fd11db595bbfc985f8c01e5a",
+          "passed": 1
+        },
+        "capsule-shape": {
+          "build_id": "2b1fb26b817ee3483c46bd3b09c06b26408c2bbd",
+          "sha256": "bf73fb6f6b59938e390a82e5644e40f38d2ca9e2fcd9ef203950518ee57b74a2",
+          "passed": 2
+        },
+        "cli-replay": {
+          "build_id": "b786ef83113df72ce022dfb16bcbdb04e4c557b5",
+          "sha256": "004d1676ae1aafe39bf01d2bc52e4d1ee2dec8c1bfec364a5517614ed63fb5b8",
+          "passed": 38
+        },
+        "imported-stl": {
+          "build_id": "ebb3426890158359c833b3d5343aca086274fab2",
+          "sha256": "817e27828a46b8bf68d8733e5696a0a901220cd59dfa16e7e069b7c9b4f26e44",
+          "passed": 6
+        },
+        "live-and-recorded": {
+          "build_id": "b786ef83113df72ce022dfb16bcbdb04e4c557b5",
+          "sha256": "004d1676ae1aafe39bf01d2bc52e4d1ee2dec8c1bfec364a5517614ed63fb5b8",
+          "passed": 37
+        },
+        "snapshot": {
+          "build_id": "8d6cd1f0158b58dd8591ff04941d6f19d228f896",
+          "sha256": "3563e32aafd1c4b0af486cfc1d7fd95fb02d977d1470efc188c595350fcf4b38",
+          "passed": 0
+        }
+      }
+    },
+    "validation": {
+      "gz-assets": {
+        "passed": 51,
+        "log_sha256": "55891c1a9d487a77dad20b1767f72ea70983758008aec1d93d43bc26ceb0e235"
+      },
+      "gz-sim-cli": {
+        "passed": 151,
+        "log_sha256": "f1acc528496bc9be2ee0abe758da641071b5df84e396b49541ffb2d23a91d174"
+      },
+      "strict-final": {
+        "sha256": "79ebf1c9ff5e05f48fb0c6ea52b184a87bded725e977ad03d405ba503c7f18b6",
+        "warnings_denied": true
+      },
+      "strict-tests": {
+        "sha256": "4208618f991f81a13a11f3318effcf53e79266e8412b44312fcc08f61981bcd4",
+        "warnings_denied": true
+      }
+    }
+  },
+  "assets": [
+    {
+      "route": "/assets/0/cylinder.glb",
+      "bytes": 19344,
+      "sha256": [
+        149,
+        26,
+        164,
+        84,
+        202,
+        89,
+        35,
+        210,
+        7,
+        10,
+        119,
+        109,
+        40,
+        121,
+        103,
+        193,
+        232,
+        131,
+        226,
+        122,
+        61,
+        80,
+        112,
+        206,
+        192,
+        153,
+        73,
+        22,
+        69,
+        183,
+        207,
+        254
+      ]
+    },
+    {
+      "route": "/assets/1/capsule.glb",
+      "bytes": 99316,
+      "sha256": [
+        170,
+        57,
+        14,
+        10,
+        201,
+        155,
+        202,
+        42,
+        58,
+        2,
+        213,
+        229,
+        97,
+        234,
+        84,
+        141,
+        97,
+        39,
+        134,
+        223,
+        248,
+        137,
+        189,
+        175,
+        164,
+        53,
+        78,
+        203,
+        172,
+        114,
+        59,
+        142
+      ]
+    }
+  ]
+}

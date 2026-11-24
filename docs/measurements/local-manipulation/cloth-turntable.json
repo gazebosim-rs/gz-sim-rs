@@ -1,0 +1,411 @@
+{
+  "base": "8ea7bd6",
+  "source": "93a68f65adce2aaf44d4dd2bd81f38e2155a95b8",
+  "binary_sha256": "6d305a25c2620bd6d8864a65b3471ce3b7587cd4a2167d6788f9ecf05392dc1c",
+  "archive_sha256": "32f20264ab0fdb52a76d53e10db8ef286743a5f18925ce1e9ea848616a49163a",
+  "physics": {
+    "last_loaded_tick": 80,
+    "max_angular_balance_residual_nms": 1.3041750073557119e-09,
+    "max_angular_surface_speed_error_m_s": 1.7819030549177926e-07,
+    "max_galilean_position_error_m": 1.800182141137975e-13,
+    "max_galilean_velocity_error_m_s": 2.4791808638089233e-12,
+    "max_hold_force_error_n": 7.86695231806735e-06,
+    "max_hold_moment_error_nm": 4.9943337118059243e-05,
+    "max_hold_position_error_m": 4.920373238964685e-14,
+    "max_kinetic_cone_error_n": 1.8355856738760945e-07,
+    "max_signed_impulse_residual_ns": 3.40876741503438e-16
+  },
+  "refinement": {
+    "contact_impulse_ns": [
+      [
+        0.017810910906895155,
+        0.002033004745259897,
+        -0.14995472634977744
+      ],
+      [
+        0.017801337039797867,
+        0.0020299615308846932,
+        -0.14985870202037269
+      ]
+    ],
+    "final_positions_m": [
+      [
+        0.16867403468725992,
+        0.5715470825450322,
+        -0.6533298579426117
+      ],
+      [
+        0.16872852239398095,
+        0.5715641223920533,
+        -0.6533465235388572
+      ]
+    ],
+    "last_loaded_ticks": [
+      80,
+      80
+    ],
+    "max_refined_com_error_m": 5.9472755682271176e-05,
+    "max_refined_com_speed_error_m_s": 0.0009654839166281622,
+    "outer_analytical_com_error_before_edge_m": 1.7775547929521618e-05
+  },
+  "readings_at_100_ms": [
+    {
+      "com": [
+        0.0782526805224264,
+        0.004428824885185199,
+        0.328
+      ],
+      "force": [
+        0.15068439365089978,
+        0.010318715092968653,
+        -0.9809999999972243
+      ],
+      "local": [
+        0.05500000000000917,
+        -0.025000000000004186,
+        0.02800000000000003
+      ],
+      "name": "carried",
+      "rotation": [
+        0.0,
+        0.0,
+        0.24740383309416744,
+        0.9689124539246636
+      ],
+      "tick": 50,
+      "torque": [
+        -0.004301036148882129,
+        0.0635048111500696,
+        1.8589543706029365e-06
+      ],
+      "v": [
+        0.1578558871074609,
+        0.30126324570425767,
+        -2.7755575615628914e-14
+      ]
+    },
+    {
+      "com": [
+        0.1961223501133649,
+        0.10648823072787252,
+        0.328
+      ],
+      "force": [
+        0.11667840172642825,
+        0.015625192680122097,
+        -0.9809999999972243
+      ],
+      "local": [
+        0.2073702436162672,
+        0.008055864695410378,
+        0.02800000000000003
+      ],
+      "name": "sliding",
+      "rotation": [
+        0.0,
+        0.0,
+        0.24740383309416744,
+        0.9689124539246636
+      ],
+      "tick": 50,
+      "torque": [
+        -0.10386669834603655,
+        0.17835425573272046,
+        -0.009512955963138463
+      ],
+      "v": [
+        0.0028758273208155053,
+        0.9384172237819817,
+        -2.7755575615628914e-14
+      ]
+    }
+  ],
+  "browser": {
+    "body_poses_and_shapes_checked": 171,
+    "captured_ms": {
+      "clear": 374.0,
+      "edge": 170.0,
+      "fall": 408.0,
+      "free": 306.0,
+      "sliding": 102.0,
+      "start": 0.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      34.0,
+      68.0,
+      102.0,
+      136.0,
+      170.0,
+      204.0,
+      238.0,
+      272.0,
+      306.0,
+      340.0,
+      374.0,
+      408.0,
+      442.0,
+      476.0,
+      510.0,
+      544.0,
+      578.0,
+      600.0
+    ],
+    "frames": 19,
+    "independent_visual_poses_checked": 171,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 19,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10012%2F"
+  },
+  "coverage": {
+    "totals": {
+      "gz-physics-xpbd": {
+        "production": {
+          "lines": [
+            224,
+            224
+          ],
+          "regions": [
+            475,
+            483
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            411,
+            412
+          ],
+          "regions": [
+            827,
+            836
+          ]
+        }
+      },
+      "gz-sim-scene": {
+        "production": {
+          "lines": [
+            121,
+            123
+          ],
+          "regions": [
+            171,
+            176
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            491,
+            493
+          ],
+          "regions": [
+            954,
+            964
+          ]
+        }
+      }
+    },
+    "files": {
+      "crates/gz-physics-xpbd/src/collision.rs": {
+        "lines": [
+          93,
+          93
+        ],
+        "regions": [
+          204,
+          207
+        ]
+      },
+      "crates/gz-physics-xpbd/src/collision/turntable.rs": {
+        "lines": [
+          55,
+          55
+        ],
+        "regions": [
+          80,
+          84
+        ]
+      },
+      "crates/gz-physics-xpbd/src/coupled.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-xpbd/src/lib.rs": {
+        "lines": [
+          7,
+          7
+        ],
+        "regions": [
+          4,
+          4
+        ]
+      },
+      "crates/gz-physics-xpbd/src/static_box_faces.rs": {
+        "lines": [
+          69,
+          69
+        ],
+        "regions": [
+          187,
+          188
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/box_edge_cloth.rs": {
+        "lines": [
+          98,
+          98
+        ],
+        "regions": [
+          186,
+          186
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/box_face_interior.rs": {
+        "lines": [
+          46,
+          47
+        ],
+        "regions": [
+          82,
+          83
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/plane_friction_checkpoint.rs": {
+        "lines": [
+          37,
+          37
+        ],
+        "regions": [
+          83,
+          83
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/private/hard_pad_impulses.rs": {
+        "lines": [
+          6,
+          6
+        ],
+        "regions": [
+          1,
+          1
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable.rs": {
+        "lines": [
+          82,
+          84
+        ],
+        "regions": [
+          118,
+          120
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/config.rs": {
+        "lines": [
+          32,
+          32
+        ],
+        "regions": [
+          47,
+          50
+        ]
+      },
+      "crates/gz-sim-scene/src/inputs.rs": {
+        "lines": [
+          7,
+          7
+        ],
+        "regions": [
+          6,
+          6
+        ]
+      },
+      "crates/gz-sim-scene/tests/cloth_turntable.rs": {
+        "lines": [
+          370,
+          370
+        ],
+        "regions": [
+          783,
+          788
+        ]
+      }
+    },
+    "executables": {
+      "gz-physics-xpbd-__lib": {
+        "build_id": "9b31ecd46b5aabfc53a519786275749b7638bacd",
+        "sha256": "277a27ed82b93d52ec6f25510f5214426b686eaf445050d53cbc4a6c89b4081a",
+        "passed": 68
+      },
+      "gz-physics-xpbd-box_edge_cloth": {
+        "build_id": "b10425e9b62bf38f1e32bb3531f5413734bb6119",
+        "sha256": "aa41d3b57c916e530678ca0f4c7abaf6bc9a5692ea424abf36fde866bca8245d",
+        "passed": 7
+      },
+      "gz-physics-xpbd-box_face_interior": {
+        "build_id": "1a2b3f29aa5f242f053b0e1c5175ce1b482d386c",
+        "sha256": "35d61d9c4adc7deb175bd66cf4fa6262fa808118a33b2564d8be7494e3d06ea9",
+        "passed": 6
+      },
+      "gz-physics-xpbd-finite_surface_pad": {
+        "build_id": "4e554788fae5c15e6ca7b0115763b2df36003136",
+        "sha256": "2d094451f733503d7c54fa4a7666391f1c8879b3e2d210cb4240f109e35b891b",
+        "passed": 10
+      },
+      "gz-physics-xpbd-plane_friction_checkpoint": {
+        "build_id": "123c374128688378112f72df71d2ec4fbff898e0",
+        "sha256": "85d4735cf82d46d1d9f2cf3236136300eb1cf472820a88eb9eaf387675992ab2",
+        "passed": 3
+      },
+      "gz-physics-xpbd-static_box": {
+        "build_id": "029f0f835639be18f3510c1c8da1c652ab84cd30",
+        "sha256": "09ffd4e3ba73b9f07608873c9aceacec0f8a5f08468ff5a9fd6e107786146e44",
+        "passed": 5
+      },
+      "gz-sim-scene-__lib": {
+        "build_id": "316663d2b4c9bc62f29aea0191b3122306a44cc9",
+        "sha256": "c9348f1593825ffddb90ceecb78395c83227f73ef1183c7e21a4f30cbbc26947",
+        "passed": 335
+      },
+      "gz-sim-scene-cloth_conveyor": {
+        "build_id": "ea04a7fbcf72adcd23ca09438b9e383d3b7c903c",
+        "sha256": "8aa0c3fc2c7b7e665948ec8a25c234b40ed157b84619edb898db7d48d6d70c34",
+        "passed": 3
+      },
+      "gz-sim-scene-cloth_turntable": {
+        "build_id": "989403a683f7100d030641c687c08b91e4129314",
+        "sha256": "3addceda20180a5eacf5184d6238b36525f5aa9390ca73e9707335382f4f50ab",
+        "passed": 5
+      },
+      "gz-sim-scene-curved_cable_guide": {
+        "build_id": "7200967503e86845a64a4d2fa7571ddf304c084b",
+        "sha256": "b4606bf57c15ca2cf3e8fa51e552d55a2658c6046cc9226a42d936171d7c2b2e",
+        "passed": 3
+      },
+      "gz-sim-scene-deformable_coupling": {
+        "build_id": "1adaf990ab13ae60f3037e5eb05f6d8ad702357c",
+        "sha256": "2f29564e388a43cbac33185060a46ebe9e35b2edaae5aa42b281f09eea83b765",
+        "passed": 8
+      },
+      "gz-sim-scene-finite_surface_pad": {
+        "build_id": "0778c923c01aa22d22d5f03f968a7089984b6048",
+        "sha256": "01394e187f065f1084daa12fdf790c6cb792c636033b8188dad356ab5fc6d70a",
+        "passed": 2
+      },
+      "gz-sim-scene-static_soft_bench": {
+        "build_id": "abdb39b692eae90182f35ea3dd61877334c0bfff",
+        "sha256": "fb029620d69e912f2ef5a6f86c007a0ee3624fbd12c83b1a5e261c52f082c5a5",
+        "passed": 3
+      }
+    }
+  }
+}

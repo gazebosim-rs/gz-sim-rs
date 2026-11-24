@@ -8,6 +8,8 @@ license.workspace = true
 description = "Shared physics values and the dynamic backend contract for the Gazebo Bevy runtime"
 
 [dependencies]
+glam.workspace = true
+serde = { version = "=1.0.229", features = ["derive"] }
 bevy_ecs.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
 thiserror.workspace = true

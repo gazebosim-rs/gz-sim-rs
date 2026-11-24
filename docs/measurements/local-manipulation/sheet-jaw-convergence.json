@@ -1,0 +1,254 @@
+{
+  "jaw_mass_kg": 0.0028125,
+  "sheet_mass_kg": 0.0084,
+  "sheet_weight_n": 0.082404,
+  "actuator_period_ns": 1000000,
+  "recording_duration_s": 3.4,
+  "compliance_m_per_n": {
+    "0.00025": {
+      "max_particle_tolerance_m": 0.0001,
+      "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+      "reference_checked": true,
+      "reference_exchanges_per_ms": 32,
+      "selected_exchanges_per_ms": 8,
+      "trials": [
+        {
+          "exchanges_per_ms": 1,
+          "refused_at_tick": 2382
+        },
+        {
+          "exchanges_per_ms": 2,
+          "refused_at_tick": 837
+        },
+        {
+          "exchanges_per_ms": 4,
+          "jaw_load_error_fraction_of_weight": [
+            0.07052778977753237,
+            0.07052793394129973
+          ],
+          "max_particle_error_m": 1.7162441214554302e-05,
+          "mean_hold_jaw_load_n": [
+            0.03539407587431539,
+            0.04701602060120666
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 1295654,
+          "passes_against_finest": false,
+          "soft_steps_per_exchange": 1
+        },
+        {
+          "exchanges_per_ms": 8,
+          "jaw_load_error_fraction_of_weight": [
+            0.0041062703976279475,
+            0.004106332049595363
+          ],
+          "max_particle_error_m": 1.3075014643278231e-05,
+          "mean_hold_jaw_load_n": [
+            0.04086747475729703,
+            0.04154261491892265
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 2259667,
+          "passes_against_finest": true,
+          "soft_steps_per_exchange": 1
+        },
+        {
+          "exchanges_per_ms": 16,
+          "jaw_load_error_fraction_of_weight": [
+            1.0706101374969792e-05,
+            1.0685557406928694e-05
+          ],
+          "max_particle_error_m": 9.898989176032233e-06,
+          "mean_hold_jaw_load_n": [
+            0.04120673008872087,
+            0.041203356200035235
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 4706365,
+          "passes_against_finest": true,
+          "soft_steps_per_exchange": 1
+        },
+        {
+          "exchanges_per_ms": 32,
+          "jaw_load_error_fraction_of_weight": [
+            0.0,
+            0.0
+          ],
+          "max_particle_error_m": 0.0,
+          "mean_hold_jaw_load_n": [
+            0.041205847863143165,
+            0.041204236732707795
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 10098432,
+          "passes_against_finest": true,
+          "soft_steps_per_exchange": 1
+        }
+      ],
+      "verification_exchanges_per_ms": 16
+    },
+    "0.001": {
+      "max_particle_tolerance_m": 0.0001,
+      "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+      "reference_checked": true,
+      "reference_exchanges_per_ms": 32,
+      "selected_exchanges_per_ms": 8,
+      "trials": [
+        {
+          "exchanges_per_ms": 1,
+          "jaw_load_error_fraction_of_weight": [
+            0.15977723265513674,
+            0.16590612836385296
+          ],
+          "max_particle_error_m": 0.004961449780860751,
+          "mean_hold_jaw_load_n": [
+            0.02803732205562972,
+            0.05487780806230716
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 1087213,
+          "passes_against_finest": false,
+          "soft_steps_per_exchange": 4
+        },
+        {
+          "exchanges_per_ms": 2,
+          "jaw_load_error_fraction_of_weight": [
+            0.026429512107241957,
+            0.02642972684624013
+          ],
+          "max_particle_error_m": 1.2668049374056962e-05,
+          "mean_hold_jaw_load_n": [
+            0.03902570761965844,
+            0.04338439467164979
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 964693,
+          "passes_against_finest": false,
+          "soft_steps_per_exchange": 2
+        },
+        {
+          "exchanges_per_ms": 4,
+          "jaw_load_error_fraction_of_weight": [
+            0.02642847128748129,
+            0.02642861554791961
+          ],
+          "max_particle_error_m": 1.2072673187572478e-05,
+          "mean_hold_jaw_load_n": [
+            0.03902579338737,
+            0.04338430309622299
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 1306045,
+          "passes_against_finest": false,
+          "soft_steps_per_exchange": 1
+        },
+        {
+          "exchanges_per_ms": 8,
+          "jaw_load_error_fraction_of_weight": [
+            0.0019200859201904399,
+            0.0019201475714014352
+          ],
+          "max_particle_error_m": 1.3564369952274882e-05,
+          "mean_hold_jaw_load_n": [
+            0.041045382375176236,
+            0.04136470730108598
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 2340758,
+          "passes_against_finest": true,
+          "soft_steps_per_exchange": 1
+        },
+        {
+          "exchanges_per_ms": 16,
+          "jaw_load_error_fraction_of_weight": [
+            8.977248468483929e-07,
+            9.182687229367675e-07
+          ],
+          "max_particle_error_m": 9.062477928452887e-06,
+          "mean_hold_jaw_load_n": [
+            0.04120353115922533,
+            0.041206555129628064
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 4080153,
+          "passes_against_finest": true,
+          "soft_steps_per_exchange": 1
+        },
+        {
+          "exchanges_per_ms": 32,
+          "jaw_load_error_fraction_of_weight": [
+            0.0,
+            0.0
+          ],
+          "max_particle_error_m": 0.0,
+          "mean_hold_jaw_load_n": [
+            0.04120360513534361,
+            0.04120647946061222
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 9585331,
+          "passes_against_finest": true,
+          "soft_steps_per_exchange": 1
+        }
+      ],
+      "verification_exchanges_per_ms": 16
+    },
+    "6.25e-05": {
+      "max_particle_tolerance_m": 0.0001,
+      "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+      "reference_checked": true,
+      "reference_exchanges_per_ms": 32,
+      "selected_exchanges_per_ms": 16,
+      "trials": [
+        {
+          "exchanges_per_ms": 1,
+          "refused_at_tick": 2377
+        },
+        {
+          "exchanges_per_ms": 2,
+          "refused_at_tick": 1411
+        },
+        {
+          "exchanges_per_ms": 4,
+          "refused_at_tick": 1901
+        },
+        {
+          "exchanges_per_ms": 8,
+          "jaw_load_error_fraction_of_weight": [
+            2.268107527907276,
+            2.268241659113824
+          ],
+          "max_particle_error_m": 0.0016516275542059586,
+          "mean_hold_jaw_load_n": [
+            0.2281075369562182,
+            -0.14570850530419902
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 2303117,
+          "passes_against_finest": false,
+          "soft_steps_per_exchange": 1
+        },
+        {
+          "exchanges_per_ms": 16,
+          "jaw_load_error_fraction_of_weight": [
+            1.3599778739809187e-05,
+            1.3579335121828752e-05
+          ],
+          "max_particle_error_m": 2.2979971879057895e-05,
+          "mean_hold_jaw_load_n": [
+            0.04120752490271427,
+            0.04120256138188518
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 5116887,
+          "passes_against_finest": true,
+          "soft_steps_per_exchange": 1
+        },
+        {
+          "exchanges_per_ms": 32,
+          "jaw_load_error_fraction_of_weight": [
+            0.0,
+            0.0
+          ],
+          "max_particle_error_m": 0.0,
+          "mean_hold_jaw_load_n": [
+            0.04120640422654699,
+            0.04120368037341656
+          ],
+          "p95_physics_cost_per_actuator_period_ns": 9609450,
+          "passes_against_finest": true,
+          "soft_steps_per_exchange": 1
+        }
+      ],
+      "verification_exchanges_per_ms": 16
+    }
+  }
+}

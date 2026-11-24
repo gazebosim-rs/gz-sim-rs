@@ -1,0 +1,244 @@
+{
+  "axis-journal": {
+    "records": 374,
+    "first_step": {
+      "scalar_joints": [
+        {
+          "id": 17,
+          "position": 6.228530660967735e-05,
+          "velocity": 0.1103814311022946,
+          "pending_effort": null
+        }
+      ],
+      "universal_joints": [
+        {
+          "id": 16,
+          "position": [
+            -1.2698052672455162e-05,
+            1.910193743448474e-05
+          ],
+          "velocity": [
+            -0.02215859706058729,
+            0.03423880962096077
+          ],
+          "pending_effort": null
+        }
+      ]
+    },
+    "before_solve": {
+      "scalar_joints": [
+        {
+          "id": 17,
+          "position": 0.0,
+          "velocity": 0.0,
+          "pending_effort": 2.0
+        }
+      ],
+      "universal_joints": [
+        {
+          "id": 16,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "pending_effort": [
+            0.8,
+            -1.25
+          ]
+        }
+      ]
+    },
+    "viewer": {
+      "body_poses_and_shapes_checked": 114,
+      "captured_ms": {
+        "end": 180.0,
+        "midpoint": 90.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        10.0,
+        20.0,
+        30.0,
+        40.0,
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0,
+        120.0,
+        130.0,
+        140.0,
+        150.0,
+        160.0,
+        170.0,
+        180.0
+      ],
+      "frames": 19,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 19,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10030%2F"
+    }
+  },
+  "axis-zero": {
+    "records": 374,
+    "first_step": {
+      "scalar_joints": [
+        {
+          "id": 17,
+          "position": 4.197151938445387e-05,
+          "velocity": 0.07428000459947373,
+          "pending_effort": null
+        }
+      ],
+      "universal_joints": [
+        {
+          "id": 16,
+          "position": [
+            -1.978790937995356e-05,
+            6.142189703828294e-05
+          ],
+          "velocity": [
+            -0.03473349724307177,
+            0.1093393641287772
+          ],
+          "pending_effort": null
+        }
+      ]
+    },
+    "before_solve": {
+      "scalar_joints": [
+        {
+          "id": 17,
+          "position": 0.0,
+          "velocity": 0.0,
+          "pending_effort": 0.0
+        }
+      ],
+      "universal_joints": [
+        {
+          "id": 16,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "pending_effort": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "viewer": {
+      "body_poses_and_shapes_checked": 114,
+      "captured_ms": {
+        "end": 180.0,
+        "midpoint": 90.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        10.0,
+        20.0,
+        30.0,
+        40.0,
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0,
+        120.0,
+        130.0,
+        140.0,
+        150.0,
+        160.0,
+        170.0,
+        180.0
+      ],
+      "frames": 19,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 19,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10031%2F"
+    }
+  },
+  "coverage": {
+    "crates/gz-physics-multifidelity/src/lib.rs": {
+      "lines": {
+        "hit": 3,
+        "total": 3,
+        "missing": []
+      },
+      "regions": {
+        "hit": 5,
+        "total": 5,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-rapier/src/joints/robot.rs": {
+      "lines": {
+        "hit": 4,
+        "total": 4,
+        "missing": []
+      },
+      "regions": {
+        "hit": 7,
+        "total": 7,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-rapier/src/joints/universal.rs": {
+      "lines": {
+        "hit": 7,
+        "total": 7,
+        "missing": []
+      },
+      "regions": {
+        "hit": 15,
+        "total": 15,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs": {
+      "lines": {
+        "hit": 6,
+        "total": 6,
+        "missing": []
+      },
+      "regions": {
+        "hit": 24,
+        "total": 24,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/src/bin/local_replay/observation.rs": {
+      "lines": {
+        "hit": 28,
+        "total": 28,
+        "missing": []
+      },
+      "regions": {
+        "hit": 47,
+        "total": 47,
+        "missing": []
+      }
+    }
+  }
+}

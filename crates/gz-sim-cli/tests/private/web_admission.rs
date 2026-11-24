@@ -134,7 +134,7 @@ fn unsupported_materials_names_and_nonrepresentable_sizes_are_rejected() {
             .insert(VisualGeometry(Arc::new(sdformat::Geometry::Sphere {
                 radius,
             })));
-        rejected(&sim, "finite box and sphere visuals only");
+        rejected(&sim, "supported visual with positive finite dimensions");
     }
     sim.world_mut().entity_mut(visual).insert(geometry);
     assert_eq!(frame(&sim, 0)["visuals"].as_array().unwrap().len(), 21);

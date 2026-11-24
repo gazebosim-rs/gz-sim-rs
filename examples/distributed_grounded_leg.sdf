@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="ground">
+      <static>true</static>
+      <link name="floor">
+        <collision name="terrain">
+          <geometry><plane><normal>0 0 1</normal><size>8 5</size></plane></geometry>
+        </collision>
+        <visual name="surface">
+          <pose>0 0 -0.02 0 0 0</pose>
+          <geometry><box><size>8 5 0.04</size></box></geometry>
+          <material><diffuse>0.30 0.36 0.40 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="landing_legs">
+      <pose>0 0 0.87 0.045 -0.085 0.18</pose>
+      <self_collide>false</self_collide>
+      <plugin filename="gz-sim-switchable-articulation-system" name="gz::sim::systems::SwitchableArticulation"/>
+      <link name="pelvis">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial><pose>0.009 -0.003 0.012 0 0 0</pose><mass>1.7</mass><inertia><ixx>0.029</ixx><iyy>0.032</iyy><izz>0.037</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.16</radius></sphere></geometry></collision>
+        <visual name="pelvis_hub"><geometry><sphere><radius>0.16</radius></sphere></geometry><material><diffuse>0.1 0.39 0.87 1</diffuse></material></visual>
+        <visual name="pelvis_to_right_hip"><pose>0.0575 -0.0075 -0.075 0 0.9126362705 -0.1297025372</pose><geometry><box><size>0.1896048523 0.075 0.075</size></box></geometry><material><diffuse>0.1 0.39 0.87 1</diffuse></material></visual>
+        <visual name="pelvis_to_left_hip"><pose>-0.06 0.0075 -0.075 0 0.8922706925 3.017237659</pose><geometry><box><size>0.1926784887 0.075 0.075</size></box></geometry><material><diffuse>0.1 0.39 0.87 1</diffuse></material></visual>
+      </link>
+      <link name="left_knee">
+        <pose>-0.24 0.03 -0.3 0 0 0</pose>
+        <inertial><pose>0.009 -0.003 0.012 0 0 0</pose><mass>0.8</mass><inertia><ixx>0.029</ixx><iyy>0.032</iyy><izz>0.037</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.115</radius></sphere></geometry></collision>
+        <visual name="left_knee_hub"><geometry><sphere><radius>0.115</radius></sphere></geometry><material><diffuse>0.92 0.45 0.12 1</diffuse></material></visual>
+        <visual name="left_knee_to_left_ankle"><pose>-0.0275 0.0125 -0.075 0 1.187905851 2.71496516</pose><geometry><box><size>0.1617096163 0.075 0.075</size></box></geometry><material><diffuse>0.92 0.45 0.12 1</diffuse></material></visual>
+        <visual name="left_knee_to_left_hip"><pose>0.06 -0.0075 0.075 0 -0.8922706925 -0.1243549945</pose><geometry><box><size>0.1926784887 0.075 0.075</size></box></geometry><material><diffuse>0.92 0.45 0.12 1</diffuse></material></visual>
+      </link>
+      <link name="left_foot">
+        <pose>-0.35 0.08 -0.6 0 0 0</pose>
+        <inertial><pose>0.009 -0.003 0.012 0 0 0</pose><mass>0.8</mass><inertia><ixx>0.029</ixx><iyy>0.032</iyy><izz>0.037</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.14</radius></sphere></geometry></collision>
+        <visual name="left_foot_hub"><geometry><sphere><radius>0.14</radius></sphere></geometry><material><diffuse>0.95 0.72 0.14 1</diffuse></material></visual>
+        <visual name="left_foot_to_left_ankle"><pose>0.0275 -0.0125 0.075 0 -1.187905851 -0.4266274931</pose><geometry><box><size>0.1617096163 0.075 0.075</size></box></geometry><material><diffuse>0.95 0.72 0.14 1</diffuse></material></visual>
+      </link>
+      <link name="right_knee">
+        <pose>0.23 -0.03 -0.3 0 0 0</pose>
+        <inertial><pose>0.009 -0.003 0.012 0 0 0</pose><mass>0.8</mass><inertia><ixx>0.029</ixx><iyy>0.032</iyy><izz>0.037</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.115</radius></sphere></geometry></collision>
+        <visual name="right_knee_hub"><geometry><sphere><radius>0.115</radius></sphere></geometry><material><diffuse>0.12 0.65 0.53 1</diffuse></material></visual>
+        <visual name="right_knee_to_right_hip"><pose>-0.0575 0.0075 0.075 0 -0.9126362705 3.011890116</pose><geometry><box><size>0.1896048523 0.075 0.075</size></box></geometry><material><diffuse>0.12 0.65 0.53 1</diffuse></material></visual>
+        <visual name="right_knee_to_right_ankle"><pose>0.0275 -0.0125 -0.075 0 1.187905851 -0.4266274931</pose><geometry><box><size>0.1617096163 0.075 0.075</size></box></geometry><material><diffuse>0.12 0.65 0.53 1</diffuse></material></visual>
+      </link>
+      <link name="right_foot">
+        <pose>0.34 -0.08 -0.6 0 0 0</pose>
+        <inertial><pose>0.009 -0.003 0.012 0 0 0</pose><mass>0.8</mass><inertia><ixx>0.029</ixx><iyy>0.032</iyy><izz>0.037</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.14</radius></sphere></geometry></collision>
+        <visual name="right_foot_hub"><geometry><sphere><radius>0.14</radius></sphere></geometry><material><diffuse>0.27 0.82 0.72 1</diffuse></material></visual>
+        <visual name="right_foot_to_right_ankle"><pose>-0.0275 0.0125 0.075 0 -1.187905851 2.71496516</pose><geometry><box><size>0.1617096163 0.075 0.075</size></box></geometry><material><diffuse>0.27 0.82 0.72 1</diffuse></material></visual>
+      </link>
+      <joint name="left_ankle" type="revolute"><parent>left_knee</parent><child>left_foot</child>
+        <pose relative_to="left_knee">-0.055 0.025 -0.15 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 1 0</xyz><limit><lower>-0.45</lower><upper>0.45</upper></limit></axis></joint>
+      <joint name="right_hip" type="revolute"><parent>pelvis</parent><child>right_knee</child>
+        <pose relative_to="pelvis">0.115 -0.015 -0.15 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 1 0</xyz><limit><lower>-0.45</lower><upper>0.45</upper></limit></axis></joint>
+      <joint name="left_hip" type="revolute"><parent>pelvis</parent><child>left_knee</child>
+        <pose relative_to="pelvis">-0.12 0.015 -0.15 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 1 0</xyz><limit><lower>-0.45</lower><upper>0.45</upper></limit></axis></joint>
+      <joint name="right_ankle" type="revolute"><parent>right_knee</parent><child>right_foot</child>
+        <pose relative_to="right_knee">0.055 -0.025 -0.15 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 1 0</xyz><limit><lower>-0.45</lower><upper>0.45</upper></limit></axis></joint>
+    </model>
+  </world>
+</sdf>

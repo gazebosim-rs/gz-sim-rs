@@ -268,15 +268,18 @@ def check_changed_coverage(lcov, changed, crates, executable_counts=None, zero_e
     return totals
 
 
-# Renderer-only ownership stays separate from shared CPU production crates.
+# Vulkan-only crates run on the renderer runner, including the optional physics accelerator.
 RENDER_PACKAGES = frozenset({
-    "gz-camera-output",
+    "gz-camera-output", "gz-physics-gpu",
     "gz-render-frame", "gz-renderer", "gz-render-protocol",
     "gz-render-client", "gz-render-worker", "gz-render-scene",
 })
 RENDER_SHARED_PACKAGES = frozenset({"gz-sim-core", "gz-sim-scene", "gz-sim-cli", proto_inputs.PACKAGE})
+# These native clients exercise the same renderer-feature scene and CLI binaries.
+RENDER_CONSUMERS = ("gz-physics-distributed",)
 RGB_FEATURE = "gz-sim-cli/rgb-camera"
-RENDER_FEATURES = ["gz-renderer/gpu", RGB_FEATURE]
+HEADLESS_FEATURES = [RGB_FEATURE, "gz-sim-cli/landing-audit"]
+RENDER_FEATURES = ["gz-renderer/gpu", RGB_FEATURE, "gz-sim-cli/gpu-batch"]
 
 
 def load_profile_contract():
@@ -289,8 +292,9 @@ def load_profile_contract():
         "native_reference": "gazebo-zenoh-client-v1",
         "profiles": {
             "headless": {"exclude_packages": sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}),
-                         "runner": "cpu", "features": [RGB_FEATURE]},
+                         "runner": "cpu", "features": HEADLESS_FEATURES},
             "renderer": {"packages": sorted(RENDER_PACKAGES | RENDER_SHARED_PACKAGES),
+                         "consumer_packages": list(RENDER_CONSUMERS),
                          "features": RENDER_FEATURES, "runner": "vulkan"},
         },
         "excluded_sources": [],
@@ -320,11 +324,11 @@ def profile_plan(sources):
             if path in owners:
                 raise ValueError(f"production source has multiple owners: {path}")
             owners[path] = name
-    headless_command = ["cargo", "test", "--locked", "--no-fail-fast", "--workspace", "--all-targets", "--features", RGB_FEATURE]
+    headless_command = ["cargo", "test", "--locked", "--no-fail-fast", "--workspace", "--all-targets", "--features", ",".join(HEADLESS_FEATURES)]
     for name in sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}):
         headless_command += ["--exclude", name]
     render_command = ["cargo", "test", "--locked", "--no-fail-fast", "--all-targets"]
-    for name in render:
+    for name in [*render, *RENDER_CONSUMERS]:
         render_command += ["--package", name]
     render_command += ["--package", TEST_SUPPORT_PACKAGE, "--features", ",".join(RENDER_FEATURES)]
     return {"headless": (headless, headless_command), "renderer": (render, render_command)}
@@ -479,6 +483,10 @@ def same_renderer_executables(prepared, actual):
         raise ValueError("renderer executable changed between preparation and execution")
 
 
+HEADLESS_WORKER_TEST = "crates/gz-physics-distributed/tests/headless_qualification.rs"
+HEADLESS_WORKER_CASES = "crates/gz-physics-distributed/tests/support/headless-worker-cases.json"
+
+
 def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, version, target=None):
     directory.mkdir(parents=True)
     raw_dir = directory / "raw"
@@ -492,11 +500,20 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                           if proto_inputs.PACKAGE in crates else None)
     env = os.environ.copy()
     env["CARGO_TARGET_DIR"] = str(target or ROOT / "target/coverage")
+    # Keep full numerical workloads inside the bounded coverage command.
+    env["CARGO_PROFILE_TEST_OPT_LEVEL"] = "1"
+    env["CARGO_PROFILE_TEST_DEBUG_ASSERTIONS"] = "true"
+    env["CARGO_PROFILE_TEST_OVERFLOW_CHECKS"] = "true"
     env["RUSTFLAGS"] = ""
     env.pop("CARGO_ENCODED_RUSTFLAGS", None)
     env["RUSTC_WORKSPACE_WRAPPER"] = str(wrapper)
     env["LLVM_PROFILE_FILE"] = str(raw_dir / "%p-%m.profraw")
     env["GZ_ZENOH_PEER_EVIDENCE_DIR"] = str(directory / "native-peers")
+    if name == "headless" and "gz-physics-distributed" in crates:
+        for variable, folder in (("GZ_DISTRIBUTED_MATERIAL_WITNESS", "articulated"),
+                                 ("GZ_AUTOMATIC_WITNESS", "automatic"),
+                                 ("GZ_ROTOR_CLOTH_WITNESS", "rotor"), ("GZ_ROBOT_WITNESS", "grounded")):
+            env[variable] = str(directory / "worker-inputs" / folder)
     for key in ("GZ_RENDER_CLI_PATH", "GZ_RENDER_WORKER_PATH", "GZ_RENDER_EXECUTABLES_JSON"):
         env.pop(key, None)
     prepared_executables = None
@@ -518,6 +535,14 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
             env["GZ_RENDER_WORKER_PATH"] = prepared_executables["gz-render-worker"]["cargo_artifact"]["executable"]
             env["GZ_RENDER_EXECUTABLES_JSON"] = json.dumps(prepared_executables)
     test_command = [*command, "--message-format=json"]
+    host = next((line[6:] for line in version.splitlines() if line.startswith("host: ")), "")
+    if name == "headless" and "gz-sim-cli" in crates and "-linux-" in host:
+        # Isolate LLVM counters for the long robot example. Cargo supplies every
+        # executable and its arguments; the runner execs other targets unchanged.
+        runner = (directory / "coverage-test-runner").resolve()
+        run(["rustc", "--edition=2024", "-O", str(ROOT / "scripts/coverage-test-runner.rs"),
+             "-o", str(runner)])
+        test_command += ["--config", f"target.{host}.runner=" + json.dumps([str(runner)])]
     if name == "renderer":
         # Preserve adapter identity in evidence, including for successful tests.
         test_command += ["--", "--nocapture"]
@@ -544,6 +569,9 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
             item = json.loads(line)
         except json.JSONDecodeError:
             continue
+        # With --nocapture, test output may also be a JSON number or array.
+        if not isinstance(item, dict):
+            continue
         if item.get("reason") == "build-script-executed":
             build_events.append(item)
         if item.get("reason") == "compiler-artifact":
@@ -569,6 +597,53 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                 audit_objects.append(item["executable"])
     if not objects:
         raise ValueError(f"{name}: no instrumented test binaries")
+    if name == "renderer" and "gz-physics-gpu" in crates and env.get("GZ_GPU_ADAPTER"):
+        source = ROOT / "crates/gz-physics-gpu/tests/hardware_qualification.rs"
+        harnesses = {Path(a["executable"]) for a in artifacts
+                     if a["profile"]["test"] and Path(a["target"]["src_path"]) == source}
+        target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
+        if len(harnesses) != 1:
+            raise ValueError("missing or ambiguous renderer hardware qualification harness")
+        harness = harnesses.pop()
+        if harness.is_symlink() or not harness.is_file() or not harness.resolve().is_relative_to(target_root):
+            raise ValueError("renderer hardware qualification harness is outside the owned target")
+        (directory / "gpu-hardware-artifacts.json").write_text(json.dumps(artifacts))
+        result = profile_process.run([str(harness), "--ignored", "--exact", "selected_hardware_physics"],
+                                     cwd=ROOT, env=dict(env, GZ_GPU_PROFILE_EVIDENCE=str(directory)),
+                                     directory=directory, label="gpu-hardware-qualification")
+        if result.returncode or not (directory / "gpu-hardware.json").is_file():
+            raise ValueError(f"GPU hardware qualification failed: {result.stdout}{result.stderr}")
+    shared_operators = name == "renderer" and "gz-physics-distributed" in command
+    if (name == "headless" and "gz-physics-distributed" in crates) or shared_operators:
+        source = ROOT / HEADLESS_WORKER_TEST
+        harnesses = {Path(a["executable"]) for a in artifacts
+                     if a["profile"]["test"] and Path(a["target"]["src_path"]) == source}
+        target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
+        if len(harnesses) != 1:
+            raise ValueError("missing or ambiguous headless worker qualification harness")
+        harness = harnesses.pop()
+        if harness.is_symlink() or not harness.is_file() or not harness.resolve().is_relative_to(target_root):
+            raise ValueError("headless worker qualification harness is outside the owned target")
+        (directory / "headless-artifacts.json").write_text(json.dumps(artifacts))
+        suite = "renderer_scene_operators" if shared_operators else "real_worker_fixtures"
+        result = profile_process.run([str(harness), "--ignored", "--exact", "--test-threads=1",
+                                      suite, "real_trajectory_checkpoint", "loaded_supervisor_operators",
+                                      "loaded_grippers_match_local_scene"],
+                                     cwd=ROOT, env=dict(env, GZ_HEADLESS_EVIDENCE=str(directory),
+                                                        GZ_PHYSICS_CARGO_SELECTION=json.dumps(command[2:])),
+                                     directory=directory, label="worker-qualification")
+        if result.returncode or not (directory / "headless-workers.json").is_file():
+            raise ValueError(f"physical worker qualification failed: {result.stdout}{result.stderr}")
+        for label in ("worker-trajectory", "worker-grippers", "worker-supervisor"):
+            receipt = json.loads((directory / f"{label}.json").read_text())
+            entries = receipt["examples"] if label == "worker-supervisor" else [receipt]
+            for entry in entries:
+                artifact = entry["artifact"]
+                with Path(artifact["executable"]).open("rb") as executable:
+                    if hashlib.file_digest(executable, "sha256").hexdigest() != entry["example_sha256"]:
+                        raise ValueError(f"{label} example changed after qualification")
+                artifacts.append(artifact)
+                objects.append(artifact["executable"])
     if name == "renderer":
         target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
         if (len(worker_objects) != 1 or not Path(worker_objects[0]).is_file()
@@ -678,6 +753,7 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                     "source_sha256": source_hashes[str(path.relative_to(ROOT))],
                     "auditor": str(proto_audit if path == (ROOT / proto_inputs.FACADE).resolve() else facade_audit)} for path in zero_executable},
                 "objects": object_evidence}
+    evidence["test_profile"] = {"opt_level": 1, "debug_assertions": True, "overflow_checks": True}
     if prepared_executables is not None:
         evidence["prepared_executables"] = prepared_executables
     (directory / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
@@ -763,6 +839,29 @@ def coverage(changed_file=None):
                                  *[ROOT / name for name in zenoh_peer.bootstrap.INPUTS],
                                  *native_peer_inputs(),
                                  wrapper, ROOT / "scripts/verify.py", ROOT / "scripts/profile_process.py",
+                                 ROOT / "scripts/coverage-test-runner.rs",
+                                 ROOT / HEADLESS_WORKER_TEST, ROOT / HEADLESS_WORKER_CASES,
+                                 ROOT / "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs",
+                                 ROOT / "crates/gz-physics-distributed/tests/support/production_example.rs",
+                                 ROOT / "crates/gz-physics-distributed/tests/support/supervisor.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/convoy_supervisor_trial.rs",
+                                 *sorted((ROOT / "crates/gz-sim-cli/examples/convoy_supervisor_trial").glob("*.rs")),
+                                 ROOT / "crates/gz-sim-cli/examples/convoy_operator_fixture.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/driven_hinge.rs",
+                                 ROOT / "crates/gz-physics-distributed/examples/convoy_drive_oracle.rs",
+                                 ROOT / "examples/distributed_sphere_pair_island.sdf",
+                                 ROOT / "crates/gz-physics-distributed/tests/support/loaded_grippers.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/support/humanoid_return_cli.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/support/humanoid_return_tests.rs",
+                                 ROOT / "crates/gz-sim-cli/tests/private/warm_physics_cli.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/grasp_fleet_profiles.rs",
+                                 *[ROOT / "crates/gz-sim-cli/examples/support" / name for name in
+                                   ("floating_tree_drive.rs", "grasp_drive.rs", "grasp_fleet_drive.rs", "tree_visuals.rs")],
+                                 ROOT / "examples/distributed_grasp_fleet.sdf",
+                                 ROOT / "crates/gz-sim-cli/examples/curved_scene_crash.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/support/curved_world.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/support/scene_actor.rs",
+                                 ROOT / "examples/multifidelity_curved_shuttle.sdf",
                                  ROOT / "planning/coverage-profiles.json", ROOT / "scripts/proto_inputs.py",
                                  ROOT / proto_inputs.AUDITOR,
                                  ROOT / "crates/gz-sim-proto/schema-source.json",
@@ -770,6 +869,9 @@ def coverage(changed_file=None):
                                  ROOT / "third_party/prost-derive-0.14.4/Cargo.toml",
                                  ROOT / "third_party/prost-derive-0.14.4/LICENSE",
                                  *sorted((ROOT / "third_party/prost-derive-0.14.4/src").rglob("*.rs")),
+                                 ROOT / "third_party/rapier3d-f64-0.36.1/Cargo.toml",
+                                 ROOT / "third_party/rapier3d-f64-0.36.1/LICENSE",
+                                 *sorted((ROOT / "third_party/rapier3d-f64-0.36.1/src").rglob("*.rs")),
                                  *sorted((ROOT / "crates/gz-sim-proto/schemas").rglob("*.proto")),
                                  ROOT / "tests/support/render-fixtures/src/bin/source_audit.rs", *manifests]))
     input_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -941,15 +1043,15 @@ def retain_profile_evidence(candidate, output, hashes, missing):
         contract = json.loads(contract_path.read_text())
         if contract.get("version") == 2 and "zenoh_reference" not in data:
             missing.append("zenoh_reference")
-    process_helper = candidate / "scripts/profile_process.py"
-    if "scripts/profile_process.py" in data.get("inputs", {}) or os.path.lexists(process_helper):
-        if (process_helper.is_symlink() or not process_helper.is_file()
-                or not process_helper.resolve().is_relative_to(candidate.resolve())):
-            missing.append("profile_process source input")
-        else:
-            helper_digest = hashlib.sha256(process_helper.read_bytes()).hexdigest()
-            if data.get("inputs", {}).get("scripts/profile_process.py") != helper_digest:
-                missing.append("profile_process input binding")
+    for source in ("scripts/profile_process.py", "scripts/coverage-test-runner.rs"):
+        helper = candidate / source
+        if source not in data.get("inputs", {}) and not os.path.lexists(helper):
+            continue
+        if (helper.is_symlink() or not helper.is_file()
+                or not helper.resolve().is_relative_to(candidate.resolve())):
+            missing.append(f"{helper.stem} source input")
+        elif data.get("inputs", {}).get(source) != hashlib.sha256(helper.read_bytes()).hexdigest():
+            missing.append(f"{helper.stem} input binding")
     if "zenoh_reference" in data:
         name = "zenoh-native-reference.json"
         source = coverage / run_name / name
@@ -969,6 +1071,20 @@ def retain_profile_evidence(candidate, output, hashes, missing):
         required = ["test-output.log", "coverage.json", "coverage.lcov", "summary.json",
                     "evidence.json", "merged.profdata", "proto-generated.json",
                     "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"]
+        shared_operators = (profile == "renderer" and contract_path.is_file()
+                            and "gz-physics-distributed" in contract.get("profiles", {}).get("renderer", {}).get("consumer_packages", []))
+        if (profile == "headless" or shared_operators) and HEADLESS_WORKER_TEST in data.get("inputs", {}):
+            required.append("headless-workers.json")
+            if "crates/gz-physics-distributed/tests/support/supervisor.rs" in data["inputs"]:
+                required.append("worker-supervisor.json")
+            if "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs" in data["inputs"]:
+                required.append("worker-trajectory.json")
+            if "crates/gz-physics-distributed/tests/support/loaded_grippers.rs" in data["inputs"]:
+                required.append("worker-grippers.json")
+            required.extend(sorted(path.name for path in base.glob("worker-*.std*") if path.is_file()))
+            required.extend(str(path.relative_to(base)) for path in sorted((base / "worker-inputs").rglob("*.gz*")))
+            if (base / "worker-returned-humanoid.gzgroundedrobot").is_file():
+                required.append("worker-returned-humanoid.gzgroundedrobot")
         # Partial child transcripts survive an interrupted profile even when
         # no final test-output/evidence file was produced.
         for diagnostic in ("tests.stdout", "tests.stderr", "renderer-build.stdout", "renderer-build.stderr"):
@@ -1154,7 +1270,7 @@ def main():
         run(["cargo", "fmt", "--all", "--", "--check"])
         run(["cargo", "clippy", "--locked", "--workspace", "--all-targets", "--keep-going", "--", "-D", "warnings"])
         render_packages = sorted(RENDER_PACKAGES | RENDER_SHARED_PACKAGES)
-        selected = sum((["--package", name] for name in [*render_packages, TEST_SUPPORT_PACKAGE]), [])
+        selected = sum((["--package", name] for name in [*render_packages, *RENDER_CONSUMERS, TEST_SUPPORT_PACKAGE]), [])
         run(["cargo", "clippy", "--locked", "--all-targets", "--keep-going", *selected,
              "--features", ",".join(RENDER_FEATURES), "--", "-D", "warnings"])
         doc_packages = sorted((RENDER_PACKAGES - {"gz-render-worker"}) | {"gz-sim-core", "gz-sim-scene"})

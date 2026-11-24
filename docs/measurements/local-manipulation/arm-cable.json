@@ -1,0 +1,222 @@
+{
+  "chord_bend_compliance_m_per_n": 0.003,
+  "commanded_lift_m": 0.15,
+  "friction": 0.7,
+  "hold_time_s": [
+    1.65,
+    1.95
+  ],
+  "material_length_m": 0.21999999999999997,
+  "max_lift_difference_from_four_substeps_m": 0.0001221831286808972,
+  "max_order_change_in_jaw_support_n": 2.2326876458755862e-11,
+  "max_tip_sag_difference_from_four_substeps_m": 0.0011890577007265188,
+  "node_mass_kg": 0.002,
+  "order_change_in_lift_m": 1.34099120696618e-11,
+  "pad_normal_compliance_m_per_n": 0.001,
+  "particle_count": 11,
+  "particle_radius_m": 0.025,
+  "released_time_s": [
+    3.2,
+    3.4
+  ],
+  "reversed_jaw_order_control": {
+    "closed": true,
+    "final_cm_lift_m": -6.938893903907228e-18,
+    "hold_middle_downward_drift_m": 2.886579864025407e-15,
+    "max_edge_strain": 0.001595405148070106,
+    "max_linear_impulse_residual_ns": 4.521591035982427e-18,
+    "max_pad_compression_m": 0.000505313371873279,
+    "mean_hold_bench_up_n": 0.0,
+    "mean_hold_grip_n": [
+      1.1404113626812926,
+      1.1404113723566505
+    ],
+    "mean_hold_jaw_up_n": [
+      0.10771022525491196,
+      0.1077102579982945
+    ],
+    "mean_hold_lift_m": 0.13328969874404414,
+    "mean_hold_tip_sag_m": [
+      0.04688679412759036,
+      0.04729012363763682
+    ],
+    "mean_released_bench_up_n": 0.215820000000001,
+    "mean_released_jaw_force_n": 0.0,
+    "min_bench_footprint_margin_m": 0.16499520702360743,
+    "min_hold_floor_gap_m": 0.09517065781711259,
+    "step_p95_ns": 130210,
+    "substeps": 2
+  },
+  "stretch_compliance_m_per_n": 0.00001,
+  "trials": [
+    {
+      "closed": true,
+      "final_cm_lift_m": -6.938893903907228e-18,
+      "hold_middle_downward_drift_m": 1.8318679906315083e-15,
+      "max_edge_strain": 0.00305223202916749,
+      "max_linear_impulse_residual_ns": 5.832234640461183e-18,
+      "max_pad_compression_m": 0.0004943760807041946,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_grip_n": [
+        1.1395632762114778,
+        1.1395633570930457
+      ],
+      "mean_hold_jaw_up_n": [
+        0.10762910839379992,
+        0.10762922871784784
+      ],
+      "mean_hold_lift_m": 0.13316179595361885,
+      "mean_hold_tip_sag_m": [
+        0.04675921237376632,
+        0.04828246780670425
+      ],
+      "mean_released_bench_up_n": 0.2158199999999979,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_footprint_margin_m": 0.16499427922024487,
+      "min_hold_floor_gap_m": 0.09531463402540385,
+      "step_p95_ns": 98450,
+      "substeps": 1
+    },
+    {
+      "closed": false,
+      "final_cm_lift_m": -6.938893903907228e-18,
+      "hold_middle_downward_drift_m": -4.761869976332989e-6,
+      "max_edge_strain": 3.3306690738754696e-16,
+      "max_linear_impulse_residual_ns": 2.710505431213761e-20,
+      "max_pad_compression_m": 0.0,
+      "mean_hold_bench_up_n": 0.21582000000000068,
+      "mean_hold_grip_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_lift_m": -6.9388939039072014e-18,
+      "mean_hold_tip_sag_m": [
+        0.0,
+        0.0
+      ],
+      "mean_released_bench_up_n": 0.2158199999999979,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_footprint_margin_m": 0.165,
+      "min_hold_floor_gap_m": -6.938893903907228e-18,
+      "step_p95_ns": 103550,
+      "substeps": 1
+    },
+    {
+      "closed": true,
+      "final_cm_lift_m": -6.938893903907228e-18,
+      "hold_middle_downward_drift_m": 3.3306690738754696e-15,
+      "max_edge_strain": 0.0015954051555200355,
+      "max_linear_impulse_residual_ns": 6.139294860131353e-18,
+      "max_pad_compression_m": 0.000505313371873279,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_grip_n": [
+        1.1404113626896044,
+        1.1404113723649634
+      ],
+      "mean_hold_jaw_up_n": [
+        0.10771022527723884,
+        0.10771025802060805
+      ],
+      "mean_hold_lift_m": 0.13328969873063423,
+      "mean_hold_tip_sag_m": [
+        0.04688679416085907,
+        0.047290123668877596
+      ],
+      "mean_released_bench_up_n": 0.21582000000000046,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_footprint_margin_m": 0.16499507105681313,
+      "min_hold_floor_gap_m": 0.09517065782169576,
+      "step_p95_ns": 110590,
+      "substeps": 2
+    },
+    {
+      "closed": false,
+      "final_cm_lift_m": -6.938893903907228e-18,
+      "hold_middle_downward_drift_m": -4.761869976332989e-6,
+      "max_edge_strain": 3.3306690738754696e-16,
+      "max_linear_impulse_residual_ns": 2.710505431213761e-20,
+      "max_pad_compression_m": 0.0,
+      "mean_hold_bench_up_n": 0.21581999999999804,
+      "mean_hold_grip_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_lift_m": -6.9388939039072014e-18,
+      "mean_hold_tip_sag_m": [
+        0.0,
+        0.0
+      ],
+      "mean_released_bench_up_n": 0.21582000000000212,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_footprint_margin_m": 0.165,
+      "min_hold_floor_gap_m": -6.938893903907228e-18,
+      "step_p95_ns": 102670,
+      "substeps": 2
+    },
+    {
+      "closed": true,
+      "final_cm_lift_m": -6.938893903907228e-18,
+      "hold_middle_downward_drift_m": 1.2601031329495527e-14,
+      "max_edge_strain": 0.0018403724626309126,
+      "max_linear_impulse_residual_ns": 6.417614428400588e-18,
+      "max_pad_compression_m": 0.0005120764959558495,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_grip_n": [
+        1.1402679414754247,
+        1.1402679445173565
+      ],
+      "mean_hold_jaw_up_n": [
+        0.10804824243142477,
+        0.10804825212661233
+      ],
+      "mean_hold_lift_m": 0.13328397908229975,
+      "mean_hold_tip_sag_m": [
+        0.04698221979291641,
+        0.04709341010597773
+      ],
+      "mean_released_bench_up_n": 0.215820000000001,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_footprint_margin_m": 0.16499507936738197,
+      "min_hold_floor_gap_m": 0.09492253788517044,
+      "step_p95_ns": 145030,
+      "substeps": 4
+    },
+    {
+      "closed": false,
+      "final_cm_lift_m": -6.938893903907228e-18,
+      "hold_middle_downward_drift_m": -4.761869976332989e-6,
+      "max_edge_strain": 3.3306690738754696e-16,
+      "max_linear_impulse_residual_ns": 2.710505431213761e-20,
+      "max_pad_compression_m": 0.0,
+      "mean_hold_bench_up_n": 0.2158200000000021,
+      "mean_hold_grip_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_lift_m": -6.9388939039072014e-18,
+      "mean_hold_tip_sag_m": [
+        0.0,
+        0.0
+      ],
+      "mean_released_bench_up_n": 0.21582000000000212,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_footprint_margin_m": 0.165,
+      "min_hold_floor_gap_m": -6.938893903907228e-18,
+      "step_p95_ns": 161311,
+      "substeps": 4
+    }
+  ],
+  "weight_n": 0.21582
+}

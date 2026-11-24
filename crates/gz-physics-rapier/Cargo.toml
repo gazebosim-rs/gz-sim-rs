@@ -6,7 +6,14 @@ rust-version.workspace = true
 license.workspace = true
 description = "Full-f64 Rapier integration for the Gazebo Bevy runtime"
 
+[features]
+landing-audit = []
+partition-checkpoint = ["dep:bincode", "dep:serde", "dep:sha2", "rapier3d-f64/serde-serialize"]
+
 [dependencies]
+bincode = { version = "=1.3.3", optional = true }
+sha2 = { version = "=0.10.9", optional = true }
+serde = { version = "=1.0.229", features = ["derive"], optional = true }
 gz-physics = { path = "../gz-physics" }
 bevy_ecs.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }

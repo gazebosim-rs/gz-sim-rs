@@ -148,6 +148,14 @@ pub fn visual_glb(bytes: &[u8]) -> Result<Vec<u8>, MeshError> {
 }
 
 pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>, MeshError> {
+    colored_visual_glb(mesh, kind, None)
+}
+
+pub(super) fn colored_visual_glb(
+    mesh: &TriangleMesh,
+    kind: &str,
+    diffuse: Option<[f32; 4]>,
+) -> Result<Vec<u8>, MeshError> {
     let mut sums = vec![DVec3::ZERO; mesh.vertices.len()];
     let mut first = vec![DVec3::ZERO; mesh.vertices.len()];
     for &triangle in &mesh.triangles {
@@ -160,6 +168,20 @@ pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>
             sums[i] += cross;
         }
     }
+    let normals = sums
+        .into_iter()
+        .zip(first)
+        .map(|(sum, fallback)| if sum == DVec3::ZERO { fallback } else { sum }.normalize());
+    encode_visual_glb(mesh, normals, kind, diffuse)
+}
+
+/// Pack simulation-space positions and unit normals in the glTF Y-up basis.
+pub(super) fn encode_visual_glb(
+    mesh: &TriangleMesh,
+    normals: impl IntoIterator<Item = DVec3>,
+    kind: &str,
+    diffuse: Option<[f32; 4]>,
+) -> Result<Vec<u8>, MeshError> {
     let mut bin = Vec::new();
     let mut min = [f32::INFINITY; 3];
     let mut max = [f32::NEG_INFINITY; 3];
@@ -174,8 +196,7 @@ pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>
         }
     }
     let normals_offset = bin.len();
-    for (sum, fallback) in sums.into_iter().zip(first) {
-        let normal = if sum == DVec3::ZERO { fallback } else { sum }.normalize();
+    for normal in normals {
         for value in [normal.x as f32, normal.z as f32, -normal.y as f32] {
             bin.extend(value.to_le_bytes());
         }
@@ -186,7 +207,7 @@ pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>
             bin.extend(index.to_le_bytes());
         }
     }
-    let document = serde_json::json!({
+    let mut document = serde_json::json!({
         "asset":{"version":"2.0"}, "scene":0, "scenes":[{"nodes":[0]}],
         "nodes":[{"mesh":0}], "meshes":[{"primitives":[{"attributes":{"POSITION":0,"NORMAL":1},"indices":2}]}],
         "buffers":[{"byteLength":bin.len()}],
@@ -199,6 +220,11 @@ pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>
             {"bufferView":1,"componentType":5126,"count":mesh.vertices.len(),"type":"VEC3"},
             {"bufferView":2,"componentType":5125,"count":mesh.triangles.len()*3,"type":"SCALAR"}]
     });
+    if let Some(diffuse) = diffuse {
+        document["materials"] = serde_json::json!([{"pbrMetallicRoughness":
+            {"baseColorFactor": diffuse, "metallicFactor": 0.0, "roughnessFactor": 0.8}}]);
+        document["meshes"][0]["primitives"][0]["material"] = serde_json::json!(0);
+    }
     let mut json = serde_json::to_vec(&document).map_err(|error| invalid(error.to_string()))?;
     while !json.len().is_multiple_of(4) {
         json.push(b' ');

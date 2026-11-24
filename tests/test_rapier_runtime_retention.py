@@ -32,7 +32,9 @@ class AuxiliaryRetention(unittest.TestCase):
                      "crates/gz-sim-proto/schema-source.json", "crates/gz-sim-proto/schemas/manifest.json",
                      "third_party/prost-derive-0.14.4/Cargo.toml", "third_party/prost-derive-0.14.4/LICENSE",
                      "third_party/prost-derive-0.14.4/src/lib.rs",
-                     *QUALIFIER.EXECUTABLE_SOURCES.values(), *QUALIFIER.RGB_SOURCES.values()]:
+                     "third_party/rapier3d-f64-0.36.1/Cargo.toml", "third_party/rapier3d-f64-0.36.1/LICENSE",
+                     "third_party/rapier3d-f64-0.36.1/src/dynamics/solver/staged_island_solver/travel.rs",
+                     *QUALIFIER.EXECUTABLE_SOURCES.values(), *QUALIFIER.RGB_CARGO_SOURCES.values()]:
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("fixture input\n")
@@ -62,6 +64,12 @@ class AuxiliaryRetention(unittest.TestCase):
                 (self.directory / saved).chmod(0o755)
             objects.append({"original_path": str(original), "retained_path": saved,
                             "sha256": QUALIFIER.digest(self.directory / saved), "cargo_artifact": artifact})
+        self.cpu_companion = {
+            "reason": "compiler-artifact", "features": [], "profile": {"test": False},
+            "executable": str(self.root / "target/rapier-runtime-fixture" / QUALIFIER.CPU_REPLAY),
+            "target": {"name": QUALIFIER.CPU_REPLAY, "kind": ["bin"],
+                       "src_path": str(self.root / QUALIFIER.CPU_REPLAY_SOURCE)}}
+        events.append(self.cpu_companion)
         self.write_json("cargo-events.json", events)
         self.write_json("objects.json", objects)
         report = {"data": [{"functions": [{"filenames": [str(self.root / QUALIFIER.SCENE)],
@@ -86,13 +94,15 @@ class AuxiliaryRetention(unittest.TestCase):
         self.write_json("rgb-camera/coverage.json", {"data": [{"files": [{"filename": name} for name in rgb_sources]}]})
         self.write("rgb-camera/coverage.lcov", "".join(f"SF:{name}\nend_of_record\n" for name in rgb_sources).encode())
         rgb_events, rgb_objects = [], []
-        for name, path in QUALIFIER.RGB_SOURCES.items():
+        for name, path in QUALIFIER.RGB_CARGO_SOURCES.items():
             original = self.root / "target/rapier-rgb-fixture" / name
             event = {"reason": "compiler-artifact", "executable": str(original), "features": ["rgb-camera"],
-                     "profile": {"test": name != "gz-sim-rs"},
+                     "profile": {"test": name == "rgb_camera"},
                      "target": {"name": name, "src_path": str(self.root / path),
-                                "kind": ["bin" if name == "gz-sim-rs" else "test"]}}
+                                "kind": ["test" if name == "rgb_camera" else "bin"]}}
             rgb_events.append(event)
+            if name not in QUALIFIER.RGB_SOURCES:
+                continue
             saved = "rgb-camera/objects/" + name
             self.write(saved, ("synthetic RGB object: " + name).encode())
             rgb_objects.append({"original_path": str(original), "retained_path": saved,
@@ -241,7 +251,7 @@ class AuxiliaryRetention(unittest.TestCase):
                    if item["cargo_artifact"]["target"]["name"] != "no_native_backends"]
         self.report["objects_bound_after_execution"] = objects
         self.write_json("objects.json", objects)
-        self.write_json("cargo-events.json", [item["cargo_artifact"] for item in objects])
+        self.write_json("cargo-events.json", [self.cpu_companion, *(item["cargo_artifact"] for item in objects)])
         (self.directory / "objects/no_native_backends").unlink()
         self.finish_manifest()
         with self.assertRaisesRegex(ValueError, "missing retained CLI or targeted test object"):
@@ -250,6 +260,8 @@ class AuxiliaryRetention(unittest.TestCase):
     def test_source_or_build_input_change_invalidates_evidence(self):
         for name in ["Cargo.lock", QUALIFIER.SCENE, "third_party/prost-derive-0.14.4/Cargo.toml",
                      "third_party/prost-derive-0.14.4/LICENSE", "third_party/prost-derive-0.14.4/src/lib.rs",
+                     "third_party/rapier3d-f64-0.36.1/Cargo.toml", "third_party/rapier3d-f64-0.36.1/LICENSE",
+                     "third_party/rapier3d-f64-0.36.1/src/dynamics/solver/staged_island_solver/travel.rs",
                      *QUALIFIER.NOISY_EXAMPLES, *QUALIFIER.NOISY_ASSETS]:
             path = self.root / name
             old = path.read_bytes()
@@ -279,7 +291,7 @@ class AuxiliaryRetention(unittest.TestCase):
             objects[0]["cargo_artifact"]["executable"] = str(Path(original))
             self.report["objects_bound_after_execution"] = objects
             self.write_json("objects.json", objects)
-            self.write_json("cargo-events.json", [item["cargo_artifact"] for item in objects])
+            self.write_json("cargo-events.json", [self.cpu_companion, *(item["cargo_artifact"] for item in objects)])
             self.finish_manifest()
             with self.assertRaises(ValueError):
                 QUALIFIER.validate_evidence(self.root, self.directory)

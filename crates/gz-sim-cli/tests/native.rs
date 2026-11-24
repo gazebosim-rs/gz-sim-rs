@@ -229,3 +229,37 @@ fn second_termination_signal_exits_when_final_output_is_blocked() {
     );
     assert!(stopped.stderr.is_empty(), "{stopped:?}");
 }
+
+#[cfg(unix)]
+#[path = "private/local_contact_replay.rs"]
+mod local_contact_replay;
+
+#[path = "private/local_robot_operator.rs"]
+mod local_robot_operator;
+
+fn candidate_port() -> u16 {
+    use std::net::{Ipv4Addr, TcpListener};
+    TcpListener::bind((Ipv4Addr::LOCALHOST, 0))
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port()
+}
+
+fn listen_line(process: &mut Process) -> String {
+    use std::io::{BufRead, BufReader};
+    let mut err = process.0.as_mut().unwrap().stderr.take().unwrap();
+    let (sender, receiver) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut line = String::new();
+        let result = BufReader::new(&mut err).read_line(&mut line).map(|_| line);
+        let _ = sender.send((result, err));
+    });
+    let (line, err) = receiver.recv_timeout(Duration::from_secs(12)).unwrap();
+    process.0.as_mut().unwrap().stderr = Some(err);
+    line.unwrap()
+}
+
+#[cfg(all(unix, feature = "distributed-physics"))]
+#[path = "private/warm_physics_cli.rs"]
+mod warm_physics_cli;

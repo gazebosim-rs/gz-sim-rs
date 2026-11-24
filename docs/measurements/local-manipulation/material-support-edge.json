@@ -1,0 +1,913 @@
+{
+  "revisions": [
+    "6e89969",
+    "117da97",
+    "744ee0b"
+  ],
+  "infinite_plane": [
+    {
+      "distance_m": [
+        0.0,
+        0.46253095922429033
+      ],
+      "material_substeps": [
+        1,
+        1
+      ],
+      "reset_states": 81,
+      "sliding_analytic_distance_m": 0.4568207004684339,
+      "sliding_analytic_speed_m_s": 1.1420517511710848,
+      "sliding_friction": 0.1,
+      "slope": 0.25,
+      "speed_m_s": [
+        1.6829289700449348e-18,
+        1.1420517511710857
+      ],
+      "static_plane_friction": [
+        0.55,
+        0.1
+      ],
+      "step_ns": 10000000,
+      "support_impulse_ns": [
+        [
+          7.891971390120502e-17,
+          0.0,
+          1.5695999999999979
+        ],
+        [
+          0.2215905882352942,
+          0.0,
+          1.5142023529411777
+        ]
+      ]
+    },
+    {
+      "distance_m": [
+        0.0,
+        0.45967582984636096
+      ],
+      "material_substeps": [
+        2,
+        2
+      ],
+      "reset_states": 81,
+      "sliding_analytic_distance_m": 0.4568207004684339,
+      "sliding_analytic_speed_m_s": 1.1420517511710848,
+      "sliding_friction": 0.1,
+      "slope": 0.25,
+      "speed_m_s": [
+        8.414644850224701e-19,
+        1.1420517511710881
+      ],
+      "static_plane_friction": [
+        0.55,
+        0.1
+      ],
+      "step_ns": 10000000,
+      "support_impulse_ns": [
+        [
+          -8.163404592824609e-19,
+          0.0,
+          1.569599999999998
+        ],
+        [
+          0.22159058823529418,
+          0.0,
+          1.5142023529411763
+        ]
+      ]
+    },
+    {
+      "distance_m": [
+        0.0,
+        0.4582482651573958
+      ],
+      "material_substeps": [
+        4,
+        4
+      ],
+      "reset_states": 81,
+      "sliding_analytic_distance_m": 0.4568207004684339,
+      "sliding_analytic_speed_m_s": 1.1420517511710848,
+      "sliding_friction": 0.1,
+      "slope": 0.25,
+      "speed_m_s": [
+        3.6814071219656538e-19,
+        1.142051751171079
+      ],
+      "static_plane_friction": [
+        0.55,
+        0.1
+      ],
+      "step_ns": 10000000,
+      "support_impulse_ns": [
+        [
+          6.989915182610016e-17,
+          0.0,
+          1.5695999999999988
+        ],
+        [
+          0.2215905882352945,
+          0.0,
+          1.5142023529411792
+        ]
+      ]
+    },
+    {
+      "distance_m": [
+        0.0,
+        0.45753448281291326
+      ],
+      "material_substeps": [
+        8,
+        8
+      ],
+      "reset_states": 81,
+      "sliding_analytic_distance_m": 0.4568207004684339,
+      "sliding_analytic_speed_m_s": 1.1420517511710848,
+      "sliding_friction": 0.1,
+      "slope": 0.25,
+      "speed_m_s": [
+        1.3147882578448089e-19,
+        1.1420517511710686
+      ],
+      "static_plane_friction": [
+        0.55,
+        0.1
+      ],
+      "step_ns": 10000000,
+      "support_impulse_ns": [
+        [
+          1.4239482182985222e-15,
+          0.0,
+          1.5696000000000037
+        ],
+        [
+          0.22159058823529518,
+          0.0,
+          1.5142023529411837
+        ]
+      ]
+    }
+  ],
+  "finite_board": [
+    {
+      "departure": {
+        "last_loaded_tick": 108,
+        "max_free_velocity_change_error_m_s": 6.938893903907228e-17,
+        "unsupported_ticks": 12
+      },
+      "distance_m": [
+        0.0,
+        0.4625309592242897
+      ],
+      "material_substeps": [
+        1,
+        1
+      ],
+      "on_board_measurement_ticks": 80,
+      "reset_states": 121,
+      "sliding_analytic_distance_m": 0.4568207004684339,
+      "sliding_analytic_speed_m_s": 1.1420517511710848,
+      "sliding_friction": 0.1,
+      "slope": 0.25,
+      "speed_m_s": [
+        -1.0518306062781114e-18,
+        1.1420517511710844
+      ],
+      "static_plane_friction": [
+        0.55,
+        0.1
+      ],
+      "step_ns": 10000000,
+      "support_impulse_ns": [
+        [
+          -5.796017260910994e-17,
+          0.0,
+          1.5695999999999988
+        ],
+        [
+          0.22159058823529412,
+          0.0,
+          1.514202352941178
+        ]
+      ]
+    },
+    {
+      "departure": {
+        "last_loaded_tick": 108,
+        "max_free_velocity_change_error_m_s": 6.938893903907228e-17,
+        "unsupported_ticks": 12
+      },
+      "distance_m": [
+        0.0,
+        0.4596758298463597
+      ],
+      "material_substeps": [
+        2,
+        2
+      ],
+      "on_board_measurement_ticks": 80,
+      "reset_states": 121,
+      "sliding_analytic_distance_m": 0.4568207004684339,
+      "sliding_analytic_speed_m_s": 1.1420517511710848,
+      "sliding_friction": 0.1,
+      "slope": 0.25,
+      "speed_m_s": [
+        -7.362814243948526e-19,
+        1.1420517511710824
+      ],
+      "static_plane_friction": [
+        0.55,
+        0.1
+      ],
+      "step_ns": 10000000,
+      "support_impulse_ns": [
+        [
+          -2.877600118973534e-17,
+          0.0,
+          1.5695999999999988
+        ],
+        [
+          0.22159058823529426,
+          0.0,
+          1.5142023529411779
+        ]
+      ]
+    },
+    {
+      "departure": {
+        "last_loaded_tick": 108,
+        "max_free_velocity_change_error_m_s": 3.7470027081099033e-16,
+        "unsupported_ticks": 12
+      },
+      "distance_m": [
+        0.0,
+        0.4582482651573982
+      ],
+      "material_substeps": [
+        4,
+        4
+      ],
+      "on_board_measurement_ticks": 80,
+      "reset_states": 121,
+      "sliding_analytic_distance_m": 0.4568207004684339,
+      "sliding_analytic_speed_m_s": 1.1420517511710848,
+      "sliding_friction": 0.1,
+      "slope": 0.25,
+      "speed_m_s": [
+        -2.629576515693562e-19,
+        1.1420517511710848
+      ],
+      "static_plane_friction": [
+        0.55,
+        0.1
+      ],
+      "step_ns": 10000000,
+      "support_impulse_ns": [
+        [
+          9.77335338197263e-17,
+          0.0,
+          1.5696000000000006
+        ],
+        [
+          0.22159058823529404,
+          0.0,
+          1.5142023529411774
+        ]
+      ]
+    },
+    {
+      "departure": {
+        "last_loaded_tick": 108,
+        "max_free_velocity_change_error_m_s": 5.134781488891349e-16,
+        "unsupported_ticks": 12
+      },
+      "distance_m": [
+        0.0,
+        0.4575344828129143
+      ],
+      "material_substeps": [
+        8,
+        8
+      ],
+      "on_board_measurement_ticks": 80,
+      "reset_states": 121,
+      "sliding_analytic_distance_m": 0.4568207004684339,
+      "sliding_analytic_speed_m_s": 1.1420517511710848,
+      "sliding_friction": 0.1,
+      "slope": 0.25,
+      "speed_m_s": [
+        -1.5777459094400907e-19,
+        1.1420517511710842
+      ],
+      "static_plane_friction": [
+        0.55,
+        0.1
+      ],
+      "step_ns": 10000000,
+      "support_impulse_ns": [
+        [
+          -3.2806682207504616e-17,
+          0.0,
+          1.5695999999999979
+        ],
+        [
+          0.22159058823529418,
+          0.0,
+          1.5142023529411783
+        ]
+      ]
+    }
+  ],
+  "finite_board_viewer": {
+    "frames": 121,
+    "renderer": "WebGPU",
+    "body_poses_and_shapes_checked": 605,
+    "independent_particle_positions_checked": 484,
+    "reset_ms": 0.0,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10002%2F"
+  },
+  "fine_plane_viewer": {
+    "frames": 81,
+    "renderer": "WebGPU",
+    "body_poses_and_shapes_checked": 405,
+    "independent_particle_positions_checked": 324,
+    "reset_ms": 0.0,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9998%2F"
+  },
+  "cloth_comparison_to_1000": {
+    "max_particle_tolerance_m": 0.0001,
+    "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+    "reference_checked": false,
+    "reference_exchanges_per_ms": 1000,
+    "selected_exchanges_per_ms": null,
+    "trials": [
+      {
+        "exchanges_per_ms": 16,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          4.0217074549318824e-05,
+          3.998163523585531e-05
+        ],
+        "max_particle_error_location": {
+          "particle": 11,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.00012640453537295554,
+        "mean_hold_jaw_load_n": [
+          0.04120833264576385,
+          0.04120175359808266
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 4048573,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 250,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          7.07049365185408e-07,
+          5.326525577561927e-07
+        ],
+        "max_particle_error_location": {
+          "particle": 8,
+          "time_ns": 2800000000
+        },
+        "max_particle_error_m": 0.0002015389660723632,
+        "mean_hold_jaw_load_n": [
+          0.04120507686164858,
+          0.04120500435205127
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 62102144,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 500,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          3.938683631491369e-09,
+          8.738100304355754e-08
+        ],
+        "max_particle_error_location": {
+          "particle": 8,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.00019507899208308653,
+        "mean_hold_jaw_load_n": [
+          0.041205018922515976,
+          0.04120505544529681
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 120430395,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 1000,
+        "first_particle_outside_tolerance": null,
+        "jaw_load_error_fraction_of_weight": [
+          0.0,
+          0.0
+        ],
+        "max_particle_error_location": null,
+        "max_particle_error_m": 0.0,
+        "mean_hold_jaw_load_n": [
+          0.04120501859795269,
+          0.041205048244752636
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 239867285,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      }
+    ],
+    "verification_exchanges_per_ms": 500
+  },
+  "cloth_comparison_to_2000": {
+    "max_particle_tolerance_m": 0.0001,
+    "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+    "reference_checked": false,
+    "reference_exchanges_per_ms": 2000,
+    "selected_exchanges_per_ms": null,
+    "trials": [
+      {
+        "exchanges_per_ms": 16,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          4.023070268396941e-05,
+          3.991830235844183e-05
+        ],
+        "max_particle_error_location": {
+          "particle": 8,
+          "time_ns": 2750000000
+        },
+        "max_particle_error_m": 0.00040807768514706974,
+        "mean_hold_jaw_load_n": [
+          0.04120833264576385,
+          0.04120175359808266
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 4048573,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 250,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          7.206774998359909e-07,
+          4.693196803427172e-07
+        ],
+        "max_particle_error_location": {
+          "particle": 8,
+          "time_ns": 2775000000
+        },
+        "max_particle_error_m": 0.0005135212795667968,
+        "mean_hold_jaw_load_n": [
+          0.04120507686164858,
+          0.04120500435205127
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 62102144,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 500,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          1.756681828207418e-08,
+          1.5071388045703314e-07
+        ],
+        "max_particle_error_location": {
+          "particle": 9,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.00024729037192924077,
+        "mean_hold_jaw_load_n": [
+          0.041205018922515976,
+          0.04120505544529681
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 120430395,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 1000,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          1.3628134650582812e-08,
+          6.333287741347562e-08
+        ],
+        "max_particle_error_location": {
+          "particle": 6,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.0003283049302547338,
+        "mean_hold_jaw_load_n": [
+          0.04120501859795269,
+          0.041205048244752636
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 239867285,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 2000,
+        "first_particle_outside_tolerance": null,
+        "jaw_load_error_fraction_of_weight": [
+          0.0,
+          0.0
+        ],
+        "max_particle_error_location": null,
+        "max_particle_error_m": 0.0,
+        "mean_hold_jaw_load_n": [
+          0.04120501747493988,
+          0.041205043025870206
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 448675227,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      }
+    ],
+    "verification_exchanges_per_ms": 1000
+  },
+  "public_clock": {
+    "fine_ticks": 54400,
+    "max_end_com_torque_error_nm": 1.6940659108260305e-16,
+    "max_pad_angular_impulse_error_nms": 1.6940659108260306e-19,
+    "max_pad_linear_impulse_error_ns": 2.169462877787276e-19,
+    "max_particle_position_error_m": 0.0,
+    "max_particle_velocity_error_m_s": 0.0,
+    "max_structural_node_impulse_error_ns": 0.0,
+    "max_torque_origin_shift_nm": 0.00016020425144526223,
+    "public_ticks": 3400
+  },
+  "matched_cuts": {
+    "velocity": {
+      "native_intervals_reproduced": 15000,
+      "native_step_ns": 2000,
+      "actuator_ns": 1000000,
+      "cut_start_ns": 2680000000,
+      "end_ns": 2710000000,
+      "branches": [
+        {
+          "exchanges_per_ms": 500,
+          "first_table_end_ns": 2689284000,
+          "first_table_impulse_ns": [
+            6.546045660320921e-07,
+            1.002625518742912e-07,
+            9.14191898853461e-05
+          ],
+          "signed_total_table_impulse_ns": [
+            -3.7423809849085535e-05,
+            -5.651714461346022e-06,
+            0.0027456208739342885
+          ],
+          "max_distance_from_native_m": 0.0,
+          "peak_ns": 2710000000
+        },
+        {
+          "exchanges_per_ms": 1000,
+          "first_table_end_ns": 2689286000,
+          "first_table_impulse_ns": [
+            1.6004042276855435e-06,
+            -5.409075652289897e-08,
+            0.0001828196542289629
+          ],
+          "signed_total_table_impulse_ns": [
+            -3.376898964083201e-05,
+            2.6999491488083396e-05,
+            0.002762615296483069
+          ],
+          "max_distance_from_native_m": 1.8280895946693085e-05,
+          "peak_ns": 2708894000
+        },
+        {
+          "exchanges_per_ms": 2000,
+          "first_table_end_ns": 2689286000,
+          "first_table_impulse_ns": [
+            1.6052599970294627e-06,
+            -4.988867552018803e-08,
+            0.00018278983763243354
+          ],
+          "signed_total_table_impulse_ns": [
+            -5.071970124885137e-05,
+            4.0728534406807374e-05,
+            0.002796102551093994
+          ],
+          "max_distance_from_native_m": 2.7681209345339588e-05,
+          "peak_ns": 2709014000
+        },
+        {
+          "exchanges_per_ms": 4000,
+          "first_table_end_ns": 2689286000,
+          "first_table_impulse_ns": [
+            1.6078957764513182e-06,
+            -4.730445686426802e-08,
+            0.00018277607422071093
+          ],
+          "signed_total_table_impulse_ns": [
+            -5.197413648893904e-05,
+            5.5802972088429194e-05,
+            0.002796585787812432
+          ],
+          "max_distance_from_native_m": 3.841603254185049e-05,
+          "peak_ns": 2710000000
+        }
+      ],
+      "sampled_1000_vs_2000": {
+        "max_m": 1.7163771084261642e-05,
+        "time_ns": 2709142000,
+        "particle": 9,
+        "first_over_100um_ns": null,
+        "sample_points": 1932,
+        "node_count": 12
+      },
+      "sampled_2000_vs_4000": {
+        "max_m": 1.7720884624533934e-05,
+        "time_ns": 2710000000,
+        "particle": 3,
+        "first_over_100um_ns": null,
+        "sample_points": 1932,
+        "node_count": 12
+      },
+      "viewer": {
+        "frames": 161,
+        "renderer": "WebGPU",
+        "body_poses_and_shapes_checked": 5635,
+        "independent_particle_positions_checked": 1932,
+        "reset_ms": 2680.002,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10007%2F"
+      }
+    },
+    "position": {
+      "native_intervals_reproduced": 15000,
+      "native_step_ns": 2000,
+      "actuator_ns": 1000000,
+      "cut_start_ns": 2680000000,
+      "end_ns": 2710000000,
+      "branches": [
+        {
+          "exchanges_per_ms": 500,
+          "first_table_end_ns": 2689248000,
+          "first_table_impulse_ns": [
+            -9.251771634473589e-07,
+            1.4746622850005155e-07,
+            9.109320923368577e-05
+          ],
+          "signed_total_table_impulse_ns": [
+            -1.0087305981961053e-05,
+            1.7403962633832617e-05,
+            0.002614900161401302
+          ],
+          "max_distance_from_native_m": 0.0,
+          "peak_ns": 2710000000
+        },
+        {
+          "exchanges_per_ms": 1000,
+          "first_table_end_ns": 2689250000,
+          "first_table_impulse_ns": [
+            -1.5969596651135639e-06,
+            3.364433471051311e-08,
+            0.00018236562925141398
+          ],
+          "signed_total_table_impulse_ns": [
+            -8.356834624954795e-06,
+            -1.961470649462502e-05,
+            0.0027233160593024062
+          ],
+          "max_distance_from_native_m": 6.815226405731901e-05,
+          "peak_ns": 2710000000
+        },
+        {
+          "exchanges_per_ms": 2000,
+          "first_table_end_ns": 2689250000,
+          "first_table_impulse_ns": [
+            -1.60064704429092e-06,
+            2.808098702912047e-08,
+            0.0001823367225304474
+          ],
+          "signed_total_table_impulse_ns": [
+            -2.5875077257848944e-05,
+            8.116439947322447e-06,
+            0.002782019832641176
+          ],
+          "max_distance_from_native_m": 8.545239196361495e-05,
+          "peak_ns": 2710000000
+        },
+        {
+          "exchanges_per_ms": 4000,
+          "first_table_end_ns": 2689250000,
+          "first_table_impulse_ns": [
+            -1.6021647571840423e-06,
+            2.4586947015432676e-08,
+            0.00018232393942909107
+          ],
+          "signed_total_table_impulse_ns": [
+            7.421741704418956e-06,
+            5.488976741842773e-05,
+            0.002747487421443319
+          ],
+          "max_distance_from_native_m": 8.504725012717067e-05,
+          "peak_ns": 2710000000
+        }
+      ],
+      "sampled_1000_vs_2000": {
+        "max_m": 3.7089777070755206e-05,
+        "time_ns": 2710000000,
+        "particle": 3,
+        "first_over_100um_ns": null,
+        "sample_points": 1932,
+        "node_count": 12
+      },
+      "sampled_2000_vs_4000": {
+        "max_m": 2.7512207776987015e-05,
+        "time_ns": 2710000000,
+        "particle": 2,
+        "first_over_100um_ns": null,
+        "sample_points": 1932,
+        "node_count": 12
+      },
+      "viewer": {
+        "frames": 161,
+        "renderer": "WebGPU",
+        "body_poses_and_shapes_checked": 5635,
+        "independent_particle_positions_checked": 1932,
+        "reset_ms": 2680.002,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10006%2F"
+      }
+    }
+  },
+  "incremental_coverage": {
+    "sliding": {
+      "crates/gz-physics-xpbd/src/collision.rs": {
+        "lines": {
+          "hit": 11,
+          "total": 11,
+          "missing": []
+        },
+        "regions": {
+          "hit": 19,
+          "total": 19,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+        "lines": {
+          "hit": 2,
+          "total": 2,
+          "missing": []
+        },
+        "regions": {
+          "hit": 7,
+          "total": 7,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/material_incline.rs": {
+        "lines": {
+          "hit": 12,
+          "total": 12,
+          "missing": []
+        },
+        "regions": {
+          "hit": 53,
+          "total": 53,
+          "missing": []
+        }
+      }
+    },
+    "finite-board": {
+      "crates/gz-physics-xpbd/src/collision.rs": {
+        "lines": {
+          "hit": 33,
+          "total": 33,
+          "missing": []
+        },
+        "regions": {
+          "hit": 62,
+          "total": 62,
+          "missing": []
+        }
+      },
+      "crates/gz-physics-xpbd/src/lib.rs": {
+        "lines": {
+          "hit": 0,
+          "total": 0,
+          "missing": []
+        },
+        "regions": {
+          "hit": 0,
+          "total": 0,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+        "lines": {
+          "hit": 6,
+          "total": 6,
+          "missing": []
+        },
+        "regions": {
+          "hit": 11,
+          "total": 11,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/material_incline.rs": {
+        "lines": {
+          "hit": 39,
+          "total": 39,
+          "missing": []
+        },
+        "regions": {
+          "hit": 99,
+          "total": 100,
+          "missing": [
+            [
+              99,
+              44,
+              99,
+              45
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "saved_material_compatibility": {
+    "old_source": "5f06f6f",
+    "implementation": "2516e52",
+    "original_seed_sha256": "28f3ad2e410f478df96469e2b6ea21e5d23b3e869e8ce54d779cf79c54c1fe41",
+    "fixture": "two material points with inverse masses 2.5 and 1.25, on an infinite plane and a finite box; horizontal acceleration of 2 or 6 m/s\u00b2; vertical acceleration of -10 m/s\u00b2",
+    "ticks_per_configuration": 25,
+    "step_ns": 5000000,
+    "original_law": "9d67f7d0dcf4b3abfe9d396a4eca2b228c767525b2c29d680d6728b712af6076",
+    "original_trace_sha256": [
+      "8023afae1592b9287eb3669b90ade220f7edb4e4e0059193c3e83e8b4f3d43e8",
+      "f029925f463b1bbdedce48b3b74742424085a10f7f980bf0e1283570376c8421",
+      "c437e58dcd1c51dc6d9a1fa78b4b751f6fc14316664c9782ded5a3f50fefadf3",
+      "e38f8fda104ba2935abda7f09af8496d457d490674306bdc1b7917227204ec8c"
+    ],
+    "default_release_tests_passed": 212,
+    "all_features_release_tests_passed": 220,
+    "changed_production_coverage": {
+      "crates/gz-physics-xpbd/src/collision.rs": {
+        "lines": {
+          "hit": 20,
+          "total": 20,
+          "missing": []
+        },
+        "regions": {
+          "hit": 36,
+          "total": 36,
+          "missing": []
+        }
+      },
+      "crates/gz-physics-xpbd/src/lib.rs": {
+        "lines": {
+          "hit": 1,
+          "total": 1,
+          "missing": []
+        },
+        "regions": {
+          "hit": 1,
+          "total": 1,
+          "missing": []
+        }
+      },
+      "crates/gz-physics-xpbd/src/one_way_checkpoint.rs": {
+        "lines": {
+          "hit": 22,
+          "total": 22,
+          "missing": []
+        },
+        "regions": {
+          "hit": 19,
+          "total": 19,
+          "missing": []
+        }
+      }
+    }
+  }
+}

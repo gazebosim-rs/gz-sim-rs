@@ -180,13 +180,13 @@ pub(super) struct Committed {
 // and returns only the validated constant, so no input borrow is retained.
 type StaticKind = &'static str;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct TemplateInfo {
     template_id: u64,
     label: String,
 }
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Model {
     model_id: u64,
@@ -195,7 +195,7 @@ pub(super) struct Model {
     can_remove: bool,
     can_set_state: bool,
 }
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Catalog {
     version: u8,
@@ -203,7 +203,7 @@ pub(super) struct Catalog {
     kind: StaticKind,
     world_id: u64,
     epoch: u64,
-    scene_sequence: u64,
+    pub(super) scene_sequence: u64,
     templates: Vec<TemplateInfo>,
     models: Vec<Model>,
 }
@@ -295,7 +295,7 @@ impl Catalog {
     pub(super) fn replay_encode(&self) -> io::Result<String> {
         self.encode()
     }
-    fn encode(&self) -> io::Result<String> {
+    pub(super) fn encode(&self) -> io::Result<String> {
         let mut owned = BTreeSet::new();
         let mut models = BTreeSet::new();
         if self.world_id == 0
@@ -371,11 +371,13 @@ struct Ack {
 
 struct Template {
     info: TemplateInfo,
-    native: ModelTemplate,
+    native: Arc<ModelTemplate>,
     visual: snapshot::Visual,
 }
 
 pub(super) struct Lifecycle {
+    can_edit_state: bool,
+    fixed_population: bool,
     templates: Vec<Template>,
     pub pending: Vec<Pending>,
     replies: Vec<(Pending, String)>,
@@ -387,12 +389,19 @@ impl Lifecycle {
         world_name: &str,
         scene: &snapshot::Scene,
     ) -> io::Result<Self> {
-        let backend = sim
-            .world()
-            .get_resource::<gz_physics::PhysicsBackend>()
-            .ok_or_else(invalid)?;
-        if backend.engine() != "rapier" {
-            return Err(invalid());
+        #[cfg(feature = "gpu-batch")]
+        let fixed_population = gz_sim_scene::gpu_scene::fixed_population(sim);
+        #[cfg(not(feature = "gpu-batch"))]
+        let fixed_population = false;
+        let can_edit_state = !fixed_population;
+        if !fixed_population {
+            let backend = sim
+                .world()
+                .get_resource::<gz_physics::PhysicsBackend>()
+                .ok_or_else(invalid)?;
+            if !matches!(backend.engine(), "rapier" | "distributed" | "distributed-pool" | "multifidelity") {
+                return Err(invalid());
+            }
         }
         let source = sdf
             .worlds
@@ -400,18 +409,48 @@ impl Lifecycle {
             .find(|world| world.name == world_name)
             .ok_or_else(invalid)?;
         let mut templates = Vec::new();
-        for model in &source.models {
-            let native = match prepare_model_template(sim, sdf, model) {
-                Ok(template) => template,
-                Err(gz_sim_scene::WorldEditError::UnsupportedModel) => continue,
-                Err(_) => return Err(invalid()),
+        for model in source.models.iter().filter(|_| !fixed_population) {
+            #[cfg(feature = "distributed-physics")]
+            let retained = sim
+                .world()
+                .get_resource::<gz_sim_scene::passive_checkpoint::RestoredTemplates>()
+                .and_then(|templates| templates.by_name(&model.scoped_name));
+            #[cfg(not(feature = "distributed-physics"))]
+            let retained: Option<Arc<ModelTemplate>> = None;
+            let native = if let Some(template) = &retained {
+                Arc::clone(template)
+            } else {
+                match prepare_model_template(sim, sdf, model) {
+                    Ok(template) => Arc::new(template),
+                    Err(gz_sim_scene::WorldEditError::UnsupportedModel) => continue,
+                    Err(_) => return Err(invalid()),
+                }
             };
             if templates.len() == 128 || model.name.len() > 256 {
                 return Err(invalid());
             }
-            let visual = scene
-                .visual(native.source_visual_id())
-                .ok_or_else(invalid)?;
+            let visual = if let Some(visual) = scene.visual(native.source_visual_id()) {
+                visual
+            } else if retained.is_some() {
+                // The live instance was retired. Its original public template, including
+                // exact visual geometry/material, still belongs to this restored world.
+                let link = &model.links[0];
+                let visual = &link.visuals[0];
+                snapshot::visual_definition(
+                    native.source_visual_id(),
+                    &format!("{}::{}", link.scoped_name, visual.name),
+                    WorldPose {
+                        translation: [0.; 3],
+                        rotation: [0., 0., 0., 1.],
+                    },
+                    visual.geometry.as_ref().ok_or_else(invalid)?,
+                    visual.material.as_deref(),
+                    &visual.properties,
+                    None,
+                )?
+            } else {
+                return Err(invalid());
+            };
             templates.push(Template {
                 info: TemplateInfo {
                     template_id: templates.len() as u64 + 1,
@@ -422,6 +461,8 @@ impl Lifecycle {
             });
         }
         let result = Self {
+            can_edit_state,
+            fixed_population,
             templates,
             pending: Vec::new(),
             replies: Vec::new(),
@@ -430,7 +471,7 @@ impl Lifecycle {
         Ok(result)
     }
 
-    fn catalog(&self, sim: &Simulation, scene: &snapshot::Scene) -> io::Result<Catalog> {
+    pub(super) fn catalog(&self, sim: &Simulation, scene: &snapshot::Scene) -> io::Result<Catalog> {
         let world = sim.world();
         let visible: BTreeSet<_> = scene.visual_ids().collect();
         let mut models = Vec::new();
@@ -467,12 +508,12 @@ impl Lifecycle {
                 continue;
             }
             visuals.sort_unstable();
-            let admitted = model_state(sim, id).is_ok();
+            let admitted = self.can_edit_state && model_state(sim, id).is_ok();
             models.push(Model {
                 model_id: id,
                 name: root.get::<Name>().ok_or_else(invalid)?.0.clone(),
                 visual_ids: visuals,
-                can_remove: admitted,
+                can_remove: admitted && !self.fixed_population,
                 can_set_state: admitted,
             });
         }

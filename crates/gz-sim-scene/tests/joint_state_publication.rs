@@ -125,3 +125,128 @@ fn unsupported_configuration_does_not_silently_degrade_to_a_publisher() {
     );
     assert!(load(&multi).is_err());
 }
+
+#[test]
+fn the_local_transfer_robot_publishes_its_sliders_and_spindle_and_repeats_after_reset() {
+    use gz_sim_scene::{JointForceCommand, JointStateKind};
+    use std::time::Duration;
+    const TRANSFER: &str = include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf");
+    let make = |xml: &str| {
+        load_world_with_sdf_step(
+            xml,
+            "transfer.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::MultiFidelity,
+        )
+    };
+    let filtered = TRANSFER.replace("        <joint_name>wrist</joint_name>\n", "");
+    let mut single_axes = make(&filtered).unwrap();
+    single_axes.step_exact(10).unwrap();
+    assert!(
+        single_axes
+            .world()
+            .iter_entities()
+            .find_map(|n| n.get::<JointStateSample>())
+            .unwrap()
+            .second_axes
+            .is_empty()
+    );
+    let mut sim = make(TRANSFER).unwrap();
+    let model = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<Name>().is_some_and(|n| n.0 == "default::gripper"))
+        .unwrap()
+        .id();
+    let config = sim
+        .world()
+        .get::<JointStatePublication>(model)
+        .unwrap()
+        .clone();
+    assert_eq!(config.topic, "/world/default/model/gripper/joint_state");
+    assert_eq!(
+        config
+            .joints
+            .iter()
+            .map(|j| j.name.as_str())
+            .collect::<Vec<_>>(),
+        ["travel", "spindle", "wrist", "close_left", "close_right"]
+    );
+    assert_eq!(
+        config.joints.iter().map(|j| j.kind).collect::<Vec<_>>(),
+        [
+            JointStateKind::Prismatic,
+            JointStateKind::Screw,
+            JointStateKind::Universal,
+            JointStateKind::Prismatic,
+            JointStateKind::Prismatic
+        ]
+    );
+    let gap = |sim: &Simulation| {
+        let z = |name: &str| {
+            sim.world()
+                .iter_entities()
+                .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
+                .unwrap()
+                .get::<gz_sim_scene::WorldPose>()
+                .unwrap()
+                .translation[2]
+        };
+        z("default::gripper::nut") - z("default::gripper::carriage")
+    };
+    let initial_gap = gap(&sim);
+    let model_id = sim.world().get::<EntityId>(model).unwrap().get();
+    let mut passes = Vec::new();
+    for pass in 0..2 {
+        if pass == 1 {
+            gz_sim_scene::reset_loaded_world(&mut sim, |_| ()).unwrap();
+        }
+        let model = gz_sim_core::entity_by_id(sim.world(), model_id).unwrap();
+        assert!(sim.world().get::<JointStateSample>(model).is_none());
+        JointForceCommand::set_batch(&mut sim, [(config.joints[0].id, 2.)]).unwrap();
+        sim.step_exact(9).unwrap();
+        assert!(sim.world().get::<JointStateSample>(model).is_none());
+        let mut readings = Vec::new();
+        for tick in [10, 20, 30] {
+            sim.step_exact(if tick == 10 { 1 } else { 10 }).unwrap();
+            let sample = sim.world().get::<JointStateSample>(model).unwrap();
+            assert_eq!(sample.time, Duration::from_millis(tick));
+            assert_eq!(sample.epoch, sim.epoch());
+            assert_eq!(sample.joints.len(), 5);
+            assert_eq!(sample.second_axes.len(), 1);
+            for (reading, joint) in sample.joints.iter().zip(&config.joints) {
+                assert_eq!(reading.id, joint.id);
+                let entity = gz_sim_core::entity_by_id(sim.world(), joint.id).unwrap();
+                if joint.kind.has_second_axis() {
+                    let wrist = sim
+                        .world()
+                        .get::<gz_sim_scene::UniversalJointSample>(entity)
+                        .unwrap();
+                    let second = sample.second_axes[0];
+                    assert_eq!(second.id, reading.id);
+                    assert_eq!([reading.position, second.position], wrist.state.position);
+                    assert_eq!([reading.velocity, second.velocity], wrist.state.velocity);
+                    continue;
+                }
+                let native = sim
+                    .world()
+                    .resource::<PhysicsBackend>()
+                    .joint_state(sim.world().get::<JointHandle>(entity).unwrap().id())
+                    .unwrap();
+                assert_eq!(
+                    (reading.position, reading.velocity),
+                    (native.position, native.velocity)
+                );
+            }
+            let screw_travel = 0.50 / std::f64::consts::TAU * sample.joints[1].position;
+            assert!((gap(&sim) - initial_gap - screw_travel).abs() < 2e-5);
+            readings.push((sample.joints.clone(), sample.second_axes.clone()));
+        }
+        assert!(readings[2].0[0].position > 1e-5);
+        assert!(readings[2].0[1].position > 0.001);
+        assert!(readings[2].1[0].velocity.abs() > 0.001);
+        passes.push(readings);
+    }
+    assert_eq!(passes[0], passes[1]);
+}

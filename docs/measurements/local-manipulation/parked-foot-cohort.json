@@ -1,0 +1,447 @@
+{
+  "original_candidate": "8c57ff69ca134cba7d201f5e2d5f4eb28e599647",
+  "regression_sha256": "e26473599c67d37e0f61d8cc9c07913c938388c7c3eeebe8022bfb2819b27df7",
+  "world_sha256": "ffb9b0b774941bdceb01000f85fe6258e4d9eb3787253ab0d3f17da133d8499c",
+  "physical_runs": [
+    "frozen headless",
+    "frozen renderer",
+    "integration release without default features"
+  ],
+  "fixed_step_ns": 500000,
+  "foot_mass_kg": 2,
+  "gravity_m_s2": 9.81,
+  "withdrawal_m_s": 1.8,
+  "epoch_count": 2,
+  "observations_per_epoch": 601,
+  "checked_resumed_ticks": 300,
+  "archive_frames_sha256": "850f1d1ff7ed172d58713cbefe15f3248cd0bb7fb7a7a9b468eb3335fa13f1df",
+  "measured_states_sha256": "ebe0354b4fc807853129fc977a26931cdcd5bb6b62b7d23d0f585dba63eb72d7",
+  "measurements": [
+    {
+      "control_ns": [
+        0.005910812911094529,
+        0.0038991870889054747
+      ],
+      "control_position_m": [
+        2.1072094866481046,
+        -1.89975542673348,
+        0.6303015273145938
+      ],
+      "foot_position_m": [
+        2.1072094866481046,
+        -1.89975542673348,
+        0.6303015273145938
+      ],
+      "normal_impulse_ns": [
+        0.005910812911094529,
+        0.0038991870889054747
+      ],
+      "parked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "tick": 284
+    },
+    {
+      "control_ns": [
+        0.005910812911094529,
+        0.0038991870889054747
+      ],
+      "control_position_m": [
+        2.1072094866481046,
+        -1.89975542673348,
+        0.6303015273145938
+      ],
+      "foot_position_m": [
+        2.1072094866481046,
+        -1.89975542673348,
+        0.6303015273145938
+      ],
+      "normal_impulse_ns": [
+        0.0,
+        0.0
+      ],
+      "parked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "tick": 285
+    },
+    {
+      "control_ns": [
+        0.005910812911094529,
+        0.0038991870889054747
+      ],
+      "control_position_m": [
+        2.1072094866481046,
+        -1.89975542673348,
+        0.6303015273145938
+      ],
+      "foot_position_m": [
+        2.1072094866481046,
+        -1.89975542673348,
+        0.6303015273145938
+      ],
+      "normal_impulse_ns": [
+        0.0,
+        0.0
+      ],
+      "parked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "tick": 300
+    },
+    {
+      "control_ns": [
+        0.009907979621560484,
+        0.0
+      ],
+      "control_position_m": [
+        2.1072096881002484,
+        -1.8997553080994576,
+        0.6303012192006485
+      ],
+      "foot_position_m": [
+        2.1072096881002484,
+        -1.8997553080994576,
+        0.6303012192006485
+      ],
+      "normal_impulse_ns": [
+        0.009907979621560484,
+        0.0
+      ],
+      "parked": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "tick": 301
+    },
+    {
+      "control_ns": [
+        0.00980988635191199,
+        0.0
+      ],
+      "control_position_m": [
+        2.1072099138234024,
+        -1.899755161467466,
+        0.6303008934222043
+      ],
+      "foot_position_m": [
+        2.1072099138234024,
+        -1.899755161467466,
+        0.6303008934222043
+      ],
+      "normal_impulse_ns": [
+        0.00980988635191199,
+        0.0
+      ],
+      "parked": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "tick": 302
+    },
+    {
+      "control_ns": [
+        0.00977862192568424,
+        -0.0
+      ],
+      "control_position_m": [
+        2.108492724693666,
+        -1.8995905822403398,
+        0.6303076322662977
+      ],
+      "foot_position_m": [
+        2.108492724693666,
+        -1.8995905822403398,
+        0.6303076322662977
+      ],
+      "normal_impulse_ns": [
+        0.00977862192568424,
+        -0.0
+      ],
+      "parked": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "tick": 600
+    },
+    {
+      "max_displacement_m": [
+        4.87240969097611e-05,
+        0.0,
+        4.893808263739836e-05,
+        4.148423378578029e-05
+      ],
+      "max_impulse_error_ns": [
+        0.0,
+        0.0
+      ],
+      "max_rotation_rad": [
+        1.723540051438693e-05,
+        0.0,
+        1.627624320085089e-05,
+        2.0427184365522174e-05
+      ]
+    }
+  ],
+  "independent_coverage": [
+    {
+      "profile": "headless",
+      "original_elf_count": 787,
+      "original_llvm_export_sha256": "bb1f3374567ffa9121bb4cca7d679aefd40a3f1c5e8fa1521dd53282dcbebda7",
+      "original_object_index_sha256": "52d2b8a833562732c376dbd4bdda1ba9dca93dc7a49922047a0188cd0329af01",
+      "original_profdata_sha256": "8edf0c9b6f17f53ef12bcdf6b05b0a467442554f0a8a1a766adf13a49ac5807b",
+      "executed": {
+        "simulator": {
+          "elf_sha256": "da7c44e4d5fd3533c47a756c7bdfbd4f1ac4fa25c6aad7782a1364057588c99c",
+          "build_id": "196004cbfb39f80ffe31b65efbeeee28fbf6ae03",
+          "profraw_sha256": "c184dadd724938cf622e9fe78db1d0d02191b5a3d1d42e47a35ffe05be7e8c13"
+        },
+        "test": {
+          "elf_sha256": "8570847ea3cf9162d0afcfb15a03504aa1b62f6819f3e1c6cbfb0ee876e45301",
+          "build_id": "21eec536a3291a1d2263635819054f535a16ff0f",
+          "profraw_sha256": "4e2d3b5a7c45747c8ca1174520eeedc7f221ce5ce5b108c206dd11ff3a7008f4"
+        }
+      },
+      "counts_before_after_total": {
+        "gz-sim-cli": {
+          "lines": [
+            7058,
+            7068,
+            7852
+          ],
+          "regions": [
+            11941,
+            11958,
+            13427
+          ]
+        },
+        "gz-sim-scene": {
+          "lines": [
+            26842,
+            26884,
+            28981
+          ],
+          "regions": [
+            40732,
+            40814,
+            44764
+          ]
+        }
+      },
+      "additional_covered": {
+        "gz-sim-cli": {
+          "gz-sim-cli/src/live.rs": {
+            "lines": 5,
+            "regions": 9
+          },
+          "gz-sim-cli/src/main.rs": {
+            "lines": 5,
+            "regions": 8
+          }
+        },
+        "gz-sim-scene": {
+          "gz-sim-scene/src/articulation.rs": {
+            "lines": 7,
+            "regions": 19
+          },
+          "gz-sim-scene/src/fidelity_zone.rs": {
+            "lines": 35,
+            "regions": 63
+          }
+        }
+      },
+      "regression": {
+        "lines": [
+          336,
+          336
+        ],
+        "regions": [
+          652,
+          653
+        ]
+      }
+    },
+    {
+      "profile": "renderer",
+      "original_elf_count": 470,
+      "original_llvm_export_sha256": "92cf388668734d0de32e1882685e06060644cfab3890b57f60da593820b6916e",
+      "original_object_index_sha256": "b1fa992a48d8869850a6c20880aeeb2e604ab4ffcf0d398730814d172752166a",
+      "original_profdata_sha256": "5ba96f8c63987dfb9edac0e797b76fce7393712195d667b31c65cec21d859311",
+      "executed": {
+        "simulator": {
+          "elf_sha256": "54e5ba9a2448e446c6f29599b94dbd249c6440e1acb0d1258d3f828fc1d5e4fd",
+          "build_id": "47944f401d21e3c8f8dca15af3499cb3f4926a24",
+          "profraw_sha256": "4f4939519aa60f01e34143f0fffd4f186e5307f73d85c0301267fcee163b8974"
+        },
+        "test": {
+          "elf_sha256": "4172b782c38dbe7c934190a1821acd00bd1f153771d32169d5e74b51b5cf2c1f",
+          "build_id": "93e7c51208db250ec740827f474ce2a8251b7dce",
+          "profraw_sha256": "86fdbc03f7eb9d18610a47da852fcb0018e76de078ef7e6de02d1bab63a25339"
+        }
+      },
+      "counts_before_after_total": {
+        "gz-sim-cli": {
+          "lines": [
+            6260,
+            6271,
+            7857
+          ],
+          "regions": [
+            10468,
+            10486,
+            13430
+          ]
+        },
+        "gz-sim-scene": {
+          "lines": [
+            23953,
+            23995,
+            31027
+          ],
+          "regions": [
+            36657,
+            36739,
+            48023
+          ]
+        }
+      },
+      "additional_covered": {
+        "gz-sim-cli": {
+          "gz-sim-cli/src/live.rs": {
+            "lines": 5,
+            "regions": 9
+          },
+          "gz-sim-cli/src/main.rs": {
+            "lines": 5,
+            "regions": 8
+          },
+          "gz-sim-cli/src/web/recording/endpoint.rs": {
+            "lines": 1,
+            "regions": 1
+          }
+        },
+        "gz-sim-scene": {
+          "gz-sim-scene/src/articulation.rs": {
+            "lines": 7,
+            "regions": 19
+          },
+          "gz-sim-scene/src/fidelity_zone.rs": {
+            "lines": 35,
+            "regions": 63
+          }
+        }
+      },
+      "regression": {
+        "lines": [
+          336,
+          336
+        ],
+        "regions": [
+          652,
+          653
+        ]
+      }
+    }
+  ],
+  "webgpu": {
+    "body_poses_and_shapes_checked": 1040,
+    "captured_ms": {
+      "final": 300.0,
+      "park": 142.5,
+      "start": 0.0,
+      "wake": 150.5
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      5.0,
+      10.0,
+      15.0,
+      20.0,
+      25.0,
+      30.0,
+      35.0,
+      40.0,
+      45.0,
+      50.0,
+      55.0,
+      60.0,
+      65.0,
+      70.0,
+      75.0,
+      80.0,
+      85.0,
+      90.0,
+      95.0,
+      100.0,
+      105.0,
+      110.0,
+      115.0,
+      120.0,
+      125.0,
+      130.0,
+      135.0,
+      140.0,
+      142.0,
+      142.5,
+      145.0,
+      150.0,
+      150.5,
+      151.0,
+      155.0,
+      160.0,
+      165.0,
+      170.0,
+      175.0,
+      180.0,
+      185.0,
+      190.0,
+      195.0,
+      200.0,
+      205.0,
+      210.0,
+      215.0,
+      220.0,
+      225.0,
+      230.0,
+      235.0,
+      240.0,
+      245.0,
+      250.0,
+      255.0,
+      260.0,
+      265.0,
+      270.0,
+      275.0,
+      280.0,
+      285.0,
+      290.0,
+      295.0,
+      300.0
+    ],
+    "frames": 65,
+    "independent_visual_poses_checked": 1040,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 65,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10005%2F"
+  },
+  "visual_reference_sha256": "4cb6268c63993f3e926d811d9a93a61c9dcdf1890f9e4439c8917854dd7b0943"
+}

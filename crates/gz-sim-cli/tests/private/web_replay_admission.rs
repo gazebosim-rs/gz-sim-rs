@@ -3,6 +3,8 @@
 use super::*;
 fn admit(query: &str, replay_enabled: bool) -> bool {
     let callback = LocalViewer {
+        operator: None,
+        recovery: Arc::new(AtomicBool::new(false)),
         scan: Arc::new(AtomicBool::new(false)),
         lifecycle: Arc::new(AtomicBool::new(false)),
         lifecycle_enabled: true,
@@ -18,6 +20,12 @@ fn admit(query: &str, replay_enabled: bool) -> bool {
 #[test]
 fn explicit_replay_and_scan_domains_preserve_live_defaults() {
     assert!(admit("", false));
+    assert!(admit("recovery=1", false));
+    assert!(!admit("recovery=1&recovery=1", false));
+    assert!(!admit("recovery=0", false));
+    assert!(admit("operator=1&scan=1&recovery=1", false));
+    assert!(!admit("operator=1&operator=1", false));
+    assert!(!admit("operator=0", false));
     assert!(admit("scan=1", false));
     assert!(admit("lifecycle=1&lifecycle_credit=1&scan=1", false));
     for query in [
@@ -39,7 +47,7 @@ fn explicit_replay_and_scan_domains_preserve_live_defaults() {
     ] {
         assert!(!admit(query, true), "{query}");
     }
-    for scan in ["scan=1", "scan=0", "scan="] {
+    for scan in ["scan=1", "scan=0", "scan=", "operator=1"] {
         assert!(!admit(&format!("{replay}&{scan}"), true));
     }
 }

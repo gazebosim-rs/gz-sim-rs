@@ -1,0 +1,410 @@
+{
+  "production_candidate": "4ab9c9dc7aefaafcb93bfefa9fbc6d0301a2ab5d",
+  "last_scene_test_source_sha256": "cadb37ce6f0ec206bf425d3e163360308af8d0fe16004d4d8312446e8fcc28d9",
+  "release_executable_sha256": "227763c358aed4e6b7ddb803f9f5abc94d35795f398a18f982eaec1cc90da872",
+  "public_period_s": 0.001,
+  "hold_s": [
+    1.65,
+    1.95
+  ],
+  "material_mass_kg": 0.0084,
+  "results": {
+    "coarse": {
+      "public_step_ns": 1000000,
+      "public_ticks": 3400,
+      "simulated_ns": 3400000000,
+      "actuator_updates": 3400,
+      "native_step_ns": 1000000,
+      "archive": {
+        "frames.jsonl": "48a483f7a20b7b804e4262283978207cd1a0ac5021920709cac7d47e92f4c67b",
+        "manifest.json": "e9bef67ccfd43447f6549f1ce00f6817c691b3dce7ca426b238e683b3db70744"
+      },
+      "torque_and_trajectory_audit": null,
+      "metrics": {
+        "min_hold_bench_gap_m": 0.14961555472720472,
+        "mean_hold_jaw_up_n": [
+          0.026093246418182923,
+          0.056314973494384864
+        ],
+        "mean_hold_bench_up_n": 0.0,
+        "mean_released_bench_up_n": 0.0824040000000003,
+        "mean_released_jaw_force_n": 0.0,
+        "weight_n": 0.082404,
+        "max_linear_impulse_residual_ns": 2.360489699625537e-18,
+        "max_pad_attribution_residual_ns": 1.5178984033276325e-18,
+        "max_strain": 0.0005882681673373691,
+        "min_hold_panel_squeeze_n": [
+          0.6527135238904401,
+          0.6527135238951386
+        ],
+        "step_p95_ns": 369481,
+        "accepted_material_substeps": 3400
+      }
+    },
+    "public16": {
+      "public_step_ns": 1000000,
+      "public_ticks": 3400,
+      "simulated_ns": 3400000000,
+      "actuator_updates": 3400,
+      "native_step_ns": 62500,
+      "archive": {
+        "frames.jsonl": "4186634c73868c7701b03cb740063dd969264918004efa13d3b8fed91eb7ef60",
+        "manifest.json": "036abfa495b04512071528c9a98032d3a51a2a137dd35ae2d8a6bee0bfc4f2e3"
+      },
+      "torque_and_trajectory_audit": {
+        "fine_ticks": 54400,
+        "max_end_com_torque_error_nm": 1.3891404895258555e-16,
+        "max_pad_angular_impulse_error_nms": 1.3891404895258556e-19,
+        "max_pad_linear_impulse_error_ns": 2.169462877787276e-19,
+        "max_particle_position_error_m": 0.0,
+        "max_particle_velocity_error_m_s": 0.0,
+        "max_structural_node_impulse_error_ns": 0.0,
+        "max_torque_origin_shift_nm": 0.00012782882037309413,
+        "public_ticks": 3400
+      },
+      "metrics": {
+        "min_hold_bench_gap_m": 0.14961669593723348,
+        "mean_hold_jaw_up_n": [
+          0.0412025850905788,
+          0.04120547837688865
+        ],
+        "mean_hold_bench_up_n": 0.0,
+        "mean_released_bench_up_n": 0.08240400000000074,
+        "mean_released_jaw_force_n": 0.0,
+        "weight_n": 0.082404,
+        "max_linear_impulse_residual_ns": 7.62171848564728e-18,
+        "max_pad_attribution_residual_ns": 1.084742853523693e-18,
+        "max_strain": 0.00031481673109978736,
+        "min_hold_panel_squeeze_n": [
+          0.6521051320856939,
+          0.6521051319971909
+        ],
+        "step_p95_ns": 3161881,
+        "accepted_material_substeps": 54400
+      }
+    },
+    "fine16": {
+      "public_step_ns": 62500,
+      "public_ticks": 54400,
+      "simulated_ns": 3400000000,
+      "actuator_updates": 3400,
+      "native_step_ns": 62500,
+      "archive": {
+        "frames.jsonl": "4186634c73868c7701b03cb740063dd969264918004efa13d3b8fed91eb7ef60",
+        "manifest.json": "036abfa495b04512071528c9a98032d3a51a2a137dd35ae2d8a6bee0bfc4f2e3"
+      },
+      "torque_and_trajectory_audit": null,
+      "metrics": {
+        "min_hold_bench_gap_m": 0.14961669593722254,
+        "mean_hold_jaw_up_n": [
+          0.04120258509057796,
+          0.04120547837688801
+        ],
+        "mean_hold_bench_up_n": 0.0,
+        "mean_released_bench_up_n": 0.08240400000000077,
+        "mean_released_jaw_force_n": 0.0,
+        "weight_n": 0.082404,
+        "max_linear_impulse_residual_ns": 2.431045559041576e-18,
+        "max_pad_attribution_residual_ns": 1.6263070435732942e-19,
+        "max_strain": 0.00031497383345180374,
+        "min_hold_panel_squeeze_n": [
+          0.6521051319368986,
+          0.6521051318481137
+        ],
+        "step_p95_ns": 2433379,
+        "accepted_material_substeps": 54400
+      }
+    },
+    "stiff64": {
+      "public_step_ns": 1000000,
+      "public_ticks": 3400,
+      "simulated_ns": 3400000000,
+      "actuator_updates": 3400,
+      "native_step_ns": 15625,
+      "archive": {
+        "frames.jsonl": "f7ae3fd24d0269c6473665485c683852c3a59366fcac0e5f05cb0cad4d0de57a",
+        "manifest.json": "264202e1493d611043d1f520f797ca442936e3b0f9d7ff2ae874a4074bcbbf5a"
+      },
+      "torque_and_trajectory_audit": {
+        "fine_ticks": 217600,
+        "max_end_com_torque_error_nm": 3.1868847799064e-16,
+        "max_pad_angular_impulse_error_nms": 3.1868847799064e-19,
+        "max_pad_linear_impulse_error_ns": 4.336808689942018e-19,
+        "max_particle_position_error_m": 0.0,
+        "max_particle_velocity_error_m_s": 0.0,
+        "max_structural_node_impulse_error_ns": 0.0,
+        "max_torque_origin_shift_nm": 0.0005458682520227269,
+        "public_ticks": 3400
+      },
+      "metrics": {
+        "min_hold_bench_gap_m": 0.1492123825274087,
+        "mean_hold_jaw_up_n": [
+          0.0479063084227094,
+          0.03450377520429333
+        ],
+        "mean_hold_bench_up_n": 0.0,
+        "mean_released_bench_up_n": 0.0824039999999904,
+        "mean_released_jaw_force_n": 0.0,
+        "weight_n": 0.082404,
+        "max_linear_impulse_residual_ns": 3.644284869246017e-17,
+        "max_pad_attribution_residual_ns": 1.6265326473072806e-18,
+        "max_strain": 0.001038147062987771,
+        "min_hold_panel_squeeze_n": [
+          0.824999999213951,
+          0.8258470352001841
+        ],
+        "step_p95_ns": 19574772,
+        "accepted_material_substeps": 217645
+      }
+    }
+  },
+  "browser": {
+    "public16": {
+      "body_poses_and_shapes_checked": 3425,
+      "captured_ms": {
+        "hold": 1800.0,
+        "pickup": 650.0,
+        "release": 2800.0,
+        "rising": 1125.0,
+        "settled": 3400.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 137,
+      "independent_particle_positions_checked": 1644,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 137,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9988%2F"
+    },
+    "stiff64": {
+      "body_poses_and_shapes_checked": 3425,
+      "captured_ms": {
+        "hold": 1800.0,
+        "pickup": 650.0,
+        "release": 2800.0,
+        "rising": 1125.0,
+        "settled": 3400.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 137,
+      "independent_particle_positions_checked": 1644,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 137,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9989%2F"
+    },
+    "coarse": {
+      "body_poses_and_shapes_checked": 3425,
+      "captured_ms": {
+        "hold": 1800.0,
+        "pickup": 650.0,
+        "release": 2800.0,
+        "rising": 1125.0,
+        "settled": 3400.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 137,
+      "independent_particle_positions_checked": 1644,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 137,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9990%2F"
+    }
+  },
+  "tests_passed_ignored": {
+    "scene": [
+      332,
+      0
+    ],
+    "example": [
+      90,
+      1
+    ]
+  },
+  "strict_release_clippy": true,
+  "coverage": {
+    "scoped_production": {
+      "crates/gz-physics-multifidelity/src/lib.rs": {
+        "lines": [
+          18,
+          18
+        ],
+        "regions": [
+          25,
+          25
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-rapier/src/lib.rs": {
+        "lines": [
+          6,
+          7
+        ],
+        "regions": [
+          14,
+          15
+        ]
+      },
+      "crates/gz-physics-rapier/src/contact_interval.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          2,
+          2
+        ]
+      },
+      "crates/gz-physics-rapier/src/trajectory.rs": {
+        "lines": [
+          7,
+          7
+        ],
+        "regions": [
+          13,
+          13
+        ]
+      },
+      "crates/gz-physics-rapier/src/partition.rs": {
+        "lines": [
+          2,
+          3
+        ],
+        "regions": [
+          6,
+          7
+        ]
+      },
+      "crates/gz-sim-scene/src/lib.rs": {
+        "lines": [
+          4,
+          8
+        ],
+        "regions": [
+          8,
+          12
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable.rs": {
+        "lines": [
+          15,
+          15
+        ],
+        "regions": [
+          38,
+          39
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/config.rs": {
+        "lines": [
+          5,
+          5
+        ],
+        "regions": [
+          13,
+          13
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/force.rs": {
+        "lines": [
+          7,
+          7
+        ],
+        "regions": [
+          10,
+          10
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/resolution.rs": {
+        "lines": [
+          3,
+          4
+        ],
+        "regions": [
+          7,
+          8
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_jaws.rs": {
+        "lines": [
+          35,
+          37
+        ],
+        "regions": [
+          62,
+          65
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints/exchange_inputs.rs": {
+        "lines": [
+          82,
+          87
+        ],
+        "regions": [
+          128,
+          131
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/exchange.rs": {
+        "lines": [
+          201,
+          202
+        ],
+        "regions": [
+          355,
+          366
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_jaws/exchange_audit.rs": {
+        "lines": [
+          88,
+          88
+        ],
+        "regions": [
+          202,
+          218
+        ]
+      }
+    },
+    "totals": {
+      "lines": [
+        474,
+        489
+      ],
+      "regions": [
+        883,
+        924
+      ]
+    },
+    "executables": [
+      {
+        "case": "scene",
+        "sha256": "afc46db600105714b8aa2c7338558cd858bd3e5007686fefe92c0ac68b1bd071"
+      },
+      {
+        "case": "app",
+        "sha256": "833dfde1b2228aab309749512950cda65b56c412aca2453084ed306c597a17e7"
+      },
+      {
+        "case": "product",
+        "sha256": "7d0719ff88c415b566e6e301c48e29d0e75eaf726474eb4fdaad5ebad6dc531d"
+      }
+    ]
+  },
+  "coverage_method": "LLVM instrumented release scene tests, example tests and running the real 16-exchange pickup, each exported separately then unioned by identical changed production source coordinates. Test-only sources excluded."
+}

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 use gz_physics::{BodyId, JointId, JointState, PhysicsBackend};
+use gz_physics_multifidelity::{BallJointState, RobotJoint, UniversalJointState};
 use gz_sim_core::entity_by_id;
 use petgraph::{algo::toposort, graphmap::DiGraphMap};
 use std::collections::{BTreeMap, BTreeSet};
@@ -19,10 +20,20 @@ pub struct JointHandle {
     id: JointId,
     entity: u64,
     child: u64,
+    sample_kind: SampleKind,
+    /// SDF axes relative to the parent, independent of scalar constraint axes.
+    pub(super) gravity_axes: Option<[f64; 4]>,
     child_pose: Option<WorldPose>,
     parent: Option<(u64, BodyId)>,
     model: u64,
 }
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SampleKind {
+    Scalar,
+    Ball,
+    Universal,
+}
+
 impl JointHandle {
     pub fn id(&self) -> JointId {
         self.id
@@ -40,6 +51,102 @@ pub struct JointSample {
     pub epoch: u64,
 }
 
+/// Rotation and angular velocity in the parent joint frame at a committed instant.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct BallJointSample {
+    pub state: BallJointState,
+    pub time: Duration,
+    pub epoch: u64,
+}
+
+/// Two continuous joint coordinates at a committed simulation instant.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct UniversalJointSample {
+    pub state: UniversalJointState,
+    pub time: Duration,
+    pub epoch: u64,
+}
+
+fn mixed_robot(model: &Model) -> bool {
+    model.joints.iter().any(|j| {
+        matches!(
+            j.kind,
+            sdformat::JointKind::Universal
+                | sdformat::JointKind::Revolute2
+                | sdformat::JointKind::Ball
+                | sdformat::JointKind::Prismatic
+                | sdformat::JointKind::Screw
+        )
+    })
+}
+
+pub(super) fn is_scalar_tree_plugin(plugin: &sdformat::Plugin) -> bool {
+    plugin.name == "gz::sim::systems::ReducedScalarJoints"
+        && plugin.filename == "gz-sim-reduced-scalar-joints-system"
+}
+
+/// Scalar native joints can combine a bounded slider with a public effort command.
+fn scalar_tree(model: &Model, engine: Option<&str>) -> Result<bool, LoadError> {
+    let mut markers = model
+        .plugins
+        .iter()
+        .filter(|plugin| is_scalar_tree_plugin(plugin));
+    let Some(marker) = markers.next() else {
+        return Ok(false);
+    };
+    let invalid = || LoadError::Unsupported {
+        entity: model.scoped_name.clone(),
+        feature: "ReducedScalarJoints requires one world-mounted prismatic/unbounded revolute tree without spring or motor ownership",
+    };
+    let xml = roxmltree::Document::parse(&marker.xml).map_err(|_| invalid())?;
+    let root = xml.root_element();
+    if markers.next().is_some()
+        || engine != Some("multifidelity")
+        || !mixed_robot(model)
+        || !model.joints.iter().all(|joint| {
+            matches!(
+                joint.kind,
+                sdformat::JointKind::Prismatic | sdformat::JointKind::Revolute
+            ) && joint.axis.as_ref().is_some_and(|axis| {
+                (joint.kind == sdformat::JointKind::Prismatic
+                    || axis.lower == f64::NEG_INFINITY && axis.upper == f64::INFINITY)
+                    && axis.dynamics.damping == 0.
+                    && axis.dynamics.spring_stiffness == 0.
+            })
+        })
+        || !model.plugins.iter().all(|p| {
+            is_scalar_tree_plugin(p)
+                || contact_material::is_plugin(p)
+                || joint_state_publisher::is_plugin(p)
+                || joint_forces::is_plugin(p)
+        })
+        || root.attributes().len() != 2
+        || root.namespaces().next().is_some()
+        || !root
+            .children()
+            .all(|n| n.is_comment() || n.is_text() && n.text().unwrap_or("").trim().is_empty())
+    {
+        return Err(invalid());
+    }
+    Ok(true)
+}
+
+#[derive(Debug)]
+pub(super) struct ReducedPlan {
+    pub switchable_root: Option<usize>,
+    pub scalar_robot: bool,
+    pub exact_revolute_locks: bool,
+    pub additional_pgs_iterations: Option<u8>,
+    pub joint_order: Vec<usize>,
+}
+
+pub(super) enum JointConstruction<'a> {
+    Impulse,
+    Controller,
+    Reduced(&'a ReducedPlan),
+}
+
+#[allow(clippy::too_many_arguments)]
 pub(super) fn validate_model(
     sdf: &Sdf,
     model: &Model,
@@ -48,7 +155,11 @@ pub(super) fn validate_model(
     engine: Option<&str>,
     is_static: bool,
     actuated: &[&str],
-) -> Result<(), LoadError> {
+    coated_tree: bool,
+) -> Result<Option<ReducedPlan>, LoadError> {
+    let scalar_robot = scalar_tree(model, engine)?;
+    let options = articulation::validate_marker(model, engine)?;
+    let switchable = options.is_some();
     for joint in &model.joints {
         require(
             joint.sensors.is_empty(),
@@ -57,7 +168,7 @@ pub(super) fn validate_model(
         )?;
     }
     if model.joints.is_empty() {
-        return Ok(());
+        return Ok(None);
     }
     require(engine.is_some(), &model.scoped_name, "TPE joints")?;
     require(
@@ -71,12 +182,42 @@ pub(super) fn validate_model(
         .enumerate()
         .map(|(index, link)| (link.scoped_name.as_str(), index))
         .collect();
-    let mut graph = DiGraphMap::<usize, ()>::new();
+    let welded = engine == Some("multifidelity")
+        && !switchable
+        && actuated.is_empty()
+        && model
+            .joints
+            .iter()
+            .all(|j| j.kind == sdformat::JointKind::Fixed);
+    let robot = engine == Some("multifidelity") && mixed_robot(model);
+    require(
+        robot || options.is_none_or(|o| o.additional_pgs_iterations.is_none()),
+        &model.scoped_name,
+        "additional PGS iterations require a rooted mixed robot",
+    )?;
+    let mut graph = DiGraphMap::<usize, usize>::new();
     let mut children = BTreeSet::new();
-    for joint in &model.joints {
+    let mut bounded = false;
+    for (index, joint) in model.joints.iter().enumerate() {
         let name = format!("{}::{}", model.scoped_name, joint.name);
         require(
-            joint.kind == sdformat::JointKind::Revolute && joint.axis2.is_none(),
+            (welded
+                || joint.kind == sdformat::JointKind::Revolute
+                || robot
+                    && matches!(
+                        joint.kind,
+                        sdformat::JointKind::Fixed
+                            | sdformat::JointKind::Universal
+                            | sdformat::JointKind::Revolute2
+                            | sdformat::JointKind::Ball
+                            | sdformat::JointKind::Prismatic
+                            | sdformat::JointKind::Screw
+                    ))
+                && (joint.axis2.is_some()
+                    == (matches!(
+                        joint.kind,
+                        sdformat::JointKind::Universal | sdformat::JointKind::Revolute2
+                    ))),
             &name,
             "joints (unsupported type)",
         )?;
@@ -100,31 +241,166 @@ pub(super) fn validate_model(
             "multiple parent joints",
         )?;
         let parent_index = parent_index.expect("validated parent");
-        graph.add_edge(parent_index, child_index, ());
-        validate_axis(joint, &name, actuated.contains(&joint.name.as_str()))?;
+        graph.add_edge(parent_index, child_index, index);
+        if matches!(
+            joint.kind,
+            sdformat::JointKind::Ball | sdformat::JointKind::Fixed
+        ) {
+            require(
+                joint.axis.is_none() && joint.physics_xml.is_none(),
+                &name,
+                "fixed constraint axis or physics overrides",
+            )?;
+            continue;
+        }
+        if joint.kind == sdformat::JointKind::Screw {
+            let lead = joint.screw_thread_pitch / std::f64::consts::TAU;
+            require(
+                (joint.screw_thread_pitch == 0. || lead.is_normal()) && (lead * lead).is_finite(),
+                &name,
+                "invalid screw thread pitch",
+            )?;
+        }
+        if matches!(
+            joint.kind,
+            sdformat::JointKind::Universal | sdformat::JointKind::Revolute2
+        ) {
+            validate_axis(&joint.kind, joint.axis2.as_ref(), &name, false, true, robot)?;
+        }
+        bounded |= validate_axis(
+            &joint.kind,
+            joint.axis.as_ref(),
+            &name,
+            actuated.contains(&joint.name.as_str())
+                && !matches!(
+                    joint.kind,
+                    sdformat::JointKind::Universal | sdformat::JointKind::Revolute2
+                ),
+            engine == Some("multifidelity"),
+            robot
+                && matches!(
+                    joint.kind,
+                    sdformat::JointKind::Revolute
+                        | sdformat::JointKind::Prismatic
+                        | sdformat::JointKind::Screw
+                        | sdformat::JointKind::Universal
+                        | sdformat::JointKind::Revolute2
+                ),
+        )?;
     }
+    let ordered = toposort(&graph, None).map_err(|_| LoadError::Unsupported {
+        entity: model.scoped_name.clone(),
+        feature: "closed joint loops",
+    })?;
+    if scalar_robot {
+        require(
+            graph.neighbors(model.links.len()).count() == 1,
+            &model.scoped_name,
+            "ReducedScalarJoints requires a single world mount",
+        )?;
+    }
+    if robot && switchable {
+        require(
+            graph.neighbors(model.links.len()).count() == 1,
+            &model.scoped_name,
+            "switchable mixed robot requires a single world mount",
+        )?;
+        require(
+            !options.is_some_and(|o| o.exact_revolute_locks),
+            &model.scoped_name,
+            "exact revolute locks require a floating revolute tree",
+        )?;
+    }
+    if welded || robot {
+        let nodes = model.links.len() + usize::from(graph.contains_node(model.links.len()));
+        require(
+            graph.node_count() == nodes && model.joints.len() + 1 == nodes,
+            &model.scoped_name,
+            if robot {
+                "robot joints require one connected tree"
+            } else {
+                "fixed joints require one connected tree"
+            },
+        )?;
+    }
+    if !switchable && !bounded && !welded && !robot && !coated_tree {
+        return Ok(None);
+    }
+    // Unique parents and acyclicity were validated above. A connected floating
+    // tree therefore has exactly one root and one incoming joint on each other link.
     require(
-        toposort(&graph, None).is_ok(),
+        !switchable
+            || robot
+            || (!graph.contains_node(model.links.len())
+                && model.joints.len() + 1 == model.links.len()),
         &model.scoped_name,
-        "closed joint loops",
-    )
+        "SwitchableArticulation requires one floating connected revolute tree",
+    )?;
+    let joint_order = ordered
+        .iter()
+        .flat_map(|&link| {
+            graph
+                .edges_directed(link, petgraph::Direction::Incoming)
+                .map(|(_, _, joint)| *joint)
+        })
+        .collect();
+    Ok(Some(ReducedPlan {
+        scalar_robot,
+        switchable_root: switchable.then(|| if robot { ordered[1] } else { ordered[0] }),
+        exact_revolute_locks: options.is_some_and(|o| o.exact_revolute_locks),
+        additional_pgs_iterations: options.and_then(|o| o.additional_pgs_iterations),
+        joint_order,
+    }))
 }
 
-fn validate_axis(joint: &sdformat::Joint, name: &str, driven: bool) -> Result<(), LoadError> {
-    let axis = joint.axis.as_ref().ok_or_else(|| LoadError::Unsupported {
+fn validate_axis(
+    kind: &sdformat::JointKind,
+    settings: Option<&sdformat::Axis>,
+    name: &str,
+    driven: bool,
+    allow_stops: bool,
+    allow_spring: bool,
+) -> Result<bool, LoadError> {
+    let axis = settings.ok_or_else(|| LoadError::Unsupported {
         entity: name.to_owned(),
         feature: "joint without axis",
     })?;
+    let bounded = allow_stops
+        && axis.lower <= 0.
+        && axis.upper >= 0.
+        && if matches!(
+            kind,
+            sdformat::JointKind::Universal
+                | sdformat::JointKind::Revolute2
+                | sdformat::JointKind::Prismatic
+                | sdformat::JointKind::Screw
+        ) {
+            axis.lower.is_finite() || axis.upper.is_finite()
+        } else {
+            axis.lower.is_finite() && axis.upper.is_finite()
+        };
     require(
-        axis.lower == f64::NEG_INFINITY
-            && axis.upper == f64::INFINITY
+        (bounded || (axis.lower == f64::NEG_INFINITY && axis.upper == f64::INFINITY))
             && (if driven {
                 axis.effort.is_finite()
                     && axis.effort > 0.0
                     && axis.velocity.is_finite()
                     && axis.velocity > 0.0
             } else {
-                axis.effort == f64::INFINITY && axis.velocity == f64::INFINITY
+                (axis.effort == f64::INFINITY
+                    || matches!(
+                        kind,
+                        sdformat::JointKind::Screw
+                            | sdformat::JointKind::Universal
+                            | sdformat::JointKind::Revolute2
+                    ) && axis.effort >= 0.)
+                    && (axis.velocity == f64::INFINITY
+                        || matches!(
+                            kind,
+                            sdformat::JointKind::Universal
+                                | sdformat::JointKind::Revolute2
+                                | sdformat::JointKind::Screw
+                        ) && axis.velocity >= 0.)
             })
             && axis.stiffness == 1e8
             && axis.dissipation == 1.0,
@@ -133,13 +409,23 @@ fn validate_axis(joint: &sdformat::Joint, name: &str, driven: bool) -> Result<()
     )?;
     let dynamics = &axis.dynamics;
     require(
-        dynamics.damping == 0.0
-            && dynamics.friction == 0.0
-            && dynamics.spring_reference == 0.0
-            && dynamics.spring_stiffness == 0.0,
+        dynamics.friction == 0.0
+            && if allow_spring {
+                dynamics.damping.is_finite()
+                    && dynamics.damping >= 0.
+                    && dynamics.spring_stiffness.is_finite()
+                    && dynamics.spring_stiffness >= 0.
+                    && dynamics.spring_reference.is_finite()
+                    && (dynamics.spring_stiffness > 0. || dynamics.spring_reference == 0.)
+            } else {
+                dynamics.damping == 0.
+                    && dynamics.spring_reference == 0.
+                    && dynamics.spring_stiffness == 0.
+            },
         name,
         "joint dynamics",
-    )
+    )?;
+    Ok(bounded)
 }
 
 pub(super) fn build(
@@ -149,10 +435,15 @@ pub(super) fn build(
     model_entity: Entity,
     sim: &mut Simulation,
     backend: &mut PhysicsBackend,
-    reduced_controller_chain: bool,
+    construction: JointConstruction<'_>,
 ) -> Result<(), LoadError> {
+    let robot = mixed_robot(model);
     let mut order: Vec<_> = (0..model.joints.len()).collect();
-    if reduced_controller_chain && model.joints.len() == 2 {
+    let scalar_robot =
+        matches!(construction, JointConstruction::Reduced(plan) if plan.scalar_robot);
+    if let JointConstruction::Reduced(plan) = construction {
+        order.copy_from_slice(&plan.joint_order);
+    } else if matches!(construction, JointConstruction::Controller) && model.joints.len() == 2 {
         let endpoints: Vec<_> = model
             .joints
             .iter()
@@ -184,37 +475,135 @@ pub(super) fn build(
             .expect("dynamic-engine link owns body")
             .id();
         let pose = sdf.pose_of(&name, context.world)?;
-        let axis = sdf.resolve_axis(
-            joint.axis.as_ref().expect("validated revolute axis"),
-            &name,
-            context.world,
-        )?;
         let parent_name = sdf.resolve_name(&model.scoped_name, &joint.parent)?;
-        let (id, parent) = if parent_name == context.world {
-            (
-                if reduced_controller_chain {
-                    backend.add_reduced_revolute(None, body, pose.translation, axis)?
-                } else {
-                    backend.add_world_revolute(body, pose.translation, axis)?
-                },
-                None,
-            )
+        let parent = if parent_name == context.world {
+            None
         } else {
-            let parent = entity_by_id(sim.world(), context.links[&parent_name])
-                .expect("loader constructed joint parent");
-            let parent_body = sim
+            let public_id = context.links[&parent_name];
+            let entity =
+                entity_by_id(sim.world(), public_id).expect("loader constructed joint parent");
+            let handle = sim
                 .world()
-                .get::<BodyHandle>(parent)
-                .expect("dynamic-engine link owns body")
-                .id();
-            (
-                if reduced_controller_chain {
-                    backend.add_reduced_revolute(Some(parent_body), body, pose.translation, axis)?
-                } else {
-                    backend.add_revolute(parent_body, body, pose.translation, axis)?
+                .get::<BodyHandle>(entity)
+                .expect("dynamic-engine link owns body");
+            Some((public_id, handle.id()))
+        };
+        let parent_body = parent.map(|(_, body)| body);
+        let id = if robot {
+            let motion = match joint.kind {
+                sdformat::JointKind::Universal | sdformat::JointKind::Revolute2 => {
+                    let settings = [
+                        joint.axis.as_ref().expect("validated axis"),
+                        joint.axis2.as_ref().expect("validated axis2"),
+                    ];
+                    let [first, second] =
+                        settings.map(|a| sdf.resolve_axis(a, &name, context.world));
+                    RobotJoint::Universal {
+                        axes: [first?, second?],
+                        effort_limits: settings.map(|a| a.effort),
+                        limits: settings.map(|a| {
+                            (a.lower.is_finite() || a.upper.is_finite())
+                                .then_some([a.lower, a.upper])
+                        }),
+                    }
+                }
+                sdformat::JointKind::Ball => RobotJoint::Ball {
+                    orientation: pose.rotation,
                 },
-                Some((context.links[&parent_name], parent_body)),
-            )
+                sdformat::JointKind::Fixed => RobotJoint::Fixed,
+                _ => {
+                    let settings = joint.axis.as_ref().expect("validated scalar axis");
+                    let axis = sdf.resolve_axis(settings, &name, context.world)?;
+                    let limits = (settings.lower.is_finite() || settings.upper.is_finite())
+                        .then_some([settings.lower, settings.upper]);
+                    if joint.kind == sdformat::JointKind::Screw {
+                        RobotJoint::Screw {
+                            axis,
+                            pitch: joint.screw_thread_pitch,
+                            limits,
+                            effort_limit: settings.effort,
+                        }
+                    } else if joint.kind == sdformat::JointKind::Prismatic {
+                        RobotJoint::Prismatic { axis, limits }
+                    } else {
+                        RobotJoint::Revolute { axis, limits }
+                    }
+                }
+            };
+            let local = backend
+                .downcast_mut::<MultiFidelityBackend>()
+                .expect("validated local robot");
+            let springs = [joint.axis.as_ref(), joint.axis2.as_ref()].map(|axis| {
+                let dynamics = &axis?.dynamics;
+                (dynamics.damping != 0. || dynamics.spring_stiffness != 0.).then_some(
+                    gz_physics_multifidelity::RobotSpring {
+                        stiffness: dynamics.spring_stiffness,
+                        damping: dynamics.damping,
+                        reference: dynamics.spring_reference,
+                    },
+                )
+            });
+            let id = if scalar_robot {
+                local.add_reduced_scalar_robot_joint(parent_body, body, pose.translation, motion)?
+            } else if matches!(motion, RobotJoint::Universal { .. }) {
+                local.add_universal_joint_with_springs(
+                    parent_body,
+                    body,
+                    pose.translation,
+                    motion,
+                    springs,
+                )?
+            } else if let Some(spring) = springs[0] {
+                local.add_robot_joint_with_spring(
+                    parent_body,
+                    body,
+                    pose.translation,
+                    motion,
+                    spring,
+                )?
+            } else {
+                local.add_robot_joint(parent_body, body, pose.translation, motion)?
+            };
+            let limits = [joint.axis.as_ref(), joint.axis2.as_ref()]
+                .map(|axis| axis.map(|a| a.velocity).filter(|v| v.is_finite()));
+            if matches!(
+                motion,
+                RobotJoint::Universal { .. } | RobotJoint::Screw { .. }
+            ) && limits.iter().any(Option::is_some)
+            {
+                local.set_joint_angular_speed_limits(id, limits)?;
+            }
+            id
+        } else if joint.kind == sdformat::JointKind::Fixed {
+            backend
+                .downcast_mut::<MultiFidelityBackend>()
+                .expect("fixed joints use the multifidelity solver")
+                .add_fixed_joint(parent_body, body, pose.translation)?
+        } else {
+            let axis = sdf.resolve_axis(
+                joint.axis.as_ref().expect("validated revolute axis"),
+                &name,
+                context.world,
+            )?;
+            let settings = joint.axis.as_ref().expect("validated revolute axis");
+            if settings.lower.is_finite() {
+                backend
+                    .downcast_mut::<MultiFidelityBackend>()
+                    .expect("bounded revolutes use the multi-fidelity solver")
+                    .add_limited_revolute(
+                        parent_body,
+                        body,
+                        pose.translation,
+                        axis,
+                        [settings.lower, settings.upper],
+                    )?
+            } else if !matches!(construction, JointConstruction::Impulse) {
+                backend.add_reduced_revolute(parent_body, body, pose.translation, axis)?
+            } else if let Some(parent) = parent_body {
+                backend.add_revolute(parent, body, pose.translation, axis)?
+            } else {
+                backend.add_world_revolute(body, pose.translation, axis)?
+            }
         };
         built[index] = Some((id, parent, child, child_name, parent_name, pose));
     }
@@ -250,19 +639,57 @@ pub(super) fn build(
             JointHandle {
                 id,
                 entity: public_id,
+                sample_kind: match joint.kind {
+                    sdformat::JointKind::Universal | sdformat::JointKind::Revolute2 => {
+                        SampleKind::Universal
+                    }
+                    sdformat::JointKind::Ball => SampleKind::Ball,
+                    _ => SampleKind::Scalar,
+                },
+                gravity_axes: matches!(backend.engine(), "multifidelity" | "rapier")
+                    .then(|| sdf.pose_of(&name, &parent_name).map(|p| p.rotation))
+                    .transpose()?,
                 child,
                 parent,
                 model: model_id,
-                child_pose: (parent_name != context.world || model.links.len() > 1)
+                child_pose: (robot || parent_name != context.world || model.links.len() > 1)
                     .then(|| sdf.pose_of(&name, &child_name).map(WorldPose::from))
                     .transpose()?,
             },
-            JointSample {
-                state: backend.joint_state(id).expect("constructed joint"),
+        ));
+        if matches!(
+            joint.kind,
+            sdformat::JointKind::Universal | sdformat::JointKind::Revolute2
+        ) {
+            let state = backend
+                .downcast_ref::<MultiFidelityBackend>()
+                .and_then(|b| b.universal_joint_state(id))
+                .expect("constructed universal joint");
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(UniversalJointSample {
+                    state,
+                    time: Duration::ZERO,
+                    epoch: 0,
+                });
+        } else if joint.kind == sdformat::JointKind::Ball {
+            let state = backend
+                .downcast_ref::<MultiFidelityBackend>()
+                .and_then(|b| b.ball_joint_state(id))
+                .expect("constructed ball joint");
+            sim.world_mut().entity_mut(entity).insert(BallJointSample {
+                state,
                 time: Duration::ZERO,
                 epoch: 0,
-            },
-        ));
+            });
+        } else {
+            let state = backend.joint_state(id).expect("constructed scalar joint");
+            sim.world_mut().entity_mut(entity).insert(JointSample {
+                state,
+                time: Duration::ZERO,
+                epoch: 0,
+            });
+        }
     }
     Ok(())
 }
@@ -295,6 +722,14 @@ pub(super) fn removal_order(world: &World, bodies: &BTreeSet<BodyId>) -> Option<
 }
 
 pub(super) fn bindings_valid(world: &World) -> bool {
+    #[cfg(feature = "gpu-batch")]
+    if crate::gpu_scene::parallel_gripper::registered(world) {
+        return crate::gpu_scene::parallel_gripper::valid(world);
+    }
+    #[cfg(feature = "gpu-batch")]
+    if let Some(valid) = crate::gpu_scene::planar_tool::joint_bindings_valid(world) {
+        return valid;
+    }
     let joints: Vec<_> = world
         .iter_entities()
         .filter(|e| {
@@ -326,7 +761,10 @@ fn valid_binding(world: &World, backend: &PhysicsBackend, entity: EntityRef<'_>)
     entity.get::<EntityKind>() == Some(&EntityKind::Joint)
         && entity_by_id(world, handle.entity) == Some(entity.id())
         && entity.contains::<JointNode>()
-        && entity.contains::<JointSample>()
+        && (entity.contains::<JointSample>() == (handle.sample_kind == SampleKind::Scalar))
+        && (entity.contains::<UniversalJointSample>()
+            == (handle.sample_kind == SampleKind::Universal))
+        && (entity.contains::<BallJointSample>() == (handle.sample_kind == SampleKind::Ball))
         && entity.contains::<LocalPose>()
         && entity.contains::<WorldPose>()
         && entity.get::<ChildOf>().is_some_and(|parent| {
@@ -386,6 +824,8 @@ type JointBindings<'w, 's> = Query<
         Option<&'static ChildOf>,
         Has<JointNode>,
         Has<JointSample>,
+        Has<BallJointSample>,
+        Has<UniversalJointSample>,
         Has<LocalPose>,
         Has<WorldPose>,
     ),
@@ -423,14 +863,27 @@ pub(super) fn preflight(
     let mut seen = BTreeSet::new();
     let valid = initial.is_some_and(|initial| initial.owns_backend(&backend))
         && joints.iter().all(
-            |(entity, kind, handle, parent, node, sample, local, pose)| {
+            |(
+                entity,
+                kind,
+                handle,
+                parent,
+                node,
+                sample,
+                ball_sample,
+                universal_sample,
+                local,
+                pose,
+            )| {
                 let (Some(handle), Some(parent)) = (handle, parent) else {
                     return false;
                 };
                 identities.get(handle.entity) == Some(entity)
                     && kind == Some(&EntityKind::Joint)
                     && node
-                    && sample
+                    && sample == (handle.sample_kind == SampleKind::Scalar)
+                    && universal_sample == (handle.sample_kind == SampleKind::Universal)
+                    && ball_sample == (handle.sample_kind == SampleKind::Ball)
                     && local
                     && pose
                     && models.get(parent.parent()).is_ok_and(|(id, kind, _, _)| {
@@ -459,23 +912,29 @@ pub(super) fn preflight(
     }
 }
 
+type JointSamples<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static JointHandle,
+        Option<&'static mut JointSample>,
+        Option<&'static mut BallJointSample>,
+        Option<&'static mut UniversalJointSample>,
+        &'static ChildOf,
+        &'static mut LocalPose,
+        &'static mut WorldPose,
+    ),
+    With<JointNode>,
+>;
+
 pub(super) fn sample(
     time: Res<UpdateInfo>,
     backend: Res<PhysicsBackend>,
     identities: EntityLookup,
     poses: Query<&WorldPose, Without<JointNode>>,
-    mut joints: Query<
-        (
-            &JointHandle,
-            &mut JointSample,
-            &ChildOf,
-            &mut LocalPose,
-            &mut WorldPose,
-        ),
-        With<JointNode>,
-    >,
+    mut joints: JointSamples,
 ) {
-    for (handle, mut sample, model, mut local, mut pose) in &mut joints {
+    for (handle, sample, ball, universal, model, mut local, mut pose) in &mut joints {
         if let Some(child_pose) = handle.child_pose {
             let child = identities.get(handle.child).expect("validated joint child");
             *pose = poses
@@ -488,10 +947,28 @@ pub(super) fn sample(
                 .inverse()
                 .compose(*pose);
         }
-        sample.state = backend
-            .joint_state(handle.id)
-            .expect("joint preflight precedes stepping");
-        sample.time = time.sim_time;
-        sample.epoch = time.epoch;
+        if let Some(mut sample) = sample {
+            sample.state = backend
+                .joint_state(handle.id)
+                .expect("validated scalar joint");
+            sample.time = time.sim_time;
+            sample.epoch = time.epoch;
+        }
+        if let Some(mut sample) = universal {
+            sample.state = backend
+                .downcast_ref::<MultiFidelityBackend>()
+                .and_then(|b| b.universal_joint_state(handle.id))
+                .expect("validated universal joint");
+            sample.time = time.sim_time;
+            sample.epoch = time.epoch;
+        }
+        if let Some(mut sample) = ball {
+            sample.state = backend
+                .downcast_ref::<MultiFidelityBackend>()
+                .and_then(|b| b.ball_joint_state(handle.id))
+                .expect("validated ball joint");
+            sample.time = time.sim_time;
+            sample.epoch = time.epoch;
+        }
     }
 }

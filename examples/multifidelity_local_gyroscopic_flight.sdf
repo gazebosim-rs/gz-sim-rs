@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<!-- A freely spinning, offset-COM triaxial foot reaches the moving pad at 2.456568 ms. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="fixed" type="ignored">
+      <max_step_size>0.0005</max_step_size>
+    </physics>
+    <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
+      <native_steps>8</native_steps>
+      <solver_iterations>4</solver_iterations>
+      <pgs_iterations>1</pgs_iterations>
+      <relaxation_iterations>16</relaxation_iterations>
+      <pair>
+        <foot>default::rocker::foot</foot>
+        <support>default::lift::pad</support>
+        <refresh_box_features>true</refresh_box_features>
+        <prospective_timing>true</prospective_timing>
+        <guard_separated_flight>true</guard_separated_flight>
+        <integrate_free_rotation>true</integrate_free_rotation>
+      </pair>
+    </plugin>
+    <model name="lift">
+      <pose>-0.004796187409696813 0.007102989867857435 -0.05938471285834577 0.0976384 0.10510288065843618 -0.22578125</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system">
+        <linear_velocity>-0.12016145464403641 0.045101753996053935 -0.1530937354318299</linear_velocity>
+        <angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="pad">
+        <pose>0 0 0 0 0 0</pose>
+        <collision name="contact">
+          <geometry>
+            <box>
+              <size>0.66 0.36 0.12</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0</mu>
+                <mu2>0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.66 0.36 0.12</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="rocker">
+      <pose>-0.001116221793133032 -0.02505060591698368 0.10480984938317917 -0.05622949306222852 0.21762697051373597 0.044211247241417194</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0.6402686851035175 -1.0655521002830104 8.298661785464967</linear_velocity>
+        <angular_velocity>-41.87875225285548 66.31203274224058 -83.68470043918572</angular_velocity>
+      </plugin>
+      <link name="foot">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0.07 0 -0 0</pose>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.03352277057334368</ixx>
+            <iyy>0.06345049466157651</iyy>
+            <izz>0.056626734765079824</izz>
+            <ixy>0.007322917961645431</ixy>
+            <ixz>-0.00665323241771403</ixz>
+            <iyz>0.008731730372146484</iyz>
+          </inertia>
+        </inertial>
+        <collision name="contact">
+          <geometry>
+            <box>
+              <size>0.36 0.2 0.12</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0</mu>
+                <mu2>0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.36 0.2 0.12</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

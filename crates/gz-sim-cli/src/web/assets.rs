@@ -3,7 +3,7 @@
 //! Immutable local glTF resources, including bounded STL/OBJ-to-GLB visuals.
 use bytes::Bytes;
 use gz_sim_core::{EntityId, Simulation};
-use gz_sim_scene::VisualGeometry;
+use gz_sim_scene::{VisualGeometry, VisualMaterial};
 use http_body_util::Full;
 use hyper::{Request, Response, StatusCode, body::Incoming, service::service_fn};
 use hyper_util::rt::TokioIo;
@@ -225,9 +225,42 @@ fn admit(
     Ok(entry)
 }
 
+#[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
+enum Primitive {
+    Cylinder,
+    Capsule { radius: u64, length: u64 },
+}
+impl Primitive {
+    fn capsule(radius: f64, length: f64) -> Self {
+        Self::Capsule {
+            radius: radius.to_bits(),
+            length: length.to_bits(),
+        }
+    }
+    fn from_geometry(geometry: &sdformat::Geometry) -> Option<Self> {
+        match geometry {
+            sdformat::Geometry::Cylinder { .. } => Some(Self::Cylinder),
+            sdformat::Geometry::Capsule { radius, length } => Some(Self::capsule(*radius, *length)),
+            _ => None,
+        }
+    }
+    fn generate(self, diffuse: [f32; 4]) -> io::Result<(&'static str, Vec<u8>)> {
+        use gz_assets::mesh::{capsule_visual_glb, cylinder_visual_glb};
+        match self {
+            Self::Cylinder => cylinder_visual_glb(diffuse).map(|b| ("cylinder.glb", b)),
+            Self::Capsule { radius, length } => {
+                capsule_visual_glb(f64::from_bits(radius), f64::from_bits(length), diffuse)
+                    .map(|b| ("capsule.glb", b))
+            }
+        }
+        .map_err(io::Error::other)
+    }
+}
+
 pub(super) struct Assets {
     files: Arc<Files>,
     entries: BTreeMap<u64, (sdformat::Mesh, String)>,
+    primitives: BTreeMap<(Primitive, [u32; 4]), String>,
     aliases: Option<std::collections::BTreeSet<u64>>,
     port: u16,
     stop: Arc<AtomicBool>,
@@ -396,14 +429,45 @@ pub(super) struct Alias {
 
 impl Assets {
     pub(super) fn new(sim: &Simulation) -> io::Result<Option<Self>> {
+        let Some(mut assets) = Self::offline(sim)? else {
+            return Ok(None);
+        };
+        let (port, stop, worker) = start_server(Arc::clone(&assets.files))?;
+        eprintln!("gzweb-rs local glTF resources: http://127.0.0.1:{port}/assets/");
+        assets.port = port;
+        assets.stop = stop;
+        assets.worker = Some(worker);
+        Ok(Some(assets))
+    }
+
+    /// Resolve the asset table once. Offline archives use the recorder's reserved origin.
+    pub(super) fn offline(sim: &Simulation) -> io::Result<Option<Self>> {
         let mut entries: BTreeMap<u64, (sdformat::Mesh, String)> = BTreeMap::new();
         let mut files = Files::new();
+        let mut primitives = BTreeMap::new();
         let mut documents: BTreeMap<(PathBuf, PathBuf), String> = BTreeMap::new();
         let mut total = 0;
         for entity in sim.world().iter_entities() {
             let Some(geometry) = entity.get::<VisualGeometry>() else {
                 continue;
             };
+            if let Some(primitive) = Primitive::from_geometry(&geometry.0) {
+                let diffuse = entity
+                    .get::<VisualMaterial>()
+                    .ok_or_else(|| invalid("gzweb visual has no material"))?
+                    .0
+                    .diffuse;
+                let scope = entries.len() + primitives.len();
+                if let std::collections::btree_map::Entry::Vacant(entry) =
+                    primitives.entry((primitive, diffuse.map(f32::to_bits)))
+                {
+                    let (name, glb) = primitive.generate(diffuse)?;
+                    let route = format!("/assets/{scope}/{name}");
+                    insert_file(&mut files, route.clone(), glb.into(), &mut total)?;
+                    entry.insert(route);
+                }
+                continue;
+            }
             let sdformat::Geometry::Mesh(mesh) = geometry.0.as_ref() else {
                 continue;
             };
@@ -420,25 +484,28 @@ impl Assets {
             let route = if let Some(route) = documents.get(&key) {
                 route.clone()
             } else {
-                let route = admit(mesh, entries.len(), &mut files, &mut total)?;
+                let route = admit(
+                    mesh,
+                    entries.len() + primitives.len(),
+                    &mut files,
+                    &mut total,
+                )?;
                 documents.insert(key, route.clone());
                 route
             };
             entries.insert(id, (mesh.clone(), route));
         }
-        if entries.is_empty() {
+        if files.is_empty() {
             return Ok(None);
         }
-        let files = Arc::new(files);
-        let (port, stop, worker) = start_server(files.clone())?;
-        eprintln!("gzweb-rs local glTF resources: http://127.0.0.1:{port}/assets/");
         Ok(Some(Self {
-            files,
+            files: Arc::new(files),
             entries,
+            primitives,
             aliases: None,
-            port,
-            stop,
-            worker: Some(worker),
+            port: super::recording::EXPORT_ASSET_PORT,
+            stop: Arc::new(AtomicBool::new(false)),
+            worker: None,
         }))
     }
 
@@ -449,6 +516,29 @@ impl Assets {
             prefix: format!("http://127.0.0.1:{}", self.port),
             files: self.files.clone(),
         }
+    }
+
+    pub(super) fn cylinder_uri(&self, color: [f32; 4]) -> io::Result<String> {
+        self.primitive_uri(Primitive::Cylinder, color)
+    }
+
+    pub(super) fn capsule_uri(
+        &self,
+        radius: f64,
+        length: f64,
+        color: [f32; 4],
+    ) -> io::Result<String> {
+        self.primitive_uri(Primitive::capsule(radius, length), color)
+    }
+
+    fn primitive_uri(&self, primitive: Primitive, color: [f32; 4]) -> io::Result<String> {
+        let route = self
+            .primitives
+            .get(&(primitive, color.map(f32::to_bits)))
+            .ok_or_else(|| {
+                invalid("primitive dimensions or material are outside the admitted asset snapshot")
+            })?;
+        Ok(format!("http://127.0.0.1:{}{route}", self.port))
     }
 
     pub(super) fn uri(&self, id: u64, mesh: &sdformat::Mesh) -> io::Result<String> {
@@ -640,3 +730,7 @@ mod stl_tests;
 #[cfg(test)]
 #[path = "../../tests/private/obj_assets.rs"]
 mod obj_tests;
+
+#[cfg(test)]
+#[path = "../../tests/private/capsule_assets.rs"]
+mod capsule_tests;

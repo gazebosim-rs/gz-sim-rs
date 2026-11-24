@@ -1,0 +1,347 @@
+{
+  "device": "NVIDIA GeForce RTX 5090, Vulkan f64",
+  "clock_ms": 1,
+  "substeps_per_public_tick": 4,
+  "precision": "f64",
+  "measurements": {
+    "center_impulse": {
+      "final_link_m": [
+        0.005698843480645113,
+        0.051299999999999596,
+        0.020954185578182752
+      ],
+      "final_quaternion": [
+        0.0,
+        -5.166911151776036e-06,
+        0.0,
+        0.9999999999866517
+      ],
+      "last_free_tick": 892,
+      "max_angular_speed_error_rad_s": 3.3881317890172014e-20,
+      "max_com_error_m": 4.83984740964111e-16,
+      "max_energy_error_j": 2.524354896707238e-29,
+      "max_link_error_m": 4.83984740964111e-16,
+      "max_orientation_error_rad": 6.268043809681823e-20,
+      "observed_flight_ticks": 152,
+      "read_bytes": 133760,
+      "uploaded_bytes": 848,
+      "runs": 6,
+      "observed_steps_per_second": [
+        4405.607085700187,
+        4675.288452225149,
+        4644.6859552122105,
+        4439.084055750457,
+        3936.1574935336316,
+        3942.9811718498545
+      ],
+      "median_observed_steps_per_second": 4422.3455707253215,
+      "p95_ms": [
+        0.28996099999999997,
+        0.239461,
+        0.22890000000000002,
+        0.25887099999999996,
+        0.380051,
+        0.528071
+      ],
+      "median_p95_ms": 0.274416,
+      "p99_ms": [
+        0.658402,
+        0.249371,
+        0.245841,
+        0.27008099999999996,
+        1.381144,
+        0.880423
+      ],
+      "median_p99_ms": 0.4642415
+    },
+    "eccentric": {
+      "final_link_m": [
+        0.00521328419891201,
+        0.04950707917418489,
+        0.023584589379606464
+      ],
+      "final_quaternion": [
+        -0.5614199623695582,
+        -0.22110017685618272,
+        0.1110313612189158,
+        0.7896799190007324
+      ],
+      "last_free_tick": 888,
+      "max_angular_speed_error_rad_s": 6.898586356487331e-07,
+      "max_com_error_m": 4.2446879221323683e-16,
+      "max_energy_error_j": 2.9129193631835526e-12,
+      "max_link_error_m": 9.088581889529107e-10,
+      "max_orientation_error_rad": 4.950501820773783e-07,
+      "observed_flight_ticks": 148,
+      "read_bytes": 130240,
+      "uploaded_bytes": 848,
+      "runs": 6,
+      "observed_steps_per_second": [
+        4718.239790510153,
+        5019.158773389494,
+        4841.869292626123,
+        4615.004333270791,
+        4821.235117042646,
+        4854.179942548155
+      ],
+      "median_observed_steps_per_second": 4831.552204834385,
+      "p95_ms": [
+        0.237821,
+        0.21208,
+        0.239581,
+        0.30612100000000003,
+        0.225,
+        0.240481
+      ],
+      "median_p95_ms": 0.238701,
+      "p99_ms": [
+        0.287271,
+        0.23916099999999998,
+        0.263061,
+        0.585282,
+        0.257571,
+        0.250061
+      ],
+      "median_p99_ms": 0.260316
+    },
+    "no_impulse": {
+      "final_link_m": [
+        -8.661445250503219e-07,
+        0.0,
+        0.02018214483551112
+      ],
+      "final_quaternion": [
+        0.0,
+        -3.7697604928643774e-06,
+        0.0,
+        0.9999999999928946
+      ],
+      "last_free_tick": 840,
+      "max_angular_speed_error_rad_s": 3.3881317890172014e-20,
+      "max_com_error_m": 3.9838350467363127e-16,
+      "max_energy_error_j": 2.524354896707238e-29,
+      "max_link_error_m": 3.9838350467363127e-16,
+      "max_orientation_error_rad": 2.371692252312041e-20,
+      "observed_flight_ticks": 100,
+      "read_bytes": 88000,
+      "uploaded_bytes": 848,
+      "runs": 6,
+      "observed_steps_per_second": [
+        4054.5984112867054,
+        3554.940124321233,
+        4551.029142424093,
+        4645.830026083084,
+        3470.9939965340736,
+        4665.761633330114
+      ],
+      "median_observed_steps_per_second": 4302.813776855399,
+      "p95_ms": [
+        0.26654100000000003,
+        0.5659909999999999,
+        0.250981,
+        0.24395,
+        0.584221,
+        0.226221
+      ],
+      "median_p95_ms": 0.258761,
+      "p99_ms": [
+        0.289211,
+        1.380104,
+        0.286281,
+        0.254731,
+        0.854112,
+        0.24894099999999997
+      ],
+      "median_p99_ms": 0.287746
+    }
+  },
+  "replay_checks": {
+    "eccentric-right": {
+      "body_poses_and_shapes_checked": 348,
+      "captured_ms": {
+        "flight": 873.0,
+        "grasp": 674.0,
+        "release": 774.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        33.0,
+        66.0,
+        99.0,
+        131.0,
+        160.0,
+        193.0,
+        226.0,
+        259.0,
+        292.0,
+        318.0,
+        350.0,
+        383.0,
+        416.0,
+        449.0,
+        482.0,
+        513.0,
+        546.0,
+        579.0,
+        608.0,
+        641.0,
+        674.0,
+        707.0,
+        740.0,
+        774.0,
+        807.0,
+        840.0,
+        873.0,
+        888.0
+      ],
+      "frames": 29,
+      "independent_visual_poses_checked": 348,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 29,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11384%2F"
+    },
+    "eccentric-top": {
+      "body_poses_and_shapes_checked": 348,
+      "captured_ms": {
+        "flight": 873.0,
+        "grasp": 674.0,
+        "release": 774.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        33.0,
+        66.0,
+        99.0,
+        131.0,
+        160.0,
+        193.0,
+        226.0,
+        259.0,
+        292.0,
+        318.0,
+        350.0,
+        383.0,
+        416.0,
+        449.0,
+        482.0,
+        513.0,
+        546.0,
+        579.0,
+        608.0,
+        641.0,
+        674.0,
+        707.0,
+        740.0,
+        774.0,
+        807.0,
+        840.0,
+        873.0,
+        888.0
+      ],
+      "frames": 29,
+      "independent_visual_poses_checked": 348,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 29,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11384%2F"
+    },
+    "control-right": {
+      "body_poses_and_shapes_checked": 324,
+      "captured_ms": {
+        "flight": 808.0,
+        "grasp": 675.0,
+        "release": 775.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        32.0,
+        65.0,
+        98.0,
+        131.0,
+        164.0,
+        197.0,
+        230.0,
+        263.0,
+        296.0,
+        329.0,
+        362.0,
+        395.0,
+        424.0,
+        454.0,
+        487.0,
+        518.0,
+        551.0,
+        580.0,
+        609.0,
+        642.0,
+        675.0,
+        708.0,
+        742.0,
+        775.0,
+        808.0,
+        840.0
+      ],
+      "frames": 27,
+      "independent_visual_poses_checked": 324,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 27,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11386%2F"
+    }
+  },
+  "sha256": {
+    "center_impulse_all_poses": "2549924ea07e1b25d48a674b768d0fd37fa3a6fe39b7987687d8ff2b4e03b2a8",
+    "eccentric_all_poses": "486a4263aa77c4bec35e5144c251574af144bcc1ce15a30db9693d461ba89710",
+    "no_impulse_all_poses": "264b032667ad6a042cd841dfae97a3b5c9a4837cc3cf370851836f0bd933b8e0",
+    "final-eccentric-replay/frames.jsonl": "90fbcb419a78f36074ec2fd95029542fee9e3c7193bd737093ce76cd1ac1001d",
+    "final-eccentric-replay/manifest.json": "11edd828b1fe276744e3b6ac08a0bfe269e73e5334c2f2f56dc8497e51a9251e",
+    "final-control-replay/frames.jsonl": "e9bf6fb18a6790825a38ca946ec41c9d37be71e45545f2ba8f078e28f4fb2c4a",
+    "final-control-replay/manifest.json": "154d42ce6ed31f64bb7a8cebc0ab1b7c44cc9b7004bf47249609c1dc589de11f",
+    "gpu-spatial-flight-replays.tar.xz": "0bf01225fbcd1a2295e60eb0674c48abb3561f54fbd786f12281993fe449ac95",
+    "gpu-spatial-flight-side.jpg": "ad56d8350fc67f9f7c5a705d6407058cb4a84446a0be17fa6b226c6d21cbc1a3",
+    "gpu-spatial-flight-top.jpg": "1c038cd7c173743dc66796870d49d07f1dd2bf0a29ac0c340f37cdc60801135f"
+  },
+  "coverage": {
+    "base": "7e46e5855b8041ff335f1137b56ad013a8c5682b",
+    "objects": {
+      "scene": {
+        "executable_sha256": "ba338f7a8e7e71b47037c386832d378383cc0281435bcc9717cb7d2355308986",
+        "profile_sha256": "4b425b949937f617c535c07de4d699de0e8eb89e762ad0c94a43342d455dfc62"
+      },
+      "ordinary": {
+        "executable_sha256": "1c2d5de9ca8c40f6c342876f99a9b076f0e9568ca35d5cf0a6e4ecaeff8d2559",
+        "profile_sha256": "59a20d01b121d41dd115876b2cf58abc94322f559662a3a956f410684ed24508"
+      }
+    },
+    "production": {
+      "lines": [
+        461,
+        463
+      ],
+      "regions": [
+        798,
+        809
+      ]
+    },
+    "qualification": {
+      "lines": [
+        196,
+        201
+      ],
+      "regions": [
+        446,
+        465
+      ]
+    }
+  }
+}

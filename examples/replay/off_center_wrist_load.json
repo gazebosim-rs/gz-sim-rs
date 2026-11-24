@@ -1,0 +1,85 @@
+{
+  "seed": "off-center-wrist-load-v1",
+  "commands": [
+    {
+      "op": "point_force",
+      "link": "default::held::payload",
+      "point_in_link_m": [
+        0.116,
+        -0.112,
+        0.055
+      ],
+      "world_force_n": [
+        40,
+        24,
+        -16
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "step",
+      "count": 160
+    },
+    {
+      "op": "point_force",
+      "link": "default::held::payload",
+      "point_in_link_m": [
+        0.116,
+        -0.112,
+        0.055
+      ],
+      "world_force_n": [
+        40,
+        24,
+        -16
+      ]
+    },
+    {
+      "op": "step",
+      "count": 160
+    },
+    {
+      "op": "point_force",
+      "link": "default::held::payload",
+      "point_in_link_m": [
+        0.116,
+        -0.112,
+        0.055
+      ],
+      "world_force_n": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "reset"
+    },
+    {
+      "op": "point_force",
+      "link": "default::held::payload",
+      "point_in_link_m": [
+        0.116,
+        -0.112,
+        0.055
+      ],
+      "world_force_n": [
+        40,
+        24,
+        -16
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "step",
+      "count": 160
+    }
+  ]
+}

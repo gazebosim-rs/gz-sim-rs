@@ -1,0 +1,8 @@
+{
+  "seed": "pad-stiffness-hold",
+  "commands": [
+    {"op":"set_joint_force","joint":"default::gripper::left_slide","force":3.0},
+    {"op":"set_joint_force","joint":"default::gripper::right_slide","force":3.0},
+    {"op":"step","count":200000}
+  ]
+}

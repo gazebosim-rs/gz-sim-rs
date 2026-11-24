@@ -1,0 +1,1073 @@
+{
+  "source_base": "f368ed587f303c437b9a96359f616f816fc204fa",
+  "hardware": "AMD Ryzen 9 9950X3D / 32 logical CPUs / shared Linux",
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "time_unit": "ms, except step_ms, signed force/impulse or ns raw trace explicitly named",
+  "step_ms": 10,
+  "hardware_affinities": {
+    "held_out_and_same_state": "24-31",
+    "instrumented_stages": "16-23",
+    "digest_and_reset": "0-7"
+  },
+  "hardware_note": "20-step warm-up; processes and scheduling shapes overlap other work on shared host",
+  "native_stage_ms": {
+    "loaded": {
+      "advance": {
+        "samples": 120,
+        "p50": 0.00189,
+        "p95": 0.0026,
+        "p99": 0.0038,
+        "mean": 0.001978
+      },
+      "cover_fleet_step": {
+        "samples": 120,
+        "p50": 0.01591,
+        "p95": 0.489161,
+        "p99": 0.608702,
+        "mean": 0.052785
+      },
+      "selective_native": {
+        "samples": 120,
+        "p50": 1.35598,
+        "p95": 1.573975,
+        "p99": 1.921066,
+        "mean": 1.397205
+      },
+      "rapier_update": {
+        "samples": 120,
+        "p50": 0.134146,
+        "p95": 0.15884,
+        "p99": 0.195532,
+        "mean": 0.136016
+      },
+      "rapier_broad": {
+        "samples": 120,
+        "p50": 0.00073,
+        "p95": 0.131341,
+        "p99": 0.16335,
+        "mean": 0.025583
+      },
+      "rapier_narrow": {
+        "samples": 120,
+        "p50": 0.097546,
+        "p95": 0.128491,
+        "p99": 0.17757,
+        "mean": 0.101843
+      },
+      "rapier_solver": {
+        "samples": 120,
+        "p50": 1.051694,
+        "p95": 1.140684,
+        "p99": 1.452034,
+        "mean": 1.069962
+      },
+      "rapier_assembly": {
+        "samples": 120,
+        "p50": 0.02027,
+        "p95": 0.026471,
+        "p99": 0.05537,
+        "mean": 0.021505
+      },
+      "rapier_resolution": {
+        "samples": 120,
+        "p50": 1.031373,
+        "p95": 1.117844,
+        "p99": 1.395894,
+        "mean": 1.048048
+      },
+      "rapier_writeback": {
+        "samples": 120,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "mean": 0.0
+      },
+      "rapier_update_velocity": {
+        "samples": 120,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "mean": 0.0
+      },
+      "rapier_islands": {
+        "samples": 120,
+        "p50": 0.00549,
+        "p95": 0.00743,
+        "p99": 0.01552,
+        "mean": 0.005956
+      },
+      "advance_public_tick": {
+        "samples": 120,
+        "p50": 1.389959,
+        "p95": 1.869236,
+        "p99": 2.066497,
+        "mean": 1.46404
+      },
+      "sync_bodies": {
+        "samples": 120,
+        "p50": 0.17695,
+        "p95": 0.283681,
+        "p99": 0.391281,
+        "mean": 0.206935
+      },
+      "publish": {
+        "samples": 120,
+        "p50": 0.29698,
+        "p95": 0.503452,
+        "p99": 0.541341,
+        "mean": 0.34215
+      },
+      "sync_attached_poses": {
+        "samples": 120,
+        "p50": 0.252841,
+        "p95": 0.321981,
+        "p99": 0.387562,
+        "mean": 0.265917
+      },
+      "sample_imus": {
+        "samples": 120,
+        "p50": 0.001025,
+        "p95": 0.00181,
+        "p99": 0.00246,
+        "mean": 0.001101
+      },
+      "commit": {
+        "samples": 120,
+        "p50": 2.168347,
+        "p95": 2.910599,
+        "p99": 3.655701,
+        "mean": 2.295092
+      },
+      "readers": {
+        "samples": 120,
+        "p50": 1.034403,
+        "p95": 1.169093,
+        "p99": 1.457445,
+        "mean": 1.048156
+      },
+      "range": {
+        "samples": 120,
+        "p50": 0.117885,
+        "p95": 0.14777,
+        "p99": 0.19672,
+        "mean": 0.121803
+      },
+      "total": {
+        "samples": 120,
+        "p50": 3.33356,
+        "p95": 4.110923,
+        "p99": 5.460327,
+        "mean": 3.465154
+      },
+      "bevy_publication": {
+        "samples": 120,
+        "p50": 0.739007,
+        "p95": 1.120153,
+        "p99": 1.272684,
+        "mean": 0.815002
+      }
+    },
+    "prescribed": {
+      "advance_public_tick": {
+        "samples": 120,
+        "p50": 3e-05,
+        "p95": 5e-05,
+        "p99": 9e-05,
+        "mean": 3.8e-05
+      },
+      "sync_bodies": {
+        "samples": 120,
+        "p50": 0.11451,
+        "p95": 0.185471,
+        "p99": 0.24491,
+        "mean": 0.122539
+      },
+      "publish": {
+        "samples": 120,
+        "p50": 0.286171,
+        "p95": 0.466692,
+        "p99": 0.498901,
+        "mean": 0.300103
+      },
+      "sync_attached_poses": {
+        "samples": 120,
+        "p50": 0.194295,
+        "p95": 0.250791,
+        "p99": 0.347091,
+        "mean": 0.201184
+      },
+      "commit": {
+        "samples": 120,
+        "p50": 0.602037,
+        "p95": 0.813942,
+        "p99": 1.180984,
+        "mean": 0.631625
+      },
+      "readers": {
+        "samples": 120,
+        "p50": 4e-05,
+        "p95": 0.00012,
+        "p99": 0.00015,
+        "mean": 4.9e-05
+      },
+      "range": {
+        "samples": 120,
+        "p50": 2e-05,
+        "p95": 3e-05,
+        "p99": 0.00014,
+        "mean": 2.5e-05
+      },
+      "total": {
+        "samples": 120,
+        "p50": 0.602167,
+        "p95": 0.814062,
+        "p99": 1.181124,
+        "mean": 0.631786
+      },
+      "bevy_publication": {
+        "samples": 120,
+        "p50": 0.594822,
+        "p95": 0.806772,
+        "p99": 1.169223,
+        "mean": 0.623826
+      }
+    },
+    "loaded_repeat": {
+      "advance": {
+        "samples": 240,
+        "p50": 0.00243,
+        "p95": 0.00352,
+        "p99": 0.00649,
+        "mean": 0.002505
+      },
+      "cover_fleet_step": {
+        "samples": 240,
+        "p50": 0.01714,
+        "p95": 0.559332,
+        "p99": 0.737712,
+        "mean": 0.056339
+      },
+      "selective_native": {
+        "samples": 240,
+        "p50": 1.575894,
+        "p95": 2.121787,
+        "p99": 2.735478,
+        "mean": 1.604006
+      },
+      "rapier_update": {
+        "samples": 240,
+        "p50": 0.141211,
+        "p95": 0.19771,
+        "p99": 0.316971,
+        "mean": 0.147731
+      },
+      "rapier_broad": {
+        "samples": 240,
+        "p50": 0.00159,
+        "p95": 0.17425,
+        "p99": 0.207951,
+        "mean": 0.031904
+      },
+      "rapier_narrow": {
+        "samples": 240,
+        "p50": 0.11504,
+        "p95": 0.193371,
+        "p99": 0.274861,
+        "mean": 0.123054
+      },
+      "rapier_solver": {
+        "samples": 240,
+        "p50": 1.209359,
+        "p95": 1.454195,
+        "p99": 2.093007,
+        "mean": 1.222856
+      },
+      "rapier_assembly": {
+        "samples": 240,
+        "p50": 0.024435,
+        "p95": 0.03817,
+        "p99": 0.06383,
+        "mean": 0.026172
+      },
+      "rapier_resolution": {
+        "samples": 240,
+        "p50": 1.184089,
+        "p95": 1.415894,
+        "p99": 2.027927,
+        "mean": 1.196154
+      },
+      "rapier_writeback": {
+        "samples": 240,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "mean": 0.0
+      },
+      "rapier_update_velocity": {
+        "samples": 240,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "mean": 0.0
+      },
+      "rapier_islands": {
+        "samples": 240,
+        "p50": 0.0067,
+        "p95": 0.01021,
+        "p99": 0.01458,
+        "mean": 0.007025
+      },
+      "advance_public_tick": {
+        "samples": 240,
+        "p50": 1.62081,
+        "p95": 2.388228,
+        "p99": 2.817489,
+        "mean": 1.678326
+      },
+      "sync_bodies": {
+        "samples": 240,
+        "p50": 0.334541,
+        "p95": 0.790263,
+        "p99": 1.296844,
+        "mean": 0.368974
+      },
+      "publish": {
+        "samples": 240,
+        "p50": 0.561272,
+        "p95": 1.257405,
+        "p99": 2.112587,
+        "mean": 0.638459
+      },
+      "sync_attached_poses": {
+        "samples": 240,
+        "p50": 0.375667,
+        "p95": 0.859883,
+        "p99": 1.779456,
+        "mean": 0.46585
+      },
+      "sample_imus": {
+        "samples": 240,
+        "p50": 0.001495,
+        "p95": 0.00287,
+        "p99": 0.00432,
+        "mean": 0.001593
+      },
+      "commit": {
+        "samples": 240,
+        "p50": 3.006265,
+        "p95": 4.931906,
+        "p99": 7.633104,
+        "mean": 3.17813
+      },
+      "readers": {
+        "samples": 240,
+        "p50": 1.176208,
+        "p95": 1.691986,
+        "p99": 2.718959,
+        "mean": 1.225794
+      },
+      "range": {
+        "samples": 240,
+        "p50": 0.127161,
+        "p95": 0.203191,
+        "p99": 0.346461,
+        "mean": 0.138433
+      },
+      "total": {
+        "samples": 240,
+        "p50": 4.348159,
+        "p95": 7.072272,
+        "p99": 10.938355,
+        "mean": 4.542495
+      },
+      "bevy_publication": {
+        "samples": 240,
+        "p50": 1.27103,
+        "p95": 2.798349,
+        "p99": 5.299346,
+        "mean": 1.473284
+      }
+    },
+    "single_codegen_unit_loaded_repeat": {
+      "advance": {
+        "samples": 240,
+        "p50": 0.00312,
+        "p95": 0.00649,
+        "p99": 0.0084,
+        "mean": 0.003615
+      },
+      "cover_fleet_step": {
+        "samples": 240,
+        "p50": 0.022995,
+        "p95": 0.631392,
+        "p99": 1.015664,
+        "mean": 0.073061
+      },
+      "selective_native": {
+        "samples": 240,
+        "p50": 1.826396,
+        "p95": 2.855979,
+        "p99": 3.551951,
+        "mean": 1.935621
+      },
+      "rapier_update": {
+        "samples": 240,
+        "p50": 0.154856,
+        "p95": 0.253141,
+        "p99": 0.328991,
+        "mean": 0.16625
+      },
+      "rapier_broad": {
+        "samples": 240,
+        "p50": 0.00229,
+        "p95": 0.209361,
+        "p99": 0.293731,
+        "mean": 0.041955
+      },
+      "rapier_narrow": {
+        "samples": 240,
+        "p50": 0.155416,
+        "p95": 0.304891,
+        "p99": 0.377901,
+        "mean": 0.173232
+      },
+      "rapier_solver": {
+        "samples": 240,
+        "p50": 1.375295,
+        "p95": 2.041116,
+        "p99": 2.645579,
+        "mean": 1.455912
+      },
+      "rapier_assembly": {
+        "samples": 240,
+        "p50": 0.031855,
+        "p95": 0.066811,
+        "p99": 0.102271,
+        "mean": 0.036631
+      },
+      "rapier_resolution": {
+        "samples": 240,
+        "p50": 1.34437,
+        "p95": 1.980756,
+        "p99": 2.586509,
+        "mean": 1.418442
+      },
+      "rapier_writeback": {
+        "samples": 240,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "mean": 0.0
+      },
+      "rapier_update_velocity": {
+        "samples": 240,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "mean": 0.0
+      },
+      "rapier_islands": {
+        "samples": 240,
+        "p50": 0.00751,
+        "p95": 0.01578,
+        "p99": 0.02038,
+        "mean": 0.008961
+      },
+      "advance_public_tick": {
+        "samples": 240,
+        "p50": 1.917671,
+        "p95": 3.04241,
+        "p99": 3.634021,
+        "mean": 2.030271
+      },
+      "sync_bodies": {
+        "samples": 240,
+        "p50": 0.487526,
+        "p95": 0.993783,
+        "p99": 1.468055,
+        "mean": 0.532346
+      },
+      "publish": {
+        "samples": 240,
+        "p50": 0.717102,
+        "p95": 1.345714,
+        "p99": 2.010647,
+        "mean": 0.786681
+      },
+      "sync_attached_poses": {
+        "samples": 240,
+        "p50": 0.561117,
+        "p95": 1.113883,
+        "p99": 1.606905,
+        "mean": 0.585557
+      },
+      "sample_imus": {
+        "samples": 240,
+        "p50": 0.002085,
+        "p95": 0.00469,
+        "p99": 0.00572,
+        "mean": 0.002362
+      },
+      "commit": {
+        "samples": 240,
+        "p50": 3.908443,
+        "p95": 6.03468,
+        "p99": 8.185236,
+        "mean": 3.970711
+      },
+      "readers": {
+        "samples": 240,
+        "p50": 1.359164,
+        "p95": 2.514358,
+        "p99": 3.606962,
+        "mean": 1.580178
+      },
+      "range": {
+        "samples": 240,
+        "p50": 0.168871,
+        "p95": 0.331031,
+        "p99": 0.423621,
+        "mean": 0.187007
+      },
+      "total": {
+        "samples": 240,
+        "p50": 5.776929,
+        "p95": 8.580187,
+        "p99": 11.704118,
+        "mean": 5.738057
+      },
+      "bevy_publication": {
+        "samples": 240,
+        "p50": 1.892606,
+        "p95": 3.266981,
+        "p99": 4.454894,
+        "mean": 1.904584
+      }
+    }
+  },
+  "held_out_cpu": {
+    "native_ray_bounds": {
+      "loaded-full": {
+        "baseline": {
+          "commit": {
+            "samples": 1280,
+            "p50": 5.407623,
+            "p95": 9.818011,
+            "p99": 13.136922,
+            "mean": 5.927095
+          },
+          "readers": {
+            "samples": 1280,
+            "p50": 1.55603,
+            "p95": 3.46109,
+            "p99": 5.367267,
+            "mean": 1.834883
+          },
+          "range": {
+            "samples": 1280,
+            "p50": 0.364406,
+            "p95": 0.710603,
+            "p99": 1.115583,
+            "mean": 0.388758
+          },
+          "total": {
+            "samples": 1280,
+            "p50": 7.409669,
+            "p95": 13.846954,
+            "p99": 18.054957,
+            "mean": 8.151172
+          }
+        },
+        "bounds": {
+          "commit": {
+            "samples": 1280,
+            "p50": 5.721633,
+            "p95": 9.78413,
+            "p99": 12.54076,
+            "mean": 6.163392
+          },
+          "readers": {
+            "samples": 1280,
+            "p50": 1.627245,
+            "p95": 3.13273,
+            "p99": 4.261593,
+            "mean": 1.806766
+          },
+          "range": {
+            "samples": 1280,
+            "p50": 0.05891,
+            "p95": 0.148881,
+            "p99": 0.226771,
+            "mean": 0.064886
+          },
+          "total": {
+            "samples": 1280,
+            "p50": 7.460619,
+            "p95": 12.812591,
+            "p99": 16.09161,
+            "mean": 8.035417
+          }
+        }
+      },
+      "prescribed-bare": {
+        "baseline": {
+          "commit": {
+            "samples": 1280,
+            "p50": 3.123505,
+            "p95": 6.148979,
+            "p99": 8.301107,
+            "mean": 3.609911
+          },
+          "readers": {
+            "samples": 1280,
+            "p50": 0.00027,
+            "p95": 0.00079,
+            "p99": 0.00129,
+            "mean": 0.000402
+          },
+          "range": {
+            "samples": 1280,
+            "p50": 2e-05,
+            "p95": 0.00017,
+            "p99": 0.00033,
+            "mean": 4.6e-05
+          },
+          "total": {
+            "samples": 1280,
+            "p50": 3.127355,
+            "p95": 6.149839,
+            "p99": 8.302687,
+            "mean": 3.610672
+          }
+        },
+        "bounds": {
+          "commit": {
+            "samples": 1280,
+            "p50": 3.358086,
+            "p95": 6.44257,
+            "p99": 9.282489,
+            "mean": 3.703929
+          },
+          "readers": {
+            "samples": 1280,
+            "p50": 0.00029,
+            "p95": 0.00075,
+            "p99": 0.00145,
+            "mean": 0.000343
+          },
+          "range": {
+            "samples": 1280,
+            "p50": 2e-05,
+            "p95": 0.00017,
+            "p99": 0.00033,
+            "mean": 4.8e-05
+          },
+          "total": {
+            "samples": 1280,
+            "p50": 3.358636,
+            "p95": 6.44443,
+            "p99": 9.283179,
+            "mean": 3.704629
+          }
+        }
+      }
+    },
+    "single_codegen_unit": {
+      "loaded-full": {
+        "baseline": {
+          "commit": {
+            "samples": 1280,
+            "p50": 5.182246,
+            "p95": 8.833138,
+            "p99": 11.852368,
+            "mean": 5.574714
+          },
+          "readers": {
+            "samples": 1280,
+            "p50": 1.47804,
+            "p95": 2.911759,
+            "p99": 4.260624,
+            "mean": 1.689334
+          },
+          "range": {
+            "samples": 1280,
+            "p50": 0.245276,
+            "p95": 0.585652,
+            "p99": 0.865293,
+            "mean": 0.317136
+          },
+          "total": {
+            "samples": 1280,
+            "p50": 7.024982,
+            "p95": 12.068028,
+            "p99": 15.61548,
+            "mean": 7.581561
+          }
+        },
+        "unit": {
+          "commit": {
+            "samples": 1280,
+            "p50": 4.994641,
+            "p95": 8.809108,
+            "p99": 11.206275,
+            "mean": 5.517205
+          },
+          "readers": {
+            "samples": 1280,
+            "p50": 1.446225,
+            "p95": 3.10679,
+            "p99": 4.880926,
+            "mean": 1.688119
+          },
+          "range": {
+            "samples": 1280,
+            "p50": 0.22927,
+            "p95": 0.645712,
+            "p99": 0.827742,
+            "mean": 0.303702
+          },
+          "total": {
+            "samples": 1280,
+            "p50": 6.698386,
+            "p95": 12.275969,
+            "p99": 16.215272,
+            "mean": 7.509357
+          }
+        }
+      },
+      "prescribed-bare": {
+        "baseline": {
+          "commit": {
+            "samples": 1280,
+            "p50": 3.303786,
+            "p95": 13.484403,
+            "p99": 17.704836,
+            "mean": 4.639977
+          },
+          "readers": {
+            "samples": 1280,
+            "p50": 0.00031,
+            "p95": 0.00073,
+            "p99": 0.00107,
+            "mean": 0.000334
+          },
+          "range": {
+            "samples": 1280,
+            "p50": 3e-05,
+            "p95": 0.00014,
+            "p99": 0.00028,
+            "mean": 4.5e-05
+          },
+          "total": {
+            "samples": 1280,
+            "p50": 3.304475,
+            "p95": 13.485653,
+            "p99": 17.705786,
+            "mean": 4.640658
+          }
+        },
+        "unit": {
+          "commit": {
+            "samples": 1280,
+            "p50": 3.05667,
+            "p95": 11.456657,
+            "p99": 16.091641,
+            "mean": 4.319778
+          },
+          "readers": {
+            "samples": 1280,
+            "p50": 0.00027,
+            "p95": 0.00067,
+            "p99": 0.00093,
+            "mean": 0.000311
+          },
+          "range": {
+            "samples": 1280,
+            "p50": 3e-05,
+            "p95": 0.00021,
+            "p99": 0.00036,
+            "mean": 5.8e-05
+          },
+          "total": {
+            "samples": 1280,
+            "p50": 3.057315,
+            "p95": 11.458307,
+            "p99": 16.093151,
+            "mean": 4.320449
+          }
+        }
+      }
+    }
+  },
+  "single_process_alternating_blocks": {
+    "legacy": {
+      "commit": {
+        "samples": 1280,
+        "p50": 4.766765,
+        "p95": 10.864224,
+        "p99": 16.411502,
+        "mean": 5.84561
+      },
+      "readers": {
+        "samples": 1280,
+        "p50": 1.417499,
+        "p95": 3.913652,
+        "p99": 6.903942,
+        "mean": 1.876933
+      },
+      "range": {
+        "samples": 1280,
+        "p50": 0.255176,
+        "p95": 0.835442,
+        "p99": 1.137463,
+        "mean": 0.362327
+      },
+      "total": {
+        "samples": 1280,
+        "p50": 6.422886,
+        "p95": 14.982428,
+        "p99": 23.541194,
+        "mean": 8.085305
+      }
+    },
+    "full": {
+      "commit": {
+        "samples": 1280,
+        "p50": 5.023716,
+        "p95": 11.198585,
+        "p99": 16.566662,
+        "mean": 6.053684
+      },
+      "readers": {
+        "samples": 1280,
+        "p50": 1.435839,
+        "p95": 3.819042,
+        "p99": 6.110949,
+        "mean": 1.868345
+      },
+      "range": {
+        "samples": 1280,
+        "p50": 0.037695,
+        "p95": 0.147051,
+        "p99": 0.218941,
+        "mean": 0.059831
+      },
+      "total": {
+        "samples": 1280,
+        "p50": 6.51991,
+        "p95": 15.290158,
+        "p99": 22.885653,
+        "mean": 7.982284
+      }
+    }
+  },
+  "same_state_beam": {
+    "baseline_ms": {
+      "samples": 640,
+      "p50": 0.21815,
+      "p95": 0.742332,
+      "p99": 0.972063,
+      "mean": 0.337489
+    },
+    "bounds_ms": {
+      "samples": 640,
+      "p50": 0.027905,
+      "p95": 0.0913,
+      "p99": 0.17325,
+      "mean": 0.038603
+    },
+    "saved_ms": {
+      "samples": 640,
+      "p50": 0.200246,
+      "p95": 0.670122,
+      "p99": 0.869283,
+      "mean": 0.298886
+    },
+    "bounds_faster": 639
+  },
+  "matched_fingerprints": {
+    "sparse": {
+      "time_steps": 120,
+      "pose_pairs": 48000240,
+      "twists": 12000000,
+      "patches": 0,
+      "actual_contact_points": 0,
+      "rays": 360,
+      "digest_sha256": "da57d3758111d829f420b4a38ebc107e82a7700d83cedac089d42b5757acb99c"
+    },
+    "pulse": {
+      "time_steps": 220,
+      "pose_pairs": 88880440,
+      "twists": 22220000,
+      "patches": 219949,
+      "actual_contact_points": 879760,
+      "rays": 660,
+      "digest_sha256": "0cfbe21af6d9f15c71499bad19d06ddfc4f31ffe98c59b690606db53a723c12c"
+    }
+  },
+  "cold_reset": {
+    "prescribed": {
+      "baseline": {
+        "first_ms": [
+          8.879947,
+          1.9115060000000001
+        ],
+        "load_s": 4.484238644,
+        "loaded": false,
+        "reset_ms": 2834.519112,
+        "restored_ms": [
+          3.815713,
+          2.388838
+        ],
+        "tick_sha256": [
+          "223839bff5d56b80e67c050e87fe68ed1273d1fa76731b76d2f5331b72f2da39",
+          "2669758368cd629d1b6d4f9d515d8d07b7d89daf76afd985f1a1dc8223f1803e"
+        ]
+      },
+      "bounds": {
+        "first_ms": [
+          12.345799,
+          4.172943
+        ],
+        "load_s": 5.128470888,
+        "loaded": false,
+        "reset_ms": 3745.7387209999997,
+        "restored_ms": [
+          11.037205,
+          9.904991
+        ],
+        "tick_sha256": [
+          "223839bff5d56b80e67c050e87fe68ed1273d1fa76731b76d2f5331b72f2da39",
+          "2669758368cd629d1b6d4f9d515d8d07b7d89daf76afd985f1a1dc8223f1803e"
+        ]
+      }
+    },
+    "loaded": {
+      "baseline": {
+        "first_ms": [
+          115.269124,
+          5.296537
+        ],
+        "load_s": 4.645751603,
+        "loaded": true,
+        "reset_ms": 3114.724117,
+        "restored_ms": [
+          124.139463,
+          9.937721999999999
+        ],
+        "tick_sha256": [
+          "6594e9c903397192313b561cdcf436a5c66e277dfc66cde0784c31dc358989d2",
+          "5238744a16b4ecd1b8f130946aebe4868e32ee6d9cb05564823addf1bbacb31d"
+        ]
+      },
+      "bounds": {
+        "first_ms": [
+          202.57015,
+          9.341889
+        ],
+        "load_s": 7.122871567,
+        "loaded": true,
+        "reset_ms": 3061.088259,
+        "restored_ms": [
+          95.13299,
+          6.076879
+        ],
+        "tick_sha256": [
+          "6594e9c903397192313b561cdcf436a5c66e277dfc66cde0784c31dc358989d2",
+          "5238744a16b4ecd1b8f130946aebe4868e32ee6d9cb05564823addf1bbacb31d"
+        ]
+      }
+    }
+  },
+  "ray_audit": {
+    "deck_returns": 68,
+    "displayed_poses": 1616,
+    "frames": 101,
+    "imu": 100,
+    "max_error_m": 5.773159728050814e-15,
+    "payload_returns": 33
+  },
+  "native_files_sha256": {
+    "manifest.json": "ca7ef8a4be18918cca3906e07fd98d014182dfef9d543871b604e5cc180e8cfa",
+    "frames.jsonl": "1aba7fb852d66cc3e1991886ae8fdcfd1e63e2c4bbdbcdcd270334680c5bb26c"
+  },
+  "viewer": {
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10025%2F",
+    "renderer": "WebGPU",
+    "frames": 101,
+    "body_poses_and_shapes_checked": 1616,
+    "reset_ms": 0.0
+  },
+  "binary_sha256": {
+    "baseline": "3b855e149fc4028ea821dd1798a494a09c7bd8e35cc7bb8c41c28d6adf49774e",
+    "bounds": "2cfcf2db72c6bff94a3319f65c36c02d6ec736d47224c47365ed54ad85cb5ef0",
+    "baseline-digest": "4a35117f9d3af634ab9eda63e5fcff7728c81a43aa32da8b010099e7b064498f",
+    "bounds-digest": "ec4a543cb96c0f7f825a5618a8e721e4aade8a65abe20e7cd47ba88b6c267fc7",
+    "stages": "1146312ff969dd450c2dcdef6cb837e97cf19dfd5e37b90c34a35c3f08a8c2a5",
+    "unit": "23d92907f00fc13c477b5c53fd47eaa5f53eb01fdf0886d5fea6eb3aad8aa0a9",
+    "unit-stage": "6371910c2234f1b3d13cd85c8a8fbfe5e911614e617ddb123ce0943a85477d69",
+    "abba-final": "65c5be0e584385584b4a1506f0015d428c958a2cc19b0f02754e9d91475229e8",
+    "paired-beam": "61586c31e89b2dc36c6533050f9caaa6e0e2a9edebbde9a8e2da81a655b8f02c",
+    "replay": "2c738a97d7e378d62b956ccf84f327a8ed4c945f6039594f1be4dfd79c710c63"
+  },
+  "changed_coverage": {
+    "totals": {
+      "production": {
+        "lines": [
+          21,
+          21
+        ],
+        "regions": [
+          41,
+          42
+        ]
+      },
+      "including_regressions": {
+        "lines": [
+          63,
+          64
+        ],
+        "regions": [
+          136,
+          138
+        ]
+      }
+    },
+    "files": {
+      "crates/gz-physics-rapier/src/fleet_isolation.rs": {
+        "lines": [
+          20,
+          20
+        ],
+        "regions": [
+          36,
+          37
+        ]
+      },
+      "crates/gz-physics-rapier/src/ray.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          5,
+          5
+        ]
+      },
+      "crates/gz-physics-rapier/tests/private/fleet_rays.rs": {
+        "lines": [
+          42,
+          43
+        ],
+        "regions": [
+          95,
+          96
+        ]
+      }
+    },
+    "executables": {
+      "gz-physics-rapier": "9e7d81bdc168fa2daaf7ebebc78e217790e7b9f9e3a32f9c54eb675146dd7de5"
+    }
+  },
+  "raw_timing_and_replay_sha256": "19b839071f57d91c9f85113682fc844a20361f515fb4d88fc85489b57a042a87"
+}

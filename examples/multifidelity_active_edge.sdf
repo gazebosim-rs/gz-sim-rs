@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!-- An offset payload lands on two co-level vertices of a tilted sole. One vertex takes the impact and the other opens. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0.34999999999999998 -0.23000000000000001 -9.81000000000000050</gravity>
+    <physics name="fixed" type="ignored"><max_step_size>0.0005</max_step_size><real_time_factor>1</real_time_factor></physics>
+
+    <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
+      <native_steps>8</native_steps><solver_iterations>4</solver_iterations>
+      <pgs_iterations>1</pgs_iterations><relaxation_iterations>8</relaxation_iterations>
+      <pair><foot>default::rocker::foot</foot><support>default::lift::pad</support><project_edge>true</project_edge></pair>
+    </plugin>
+    <model name="rocker">
+      <pose>-0.01099792621908227 -0.00600819447660295 0.09399388091591485 0.00000000000000000 0.17999999999999994 0.50000000000000011</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0.66160994572468856 -0.07212092663003267 -1.05000000000000004</linear_velocity><angular_velocity>0.00000000000000000 0.00000000000000000 0.00000000000000000</angular_velocity>
+      </plugin>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system">
+        <exact_revolute_locks>true</exact_revolute_locks>
+      </plugin>
+      <link name="foot">
+        <inertial><mass>1</mass><inertia><ixx>0.0201</ixx><iyy>0.0201</iyy><izz>0.025</izz></inertia></inertial>
+        <collision name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><surface><friction><ode><mu>0.08</mu><mu2>0.08</mu2></ode></friction></surface></collision>
+        <visual name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><material><diffuse>0.92 0.46 0.12 1</diffuse></material></visual>
+      </link>
+      <link name="upper">
+        <pose>0 0.35999999999999999 0.14 0 0 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.0201</ixx><iyy>0.0201</iyy><izz>0.025</izz></inertia></inertial>
+        <collision name="c"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><surface><friction><ode><mu>0.08</mu><mu2>0.08</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><material><diffuse>0.90 0.73 0.21 1</diffuse></material></visual>
+      </link>
+      <joint name="hinge" type="revolute">
+        <parent>foot</parent><child>upper</child>
+        <axis><xyz>1 0 0</xyz><limit><lower>0</lower><upper>0</upper></limit></axis>
+      </joint>
+    </model>
+    <model name="lift">
+      <pose>0.00000000000000000 0.00000000000000000 -0.06000000000000000 0.00000000000000000 -0.00000000000000000 0.00000000000000000</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system">
+        <linear_velocity>0.17000000000000001 -0.09000000000000000 0.22000000000000000</linear_velocity><angular_velocity>0.00000000000000000 0.00000000000000000 0.00000000000000000</angular_velocity>
+      </plugin>
+      <link name="pad">
+        <collision name="platform"><geometry><box><size>0.82 0.82 0.12</size></box></geometry><surface><friction><ode><mu>0.08</mu><mu2>0.08</mu2></ode></friction></surface></collision>
+        <visual name="platform"><geometry><box><size>0.82 0.82 0.12</size></box></geometry><material><diffuse>0.15 0.48 0.73 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

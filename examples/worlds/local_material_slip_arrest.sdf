@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -10.440306508910551</gravity>
+    <physics name="ten_ms" type="ignored"><max_step_size>0.01</max_step_size></physics>
+    <model name="incline"><static>true</static><link name="surface">
+      <collision name="board"><pose>0.09712652114433655 0 0.28042173714778845 0 0.2914567944778671 0</pose><geometry><box><size>1.45 0.70 0.02</size></box></geometry></collision>
+      <visual name="board"><pose>0.09712652114433655 0 0.28042173714778845 0 0.2914567944778671 0</pose><geometry><box><size>1.45 0.70 0.02</size></box></geometry><material><diffuse>0.25 0.31 0.37 1</diffuse></material></visual>
+      <visual name="uphill_0"><pose>-0.31551018928802588 -0.14000000000000001 0.43096603570658054 0 0 0</pose><geometry><sphere><radius>0.015625</radius></sphere></geometry><material><diffuse>0.15 0.85 0.55 1</diffuse></material></visual>
+      <visual name="uphill_1"><pose>-0.31551018928802588 -0.039999999999999994 0.43096603570658054 0 0 0</pose><geometry><sphere><radius>0.015625</radius></sphere></geometry><material><diffuse>0.15 0.85 0.55 1</diffuse></material></visual>
+      <visual name="downhill_0"><pose>-0.31551018928802588 0.039999999999999994 0.43096603570658054 0 0 0</pose><geometry><sphere><radius>0.015625</radius></sphere></geometry><material><diffuse>1 0.48 0.12 1</diffuse></material></visual>
+      <visual name="downhill_1"><pose>-0.31551018928802588 0.14000000000000001 0.43096603570658054 0 0 0</pose><geometry><sphere><radius>0.015625</radius></sphere></geometry><material><diffuse>1 0.48 0.12 1</diffuse></material></visual>
+    </link></model>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <cable name="uphill" substeps="1" iterations="8" radius="0.015625" self_contact="false" friction="0.2" static_plane_friction="0.6" stretch="0.000001" bend="0.0001">
+        <particle position="-0.31551018928802588 -0.14000000000000001 0.43096603570658054" velocity="-0.0047891314261057569 0 0.0014367394278317269" mass="0.1"/>
+        <particle position="-0.31551018928802588 -0.039999999999999994 0.43096603570658054" velocity="-0.0047891314261057569 0 0.0014367394278317269" mass="0.1"/>
+      </cable>
+      <particle_visual material="uphill" particle="0" visual="default::incline::surface::uphill_0"/>
+      <particle_visual material="uphill" particle="1" visual="default::incline::surface::uphill_1"/>
+      <cable name="downhill" substeps="1" iterations="8" radius="0.015625" self_contact="false" friction="0.2" static_plane_friction="0.6" stretch="0.000001" bend="0.0001">
+        <particle position="-0.31551018928802588 0.039999999999999994 0.43096603570658054" velocity="0.0047891314261057569 0 -0.0014367394278317269" mass="0.1"/>
+        <particle position="-0.31551018928802588 0.14000000000000001 0.43096603570658054" velocity="0.0047891314261057569 0 -0.0014367394278317269" mass="0.1"/>
+      </cable>
+      <particle_visual material="downhill" particle="0" visual="default::incline::surface::downhill_0"/>
+      <particle_visual material="downhill" particle="1" visual="default::incline::surface::downhill_1"/>
+      <plane point="0 0 0.32" normal="0.3 0 1"/>
+    </plugin>
+  </world>
+</sdf>

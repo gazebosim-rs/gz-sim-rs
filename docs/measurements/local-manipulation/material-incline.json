@@ -1,0 +1,592 @@
+{
+  "source_revision": "2c88c3d",
+  "coverage_production_diff": [
+    "11f7de4",
+    "5f06f6f"
+  ],
+  "material_incline": {
+    "distance_m": [
+      0.0,
+      0.47014463756543035
+    ],
+    "reset_states": 81,
+    "sliding_analytic_speed_m_s": 1.1420517511710848,
+    "sliding_friction": 0.1,
+    "slope": 0.25,
+    "speed_m_s": [
+      1.6829289700449348e-18,
+      1.1420517511710888
+    ],
+    "static_plane_friction": [
+      0.55,
+      0.1
+    ],
+    "step_ns": 10000000,
+    "support_impulse_ns": [
+      [
+        7.891971390120502e-17,
+        0.0,
+        1.5695999999999979
+      ],
+      [
+        0.22159058823529437,
+        0.0,
+        1.5142023529411786
+      ]
+    ]
+  },
+  "recording": {
+    "frames": 81,
+    "simulated_ns": 800000000,
+    "step_ns": 10000000,
+    "step_p95_ns": 5940,
+    "steps": 80
+  },
+  "incline_viewer": {
+    "body_poses_and_shapes_checked": 405,
+    "captured_ms": {
+      "end": 800.0,
+      "initial": 0.0,
+      "middle": 500.0,
+      "moving": 300.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      70.0,
+      80.0,
+      90.0,
+      100.0,
+      110.0,
+      120.0,
+      130.0,
+      140.0,
+      150.0,
+      160.0,
+      170.0,
+      180.0,
+      190.0,
+      200.0,
+      210.0,
+      220.0,
+      230.0,
+      240.0,
+      250.0,
+      260.0,
+      270.0,
+      280.0,
+      290.0,
+      300.0,
+      310.0,
+      320.0,
+      330.0,
+      340.0,
+      350.0,
+      360.0,
+      370.0,
+      380.0,
+      390.0,
+      400.0,
+      410.0,
+      420.0,
+      430.0,
+      440.0,
+      450.0,
+      460.0,
+      470.0,
+      480.0,
+      490.0,
+      500.0,
+      510.0,
+      520.0,
+      530.0,
+      540.0,
+      550.0,
+      560.0,
+      570.0,
+      580.0,
+      590.0,
+      600.0,
+      610.0,
+      620.0,
+      630.0,
+      640.0,
+      650.0,
+      660.0,
+      670.0,
+      680.0,
+      690.0,
+      700.0,
+      710.0,
+      720.0,
+      730.0,
+      740.0,
+      750.0,
+      760.0,
+      770.0,
+      780.0,
+      790.0,
+      800.0
+    ],
+    "frames": 81,
+    "independent_particle_positions_checked": 324,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 81,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9996%2F"
+  },
+  "folded_sheet": {
+    "max_particle_tolerance_m": 0.0001,
+    "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+    "reference_checked": true,
+    "reference_exchanges_per_ms": 1000,
+    "selected_exchanges_per_ms": 500,
+    "trials": [
+      {
+        "exchanges_per_ms": 16,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          3.669620953270147e-05,
+          3.6460591838282246e-05
+        ],
+        "max_particle_error_location": {
+          "particle": 3,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.0001295939471120144,
+        "mean_hold_jaw_load_n": [
+          0.04120804247691403,
+          0.04120204378564839
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 4046393,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 250,
+        "first_particle_outside_tolerance": {
+          "particle": 2,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          2.3891646827665046e-07,
+          6.460298466580761e-08
+        ],
+        "max_particle_error_location": {
+          "particle": 5,
+          "time_ns": 2750000000
+        },
+        "max_particle_error_m": 0.00017525831481112183,
+        "mean_hold_jaw_load_n": [
+          0.04120503825013635,
+          0.04120504296071388
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 64884327,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 500,
+        "first_particle_outside_tolerance": null,
+        "jaw_load_error_fraction_of_weight": [
+          1.3353210662181398e-08,
+          7.804032499576991e-08
+        ],
+        "max_particle_error_location": {
+          "particle": 6,
+          "time_ns": 2725000000
+        },
+        "max_particle_error_m": 8.142898647276934e-05,
+        "mean_hold_jaw_load_n": [
+          0.04120501966282167,
+          0.04120505471509317
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 172739546,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 1000,
+        "first_particle_outside_tolerance": null,
+        "jaw_load_error_fraction_of_weight": [
+          0.0,
+          0.0
+        ],
+        "max_particle_error_location": null,
+        "max_particle_error_m": 0.0,
+        "mean_hold_jaw_load_n": [
+          0.0412050185624637,
+          0.04120504828425823
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 292226143,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      }
+    ],
+    "verification_exchanges_per_ms": 500
+  },
+  "public_vs_fine": {
+    "fine_ticks": 54400,
+    "max_end_com_torque_error_nm": 1.8295912636776754e-16,
+    "max_pad_angular_impulse_error_nms": 1.8295912636776755e-19,
+    "max_pad_linear_impulse_error_ns": 2.1684044095944933e-19,
+    "max_particle_position_error_m": 0.0,
+    "max_particle_velocity_error_m_s": 0.0,
+    "max_structural_node_impulse_error_ns": 0.0,
+    "max_torque_origin_shift_nm": 0.00016020425258967175,
+    "public_ticks": 3400
+  },
+  "coverage": {
+    "crates/gz-physics-xpbd/src/collision.rs": {
+      "lines": {
+        "hit": 80,
+        "total": 82,
+        "missing": [
+          834,
+          836
+        ]
+      },
+      "regions": {
+        "hit": 141,
+        "total": 147,
+        "missing": [
+          [
+            823,
+            24,
+            823,
+            32
+          ],
+          [
+            834,
+            22,
+            834,
+            23
+          ],
+          [
+            835,
+            37,
+            835,
+            56
+          ],
+          [
+            835,
+            38,
+            835,
+            43
+          ],
+          [
+            835,
+            57,
+            837,
+            22
+          ],
+          [
+            545,
+            56,
+            545,
+            57
+          ]
+        ]
+      }
+    },
+    "crates/gz-physics-xpbd/src/coupled.rs": {
+      "lines": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      },
+      "regions": {
+        "hit": 4,
+        "total": 5,
+        "missing": [
+          [
+            856,
+            34,
+            856,
+            35
+          ]
+        ]
+      }
+    },
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": {
+        "hit": 12,
+        "total": 12,
+        "missing": []
+      },
+      "regions": {
+        "hit": 21,
+        "total": 21,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-xpbd/src/one_way_checkpoint.rs": {
+      "lines": {
+        "hit": 36,
+        "total": 36,
+        "missing": []
+      },
+      "regions": {
+        "hit": 53,
+        "total": 53,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+      "lines": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      },
+      "regions": {
+        "hit": 3,
+        "total": 3,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/material_incline.rs": {
+      "lines": {
+        "hit": 77,
+        "total": 79,
+        "missing": [
+          65,
+          86
+        ]
+      },
+      "regions": {
+        "hit": 180,
+        "total": 186,
+        "missing": [
+          [
+            24,
+            34,
+            24,
+            35
+          ],
+          [
+            30,
+            40,
+            30,
+            41
+          ],
+          [
+            32,
+            48,
+            32,
+            49
+          ],
+          [
+            63,
+            36,
+            63,
+            37
+          ],
+          [
+            65,
+            24,
+            65,
+            93
+          ],
+          [
+            86,
+            6,
+            86,
+            7
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/sheet_jaws.rs": {
+      "lines": {
+        "hit": 25,
+        "total": 25,
+        "missing": []
+      },
+      "regions": {
+        "hit": 65,
+        "total": 68,
+        "missing": [
+          [
+            226,
+            59,
+            226,
+            60
+          ],
+          [
+            226,
+            84,
+            226,
+            85
+          ],
+          [
+            267,
+            63,
+            267,
+            64
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/sheet_jaws/convergence.rs": {
+      "lines": {
+        "hit": 2,
+        "total": 2,
+        "missing": []
+      },
+      "regions": {
+        "hit": 5,
+        "total": 6,
+        "missing": [
+          [
+            121,
+            80,
+            121,
+            81
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-scene/src/deformable/config.rs": {
+      "lines": {
+        "hit": 5,
+        "total": 5,
+        "missing": []
+      },
+      "regions": {
+        "hit": 14,
+        "total": 14,
+        "missing": []
+      }
+    }
+  },
+  "folded_sheet_2000_exchange_holdout": {
+    "max_particle_tolerance_m": 0.0001,
+    "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+    "reference_checked": false,
+    "reference_exchanges_per_ms": 2000,
+    "selected_exchanges_per_ms": null,
+    "trials": [
+      {
+        "exchanges_per_ms": 16,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          3.671049157743335e-05,
+          3.639777924394015e-05
+        ],
+        "max_particle_error_location": {
+          "particle": 2,
+          "time_ns": 3225000000
+        },
+        "max_particle_error_m": 0.0003486396440867443,
+        "mean_hold_jaw_load_n": [
+          0.04120804247691403,
+          0.04120204378564839
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 4046393,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 250,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          2.5319851300852986e-07,
+          1.7903903237134326e-09
+        ],
+        "max_particle_error_location": {
+          "particle": 9,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.00024104509768551488,
+        "mean_hold_jaw_load_n": [
+          0.04120503825013635,
+          0.04120504296071388
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 64884327,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 500,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          2.7635255394060824e-08,
+          1.4085291933786407e-07
+        ],
+        "max_particle_error_location": {
+          "particle": 9,
+          "time_ns": 2700000000
+        },
+        "max_particle_error_m": 0.0003251208023478557,
+        "mean_hold_jaw_load_n": [
+          0.04120501966282167,
+          0.04120505471509317
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 172739546,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 1000,
+        "first_particle_outside_tolerance": {
+          "particle": 0,
+          "time_ns": 2700000000
+        },
+        "jaw_load_error_fraction_of_weight": [
+          1.4282044731879426e-08,
+          6.281259434209417e-08
+        ],
+        "max_particle_error_location": {
+          "particle": 6,
+          "time_ns": 2725000000
+        },
+        "max_particle_error_m": 0.0003676555343082241,
+        "mean_hold_jaw_load_n": [
+          0.0412050185624637,
+          0.04120504828425823
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 292226143,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 2000,
+        "first_particle_outside_tolerance": null,
+        "jaw_load_error_fraction_of_weight": [
+          0.0,
+          0.0
+        ],
+        "max_particle_error_location": null,
+        "max_particle_error_m": 0.0,
+        "mean_hold_jaw_load_n": [
+          0.04120501738556608,
+          0.041205043108249205
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 462250540,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      }
+    ],
+    "verification_exchanges_per_ms": 1000
+  }
+}

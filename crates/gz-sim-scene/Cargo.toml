@@ -5,26 +5,87 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+gpu-batch = ["dep:gz-physics-gpu", "gz-physics-gpu/native-handoff"]
+distributed-physics = ["dep:gz-physics-distributed", "dep:serde", "dep:serde_json"]
+
 [dependencies]
+serde = { version = "=1.0.229", features = ["derive"], optional = true }
+serde_json = { version = "=1.0.149", optional = true }
+sha2 = "=0.10.9"
+gz-physics-gpu = { path = "../gz-physics-gpu", optional = true }
+gz-physics-distributed = { path = "../gz-physics-distributed", optional = true }
+gz-physics-xpbd = { path = "../gz-physics-xpbd", features = ["prescribed-translation"] }
 roxmltree = "=0.20.0"
 quick-xml = "=0.38.3"
 petgraph.workspace = true
 bevy_ecs.workspace = true
+bevy_tasks = { version = "=0.20.0", default-features = false, features = ["multi_threaded"] }
 glam.workspace = true
 parry3d-f64 = "=0.31.1"
 thiserror.workspace = true
 sdformat.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
 gz-physics = { path = "../gz-physics" }
+gz-physics-multifidelity = { path = "../gz-physics-multifidelity" }
 gz-physics-rapier = { path = "../gz-physics-rapier" }
 gz-physics-tpe = { path = "../gz-physics-tpe" }
 gz-sensors = { path = "../gz-sensors" }
 gz-assets = { path = "../gz-assets" }
 
 [dev-dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+rapier3d-f64.workspace = true
 gz-fuel-tools.workspace = true
 tempfile = "=3.25.0"
 serde_json = "=1.0.149"
 
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+rustix = { version = "=1.1.5", features = ["time"] }
+
 [lints]
 workspace = true
+
+[[example]]
+name = "gpu_sdf_batch"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_placement_cost"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_placement_crossover"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_automatic_placement"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "native_gpu_handoff"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "native_support_handoff"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "native_staging_scene"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_sdf_tool"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_gripper_population"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_shelf_transfer"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_box_flight"
+required-features = ["gpu-batch"]

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="native" type="ignored"><max_step_size>0.001</max_step_size><real_time_factor>1</real_time_factor></physics>
+    <model name="table">
+      <static>true</static><pose>0 0 -0.2 0 0 0</pose>
+      <link name="deck">
+        <collision name="solid"><geometry><box><size>8 3 0.4</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>8 3 0.4</size></box></geometry><material><diffuse>0.14 0.32 0.45 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="block">
+      <pose>0 0 0.15 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>2</mass><inertia><ixx>0.03333333333333334</ixx><iyy>0.11333333333333334</iyy><izz>0.13333333333333336</izz></inertia></inertial>
+        <collision name="solid"><geometry><box><size>0.8 0.4 0.2</size></box></geometry></collision>
+        <visual name="paint"><geometry><box><size>0.8 0.4 0.2</size></box></geometry><material><diffuse>0.97 0.48 0.11 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

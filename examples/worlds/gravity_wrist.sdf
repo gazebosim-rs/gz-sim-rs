@@ -1,0 +1,307 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="local" type="ignored">
+      <max_step_size>0.001</max_step_size>
+    </physics>
+    <model name="held">
+      <pose>0 0.36 0.8 0 0 0</pose>
+      <link name="carrier">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.04</ixx>
+            <iyy>0.04</iyy>
+            <izz>0.04</izz>
+          </inertia>
+        </inertial>
+        <collision name="housing">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="bearing">
+          <geometry>
+            <sphere>
+              <radius>0.045</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.15 0.72 0.77 1</diffuse>
+          </material>
+        </visual>
+        <visual name="bracket">
+          <pose>0 0 0.14 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.07 0.28</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.19 0.46 0.49 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="tool">
+        <pose>0 0 -0.25 0 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.006</ixx>
+            <iyy>0.008</iyy>
+            <izz>0.004</izz>
+          </inertia>
+        </inertial>
+        <collision name="housing">
+          <geometry>
+            <box>
+              <size>0.14 0.07 0.07</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="shaft">
+          <pose>0 0 0.12 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.027 0.035 0.23</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.91 0.55 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="hand">
+          <geometry>
+            <box>
+              <size>0.16 0.08 0.08</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.96 0.36 0.09 1</diffuse>
+          </material>
+        </visual>
+        <visual name="thumb">
+          <pose>0.061 0.05 0.005 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.023</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.98 0.81 0.24 1</diffuse>
+          </material>
+        </visual>
+        <visual name="extension">
+          <pose>0.11 0.035 0 0 0 0.315</pose>
+          <geometry>
+            <box>
+              <size>0.23 0.018 0.022</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.95 0.67 0.04 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="mount" type="fixed">
+        <parent>world</parent>
+        <child>carrier</child>
+      </joint>
+      <joint name="bearing" type="ball">
+        <parent>carrier</parent>
+        <child>tool</child>
+        <pose>0 0 0.25 0.31 -0.42 0.63</pose>
+      </joint>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system">
+        <additional_pgs_iterations>16</additional_pgs_iterations>
+      </plugin>
+      <link name="payload">
+        <pose>0.215 0.07 -0.25 0 0 0</pose>
+        <inertial>
+          <pose>0.016 -0.012 0.005 0 0 0</pose>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.0015</iyy>
+            <izz>0.0015</izz>
+          </inertia>
+        </inertial>
+        <collision name="mass">
+          <geometry>
+            <box>
+              <size>0.10 0.07 0.075</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="weight">
+          <geometry>
+            <box>
+              <size>0.10 0.07 0.075</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.76 0.33 0.72 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="clamp" type="fixed">
+        <pose>0.03 -0.017 0.008 -0.2 0.4 0.55</pose>
+        <parent>tool</parent>
+        <child>payload</child>
+      </joint>
+    </model>
+    <model name="free">
+      <pose>0 -0.36 0.8 0 0 0</pose>
+      <link name="carrier">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.04</ixx>
+            <iyy>0.04</iyy>
+            <izz>0.04</izz>
+          </inertia>
+        </inertial>
+        <collision name="housing">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="bearing">
+          <geometry>
+            <sphere>
+              <radius>0.045</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.15 0.72 0.77 1</diffuse>
+          </material>
+        </visual>
+        <visual name="bracket">
+          <pose>0 0 0.14 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.07 0.28</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.19 0.46 0.49 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="tool">
+        <pose>0 0 -0.25 0 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.006</ixx>
+            <iyy>0.008</iyy>
+            <izz>0.004</izz>
+          </inertia>
+        </inertial>
+        <collision name="housing">
+          <geometry>
+            <box>
+              <size>0.14 0.07 0.07</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="shaft">
+          <pose>0 0 0.12 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.027 0.035 0.23</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.91 0.55 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="hand">
+          <geometry>
+            <box>
+              <size>0.16 0.08 0.08</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.96 0.36 0.09 1</diffuse>
+          </material>
+        </visual>
+        <visual name="thumb">
+          <pose>0.061 0.05 0.005 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.023</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.98 0.81 0.24 1</diffuse>
+          </material>
+        </visual>
+        <visual name="extension">
+          <pose>0.11 0.035 0 0 0 0.315</pose>
+          <geometry>
+            <box>
+              <size>0.23 0.018 0.022</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.95 0.67 0.04 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="mount" type="fixed">
+        <parent>world</parent>
+        <child>carrier</child>
+      </joint>
+      <joint name="bearing" type="ball">
+        <parent>carrier</parent>
+        <child>tool</child>
+        <pose>0 0 0.25 0.31 -0.42 0.63</pose>
+      </joint>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system">
+        <additional_pgs_iterations>16</additional_pgs_iterations>
+      </plugin>
+      <link name="payload">
+        <pose>0.215 0.07 -0.25 0 0 0</pose>
+        <inertial>
+          <pose>0.016 -0.012 0.005 0 0 0</pose>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.0015</iyy>
+            <izz>0.0015</izz>
+          </inertia>
+        </inertial>
+        <collision name="mass">
+          <geometry>
+            <box>
+              <size>0.10 0.07 0.075</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="weight">
+          <geometry>
+            <box>
+              <size>0.10 0.07 0.075</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.76 0.33 0.72 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="clamp" type="fixed">
+        <pose>0.03 -0.017 0.008 -0.2 0.4 0.55</pose>
+        <parent>tool</parent>
+        <child>payload</child>
+      </joint>
+    </model>
+  </world>
+</sdf>

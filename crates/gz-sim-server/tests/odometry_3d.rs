@@ -21,6 +21,8 @@ use std::{
     time::{Duration, Instant},
 };
 use zenoh::Wait;
+#[path = "../../../tests/support/subscription_routes.rs"]
+mod subscription_routes;
 #[path = "../../../tests/support/zenoh_peer.rs"]
 mod zenoh_peer;
 const XML: &str = include_str!("../../../examples/m38_odometry_3d.sdf");
@@ -628,8 +630,18 @@ fn actual_cpp_xyz_motion_and_three_odometry_streams_survive_loaded_reset_and_ret
     let model = id(&sim, "default::rig");
     let mut server = network.server(sim, options.clone()).unwrap();
     assert!(server.prepare_run(Duration::from_secs(5)).unwrap());
+    let routes = subscription_routes::SubscriptionRoutes::new(
+        &network.observer,
+        [
+            "/m38/odometry",
+            "/m38/odometry_covariance",
+            "/m38/transform",
+        ]
+        .map(|topic| options.topic_key(topic).unwrap()),
+    );
     let mut peer = start_peer(&network, &options, body);
     assert_eq!(peer.line(&mut server), "READY three-dimensional");
+    routes.wait(true);
     drain(&mut peer, &mut server, None);
     advance(&mut server, &mut peer, 20, true);
     let initial = sample(&server).unwrap();
@@ -666,6 +678,7 @@ fn actual_cpp_xyz_motion_and_three_odometry_streams_survive_loaded_reset_and_ret
 
     let last_wire = sample(&server).unwrap().time;
     drop_outputs(&mut server, &mut peer);
+    routes.wait(false);
     advance(&mut server, &mut peer, 20, false);
     let disconnected = sample(&server).unwrap();
     assert!(disconnected.time > last_wire);
@@ -679,6 +692,7 @@ fn actual_cpp_xyz_motion_and_three_odometry_streams_survive_loaded_reset_and_ret
     peer.command("clock-101");
     assert_eq!(peer.line(&mut server), "CLOCK 101000000");
     watch_outputs(&mut server, &mut peer);
+    routes.wait(true);
     advance(&mut server, &mut peer, 19, true);
     assert!(sample(&server).unwrap().time > disconnected.time);
     close_vector(motion(&server).0, [0.044, 0.022, 0.066]);
@@ -698,6 +712,7 @@ fn actual_cpp_xyz_motion_and_three_odometry_streams_survive_loaded_reset_and_ret
     admission(&mut server, &mut peer, "once-force", 1, 0);
     admission(&mut server, &mut peer, "persistent-force", 2, 0);
     drop_outputs(&mut server, &mut peer);
+    routes.wait(false);
     reset_loaded(&mut server);
     assert_eq!(
         (
@@ -707,6 +722,7 @@ fn actual_cpp_xyz_motion_and_three_odometry_streams_survive_loaded_reset_and_ret
         (body, model)
     );
     watch_outputs(&mut server, &mut peer);
+    routes.wait(true);
     advance(&mut server, &mut peer, 20, true);
     let replay = sample(&server).unwrap();
     assert_eq!(
@@ -755,6 +771,7 @@ fn actual_cpp_xyz_motion_and_three_odometry_streams_survive_loaded_reset_and_ret
     admission(&mut server, &mut peer, "once-torque", 1, 0);
     admission(&mut server, &mut peer, "persistent-torque", 2, 0);
     drop_outputs(&mut server, &mut peer);
+    routes.wait(false);
     server.remove_editable_model(model).unwrap();
     assert!(gz_sim_core::entity_by_id(server.simulation().world(), body).is_none());
     assert!(sample(&server).is_none());
@@ -764,9 +781,11 @@ fn actual_cpp_xyz_motion_and_three_odometry_streams_survive_loaded_reset_and_ret
     reset_loaded(&mut server);
     assert_eq!(id(server.simulation(), "default::rig::body"), body);
     watch_outputs(&mut server, &mut peer);
+    routes.wait(true);
     advance(&mut server, &mut peer, 20, true);
     assert_eq!(motion(&server), ([0.0; 3], [0.0; 3]));
     drop_outputs(&mut server, &mut peer);
+    routes.wait(false);
     peer.command("finish");
     assert_eq!(peer.line(&mut server), "PASS three-dimensional odometry");
     let (status, stderr) = peer.finish();

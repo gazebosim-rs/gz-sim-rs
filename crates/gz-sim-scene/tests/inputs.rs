@@ -101,7 +101,11 @@ fn admitted_force_is_one_tick_and_bad_inputs_leave_pending_requests_unchanged() 
 
 #[test]
 fn fixed_body_commands_are_explicitly_unsupported_and_preserve_the_scene() {
-    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+    for engine in [
+        PhysicsEngine::Rapier,
+        PhysicsEngine::Tpe,
+        PhysicsEngine::MultiFidelity,
+    ] {
         let mut sim = load_world_with_sdf_step(
             include_str!("fixtures/fall.sdf"),
             "fixed-input",

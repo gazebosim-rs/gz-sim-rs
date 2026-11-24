@@ -1,0 +1,284 @@
+{
+  "sdf_sha256": "0371c12f203493118b884fa6ec9c2f1de36f134beebf5aa7470b6031985c9a26",
+  "public_tick_s": 0.001,
+  "ticks_per_run": 14000,
+  "material_substeps": 2,
+  "cases": [
+    {
+      "case": "clear",
+      "measurements": {
+        "cable_weight_n": 0.21582,
+        "final_center_m": [
+          0.0003206882752357592,
+          0.46079388630158924,
+          0.6050000000000001
+        ],
+        "final_max_squeeze_n": 0.0,
+        "final_pad_up_n": [
+          -0.0,
+          -0.0
+        ],
+        "final_peak_particle_speed_m_s": 0.0,
+        "final_shelf_footprint_margin_m": 0.02850418540856823,
+        "final_shelf_n": 0.21581999999999785,
+        "final_source_n": -0.0,
+        "initial_source_weight_n": 0.21582000000000007,
+        "max_hold_tip_sag_m": 0.07066994991184061,
+        "max_spindle_rad": 2.7004314194432406,
+        "max_strain": 0.0008313596433062731,
+        "mean_travel_jaw_up_n": [
+          0.09747195591324107,
+          0.11833274831924638
+        ],
+        "mean_travel_squeeze_n": [
+          2.1814550804077424,
+          2.182490180647311
+        ],
+        "min_crossing_cable_gap_m": 0.037574602691756116,
+        "min_travel_squeeze_n": 2.1705897113173633,
+        "minimum_other_collider_gap_m": 0.1136129395777278,
+        "minimum_rigid_arm_bar_gap_m": 0.11383077557433349,
+        "peak_bar_n": 0.0,
+        "peak_momentum_residual_ns": 4.942870313816251e-18,
+        "peak_travel_friction_bound_excess_n": 0.0,
+        "peak_wrist_angles_rad": [
+          0.0017848119923495886,
+          0.04500017182973037
+        ],
+        "pickup_lift_m": 0.1861560414572936,
+        "release_shelf_mean_n": 0.22051084850009042,
+        "release_tick": 10941,
+        "ticks_over_bar": 931,
+        "travel_cm_y_m": 0.46231857867961473,
+        "travel_peak_station_n": -0.0
+      },
+      "reset_identical_ticks": 14000,
+      "viewer": {
+        "body_poses_and_shapes_checked": 5427,
+        "captured_ms": {
+          "bar": 7350.0,
+          "lift": 5250.0,
+          "pickup": 700.0,
+          "place": 11060.0,
+          "rest": 14000.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 201,
+        "independent_particle_positions_checked": 2211,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 201,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9950%2F"
+      },
+      "sha256": {
+        "replay/frames.jsonl": "8c907c011672727e3148dab01ae616a5a0a2c1e8c6c579a928d023ea3f754efc",
+        "trace.json": "80ebbd3c7cdc8dc6015a7793e250d0a4d95eaf38d8f2ca362e3890e00d297e75",
+        "particle-frames.json": "d2fc84a1aa24270adf996260e209c3216d0a3a790228a336bf2016abae39726b"
+      }
+    },
+    {
+      "case": "open",
+      "measurements": {
+        "cable_weight_n": 0.21582,
+        "final_center_m": [
+          0.0,
+          -1.261617073437678e-18,
+          0.5250000000000001
+        ],
+        "final_max_squeeze_n": 0.0,
+        "final_pad_up_n": [
+          -0.0,
+          -0.0
+        ],
+        "final_peak_particle_speed_m_s": 0.0,
+        "final_shelf_footprint_margin_m": -0.43500000000000005,
+        "final_shelf_n": -0.0,
+        "final_source_n": 0.21581999999999785,
+        "initial_source_weight_n": 0.21582000000000007,
+        "max_hold_tip_sag_m": 0.0,
+        "max_spindle_rad": 2.7006244369937304,
+        "max_strain": 3.3306690738754696e-16,
+        "mean_travel_jaw_up_n": [
+          -0.0,
+          -0.0
+        ],
+        "mean_travel_squeeze_n": [
+          0.0,
+          0.0
+        ],
+        "min_crossing_cable_gap_m": null,
+        "min_travel_squeeze_n": 0.0,
+        "minimum_other_collider_gap_m": 0.12749695416402115,
+        "minimum_rigid_arm_bar_gap_m": 0.1138295129840961,
+        "peak_bar_n": 0.0,
+        "peak_momentum_residual_ns": 1.0842021724855044e-19,
+        "peak_travel_friction_bound_excess_n": 0.0,
+        "peak_wrist_angles_rad": [
+          0.0016146656386859526,
+          0.045000184974393065
+        ],
+        "pickup_lift_m": 1.1102230246251565e-16,
+        "release_shelf_mean_n": null,
+        "release_tick": null,
+        "ticks_over_bar": 0,
+        "travel_cm_y_m": -1.261617073437678e-18,
+        "travel_peak_station_n": 0.2158199999999999
+      },
+      "reset_identical_ticks": 14000,
+      "viewer": {
+        "body_poses_and_shapes_checked": 5427,
+        "captured_ms": {
+          "bar": 7350.0,
+          "lift": 5250.0,
+          "pickup": 700.0,
+          "place": 11060.0,
+          "rest": 14000.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 201,
+        "independent_particle_positions_checked": 2211,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 201,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9951%2F"
+      },
+      "sha256": {
+        "replay/frames.jsonl": "b34ca99ad4ee76d688b3bbd36830a7be9cd3c5c45d8f327897d957bcf0649aef",
+        "trace.json": "daee60fcad8bad1242cee5511d1c7f9696608c3ce82c0927862107f50b2437d9",
+        "particle-frames.json": "79577d3b3fbc416cccf400428260f6f3cababed39c9c82bdc825e3d4899279dd"
+      }
+    },
+    {
+      "case": "low",
+      "measurements": {
+        "cable_weight_n": 0.21582,
+        "final_center_m": [
+          0.0005836339182632357,
+          0.46580021891169027,
+          0.6050000000000001
+        ],
+        "final_max_squeeze_n": 0.0,
+        "final_pad_up_n": [
+          -0.0,
+          -0.0
+        ],
+        "final_peak_particle_speed_m_s": 0.0,
+        "final_shelf_footprint_margin_m": 0.02667092254966503,
+        "final_shelf_n": 0.21581999999999785,
+        "final_source_n": -0.0,
+        "initial_source_weight_n": 0.21582000000000007,
+        "max_hold_tip_sag_m": 0.07026485384989511,
+        "max_spindle_rad": 1.9003375857258975,
+        "max_strain": 0.0011124257630488188,
+        "mean_travel_jaw_up_n": [
+          0.09605060769128033,
+          0.11775924656269447
+        ],
+        "mean_travel_squeeze_n": [
+          2.186084957055263,
+          2.1811337433449496
+        ],
+        "min_crossing_cable_gap_m": 3.469446951953614e-18,
+        "min_travel_squeeze_n": 2.1346038590427945,
+        "minimum_other_collider_gap_m": 0.11548301117350987,
+        "minimum_rigid_arm_bar_gap_m": 0.050131094252518486,
+        "peak_bar_n": 0.4027003453789124,
+        "peak_momentum_residual_ns": 6.0797096023272264e-18,
+        "peak_travel_friction_bound_excess_n": 0.0,
+        "peak_wrist_angles_rad": [
+          0.0019430336715475782,
+          0.045000200019039927
+        ],
+        "pickup_lift_m": 0.12277680194000073,
+        "release_shelf_mean_n": 0.22328129076271977,
+        "release_tick": 9771,
+        "ticks_over_bar": 653,
+        "travel_cm_y_m": 0.45839981247873446,
+        "travel_peak_station_n": 1.0850365024333366
+      },
+      "reset_identical_ticks": 14000,
+      "viewer": {
+        "body_poses_and_shapes_checked": 5427,
+        "captured_ms": {
+          "bar": 7350.0,
+          "lift": 5250.0,
+          "pickup": 700.0,
+          "place": 11060.0,
+          "rest": 14000.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frames": 201,
+        "independent_particle_positions_checked": 2211,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 201,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9952%2F"
+      },
+      "sha256": {
+        "replay/frames.jsonl": "f7031014df03315dad217fcb2fd2a02e493a77b0222adf9c2a7ca33f07bdde24",
+        "trace.json": "123b5def22b4067eb743eac56df27a4ca712568ed1771f0058d7c17e64aaaad9",
+        "particle-frames.json": "e73c1db54efd0ecb2dfd9992148cce14c504cab82a7a510a509d650f3a9d91c5"
+      }
+    }
+  ],
+  "changed_production_coverage": {
+    "changed_production": {
+      "crates/gz-sim-cli/examples/serial_cable.rs": {
+        "mapped_lines": [
+          273,
+          279
+        ],
+        "mapped_regions": [
+          564,
+          592
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/geometry.rs": {
+        "mapped_lines": [
+          53,
+          53
+        ],
+        "mapped_regions": [
+          85,
+          86
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/measure.rs": {
+        "mapped_lines": [
+          86,
+          86
+        ],
+        "mapped_regions": [
+          170,
+          170
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "app",
+        "sha256": "6c9588cdd065a8176b78021fe0f2dcc6048b7dbf87808f5884e9011bc8978fe3"
+      },
+      {
+        "case": "product",
+        "sha256": "316e91e4acb6bd88a60cf2024a8703d7130d7310e8fe0612750a63b76e218bb4"
+      }
+    ],
+    "mapped_lines": [
+      412,
+      418
+    ],
+    "mapped_regions": [
+      819,
+      848
+    ]
+  },
+  "coverage_method": "Each release example or test executable used its own LLVM profile. Exact unique mapped production line and region coordinates are combined. Instrumented and ordinary runs matched all three checkpoint-free replay streams, particle observations and physics reports byte for byte.",
+  "release_regressions": 6
+}

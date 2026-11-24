@@ -147,9 +147,13 @@ class FeatureProfiles(unittest.TestCase):
             self.assertIn("gz-sim-cli/rgb-camera", command[command.index("--features") + 1].split(","))
             self.assertIn("gz-sim-cli", plan[profile][0])
         self.assertIn("gz-renderer/gpu", plan["renderer"][1][plan["renderer"][1].index("--features") + 1].split(","))
+        headless = plan["headless"][1]
+        self.assertIn("gz-sim-cli/landing-audit", headless[headless.index("--features") + 1].split(","))
         self.assertNotIn("gz-sim-cli", verify.RENDER_PACKAGES)
         self.assertEqual(plan["headless"][1].count("--exclude"), len(verify.RENDER_PACKAGES) + 1)
         self.assertIn(verify.TEST_SUPPORT_PACKAGE, plan["renderer"][1])
+        self.assertIn("gz-physics-distributed", plan["renderer"][1])
+        self.assertNotIn("gz-physics-distributed", plan["renderer"][0])
 
     def test_missing_package_empty_source_and_duplicate_ownership_fail(self):
         crates = sources()
@@ -313,6 +317,9 @@ class FeatureProfiles(unittest.TestCase):
             env = run.call_args_list[1].kwargs["env"]
             self.assertEqual(env["GZ_RENDER_CLI_PATH"], artifacts[0]["executable"])
             self.assertEqual(env["GZ_RENDER_WORKER_PATH"], artifacts[1]["executable"])
+            self.assertEqual(env["CARGO_PROFILE_TEST_OPT_LEVEL"], "1")
+            self.assertEqual(env["CARGO_PROFILE_TEST_DEBUG_ASSERTIONS"], "true")
+            self.assertEqual(env["CARGO_PROFILE_TEST_OVERFLOW_CHECKS"], "true")
             self.assertEqual(json.loads(env["GZ_RENDER_EXECUTABLES_JSON"])["gz-sim-rs"]["cargo_artifact"], artifacts[0])
             self.assertTrue((root / "profile/renderer-build-output.log").is_file())
             self.assertEqual((root / "profile/test-output.log").read_text(), "actual test failure")
@@ -645,7 +652,9 @@ class FeatureProfiles(unittest.TestCase):
             source = root / "src/lib.rs"
             source.parent.mkdir()
             source.write_text("original")
-            result = SimpleNamespace(returncode=0, stdout=json.dumps({"reason": "compiler-artifact", "executable": "/tmp/probe"}), stderr="", args=["cargo"])
+            artifact = json.dumps({"reason": "compiler-artifact", "executable": "/tmp/probe"})
+            stdout = "\n".join(["    0.0001763786210852254", "[1, 2]", "null", artifact])
+            result = SimpleNamespace(returncode=0, stdout=stdout, stderr="", args=["cargo"])
             with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", return_value=result), patch.object(verify, "run", return_value=SimpleNamespace(stdout="changed rustc")):
                 with self.assertRaisesRegex(ValueError, "compiler changed"):
                     verify.profile_coverage("headless", {"crate": [source]}, ["cargo"], root / "profile", {}, root / "wrapper", root, "rustc")

@@ -1,0 +1,1159 @@
+{
+  "solver_revision": "f711ccecae5c24d1f657e62fcfbb25febb1a5556",
+  "duration_s": 3.4,
+  "actuator_period_ns": 1000000,
+  "hold_ms": [
+    1650,
+    1950
+  ],
+  "jaw_mass_kg": 0.0028125,
+  "sheet_mass_kg": 0.0084,
+  "pad_compliance_m_per_n": 1.5625e-05,
+  "hinge_damping_nms_per_rad": 0.001,
+  "convergence": {
+    "max_particle_tolerance_m": 0.0001,
+    "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+    "reference_checked": false,
+    "reference_exchanges_per_ms": 1000,
+    "selected_exchanges_per_ms": null,
+    "trials": [
+      {
+        "exchanges_per_ms": 4,
+        "jaw_load_error_fraction_of_weight": [
+          0.11185590535374587,
+          0.10468644772933561
+        ],
+        "max_particle_error_m": 0.020248584802910773,
+        "mean_hold_jaw_load_n": [
+          0.050422398048697255,
+          0.03257846979756136
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 4151943,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 8,
+        "jaw_load_error_fraction_of_weight": [
+          0.9688514755212733,
+          0.9695105284631625
+        ],
+        "max_particle_error_m": 0.008781751058348958,
+        "mean_hold_jaw_load_n": [
+          0.12104226101278219,
+          -0.038686493751228915
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 5966859,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 16,
+        "jaw_load_error_fraction_of_weight": [
+          3.3622036005916135e-05,
+          3.3495515526622825e-05
+        ],
+        "max_particle_error_m": 0.0002528306383778182,
+        "mean_hold_jaw_load_n": [
+          0.04120779461418221,
+          0.04120229167178808
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 5994898,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 32,
+        "jaw_load_error_fraction_of_weight": [
+          1.6932420909857644e-05,
+          1.6826411614007433e-05
+        ],
+        "max_particle_error_m": 0.000246910071757729,
+        "mean_hold_jaw_load_n": [
+          0.041206419323139835,
+          0.041203665272626894
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 11642187,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 64,
+        "jaw_load_error_fraction_of_weight": [
+          4.98182767640745e-06,
+          4.886064963522363e-06
+        ],
+        "max_particle_error_m": 0.0002442810815977277,
+        "mean_hold_jaw_load_n": [
+          0.041205434546455026,
+          0.04120464920495228
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 22741721,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 125,
+        "jaw_load_error_fraction_of_weight": [
+          1.2671606991677212e-06,
+          1.1763378573876936e-06
+        ],
+        "max_particle_error_m": 0.0002389823441892127,
+        "mean_hold_jaw_load_n": [
+          0.041205128443037434,
+          0.041204954901304734
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 42502462,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 250,
+        "jaw_load_error_fraction_of_weight": [
+          2.1709267858227932e-07,
+          1.29781862075002e-07
+        ],
+        "max_particle_error_m": 0.00024994850470577896,
+        "mean_hold_jaw_load_n": [
+          0.041205041913232265,
+          0.04120504114170497
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 82090810,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 500,
+        "jaw_load_error_fraction_of_weight": [
+          1.6145526354798513e-08,
+          8.362660302522397e-08
+        ],
+        "max_particle_error_m": 0.00021089217033319187,
+        "mean_hold_jaw_load_n": [
+          0.041205022693471226,
+          0.04120505872741613
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 140064696,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 1000,
+        "jaw_load_error_fraction_of_weight": [
+          0.0,
+          0.0
+        ],
+        "max_particle_error_m": 0.0,
+        "mean_hold_jaw_load_n": [
+          0.04120502402392718,
+          0.041205051836249534
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 294975811,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      }
+    ],
+    "verification_exchanges_per_ms": 500
+  },
+  "trials": [
+    {
+      "step_p95_ns": 29691994,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999998671652,
+        0.824999999878209
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249999863656488,
+        0.8258470351707459
+      ],
+      "mean_hold_jaw_up_n": [
+        0.047906308422705456,
+        0.03450377520429337
+      ],
+      "mean_hold_lift_m": [
+        0.1493122090842516,
+        0.1492402199231359
+      ],
+      "refined_ticks": 45,
+      "pad_damping_ns_per_m": 0,
+      "exchanges_per_ms": 64,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ]
+    },
+    {
+      "step_p95_ns": 51592130,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249997387185707,
+        0.8249996229740468
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8240551762648266,
+        0.8232549236479872
+      ],
+      "mean_hold_jaw_up_n": [
+        0.06543748808749131,
+        0.016972554786326168
+      ],
+      "mean_hold_lift_m": [
+        0.14935114236883792,
+        0.1492848148410853
+      ],
+      "refined_ticks": 26,
+      "pad_damping_ns_per_m": 0,
+      "exchanges_per_ms": 125,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ]
+    },
+    {
+      "step_p95_ns": 112079925,
+      "mean_hold_jaw_squeeze_n": [
+        0.8290928382121197,
+        0.8291319828387712
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041807821337812294,
+        0.040627258937301916
+      ],
+      "mean_hold_lift_m": [
+        0.14913253327548007,
+        0.14912916090646322
+      ],
+      "refined_ticks": 261,
+      "pad_damping_ns_per_m": 0,
+      "exchanges_per_ms": 250,
+      "grasp_pass": false,
+      "unloaded": [
+        {
+          "episodes": 182,
+          "first": {
+            "end_gap_m": [
+              2.653539076551137e-05,
+              2.302623993129943e-05
+            ],
+            "end_normal_n": [
+              0.0,
+              0.0
+            ],
+            "end_ns": 1650004000,
+            "previous_normal_n": null,
+            "start_ns": 1650000000
+          },
+          "longest_ns": 940000,
+          "total_ns": 116640000
+        },
+        {
+          "episodes": 182,
+          "first": {
+            "end_gap_m": [
+              2.653539076551137e-05,
+              2.302623993129943e-05
+            ],
+            "end_normal_n": [
+              0.0,
+              0.0
+            ],
+            "end_ns": 1650004000,
+            "previous_normal_n": null,
+            "start_ns": 1650000000
+          },
+          "longest_ns": 972000,
+          "total_ns": 116236000
+        },
+        {
+          "episodes": 182,
+          "first": {
+            "end_gap_m": [
+              2.653539076551137e-05,
+              2.302623993129943e-05
+            ],
+            "end_normal_n": [
+              0.0,
+              0.0
+            ],
+            "end_ns": 1650004000,
+            "previous_normal_n": null,
+            "start_ns": 1650000000
+          },
+          "longest_ns": 940000,
+          "total_ns": 113876000
+        }
+      ]
+    },
+    {
+      "step_p95_ns": 4151943,
+      "mean_hold_jaw_squeeze_n": [
+        0.8193458294731615,
+        0.8180567640411597
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.050422398048697255,
+        0.03257846979756136
+      ],
+      "mean_hold_lift_m": [
+        0.13969006897307076,
+        0.14067346959945426
+      ],
+      "refined_ticks": 210,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 4,
+      "grasp_pass": false,
+      "unloaded": [
+        {
+          "episodes": 117,
+          "first": {
+            "end_gap_m": [
+              6.923628827122316e-05,
+              -3.94413126068513e-05
+            ],
+            "end_normal_n": [
+              0.0,
+              3.108908082203497
+            ],
+            "end_ns": 1650250000,
+            "previous_normal_n": null,
+            "start_ns": 1650000000
+          },
+          "longest_ns": 2500000,
+          "total_ns": 209500000
+        },
+        {
+          "episodes": 137,
+          "first": {
+            "end_gap_m": [
+              -2.891948996692692e-05,
+              1.0625376442939538e-05
+            ],
+            "end_normal_n": [
+              1.0303403691041897,
+              0.0
+            ],
+            "end_ns": 1651000000,
+            "previous_normal_n": [
+              5.663771105220999,
+              3.0136497801937194
+            ],
+            "start_ns": 1650750000
+          },
+          "longest_ns": 2000000,
+          "total_ns": 131500000
+        },
+        {
+          "episodes": 133,
+          "first": {
+            "end_gap_m": [
+              6.941465992401502e-05,
+              8.663464823821174e-05
+            ],
+            "end_normal_n": [
+              0.0,
+              0.0
+            ],
+            "end_ns": 1651250000,
+            "previous_normal_n": [
+              1.0303403691041897,
+              0.0
+            ],
+            "start_ns": 1651000000
+          },
+          "longest_ns": 2000000,
+          "total_ns": 127250000
+        }
+      ],
+      "worst_time_node_error_m": [
+        2425000000,
+        3,
+        0.020248584802910773
+      ],
+      "first_snapshot_over_100um": [
+        650000000,
+        9,
+        0.0001450980179171263
+      ],
+      "maximum_hold_displacement_error_m": 0.014258359507447802
+    },
+    {
+      "step_p95_ns": 5966859,
+      "mean_hold_jaw_squeeze_n": [
+        0.750269140726501,
+        0.7502537783360985
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.12104226101278219,
+        -0.038686493751228915
+      ],
+      "mean_hold_lift_m": [
+        0.14554242856289074,
+        0.145402222255969
+      ],
+      "refined_ticks": 774,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 8,
+      "grasp_pass": false,
+      "unloaded": [
+        {
+          "episodes": 150,
+          "first": {
+            "end_gap_m": [
+              1.2192753810123108e-05,
+              2.362340829693138e-06
+            ],
+            "end_normal_n": [
+              0.0,
+              0.0
+            ],
+            "end_ns": 1650750000,
+            "previous_normal_n": [
+              0.08947837357747304,
+              0.2841363795867923
+            ],
+            "start_ns": 1650625000
+          },
+          "longest_ns": 1250000,
+          "total_ns": 187500000
+        },
+        {
+          "episodes": 150,
+          "first": {
+            "end_gap_m": [
+              1.2192753810123108e-05,
+              2.362340829693138e-06
+            ],
+            "end_normal_n": [
+              0.0,
+              0.0
+            ],
+            "end_ns": 1650750000,
+            "previous_normal_n": [
+              0.08947837357747304,
+              0.2841363795867923
+            ],
+            "start_ns": 1650625000
+          },
+          "longest_ns": 750000,
+          "total_ns": 112500000
+        },
+        {
+          "episodes": 150,
+          "first": {
+            "end_gap_m": [
+              1.2192753810123108e-05,
+              2.362340829693138e-06
+            ],
+            "end_normal_n": [
+              0.0,
+              0.0
+            ],
+            "end_ns": 1650750000,
+            "previous_normal_n": [
+              0.08947837357747304,
+              0.2841363795867923
+            ],
+            "start_ns": 1650625000
+          },
+          "longest_ns": 750000,
+          "total_ns": 112500000
+        }
+      ],
+      "worst_time_node_error_m": [
+        2450000000,
+        9,
+        0.008781751058348958
+      ],
+      "first_snapshot_over_100um": [
+        650000000,
+        0,
+        0.00018407049081901268
+      ],
+      "maximum_hold_displacement_error_m": 0.007262415129905072
+    },
+    {
+      "step_p95_ns": 5994898,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999999734839,
+        0.8249999999757349
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249999981323582,
+        0.8249999979615369
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04120779461418221,
+        0.04120229167178808
+      ],
+      "mean_hold_lift_m": [
+        0.14961977161701978,
+        0.14961976528006088
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 16,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ],
+      "worst_time_node_error_m": [
+        2700000000,
+        3,
+        0.0002528306383778182
+      ],
+      "first_snapshot_over_100um": [
+        2700000000,
+        3,
+        0.0002528306383778182
+      ],
+      "maximum_hold_displacement_error_m": 2.4968329584426817e-05
+    },
+    {
+      "step_p95_ns": 11642187,
+      "mean_hold_jaw_squeeze_n": [
+        0.824999999972796,
+        0.8249999999723941
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249999979388356,
+        0.8249999977913979
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041206419323139835,
+        0.041203665272626894
+      ],
+      "mean_hold_lift_m": [
+        0.14961994465550685,
+        0.14961994508409027
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 32,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ],
+      "worst_time_node_error_m": [
+        2700000000,
+        3,
+        0.000246910071757729
+      ],
+      "first_snapshot_over_100um": [
+        2700000000,
+        3,
+        0.000246910071757729
+      ],
+      "maximum_hold_displacement_error_m": 3.411835341819019e-06
+    },
+    {
+      "step_p95_ns": 22741721,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999999708783,
+        0.8249999999706129
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249999974729859,
+        0.824999997458331
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041205434546455026,
+        0.04120464920495228
+      ],
+      "mean_hold_lift_m": [
+        0.14961996272393616,
+        0.14961996343744244
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 64,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ],
+      "worst_time_node_error_m": [
+        2700000000,
+        3,
+        0.0002442810815977277
+      ],
+      "first_snapshot_over_100um": [
+        2700000000,
+        3,
+        0.0002442810815977277
+      ],
+      "maximum_hold_displacement_error_m": 3.3227933441392236e-06
+    },
+    {
+      "step_p95_ns": 42502462,
+      "mean_hold_jaw_squeeze_n": [
+        0.82499999995384,
+        0.8249999999541363
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249999893157335,
+        0.8249999892069316
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041205128443037434,
+        0.041204954901304734
+      ],
+      "mean_hold_lift_m": [
+        0.14961996120003473,
+        0.14961996136567943
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 125,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ],
+      "worst_time_node_error_m": [
+        2800000000,
+        6,
+        0.0002389823441892127
+      ],
+      "first_snapshot_over_100um": [
+        2700000000,
+        3,
+        0.00022396995291219842
+      ],
+      "maximum_hold_displacement_error_m": 3.2377996675263873e-06
+    },
+    {
+      "step_p95_ns": 82090810,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999992114808,
+        0.8249999992123935
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249995596678052,
+        0.8249995596108786
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041205041913232265,
+        0.04120504114170497
+      ],
+      "mean_hold_lift_m": [
+        0.14961996130152885,
+        0.1496199607560974
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 250,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ],
+      "worst_time_node_error_m": [
+        2775000000,
+        6,
+        0.00024994850470577896
+      ],
+      "first_snapshot_over_100um": [
+        2700000000,
+        3,
+        0.00018951033285764826
+      ],
+      "maximum_hold_displacement_error_m": 2.770314666660598e-06
+    },
+    {
+      "step_p95_ns": 140064696,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999855352002,
+        0.824999985539519
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249917191673342,
+        0.8249917194538826
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041205022693471226,
+        0.04120505872741613
+      ],
+      "mean_hold_lift_m": [
+        0.1496199671811132,
+        0.14961996649885712
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 500,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ],
+      "worst_time_node_error_m": [
+        2725000000,
+        8,
+        0.00021089217033319187
+      ],
+      "first_snapshot_over_100um": [
+        2700000000,
+        8,
+        0.0001361312168038718
+      ],
+      "maximum_hold_displacement_error_m": 1.4486660972226205e-06
+    },
+    {
+      "step_p95_ns": 294975811,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999345423944,
+        0.8249999345561689
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249641665506459,
+        0.824964169254261
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04120502402392718,
+        0.041205051836249534
+      ],
+      "mean_hold_lift_m": [
+        0.14961997431316176,
+        0.14961997384106007
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 4,
+      "exchanges_per_ms": 1000,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ],
+      "worst_time_node_error_m": [
+        0,
+        0,
+        0.0
+      ],
+      "first_snapshot_over_100um": null,
+      "maximum_hold_displacement_error_m": 0.0
+    },
+    {
+      "step_p95_ns": 22860562,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999999894492,
+        0.8249999999892462
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.824999996781095,
+        0.8249999967868681
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041205457089883026,
+        0.04120462666154202
+      ],
+      "mean_hold_lift_m": [
+        0.1496199481483702,
+        0.1496199495822303
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 12,
+      "exchanges_per_ms": 64,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ]
+    },
+    {
+      "step_p95_ns": 35028411,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999999742882,
+        0.8249999999731539
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249999904722667,
+        0.8249999903014867
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04120519221276245,
+        0.041204891131868565
+      ],
+      "mean_hold_lift_m": [
+        0.14961991950151363,
+        0.14961992158186366
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 12,
+      "exchanges_per_ms": 125,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ]
+    },
+    {
+      "step_p95_ns": 80841595,
+      "mean_hold_jaw_squeeze_n": [
+        0.8249999991754394,
+        0.8249999991756042
+      ],
+      "min_hold_panel_squeeze_n": [
+        0.8249995398192659,
+        0.8249995395608614
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04120510400386745,
+        0.04120497906115745
+      ],
+      "mean_hold_lift_m": [
+        0.14961990633442615,
+        0.14961990765235156
+      ],
+      "refined_ticks": 0,
+      "pad_damping_ns_per_m": 12,
+      "exchanges_per_ms": 250,
+      "grasp_pass": true,
+      "unloaded": [
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        },
+        {
+          "episodes": 0,
+          "first": null,
+          "longest_ns": 0,
+          "total_ns": 0
+        }
+      ]
+    }
+  ],
+  "matched_clips": {
+    "undamped": {
+      "samples": [
+        {
+          "substeps": 1,
+          "simultaneous_zero_count": 268,
+          "max_normal_n": 2.5059224447607784,
+          "normal_impulse_ns": [
+            0.0027628430245506225,
+            0.002768225232699016
+          ],
+          "max_material_delta_m": 0.0
+        },
+        {
+          "substeps": 2,
+          "simultaneous_zero_count": 267,
+          "max_normal_n": 2.5080553729800457,
+          "normal_impulse_ns": [
+            0.002764822985156221,
+            0.0027681879181225303
+          ],
+          "max_material_delta_m": 6.953939725461719e-07
+        },
+        {
+          "substeps": 4,
+          "simultaneous_zero_count": 267,
+          "max_normal_n": 2.5093432570926786,
+          "normal_impulse_ns": [
+            0.002766143246414485,
+            0.002768570357446147
+          ],
+          "max_material_delta_m": 1.1127195365023353e-06
+        },
+        {
+          "substeps": 8,
+          "simultaneous_zero_count": 266,
+          "max_normal_n": 2.510045646336252,
+          "normal_impulse_ns": [
+            0.002766925287189846,
+            0.0027689492672469855
+          ],
+          "max_material_delta_m": 1.3448279227438672e-06
+        }
+      ],
+      "native_intervals_reproduced": 750,
+      "native_step_ns": 4000,
+      "first_tick": 412501,
+      "rendered_gauge_values_verified": 1208,
+      "browser": {
+        "renderer": "WebGPU",
+        "frames": 151,
+        "independent_particle_positions_checked": 1812,
+        "body_poses_and_shapes_checked": 5285,
+        "reset_ms": 1650.004,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9980%2F"
+      }
+    },
+    "damped": {
+      "samples": [
+        {
+          "substeps": 1,
+          "simultaneous_zero_count": 0,
+          "max_normal_n": 0.8250001680153165,
+          "normal_impulse_ns": [
+            0.0024749995278428153,
+            0.002474999527916481
+          ],
+          "max_material_delta_m": 0.0
+        },
+        {
+          "substeps": 2,
+          "simultaneous_zero_count": 0,
+          "max_normal_n": 0.8250001690301713,
+          "normal_impulse_ns": [
+            0.002474999537770139,
+            0.0024749995381294935
+          ],
+          "max_material_delta_m": 1.1024337545824778e-11
+        },
+        {
+          "substeps": 4,
+          "simultaneous_zero_count": 0,
+          "max_normal_n": 0.8250001690417176,
+          "normal_impulse_ns": [
+            0.002474999542602239,
+            0.0024749995432344777
+          ],
+          "max_material_delta_m": 1.6734553326151352e-11
+        },
+        {
+          "substeps": 8,
+          "simultaneous_zero_count": 0,
+          "max_normal_n": 0.8250001696919197,
+          "normal_impulse_ns": [
+            0.0024749995450117366,
+            0.0024749995456415388
+          ],
+          "max_material_delta_m": 1.960585701721778e-11
+        }
+      ],
+      "native_intervals_reproduced": 750,
+      "native_step_ns": 4000,
+      "first_tick": 412501,
+      "rendered_gauge_values_verified": 1208,
+      "browser": {
+        "renderer": "WebGPU",
+        "frames": 151,
+        "independent_particle_positions_checked": 1812,
+        "body_poses_and_shapes_checked": 5285,
+        "reset_ms": 1650.004,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9987%2F"
+      }
+    }
+  },
+  "changed_production_coverage": {
+    "combined": {
+      "lines": [
+        396,
+        399
+      ],
+      "regions": [
+        679,
+        703
+      ]
+    },
+    "dashpot": {
+      "lines": [
+        132,
+        133
+      ],
+      "regions": [
+        199,
+        202
+      ]
+    }
+  }
+}

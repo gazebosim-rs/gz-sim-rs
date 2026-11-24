@@ -24,6 +24,8 @@ use std::{
     time::{Duration, Instant},
 };
 use zenoh::Wait;
+#[path = "../../../tests/support/subscription_routes.rs"]
+mod subscription_routes;
 #[path = "../../../tests/support/zenoh_peer.rs"]
 mod zenoh_peer;
 const XML: &str = include_str!("../../../examples/m48_imu_world_heading.sdf");
@@ -850,8 +852,13 @@ fn real_cpp_heading_packets_keep_motion_noise_demand_pause_reset_and_removal() {
             assert!(sample(&server).is_none());
         }
         assert_eq!(server.counters().imus_queued, 0);
+        let route = subscription_routes::SubscriptionRoutes::new(
+            &network.observer,
+            [options.topic_key("/m48/imu").unwrap()],
+        );
         let mut peer = start_peer(&network, &options, enabled);
         assert_eq!(peer.line(), "READY imu-world-heading");
+        route.wait(true);
         let mut sequence = prime_and_arm(&mut peer, &mut server);
         assert_ne!(
             physical_bits(&server).3,
@@ -885,18 +892,23 @@ fn real_cpp_heading_packets_keep_motion_noise_demand_pause_reset_and_removal() {
             );
         }
         drop_feedback(&mut peer);
-        let mut no_demand = None;
-        for _ in 0..16 {
-            let before = sample(&server);
+        route.wait(false);
+        // The server owns an independent asynchronous matching listener. Prove
+        // that its actual acquisition stopped for a complete due interval.
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let no_demand = loop {
+            let before = sample(&server).unwrap();
             let count = server.counters().imus_queued;
             advance(&mut server, &mut peer, 10, None);
-            if sample(&server) == before && server.counters().imus_queued == count {
-                no_demand = before;
-                break;
+            if sample(&server) == Some(before) && server.counters().imus_queued == count {
+                break before;
             }
-        }
-        let no_demand =
-            no_demand.expect("an actual full due interval without acquisition is required");
+            assert!(
+                Instant::now() < deadline,
+                "IMU kept acquiring after native unsubscribe"
+            );
+            std::thread::yield_now();
+        };
         let queued = server.counters().imus_queued;
         advance(&mut server, &mut peer, 20, None);
         assert_eq!(

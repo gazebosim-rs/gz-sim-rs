@@ -49,3 +49,27 @@ fn replay_and_capture_are_explicit_and_conflicting_native_options_are_refused() 
     }
     assert!(Args::try_parse_from(["gz-sim-rs", "world.sdf", "--record-scene", "capture"]).is_err());
 }
+
+#[test]
+fn record_from_a_resumed_native_pool() {
+    let args = Args::try_parse_from([
+        "gz-sim-rs",
+        "world.sdf",
+        "--physics-engine",
+        "multifidelity",
+        "--resume-pool-checkpoint",
+        "physical-cut",
+        "--server",
+        "--web-viewer",
+        "9012",
+        "--web-lifecycle",
+        "--record-scene",
+        "restored-session",
+    ])
+    .unwrap();
+    assert_eq!(
+        args.resume_pool_checkpoint,
+        Some(PathBuf::from("physical-cut"))
+    );
+    assert_eq!(args.record_scene, Some(PathBuf::from("restored-session")));
+}

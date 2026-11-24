@@ -1,0 +1,782 @@
+{
+  "adapter": "NVIDIA GeForce RTX 5090",
+  "driver": "595.99.02",
+  "gpu_dt_us": 250,
+  "gpu_readback_p95_us": 574.991,
+  "lane_count": 9,
+  "matched_native_dt_us": 250,
+  "matched_native_serial_population_p95_us": 556.1020000000001,
+  "native_reference_dt_us": 62.5,
+  "near_slip_80g_mu015_native_resolution": [
+    {
+      "max_device_native_path_error_m": 0.10744170158845258,
+      "native_dt_us": 250.0,
+      "native_minimum_hold_clearance_m": -6.248990700076507e-05
+    },
+    {
+      "max_device_native_path_error_m": 0.1074503169375678,
+      "native_dt_us": 62.5,
+      "native_minimum_hold_clearance_m": -6.527909497621234e-05
+    },
+    {
+      "max_device_native_path_error_m": 0.10742505372726821,
+      "native_dt_us": 31.25,
+      "native_minimum_hold_clearance_m": -4.3610798795085115e-05
+    },
+    {
+      "max_device_native_path_error_m": 0.0009680757824257334,
+      "native_dt_us": 15.625,
+      "native_minimum_hold_clearance_m": 0.10594940234613237
+    },
+    {
+      "max_device_native_path_error_m": 0.0004489441344367781,
+      "native_dt_us": 7.8125,
+      "native_minimum_hold_clearance_m": 0.10666358121060973
+    },
+    {
+      "max_device_native_path_error_m": 0.0007270772183139726,
+      "native_dt_us": 3.90625,
+      "native_minimum_hold_clearance_m": 0.10694432962496128
+    }
+  ],
+  "precision": "f64",
+  "public_dt_ms": 1,
+  "rows": [
+    {
+      "cone_excess_ns": 0.0,
+      "first_grip_ms": [
+        29,
+        29
+      ],
+      "first_normal_ns": [
+        [
+          0.09934853800115365,
+          0.0994193120556087
+        ],
+        [
+          0.09745400644747297,
+          0.09728089923675218
+        ]
+      ],
+      "fully_released_ms": [
+        651,
+        651
+      ],
+      "hold_max_floor_ns": [
+        0.0,
+        0.0
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        0.39162278498314124,
+        0.39162278499136177
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.00659991651321134,
+        0.006599916511488266
+      ],
+      "mass_kg": 0.08,
+      "max_clearance_m": [
+        0.11969779995395458,
+        0.12003794302248572
+      ],
+      "max_object_path_error_m": 0.0006346151402048387,
+      "max_slider_error_m": 0.0007803359524462435,
+      "minimum_hold_clearance_m": [
+        0.11867936561697123,
+        0.11921620672865291
+      ],
+      "mu": 0.6,
+      "native_mean_total_jaw_vertical_force_n": 0.7832049522669111,
+      "native_reference_p95_us": 370.31100000000004,
+      "post_release_landing_ms": [
+        806,
+        806
+      ],
+      "sphere_balance_ns": 6.505213034913027e-17,
+      "starts_open": false,
+      "total_normal_gpu_native_ns": [
+        [
+          4.192975773402998,
+          4.202948579125797
+        ],
+        [
+          3.9017228978952065,
+          3.8818997892347356
+        ]
+      ]
+    },
+    {
+      "cone_excess_ns": 0.0,
+      "first_grip_ms": [
+        29,
+        29
+      ],
+      "first_normal_ns": [
+        [
+          0.09938309299542238,
+          0.09938361368262644
+        ],
+        [
+          0.0974017910510155,
+          0.09733514381039204
+        ]
+      ],
+      "fully_released_ms": [
+        233,
+        233
+      ],
+      "hold_max_floor_ns": [
+        0.0007848000000000001,
+        0.0007848000000000003
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        0.0,
+        0.0
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.0,
+        0.0
+      ],
+      "mass_kg": 0.08,
+      "max_clearance_m": [
+        0.0,
+        0.0
+      ],
+      "max_object_path_error_m": 0.00048061661303878175,
+      "max_slider_error_m": 0.0003024066065873271,
+      "minimum_hold_clearance_m": [
+        0.0,
+        -4.970111491391441e-05
+      ],
+      "mu": 0.0,
+      "native_mean_total_jaw_vertical_force_n": -2.1684043449710089e-16,
+      "native_reference_p95_us": 368.661,
+      "post_release_landing_ms": [
+        null,
+        null
+      ],
+      "sphere_balance_ns": 2.168404344971009e-19,
+      "starts_open": false,
+      "total_normal_gpu_native_ns": [
+        [
+          1.4211395559111155,
+          1.421139591015562
+        ],
+        [
+          1.3767042899498028,
+          1.3766506636674467
+        ]
+      ]
+    },
+    {
+      "cone_excess_ns": 0.0,
+      "first_grip_ms": [
+        null,
+        null
+      ],
+      "first_normal_ns": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "fully_released_ms": [
+        null,
+        null
+      ],
+      "hold_max_floor_ns": [
+        0.0007848000000000001,
+        0.0007848000000000003
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        0.0,
+        0.0
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.0,
+        0.0
+      ],
+      "mass_kg": 0.08,
+      "max_clearance_m": [
+        0.0,
+        0.0
+      ],
+      "max_object_path_error_m": 5.95573910278438e-05,
+      "max_slider_error_m": 5.9161546289182576e-05,
+      "minimum_hold_clearance_m": [
+        0.0,
+        -4.966806341503982e-05
+      ],
+      "mu": 0.6,
+      "native_mean_total_jaw_vertical_force_n": -2.1684043449710089e-16,
+      "native_reference_p95_us": 313.21099999999996,
+      "post_release_landing_ms": [
+        null,
+        null
+      ],
+      "sphere_balance_ns": 0.0,
+      "starts_open": true,
+      "total_normal_gpu_native_ns": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "cone_excess_ns": 0.0,
+      "first_grip_ms": [
+        29,
+        29
+      ],
+      "first_normal_ns": [
+        [
+          0.0993609848926471,
+          0.09940973225564569
+        ],
+        [
+          0.09756683280091036,
+          0.09748213169536661
+        ]
+      ],
+      "fully_released_ms": [
+        651,
+        651
+      ],
+      "hold_max_floor_ns": [
+        0.0,
+        0.0
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        0.9843093201126628,
+        0.9843093201141357
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.006599999651004584,
+        0.006599999888611353
+      ],
+      "mass_kg": 0.2,
+      "max_clearance_m": [
+        0.11678709238192517,
+        0.11717104945102402
+      ],
+      "max_object_path_error_m": 0.000705792050970937,
+      "max_slider_error_m": 0.0005712460902629751,
+      "minimum_hold_clearance_m": [
+        0.11430725536750624,
+        0.11494576029516512
+      ],
+      "mu": 0.6,
+      "native_mean_total_jaw_vertical_force_n": 1.9685072178779508,
+      "native_reference_p95_us": 362.86100000000005,
+      "post_release_landing_ms": [
+        802,
+        803
+      ],
+      "sphere_balance_ns": 1.706534219492184e-16,
+      "starts_open": false,
+      "total_normal_gpu_native_ns": [
+        [
+          4.195001961442729,
+          4.2010077309225595
+        ],
+        [
+          3.9765782253419966,
+          3.9682128528144167
+        ]
+      ]
+    },
+    {
+      "cone_excess_ns": 8.673617379884035e-19,
+      "first_grip_ms": [
+        29,
+        29
+      ],
+      "first_normal_ns": [
+        [
+          0.09937376904156602,
+          0.09939556777856556
+        ],
+        [
+          0.0975803082489908,
+          0.0975356847484698
+        ]
+      ],
+      "fully_released_ms": [
+        651,
+        651
+      ],
+      "hold_max_floor_ns": [
+        0.0,
+        0.0
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        1.7235361935633746,
+        1.7235361935634337
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.00659999893768936,
+        0.006599998910251159
+      ],
+      "mass_kg": 0.35,
+      "max_clearance_m": [
+        0.10773573859684166,
+        0.10618562774113835
+      ],
+      "max_object_path_error_m": 0.0017602419446274052,
+      "max_slider_error_m": 0.0005098705796984203,
+      "minimum_hold_clearance_m": [
+        0.10346851081660283,
+        0.10227325406974763
+      ],
+      "mu": 0.6,
+      "native_mean_total_jaw_vertical_force_n": 3.4453848292015374,
+      "native_reference_p95_us": 362.32099999999997,
+      "post_release_landing_ms": [
+        794,
+        794
+      ],
+      "sphere_balance_ns": 2.1662359406260379e-16,
+      "starts_open": false,
+      "total_normal_gpu_native_ns": [
+        [
+          4.196694145791173,
+          4.1992884182178605
+        ],
+        [
+          3.998274377740723,
+          3.9933686500861163
+        ]
+      ]
+    },
+    {
+      "cone_excess_ns": 4.336808689942018e-19,
+      "first_grip_ms": [
+        29,
+        29
+      ],
+      "first_normal_ns": [
+        [
+          0.09937376904156602,
+          0.09939556777856556
+        ],
+        [
+          0.0975803082489908,
+          0.0975356847484698
+        ]
+      ],
+      "fully_released_ms": [
+        239,
+        238
+      ],
+      "hold_max_floor_ns": [
+        0.0034335000000000004,
+        0.0034334999999999995
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        0.0,
+        0.0
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.0,
+        0.0
+      ],
+      "mass_kg": 0.35,
+      "max_clearance_m": [
+        0.0009463103535462189,
+        0.0006826679656997403
+      ],
+      "max_object_path_error_m": 0.000742698825176865,
+      "max_slider_error_m": 0.0002929871014695114,
+      "minimum_hold_clearance_m": [
+        0.0,
+        -4.121326285751875e-05
+      ],
+      "mu": 0.3,
+      "native_mean_total_jaw_vertical_force_n": 4.3368086899420177e-16,
+      "native_reference_p95_us": 365.961,
+      "post_release_landing_ms": [
+        null,
+        null
+      ],
+      "sphere_balance_ns": 1.6479873021779667e-17,
+      "starts_open": false,
+      "total_normal_gpu_native_ns": [
+        [
+          1.4538797065558622,
+          1.456565057663235
+        ],
+        [
+          1.42307973812935,
+          1.4179848869457479
+        ]
+      ]
+    },
+    {
+      "cone_excess_ns": 4.336808689942018e-19,
+      "first_grip_ms": [
+        29,
+        29
+      ],
+      "first_normal_ns": [
+        [
+          0.0993609848926471,
+          0.09940973225564569
+        ],
+        [
+          0.09756683280091036,
+          0.09748213169536661
+        ]
+      ],
+      "fully_released_ms": [
+        260,
+        256
+      ],
+      "hold_max_floor_ns": [
+        0.001962,
+        0.0019619999999999993
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        0.0,
+        0.0
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.0,
+        0.0
+      ],
+      "mass_kg": 0.2,
+      "max_clearance_m": [
+        0.023551831381847882,
+        0.01887830077264216
+      ],
+      "max_object_path_error_m": 0.00961233840309911,
+      "max_slider_error_m": 0.001028573963968129,
+      "minimum_hold_clearance_m": [
+        0.0,
+        -5.464635374622176e-05
+      ],
+      "mu": 0.3,
+      "native_mean_total_jaw_vertical_force_n": 8.673617379884035e-16,
+      "native_reference_p95_us": 361.63100000000003,
+      "post_release_landing_ms": [
+        368,
+        352
+      ],
+      "sphere_balance_ns": 9.627715291671279e-17,
+      "starts_open": false,
+      "total_normal_gpu_native_ns": [
+        [
+          1.5664153225753394,
+          1.5724032860754042
+        ],
+        [
+          1.5114770914886166,
+          1.5030826189103716
+        ]
+      ]
+    },
+    {
+      "cone_excess_ns": 2.168404344971009e-19,
+      "first_grip_ms": [
+        29,
+        29
+      ],
+      "first_normal_ns": [
+        [
+          0.0993609848926471,
+          0.09940973225564569
+        ],
+        [
+          0.09756683280091036,
+          0.09748213169536661
+        ]
+      ],
+      "fully_released_ms": [
+        235,
+        235
+      ],
+      "hold_max_floor_ns": [
+        0.001962,
+        0.0019619999999999993
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        0.0,
+        0.0
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.0,
+        0.0
+      ],
+      "mass_kg": 0.2,
+      "max_clearance_m": [
+        1.1856395234370598e-05,
+        0.0
+      ],
+      "max_object_path_error_m": 0.001262725905365926,
+      "max_slider_error_m": 0.0002592746650112547,
+      "minimum_hold_clearance_m": [
+        0.0,
+        -4.7896987929819945e-05
+      ],
+      "mu": 0.15,
+      "native_mean_total_jaw_vertical_force_n": 8.673617379884035e-16,
+      "native_reference_p95_us": 367.32099999999997,
+      "post_release_landing_ms": [
+        null,
+        null
+      ],
+      "sphere_balance_ns": 1.0299920638612292e-18,
+      "starts_open": false,
+      "total_normal_gpu_native_ns": [
+        [
+          1.430164129461666,
+          1.4363023225280012
+        ],
+        [
+          1.4028376435887653,
+          1.3942849770775259
+        ]
+      ]
+    },
+    {
+      "cone_excess_ns": 2.168404344971009e-19,
+      "first_grip_ms": [
+        29,
+        29
+      ],
+      "first_normal_ns": [
+        [
+          0.09934853800115365,
+          0.0994193120556087
+        ],
+        [
+          0.09745400644747297,
+          0.09728089923675218
+        ]
+      ],
+      "fully_released_ms": [
+        651,
+        274
+      ],
+      "hold_max_floor_ns": [
+        0.0,
+        0.0007848000000000003
+      ],
+      "hold_mean_jaw_vertical_force_n": [
+        0.39146994231919197,
+        0.39147006135041645
+      ],
+      "hold_minimum_jaw_normal_ns": [
+        0.006551230371073766,
+        0.00655123045256091
+      ],
+      "mass_kg": 0.08,
+      "max_clearance_m": [
+        0.10738523428962574,
+        0.04288773482735186
+      ],
+      "max_object_path_error_m": 0.1074503169375678,
+      "max_slider_error_m": 0.006223379118346459,
+      "minimum_hold_clearance_m": [
+        0.10627221632947026,
+        -6.527909497621234e-05
+      ],
+      "mu": 0.15,
+      "native_mean_total_jaw_vertical_force_n": -2.1684043449710089e-16,
+      "native_reference_p95_us": 362.942,
+      "post_release_landing_ms": [
+        797,
+        416
+      ],
+      "sphere_balance_ns": 9.158797852071299e-17,
+      "starts_open": false,
+      "total_normal_gpu_native_ns": [
+        [
+          4.184034846592438,
+          4.1940075914943575
+        ],
+        [
+          1.5973501786327615,
+          1.577502481995943
+        ]
+      ]
+    }
+  ],
+  "ticks": 1000,
+  "p95_cost_repetitions_us": [
+    {
+      "gpu_readback_p95_us": 574.991,
+      "matched_native_serial_population_p95_us": 556.1020000000001
+    },
+    {
+      "gpu_readback_p95_us": 480.70099999999996,
+      "matched_native_serial_population_p95_us": 447.99100000000004
+    },
+    {
+      "gpu_readback_p95_us": 471.382,
+      "matched_native_serial_population_p95_us": 423.751
+    }
+  ],
+  "host_cpu": "AMD Ryzen 9 9950X3D",
+  "native_implementation": "rapier3d-f64 0.36.1",
+  "device": "Vulkan RTX 5090 on NVIDIA 595.99.02",
+  "browser": {
+    "grip": {
+      "body_poses_and_shapes_checked": 256,
+      "captured_ms": {
+        "closed": 133.0,
+        "landed": 920.0,
+        "lifted": 558.0,
+        "release": 756.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        34.0,
+        67.0,
+        100.0,
+        133.0,
+        166.0,
+        199.0,
+        232.0,
+        265.0,
+        298.0,
+        331.0,
+        362.0,
+        394.0,
+        427.0,
+        460.0,
+        493.0,
+        525.0,
+        558.0,
+        591.0,
+        624.0,
+        657.0,
+        690.0,
+        723.0,
+        756.0,
+        789.0,
+        822.0,
+        854.0,
+        887.0,
+        920.0,
+        953.0,
+        986.0,
+        1000.0
+      ],
+      "frames": 32,
+      "independent_visual_poses_checked": 256,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 32,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11360%2F"
+    },
+    "frictionless": {
+      "body_poses_and_shapes_checked": 256,
+      "captured_ms": {
+        "closed": 133.0,
+        "landed": 919.0,
+        "lifted": 557.0,
+        "release": 754.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        34.0,
+        67.0,
+        100.0,
+        133.0,
+        166.0,
+        198.0,
+        231.0,
+        264.0,
+        297.0,
+        328.0,
+        361.0,
+        394.0,
+        427.0,
+        460.0,
+        493.0,
+        524.0,
+        557.0,
+        590.0,
+        623.0,
+        656.0,
+        688.0,
+        721.0,
+        754.0,
+        787.0,
+        820.0,
+        853.0,
+        886.0,
+        919.0,
+        952.0,
+        985.0,
+        1000.0
+      ],
+      "frames": 32,
+      "independent_visual_poses_checked": 256,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 32,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11362%2F"
+    }
+  },
+  "changed_coverage": {
+    "base": "c6bd5169c4f4ad5326c2c4b4da0b6cf7020d7907",
+    "production": {
+      "lines": [
+        699,
+        711
+      ],
+      "regions": [
+        1340,
+        1399
+      ]
+    },
+    "qualification": {
+      "lines": [
+        367,
+        371
+      ],
+      "regions": [
+        735,
+        751
+      ]
+    },
+    "objects": {
+      "example": {
+        "executable_sha256": "f94be91ce1ce7f7251fee664a1e475a35e7e93b594cfe1865d19e3d2b8eaac90",
+        "profile_sha256": "8ef8d27c3585ec0884a8f6b0e495cc273f22cabca82a8b2f6613026c94487ca0"
+      },
+      "gpu": {
+        "executable_sha256": "6d6813c75b4b8c46e52cfc445c440da7bed4a4644feb6cca9b0bd07a8837b474",
+        "profile_sha256": "c747d0cc6076b2f4cbe0e6131ddaba64ab7e4552e9128e7f5713f9dc48c0eb97"
+      },
+      "scene": {
+        "executable_sha256": "c3cb482853647970d031a1d5eaa5e0a8d38b429e88dd2a6be188813bf50f3034",
+        "profile_sha256": "0637de68d69c0611e2ca90c84caf1bd2745458ec79e2d7090fd8d33d10229811"
+      },
+      "other": {
+        "executable_sha256": "6bc7f09d30d15757f79af1efdd523b9cfb1c889709f8347a9355685e795c6768",
+        "profile_sha256": "96a598c9b1e63a1d80193b065789aadd7f1ba17d34034573a6ec23ccba3b4b11"
+      },
+      "cli": {
+        "executable_sha256": "d2ea6696e648d9c587635ea68c10ac416d246772a4dffea30edc862121a0f630",
+        "profile_sha256": "0089c7bf83738447bb06705a2e68e32aab78f6fb0697afbcc24060a5413602d8"
+      }
+    }
+  }
+}

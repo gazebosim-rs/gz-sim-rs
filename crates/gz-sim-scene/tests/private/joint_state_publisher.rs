@@ -435,3 +435,92 @@ fn nonidentity_child_frame_and_expressed_axis_metadata_do_not_alias_model_frame(
     let model_relative = sim.world().get::<LocalPose>(joint).unwrap().0;
     assert!((model_relative.translation[0] - tip.pose.translation[0]).abs() > 0.7);
 }
+
+#[test]
+fn joint_state_publication_requires_a_live_measurement_on_either_physical_owner() {
+    let sdf = dom();
+    let model = &sdf.worlds[0].models[0];
+    let plan = parse(model).unwrap().unwrap();
+    let mut sim = load(XML);
+    let entity = model_entity(&sim);
+    let joint = named(
+        &sim,
+        &format!(
+            "{}::{}",
+            model.scoped_name,
+            plan.names.iter().next().unwrap()
+        ),
+    )
+    .0;
+    let backend = sim.world_mut().remove_resource::<PhysicsBackend>().unwrap();
+    sim.world_mut().entity_mut(joint).remove::<JointHandle>();
+    assert!(
+        build(&sdf, &mut sim, model, entity, Some(&backend), &plan)
+            .unwrap_err()
+            .to_string()
+            .contains("missing joint-state binding")
+    );
+    sim.world_mut().entity_mut(joint).remove::<JointSample>();
+    assert!(
+        build(&sdf, &mut sim, model, entity, None, &plan)
+            .unwrap_err()
+            .to_string()
+            .contains("missing joint-state value")
+    );
+}
+
+#[test]
+fn a_dual_axis_wrist_requires_two_fresh_finite_measurements_from_its_own_backend() {
+    const TRANSFER: &str =
+        include_str!("../../../../examples/worlds/local_robot_serial_transfer.sdf");
+    let xml = TRANSFER.replace("type=\"universal\"", "type=\"revolute2\"");
+    let sdf = sdformat::load_str(&xml, "wrist.sdf", &NoResources).unwrap();
+    let model = sdf.worlds[0]
+        .models
+        .iter()
+        .find(|m| m.name == "gripper")
+        .unwrap();
+    let mut plan = parse(model).unwrap().unwrap();
+    plan.names.retain(|name| name == "wrist");
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "wrist.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .unwrap();
+    let (owner, _) = named(&sim, "default::gripper");
+    let (wrist, _) = named(&sim, "default::gripper::wrist");
+    sim.step_exact(10).unwrap();
+    let publisher = sim.world().get::<Publisher>(owner).unwrap().clone();
+    assert!(
+        publisher
+            .publication
+            .joints
+            .iter()
+            .any(|j| j.kind == JointStateKind::Revolute2)
+    );
+    let time = *sim.world().resource::<UpdateInfo>();
+    let original = *sim.world().get::<UniversalJointSample>(wrist).unwrap();
+    assert!(reading(sim.world(), owner, &publisher, time).is_some());
+    for failure in 0..4 {
+        let mut broken = original;
+        match failure {
+            0 => broken.time = Duration::ZERO,
+            1 => broken.epoch += 1,
+            2 => broken.state.position[0] = f64::NAN,
+            _ => broken.state.velocity[1] = f64::INFINITY,
+        }
+        sim.world_mut().entity_mut(wrist).insert(broken);
+        assert!(reading(sim.world(), owner, &publisher, time).is_none());
+    }
+    sim.world_mut()
+        .entity_mut(wrist)
+        .remove::<UniversalJointSample>();
+    assert!(reading(sim.world(), owner, &publisher, time).is_none());
+    assert!(build(&sdf, &mut sim, model, owner, None, &plan).is_err());
+    let backend = sim.world_mut().remove_resource::<PhysicsBackend>().unwrap();
+    sim.world_mut().entity_mut(wrist).remove::<JointHandle>();
+    assert!(build(&sdf, &mut sim, model, owner, Some(&backend), &plan).is_err());
+}

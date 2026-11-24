@@ -1,0 +1,229 @@
+{
+  "scope": "Compares the 25 ms archive captures; physical intersections between captures are outside this audit. Every sampled triangle is checked against both oriented native jaw solids. Cross-panel checks exclude the crease.",
+  "closeup": "held-closeup/hold.jpg",
+  "cases": {
+    "held": {
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9761%2F",
+      "renderer": "WebGPU",
+      "frames": 137,
+      "body_poses_and_shapes_checked": 3425,
+      "coordinate_tolerance": 1e-12,
+      "independent_particle_positions_checked": 1644,
+      "lifecycle_catalogs_checked": 137,
+      "captured_ms": {
+        "hold": 1800.0,
+        "pickup": 650.0,
+        "release": 2800.0,
+        "rising": 1125.0,
+        "settled": 3400.0
+      },
+      "reset_ms": 0.0,
+      "geometry": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010238727654808507,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.000761272345191492,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010242754078851205,
+            "pair_indices": [
+              1,
+              7
+            ],
+            "skin_clearance_m": -0.0007572459211487945,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02200512503513046,
+          "pair_indices": [
+            0,
+            8
+          ],
+          "skin_clearance_m": 5.125035130462696e-06,
+          "time_ns": 625000000
+        },
+        "cross_panel_triangle_pairs": 2192,
+        "frames": 137,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 0.00024623081602235045,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 3288
+      },
+      "capture_interval_ms": 25.0,
+      "hold_closeup": "held-closeup/hold.jpg"
+    },
+    "open": {
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9762%2F",
+      "renderer": "WebGPU",
+      "frames": 137,
+      "body_poses_and_shapes_checked": 3425,
+      "coordinate_tolerance": 1e-12,
+      "independent_particle_positions_checked": 1644,
+      "lifecycle_catalogs_checked": 137,
+      "captured_ms": {
+        "hold": 1800.0,
+        "pickup": 650.0,
+        "release": 2800.0,
+        "rising": 1125.0,
+        "settled": 3400.0
+      },
+      "reset_ms": 0.0,
+      "geometry": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.08671825396863625,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": 0.07571825396863625,
+            "time_ns": 2575000000
+          },
+          {
+            "core_distance_m": 0.08671918940417568,
+            "pair_indices": [
+              1,
+              7
+            ],
+            "skin_clearance_m": 0.07571918940417569,
+            "time_ns": 2625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02201999542045005,
+          "pair_indices": [
+            0,
+            8
+          ],
+          "skin_clearance_m": 1.9995420450051593e-05,
+          "time_ns": 375000000
+        },
+        "cross_panel_triangle_pairs": 2192,
+        "frames": 137,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 0.0,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 3288
+      },
+      "capture_interval_ms": 25.0
+    },
+    "heavy-soft": {
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9763%2F",
+      "renderer": "WebGPU",
+      "frames": 137,
+      "body_poses_and_shapes_checked": 3425,
+      "coordinate_tolerance": 1e-12,
+      "independent_particle_positions_checked": 1644,
+      "lifecycle_catalogs_checked": 137,
+      "captured_ms": {
+        "hold": 1800.0,
+        "pickup": 650.0,
+        "release": 2800.0,
+        "rising": 1125.0,
+        "settled": 3400.0
+      },
+      "reset_ms": 0.0,
+      "geometry": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010236017212974452,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.000763982787025547,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010236895817959122,
+            "pair_indices": [
+              1,
+              7
+            ],
+            "skin_clearance_m": -0.0007631041820408777,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.022000000001004223,
+          "pair_indices": [
+            0,
+            8
+          ],
+          "skin_clearance_m": 1.0042244813490697e-12,
+          "time_ns": 625000000
+        },
+        "cross_panel_triangle_pairs": 2192,
+        "frames": 137,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 0.00024494219351950224,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 3288
+      },
+      "capture_interval_ms": 25.0,
+      "hold_closeup": "heavy-soft-closeup/hold.jpg"
+    },
+    "pressed": {
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9765%2F",
+      "renderer": "WebGPU",
+      "frames": 137,
+      "body_poses_and_shapes_checked": 3425,
+      "coordinate_tolerance": 1e-12,
+      "independent_particle_positions_checked": 1644,
+      "lifecycle_catalogs_checked": 137,
+      "captured_ms": {
+        "hold": 1800.0,
+        "pickup": 650.0,
+        "release": 2800.0,
+        "rising": 1125.0,
+        "settled": 3400.0
+      },
+      "reset_ms": 0.0,
+      "geometry": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010425261393851436,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005747386061485636,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010423965252457717,
+            "pair_indices": [
+              1,
+              7
+            ],
+            "skin_clearance_m": -0.0005760347475422829,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.022000201067433136,
+          "pair_indices": [
+            2,
+            8
+          ],
+          "skin_clearance_m": 2.0106743313721975e-07,
+          "time_ns": 625000000
+        },
+        "cross_panel_triangle_pairs": 2192,
+        "frames": 137,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 5.5139921365746775e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 3288
+      },
+      "capture_interval_ms": 25.0,
+      "hold_closeup": "pressed-closeup/hold.jpg"
+    }
+  }
+}

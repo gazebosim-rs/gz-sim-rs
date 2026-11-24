@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="coarse" type="ignored"><max_step_size>0.1</max_step_size><real_time_factor>0.15</real_time_factor></physics>
+    <model name="guide">
+      <pose>0 0 0.5 1.5707963267948966 0 0</pose>
+      <link name="roller">
+        <collision name="surface"><geometry><capsule><radius>0.08</radius><length>0.6</length></capsule></geometry></collision>
+        <visual name="barrel"><geometry><cylinder><radius>0.08</radius><length>0.6</length></cylinder></geometry><material><diffuse>0.06 0.39 0.78 1</diffuse></material></visual>
+        <visual name="cap_a"><pose>0 0 -0.3 0 0 0</pose><geometry><sphere><radius>0.08</radius></sphere></geometry><material><diffuse>0.06 0.39 0.78 1</diffuse></material></visual>
+        <visual name="cap_b"><pose>0 0 0.3 0 0 0</pose><geometry><sphere><radius>0.08</radius></sphere></geometry><material><diffuse>0.06 0.39 0.78 1</diffuse></material></visual>
+        <visual name="node_0"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_1"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_2"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_3"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_4"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_5"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_6"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_7"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_8"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_9"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_10"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_11"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_12"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_13"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_14"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+        <visual name="node_15"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>0.94 0.30 0.04 1</diffuse></material></visual>
+      </link>
+      <plugin filename="gz-sim-prescribed-motion-system" name="gz::sim::systems::PrescribedMotion">
+        <trajectory end="hold">
+          <waypoint time_ns="0" displacement="0 0 0" velocity="0 0 4.8"/>
+          <waypoint time_ns="31234567" displacement="0 0 0.10309720916748054" velocity="0 0 1.8014815679999998"/>
+          <waypoint time_ns="100000000" displacement="0 0 0" velocity="0 0 -4.8"/>
+          <waypoint time_ns="200000000" displacement="0 0 -0.24" velocity="0 0 0"/>
+        </trajectory>
+      </plugin>
+    </model>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <capsule link="default::guide::roller" coupling="one_way"/>
+      <cable name="line" substeps="4" iterations="6" stretch="0.00001" bend="0.01" radius="0.01" self_contact="false" friction="0">
+        <particle position="0 -0.1 0.65" mass="0.0125"/>
+        <particle position="0 -0.08 0.65" mass="0.0125"/>
+        <particle position="0 -0.06 0.65" mass="0.0125"/>
+        <particle position="0 -0.04 0.65" mass="0.0125"/>
+        <particle position="0 -0.02 0.65" mass="0.0125"/>
+        <particle position="0 0 0.65" mass="0.0125"/>
+        <particle position="0 0.02 0.65" mass="0.0125"/>
+        <particle position="0 0.04 0.65" mass="0.0125"/>
+        <particle position="0 0.06 0.65" mass="0.0125"/>
+        <particle position="0 0.08 0.65" mass="0.0125"/>
+        <particle position="0 0.1 0.65" mass="0.0125"/>
+        <particle position="0 0.12 0.65" mass="0.0125"/>
+        <particle position="0 0.14 0.65" mass="0.0125"/>
+        <particle position="0 0.16 0.65" mass="0.0125"/>
+        <particle position="0 0.18 0.65" mass="0.0125"/>
+        <particle position="0 0.2 0.65" mass="0.0125"/>
+      </cable>
+      <particle_visual material="line" particle="0" visual="default::guide::roller::node_0"/>
+      <particle_visual material="line" particle="1" visual="default::guide::roller::node_1"/>
+      <particle_visual material="line" particle="2" visual="default::guide::roller::node_2"/>
+      <particle_visual material="line" particle="3" visual="default::guide::roller::node_3"/>
+      <particle_visual material="line" particle="4" visual="default::guide::roller::node_4"/>
+      <particle_visual material="line" particle="5" visual="default::guide::roller::node_5"/>
+      <particle_visual material="line" particle="6" visual="default::guide::roller::node_6"/>
+      <particle_visual material="line" particle="7" visual="default::guide::roller::node_7"/>
+      <particle_visual material="line" particle="8" visual="default::guide::roller::node_8"/>
+      <particle_visual material="line" particle="9" visual="default::guide::roller::node_9"/>
+      <particle_visual material="line" particle="10" visual="default::guide::roller::node_10"/>
+      <particle_visual material="line" particle="11" visual="default::guide::roller::node_11"/>
+      <particle_visual material="line" particle="12" visual="default::guide::roller::node_12"/>
+      <particle_visual material="line" particle="13" visual="default::guide::roller::node_13"/>
+      <particle_visual material="line" particle="14" visual="default::guide::roller::node_14"/>
+      <particle_visual material="line" particle="15" visual="default::guide::roller::node_15"/>
+    </plugin>
+  </world>
+</sdf>

@@ -1,0 +1,665 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use gz_physics::{
+    BodyId, BodySpec, DynamicBackend, JointState, JointVelocityMotor, PhysicsError, Shape,
+};
+use gz_physics_rapier::{RapierBackend, RobotJoint, RobotSpring};
+use std::time::Duration;
+
+fn sphere(b: &mut RapierBackend, xyz: [f64; 3]) -> BodyId {
+    b.spawn(BodySpec {
+        shape: Shape::Sphere { radius: 0.1 },
+        position: xyz,
+        velocity: [0.; 3],
+        mass: Some(1.),
+    })
+    .unwrap()
+}
+fn step(b: &mut RapierBackend, count: usize) {
+    for _ in 0..count {
+        b.step(Duration::from_millis(1)).unwrap();
+    }
+}
+const SLIDE: RobotJoint = RobotJoint::Prismatic {
+    axis: [1., 0., 0.],
+    limits: Some([-1., 1.]),
+};
+const SPRING: RobotSpring = RobotSpring {
+    reference: 0.1,
+    stiffness: 100.,
+    damping: 12.,
+};
+
+#[test]
+fn passive_slider_reaches_reference_after_active_motor_is_removed_and_repeats_after_reset() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let child = sphere(&mut b, [0.; 3]);
+    let j = b
+        .add_robot_joint_with_spring(None, child, [0.; 3], SLIDE, SPRING)
+        .unwrap();
+    for i in 0..2 {
+        step(&mut b, 1);
+        let s = b.joint_state(j).unwrap();
+        assert!(
+            (s.velocity - 0.01).abs() < 0.0002,
+            "first spring impulse {s:?}"
+        );
+        assert_eq!(
+            SPRING.effort(JointState {
+                position: 0.05,
+                velocity: 0.25
+            }),
+            2.
+        );
+        b.set_joint_velocity_motor(
+            j,
+            Some(JointVelocityMotor {
+                target_velocity: -100.,
+                max_force: 40.,
+            }),
+        )
+        .unwrap();
+        step(&mut b, 100);
+        assert!(b.joint_state(j).unwrap().position < -0.045);
+        b.set_joint_velocity_motor(j, None).unwrap();
+        step(&mut b, 1850);
+        let s = b.joint_state(j).unwrap();
+        assert!(
+            (s.position - 0.1).abs() < 0.0001 && s.velocity.abs() < 0.0001,
+            "{s:?}"
+        );
+        if i == 0 {
+            b.reset().unwrap();
+        }
+    }
+    assert!(b.remove_joint(j));
+    let s = b.state(child).unwrap();
+    step(&mut b, 100);
+    assert!((b.state(child).unwrap().velocity[0] - s.velocity[0]).abs() < 1e-10);
+}
+#[test]
+fn opposed_hinge_spring_conserves_free_parent_momentum_and_respects_stop() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let parent = sphere(&mut b, [0.; 3]);
+    let c = sphere(&mut b, [0., 0., 0.21]);
+    let j = b
+        .add_robot_joint_with_spring(
+            Some(parent),
+            c,
+            [0., 0., 0.105],
+            RobotJoint::Revolute {
+                axis: [0., 0., 1.],
+                limits: Some([-0.2, 0.2]),
+            },
+            RobotSpring {
+                reference: 0.3,
+                damping: 0.1,
+                stiffness: 2.,
+            },
+        )
+        .unwrap();
+    step(&mut b, 50);
+    let a = b.state(parent).unwrap().angular_velocity[2];
+    let d = b.state(c).unwrap().angular_velocity[2];
+    assert!(a < 0. && d > 0. && (a + d).abs() < 1e-8, "{a} {d}");
+    step(&mut b, 450);
+    assert!((b.joint_state(j).unwrap().position - 0.2).abs() < 0.001);
+}
+#[test]
+fn malformed_passive_laws_and_wrapped_rotational_springs_fail_before_insertion() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let c = sphere(&mut b, [0.; 3]);
+    let unbounded = RobotJoint::Revolute {
+        axis: [0., 0., 1.],
+        limits: None,
+    };
+    let hinge = RobotJoint::Revolute {
+        axis: [0., 0., 1.],
+        limits: Some([-0.5, 1.]),
+    };
+    for (joint, s) in [
+        (RobotJoint::Fixed, SPRING),
+        (unbounded, SPRING),
+        (
+            RobotJoint::Revolute {
+                axis: [0., 0., 1.],
+                limits: Some([-3., 3.]),
+            },
+            RobotSpring {
+                reference: 2.9,
+                ..SPRING
+            },
+        ),
+        (
+            hinge,
+            RobotSpring {
+                reference: 4.,
+                ..SPRING
+            },
+        ),
+        (
+            SLIDE,
+            RobotSpring {
+                reference: f64::NAN,
+                ..SPRING
+            },
+        ),
+        (
+            SLIDE,
+            RobotSpring {
+                damping: f64::INFINITY,
+                ..SPRING
+            },
+        ),
+        (
+            SLIDE,
+            RobotSpring {
+                stiffness: f64::INFINITY,
+                ..SPRING
+            },
+        ),
+        (
+            SLIDE,
+            RobotSpring {
+                damping: -1.,
+                ..SPRING
+            },
+        ),
+        (
+            SLIDE,
+            RobotSpring {
+                stiffness: -1.,
+                ..SPRING
+            },
+        ),
+        (
+            SLIDE,
+            RobotSpring {
+                damping: 0.,
+                stiffness: 0.,
+                ..SPRING
+            },
+        ),
+    ] {
+        assert_eq!(
+            b.add_robot_joint_with_spring(None, c, [0.; 3], joint, s),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+    assert!(
+        b.add_robot_joint_with_spring(
+            None,
+            c,
+            [0.; 3],
+            RobotJoint::Prismatic {
+                axis: [0.; 3],
+                limits: None
+            },
+            SPRING
+        )
+        .is_err()
+    );
+    let j = b
+        .add_robot_joint_with_spring(
+            None,
+            c,
+            [0.; 3],
+            unbounded,
+            RobotSpring {
+                stiffness: 0.,
+                reference: 0.,
+                ..SPRING
+            },
+        )
+        .unwrap();
+    b.add_joint_effort(j, 0.2).unwrap();
+    step(&mut b, 1);
+    let before = b.joint_state(j).unwrap().velocity;
+    step(&mut b, 2);
+    assert!(b.joint_state(j).unwrap().velocity.abs() < before.abs());
+}
+
+#[test]
+fn constraint_refinement_validates_the_root_budget_and_construction_phase() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let root = sphere(&mut b, [0.; 3]);
+    let other = sphere(&mut b, [1., 0., 0.]);
+    assert_eq!(
+        b.set_robot_root_iterations(root, 41),
+        Err(PhysicsError::InvalidJoint)
+    );
+    let j = b
+        .add_robot_joint(
+            None,
+            root,
+            [0.; 3],
+            RobotJoint::Revolute {
+                axis: [0., 0., 1.],
+                limits: None,
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        b.set_robot_root_iterations(root, 129),
+        Err(PhysicsError::InvalidValue)
+    );
+    assert_eq!(
+        b.set_robot_root_iterations(other, 10),
+        Err(PhysicsError::InvalidJoint)
+    );
+    b.set_robot_root_iterations(root, 128).unwrap();
+    b.set_robot_root_iterations(root, 0).unwrap();
+    b.set_robot_root_iterations(root, 41).unwrap();
+    step(&mut b, 1);
+    assert_eq!(
+        b.set_robot_root_iterations(root, 7),
+        Err(PhysicsError::JointConstructionClosed)
+    );
+    assert!(b.remove_joint(j));
+    step(&mut b, 1);
+    b.reset().unwrap();
+}
+
+#[test]
+fn extra_passes_on_one_mounted_arm_leave_a_separate_arms_impulse_response_unchanged() {
+    fn arms(settings: &[u8]) -> Vec<f64> {
+        let mut b = RapierBackend::new([0.; 3]).unwrap();
+        let mut joints = vec![];
+        for (i, &passes) in settings.iter().enumerate() {
+            let y = i as f64 * 4.;
+            let rotor = sphere(&mut b, [0.25, y, 0.]);
+            let distal = sphere(&mut b, [0.75, y, 0.]);
+            let shoulder = b
+                .add_robot_joint(
+                    None,
+                    rotor,
+                    [0., y, 0.],
+                    RobotJoint::Revolute {
+                        axis: [0., 0., 1.],
+                        limits: None,
+                    },
+                )
+                .unwrap();
+            b.add_robot_joint(Some(rotor), distal, [0.5, y, 0.], SLIDE)
+                .unwrap();
+            b.set_robot_root_iterations(rotor, passes).unwrap();
+            joints.push(shoulder);
+        }
+        for &j in &joints {
+            b.add_joint_effort(j, 1.).unwrap();
+        }
+        step(&mut b, 1);
+        joints
+            .into_iter()
+            .map(|j| b.joint_state(j).unwrap().velocity)
+            .collect()
+    }
+    let reference = 0.001 / (0.25_f64.powi(2) + 0.75_f64.powi(2) + 2. * 0.4 * 0.1_f64.powi(2));
+    let coarse = arms(&[0])[0];
+    let fine = arms(&[100])[0];
+    assert!(
+        (fine - reference).abs() < 0.005 * reference,
+        "{coarse} {fine} {reference}"
+    );
+    assert!((coarse - reference).abs() > 0.1 * reference);
+    for (got, wanted) in [
+        (&arms(&[0, 100])[..], [coarse, fine]),
+        (&arms(&[100, 0])[..], [fine, coarse]),
+    ] {
+        for (&v, w) in got.iter().zip(wanted) {
+            assert!((v - w).abs() < 1e-10, "{got:?} != {wanted:?}");
+        }
+    }
+}
+
+#[test]
+fn nonrepresentable_screw_preload_fails_before_insertion() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let c = sphere(&mut b, [0.; 3]);
+    let screw = RobotJoint::Screw {
+        pitch: 0.002,
+        axis: [0., 0., 1.],
+        effort_limit: 1.,
+        limits: None,
+    };
+    let invalid = RobotSpring {
+        stiffness: 1e180,
+        reference: 1e150,
+        damping: 0.,
+    };
+    assert_eq!(
+        b.add_robot_joint_with_spring(None, c, [0.; 3], screw, invalid),
+        Err(PhysicsError::InvalidValue)
+    );
+    let j = b
+        .add_robot_joint_with_spring(None, c, [0.; 3], screw, SPRING)
+        .unwrap();
+    assert_eq!(b.joint_state(j).unwrap().position, 0.);
+}
+
+#[test]
+fn free_universal_dampers_share_reaction_and_retire_all_rows_on_removal() {
+    let universal = RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits: [None; 2],
+        effort_limits: [f64::INFINITY; 2],
+    };
+    let mut backend = RapierBackend::new([0.; 3]).unwrap();
+    let parent = sphere(&mut backend, [0.; 3]);
+    let child = sphere(&mut backend, [0., 0.25, 0.]);
+    let anchor = [0., 0.125, 0.];
+    let damper = RobotSpring {
+        stiffness: 0.,
+        reference: 0.,
+        damping: 0.15,
+    };
+    assert_eq!(
+        backend.add_universal_joint_with_springs(
+            Some(parent),
+            child,
+            anchor,
+            SLIDE,
+            [Some(damper); 2]
+        ),
+        Err(PhysicsError::InvalidJoint)
+    );
+    assert_eq!(
+        backend.add_universal_joint_with_springs(
+            Some(parent),
+            child,
+            anchor,
+            universal,
+            [
+                Some(damper),
+                Some(RobotSpring {
+                    reference: f64::INFINITY,
+                    ..damper
+                })
+            ]
+        ),
+        Err(PhysicsError::InvalidValue)
+    );
+    let joint = backend
+        .add_universal_joint_with_springs(
+            Some(parent),
+            child,
+            anchor,
+            universal,
+            [None, Some(damper)],
+        )
+        .unwrap();
+    for _ in 0..1000 {
+        backend.add_universal_effort(joint, [0., 0.3]).unwrap();
+        step(&mut backend, 1);
+    }
+    let rate = backend.universal_joint_state(joint).unwrap().velocity;
+    assert!(
+        rate[0].abs() < 1e-6 && (rate[1] - 2.).abs() < 5e-4,
+        "{rate:?}"
+    );
+    let a = backend.state(parent).unwrap();
+    let b = backend.state(child).unwrap();
+    assert!(
+        (a.angular_velocity[1] + b.angular_velocity[1]).abs() < 1e-6
+            && a.angular_velocity[1] < -0.5
+    );
+    assert!(backend.remove_joint(joint));
+    step(&mut backend, 50);
+    assert!(
+        (backend.state(parent).unwrap().angular_velocity[1] - a.angular_velocity[1]).abs() < 1e-7
+    );
+}
+
+#[test]
+fn removing_a_universal_endpoint_discards_its_passive_rows() {
+    let mut backend = RapierBackend::new([0.; 3]).unwrap();
+    let child = sphere(&mut backend, [0.; 3]);
+    let joint = backend
+        .add_universal_joint_with_springs(
+            None,
+            child,
+            [0.; 3],
+            RobotJoint::Universal {
+                axes: [[1., 0., 0.], [0., 1., 0.]],
+                limits: [None; 2],
+                effort_limits: [f64::INFINITY; 2],
+            },
+            [Some(SPRING); 2],
+        )
+        .unwrap();
+    step(&mut backend, 1);
+    assert!(backend.remove(child));
+    step(&mut backend, 1);
+    assert!(backend.universal_joint_state(joint).is_none());
+}
+
+#[test]
+fn speed_stop_construction_is_atomic_recoverable_and_cleans_up_all_reference_bodies() {
+    use gz_physics::JointId;
+    let mut backend = RapierBackend::new([0.; 3]).unwrap();
+    let child = sphere(&mut backend, [0.; 3]);
+    let universal = RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits: [None; 2],
+        effort_limits: [f64::INFINITY; 2],
+    };
+    assert_eq!(
+        backend.set_world_joint_speed_limits(JointId::from_raw(100), [None; 2]),
+        Err(PhysicsError::MissingJoint)
+    );
+    let wrist = backend
+        .add_robot_joint(None, child, [0.; 3], universal)
+        .unwrap();
+    backend
+        .set_world_joint_speed_limits(wrist, [None; 2])
+        .unwrap();
+    let other = sphere(&mut backend, [0., 0., 1.]);
+    let distal = backend
+        .add_robot_joint(Some(child), other, [0., 0., 0.5], universal)
+        .unwrap();
+    assert_eq!(
+        backend.set_world_joint_speed_limits(distal, [Some(1.); 2]),
+        Err(PhysicsError::InvalidJoint)
+    );
+    for invalid in [-1., f64::NAN, f64::INFINITY] {
+        assert_eq!(
+            backend.set_world_joint_speed_limits(wrist, [Some(1.), Some(invalid)]),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+    backend
+        .set_world_joint_speed_limits(wrist, [Some(0.), Some(0.8)])
+        .unwrap();
+    backend
+        .set_world_joint_speed_limits(wrist, [Some(2000.), None])
+        .unwrap();
+    let before = backend.state(child).unwrap();
+    assert_eq!(
+        backend.step(Duration::from_millis(1)),
+        Err(PhysicsError::InvalidValue)
+    );
+    assert_eq!(backend.state(child).unwrap(), before);
+    backend
+        .set_world_joint_speed_limits(wrist, [Some(0.), Some(0.8)])
+        .unwrap();
+    step(&mut backend, 1);
+    assert_eq!(
+        backend.set_world_joint_speed_limits(wrist, [None; 2]),
+        Err(PhysicsError::JointConstructionClosed)
+    );
+    assert!(backend.remove_joint(wrist));
+    step(&mut backend, 1);
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let c = sphere(&mut b, [0.; 3]);
+    let j = b.add_robot_joint(None, c, [0.; 3], universal).unwrap();
+    b.set_world_joint_speed_limits(j, [Some(0.), Some(1.)])
+        .unwrap();
+    assert!(b.remove(c));
+    step(&mut b, 1);
+}
+
+#[test]
+fn independent_wrist_motors_react_on_a_free_parent_and_clear_one_axis_at_a_time() {
+    use gz_physics::JointId;
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let p = sphere(&mut b, [0.; 3]);
+    let child = sphere(&mut b, [0., 0.25, 0.]);
+    let j = b
+        .add_robot_joint(
+            Some(p),
+            child,
+            [0., 0.125, 0.],
+            RobotJoint::Universal {
+                axes: [[1., 0., 0.], [0., 1., 0.]],
+                limits: [None; 2],
+                effort_limits: [1., 2.],
+            },
+        )
+        .unwrap();
+    let m = JointVelocityMotor {
+        target_velocity: 0.75,
+        max_force: 1.,
+    };
+    for (id, axis, motor, err) in [
+        (
+            JointId::from_raw(100),
+            1,
+            Some(m),
+            PhysicsError::MissingJoint,
+        ),
+        (j, 2, None, PhysicsError::InvalidJoint),
+        (
+            j,
+            0,
+            Some(JointVelocityMotor {
+                max_force: 1.1,
+                ..m
+            }),
+            PhysicsError::InvalidValue,
+        ),
+        (
+            j,
+            1,
+            Some(JointVelocityMotor {
+                target_velocity: f64::NAN,
+                ..m
+            }),
+            PhysicsError::InvalidValue,
+        ),
+    ] {
+        assert_eq!(b.set_universal_motor(id, axis, motor), Err(err));
+    }
+    b.set_universal_motor(
+        j,
+        0,
+        Some(JointVelocityMotor {
+            target_velocity: 0.,
+            ..m
+        }),
+    )
+    .unwrap();
+    b.set_universal_motor(j, 1, Some(m)).unwrap();
+    step(&mut b, 300);
+    let parent = b.state(p).unwrap().angular_velocity;
+    let tip = b.state(child).unwrap().angular_velocity;
+    assert!((tip[1] - parent[1] - 0.75).abs() < 1e-6 && (tip[1] + parent[1]).abs() < 1e-6);
+    b.set_universal_motor(j, 0, None).unwrap();
+    b.set_universal_motor(
+        j,
+        1,
+        Some(JointVelocityMotor {
+            target_velocity: -0.4,
+            ..m
+        }),
+    )
+    .unwrap();
+    step(&mut b, 200);
+    assert!((b.universal_joint_state(j).unwrap().velocity[1] + 0.4).abs() < 1e-6);
+    assert!(b.remove_joint(j));
+    step(&mut b, 1);
+}
+
+#[test]
+fn wrist_motors_preserve_failed_steps_and_retire_on_endpoint_removal() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let child = sphere(&mut b, [0.; 3]);
+    let motion = RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits: [None; 2],
+        effort_limits: [f64::INFINITY; 2],
+    };
+    let wrist = b.add_robot_joint(None, child, [0.; 3], motion).unwrap();
+    let slider = sphere(&mut b, [0., 0., 2.]);
+    let j = b
+        .add_robot_joint(None, slider, [0., 0., 2.], SLIDE)
+        .unwrap();
+    assert_eq!(
+        b.validate_universal_motor(j, 0, None),
+        Err(PhysicsError::InvalidJoint)
+    );
+    b.set_universal_motor(
+        wrist,
+        1,
+        Some(JointVelocityMotor {
+            target_velocity: f64::MAX,
+            max_force: 1.,
+        }),
+    )
+    .unwrap();
+    assert_eq!(
+        b.step(Duration::from_secs(2)),
+        Err(PhysicsError::InvalidValue)
+    );
+    b.set_universal_motor(wrist, 1, None).unwrap();
+    b.set_universal_motor(
+        wrist,
+        0,
+        Some(JointVelocityMotor {
+            target_velocity: 0.1,
+            max_force: 1.,
+        }),
+    )
+    .unwrap();
+    step(&mut b, 1);
+    assert!(b.remove(child));
+    step(&mut b, 1);
+}
+
+#[test]
+fn moving_wrist_private_references_retire_without_stealing_parent_momentum() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let p = sphere(&mut b, [0.; 3]);
+    let child = sphere(&mut b, [0.25, 0., 0.]);
+    let motion = RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits: [None; 2],
+        effort_limits: [f64::INFINITY; 2],
+    };
+    let id = b
+        .add_robot_joint(Some(p), child, [0.125, 0., 0.], motion)
+        .unwrap();
+    b.set_joint_angular_speed_limits(id, [Some(1.), Some(1.2)])
+        .unwrap();
+    b.set_joint_angular_speed_limits(id, [Some(0.5), Some(0.)])
+        .unwrap();
+    for _ in 0..160 {
+        b.add_universal_effort(id, [0.4, 0.]).unwrap();
+        step(&mut b, 1);
+    }
+    let before = b.state(p).unwrap();
+    assert!((before.angular_velocity[0] + 0.25).abs() < 0.00001);
+    assert!(b.remove_joint(id));
+    step(&mut b, 10);
+    assert!((b.state(p).unwrap().angular_velocity[0] - before.angular_velocity[0]).abs() < 1e-8);
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let p = sphere(&mut b, [0.; 3]);
+    let child = sphere(&mut b, [0.25, 0., 0.]);
+    let id = b
+        .add_robot_joint(Some(p), child, [0.125, 0., 0.], motion)
+        .unwrap();
+    b.set_joint_angular_speed_limits(id, [Some(1.); 2]).unwrap();
+    step(&mut b, 2);
+    assert!(b.remove(child));
+    step(&mut b, 2);
+    assert!(b.universal_joint_state(id).is_none());
+}

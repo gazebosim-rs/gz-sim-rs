@@ -63,6 +63,11 @@ fn joint_text(xml: &str, child: roxmltree::Node<'_, '_>) -> Result<String, ()> {
     })
 }
 
+pub(super) fn is_plugin(plugin: &sdformat::Plugin) -> bool {
+    plugin.name == "gz::sim::systems::ApplyJointForce"
+        && plugin.filename == "gz-sim-apply-joint-force-system"
+}
+
 pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadError> {
     if model.plugins.is_empty() {
         return Ok(Vec::new());
@@ -74,7 +79,12 @@ pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadE
     let mut result = Vec::new();
     let mut seen = BTreeSet::new();
     for plugin in &model.plugins {
-        if diff_drive::is_plugin(plugin)
+        if crate::contact_material::is_plugin(plugin)
+            || diff_drive::is_plugin(plugin)
+            || prescribed_motion::is_plugin(plugin)
+            || prescribed_motion::is_initial_velocity(plugin)
+            || articulation::is_plugin(plugin)
+            || joints::is_scalar_tree_plugin(plugin)
             || joint_controller::is_plugin(plugin)
             || joint_state_publisher::is_plugin(plugin)
             || pose_publisher::is_plugin(plugin)
@@ -82,12 +92,7 @@ pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadE
         {
             continue;
         }
-        require(
-            plugin.name == "gz::sim::systems::ApplyJointForce"
-                && plugin.filename == "gz-sim-apply-joint-force-system",
-            &model.scoped_name,
-            "model plugins",
-        )?;
+        require(is_plugin(plugin), &model.scoped_name, "model plugins")?;
         let invalid = || LoadError::Unsupported {
             entity: model.scoped_name.clone(),
             feature: "ApplyJointForce configuration",

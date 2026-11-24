@@ -1,0 +1,1572 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+//! Exercise the shipped input replay command in independent processes.
+#![cfg(all(target_os = "linux", target_arch = "x86_64"))]
+use serde_json::{Value, json};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::{Command, Output},
+};
+
+const XML: &str = include_str!("../../../examples/worlds/local_robot_replay.sdf");
+const JOURNAL: &str = include_str!("../../../examples/replay/local_serial.json");
+
+fn run(world: &Path, journal: &Path, extra: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_gz-sim-local-replay"))
+        .arg(world)
+        .arg(journal)
+        .args(extra)
+        .output()
+        .unwrap()
+}
+fn success(output: Output) -> Vec<Value> {
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout)
+        .unwrap()
+        .lines()
+        .map(|s| serde_json::from_str(s).unwrap())
+        .collect()
+}
+fn file(dir: &Path, name: &str, content: &str) -> PathBuf {
+    let path = dir.join(name);
+    fs::write(&path, content).unwrap();
+    path
+}
+fn altered(dir: &Path, base: &Value, name: &str, change: impl FnOnce(&mut Value)) -> PathBuf {
+    let mut journal = base.clone();
+    change(&mut journal);
+    file(dir, name, &journal.to_string())
+}
+fn record(rows: &[Value], command: u64, step: u64) -> &Value {
+    rows.iter()
+        .find(|v| v["command"] == command && v["step"] == step)
+        .unwrap()
+}
+fn shared(a: &Value, b: &Value, keys: &[&str]) {
+    for key in keys {
+        assert_eq!(a[*key], b[*key], "{key}");
+    }
+}
+const STATE: &[&str] = &["scene", "physics", "contacts", "inputs", "imu"];
+
+#[test]
+fn independent_processes_reconstruct_lifecycle_warm_contact_and_pending_inputs() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = file(dir, "robot.sdf", XML);
+    let source = file(dir, "journal.json", JOURNAL);
+    let trace = dir.join("trace.jsonl");
+    let trace = trace.to_str().unwrap();
+    let archive = dir.join("recording");
+    let first = run(
+        &xml,
+        &source,
+        &[
+            "--trace",
+            trace,
+            "--threads",
+            "1",
+            "--record",
+            archive.to_str().unwrap(),
+        ],
+    );
+    assert!(String::from_utf8_lossy(&first.stderr).contains("1 threads"));
+    success(first);
+    let check = run(&xml, &source, &["--verify", trace, "--threads", "8"]);
+    assert!(String::from_utf8_lossy(&check.stderr).contains("8 threads"));
+    success(check);
+    let rows: Vec<Value> = fs::read_to_string(trace)
+        .unwrap()
+        .lines()
+        .map(|s| serde_json::from_str(s).unwrap())
+        .collect();
+    assert_eq!(rows[0]["profile"], "local-cpu-v1");
+    assert_eq!(rows[0]["binary_sha256"].as_str().unwrap().len(), 64);
+    assert_eq!(rows[0]["step_ns"], 1_000_000);
+    let settled = record(&rows, 2, 180);
+    let queued = record(&rows, 3, 180);
+    let paused = record(&rows, 4, 180);
+    assert_eq!(settled["pending_wrenches"], 0);
+    assert_eq!(paused["pending_wrenches"], 1);
+    assert_ne!(settled["inputs"], queued["inputs"]);
+    shared(settled, queued, &["scene", "physics", "contacts", "imu"]);
+    shared(queued, paused, STATE);
+    assert!(paused["contact_points"].as_u64().unwrap() > 0);
+    assert!(paused["stored_normal_ns"].as_f64().unwrap() > 0.);
+    assert!(paused["delivered_normal_ns"].as_f64().unwrap() > 0.);
+    assert_eq!(paused["imu_samples"], 1);
+    assert_eq!(paused["held_targets"], 2);
+    let retargeted = record(&rows, 5, 180);
+    assert_ne!(retargeted["inputs"], paused["inputs"]);
+    shared(retargeted, paused, &["physics", "contacts", "imu"]);
+    let resumed = record(&rows, 6, 181);
+    assert_eq!(resumed["pending_wrenches"], 0);
+    let spawn = record(&rows, 7, 200);
+    assert_eq!(
+        spawn["entities"].as_u64().unwrap(),
+        settled["entities"].as_u64().unwrap() + 4
+    );
+    let loads = |row: &Value| -> std::collections::BTreeMap<(u64, u64), f64> {
+        row["pair_reactions_ns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| {
+                (
+                    (p[0].as_u64().unwrap(), p[1].as_u64().unwrap()),
+                    p[2].as_f64().unwrap(),
+                )
+            })
+            .collect()
+    };
+    let landed = loads(record(&rows, 8, 380));
+    let removed = loads(record(&rows, 9, 380));
+    let retired: Vec<f64> = landed
+        .iter()
+        .filter_map(|(pair, load)| (!removed.contains_key(pair)).then_some(*load))
+        .collect();
+    assert_eq!(retired.len(), 1);
+    // The new free parcel settles on its own part of the tray before removal.
+    assert!((retired[0] / 0.001 - 0.2 * 9.81).abs() < 0.02);
+    assert_eq!(record(&rows, 9, 380)["entities"], settled["entities"]);
+    let reset = record(&rows, 13, 0);
+    assert_eq!(reset["epoch"], 1);
+    assert_eq!(reset["entities"], settled["entities"]);
+    assert_eq!(reset["pending_wrenches"], 0);
+    assert_eq!(reset["stored_normal_ns"], 0.);
+    assert_eq!(reset["imu_samples"], 0);
+    shared(reset, record(&rows, 0, 0), STATE);
+    for (before, after, steps) in [(2, 15, 1..181), (6, 19, 181..201)] {
+        for step in steps {
+            shared(
+                record(&rows, before, step),
+                record(&rows, after, step),
+                STATE,
+            );
+        }
+    }
+    for epoch in 0..2 {
+        let m: Value = serde_json::from_slice(
+            &fs::read(archive.join(format!("epoch-{epoch}/manifest.json"))).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(m["complete"], true);
+        assert!(m["frames"].as_u64().unwrap() > 10);
+    }
+    let base: Value = serde_json::from_str(JOURNAL).unwrap();
+    let sham = altered(dir, &base, "sham.json", |j| {
+        j["commands"][2]["force"] = json!([0, 0, 0]);
+        j["commands"][2]["torque"] = json!([0, 0, 0]);
+    });
+    let control = success(run(&xml, &sham, &[]));
+    shared(
+        record(&control, 4, 180),
+        paused,
+        &["scene", "physics", "contacts", "imu"],
+    );
+    assert_ne!(record(&control, 4, 180)["inputs"], paused["inputs"]);
+    assert_ne!(record(&control, 6, 181)["physics"], resumed["physics"]);
+    assert_ne!(record(&control, 6, 181)["contacts"], resumed["contacts"]);
+    let seed = altered(dir, &base, "seed.json", |j| {
+        j["seed"] = json!("independent instrument")
+    });
+    let independent = success(run(&xml, &seed, &[]));
+    for (a, b) in rows.iter().zip(&independent).skip(1) {
+        shared(a, b, &["scene", "physics", "contacts", "inputs"]);
+    }
+    assert_ne!(record(&independent, 2, 180)["imu"], settled["imu"]);
+    let mut buf = fs::read_to_string(trace).unwrap();
+    buf.push_str("extra\n");
+    let long = file(dir, "long", &buf);
+    assert!(
+        String::from_utf8_lossy(&run(&xml, &source, &["--verify", long.to_str().unwrap()]).stderr)
+            .contains("extra data")
+    );
+    let truncated = file(
+        dir,
+        "short",
+        &buf.lines().take(3).collect::<Vec<_>>().join("\n"),
+    );
+    assert!(
+        String::from_utf8_lossy(
+            &run(&xml, &source, &["--verify", truncated.to_str().unwrap()]).stderr
+        )
+        .contains("line 4")
+    );
+}
+
+#[test]
+fn unsupported_profiles_and_invalid_lifecycle_requests_fail() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = file(dir, "robot.sdf", XML);
+    let journal = file(dir, "j", JOURNAL);
+    let original = include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf");
+    let plain = file(dir, "original", original);
+    let accepted = file(
+        dir,
+        "empty",
+        r#"{"seed":"dry","commands":[{"op":"step","count":2}]}"#,
+    );
+    assert_eq!(success(run(&plain, &accepted, &[])).len(), 4);
+    for (s, err) in [
+        (
+            "<sdf version='1.12'><model name='loose'><link name='body'/></model></sdf>",
+            "exactly one",
+        ),
+        (
+            r#"<sdf version="1.12"><world name="default"><model name="box"><link name="body"><sensor name="field" type="magnetometer"><magnetometer/></sensor></link></model></world></sdf>"#,
+            "admits inline",
+        ),
+    ] {
+        let world = file(dir, "unsupported.sdf", s);
+        let output = run(&world, &journal, &[]);
+        assert!(!output.status.success());
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains(err),
+            "{:?}",
+            output
+        );
+    }
+    let spawn =
+        json!({"op":"spawn","template":"default::parcel","alias":"copy","position":[0.1,0.1,0.55]});
+    for (ops, err) in [
+        (
+            json!([{"op":"target","joint":"missing","value":1}]),
+            "unknown scoped",
+        ),
+        (
+            json!([{"op":"spawn","template":"missing","alias":"a","position":[0,0,0]}]),
+            "unknown startup",
+        ),
+        (json!([spawn, spawn]), "duplicate live"),
+        (json!([{"op":"remove","alias":"absent"}]), "unknown live"),
+        (
+            json!([{"op":"wrench","link":"default::stand::post","force":[0,0,1],"torque":[0,0,0]}]),
+            "original dynamic model",
+        ),
+    ] {
+        let j = file(
+            dir,
+            "bad",
+            &json!({"seed":"test","commands":ops}).to_string(),
+        );
+        let out = run(&xml, &j, &[]);
+        assert!(!out.status.success());
+        assert!(
+            String::from_utf8_lossy(&out.stderr).contains(err),
+            "{:?}",
+            out
+        );
+    }
+}
+
+#[test]
+fn report_corrupt_inputs_missing_files_and_capture_the_last_unsampled_step() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let world = file(dir, "robot.sdf", XML);
+    let journal = file(
+        dir,
+        "input.json",
+        r#"{"seed":"a","commands":[{"op":"step","count":3}]}"#,
+    );
+    let archive = dir.join("run");
+    success(run(
+        &world,
+        &journal,
+        &["--record", archive.to_str().unwrap()],
+    ));
+    let frames = fs::read_to_string(archive.join("epoch-0/frames.jsonl")).unwrap();
+    let projected: Vec<Value> = frames
+        .lines()
+        .map(|s| serde_json::from_str::<Value>(s).unwrap())
+        .filter(|v| v["kind"] == "frame")
+        .map(|v| serde_json::from_str(v["scene"].as_str().unwrap()).unwrap())
+        .collect();
+    assert_eq!(projected.len(), 2);
+    assert_eq!(projected[1]["nanoseconds"], 3_000_000);
+    for args in [
+        vec!["--record", archive.to_str().unwrap()],
+        vec!["--trace", world.to_str().unwrap()],
+        vec!["--verify", dir.join("missing").to_str().unwrap()],
+    ] {
+        assert!(!run(&world, &journal, &args).status.success());
+    }
+    let missing = dir.join("missing");
+    let broken = file(dir, "broken", "{");
+    assert!(!run(&missing, &journal, &[]).status.success());
+    assert!(!run(&world, &missing, &[]).status.success());
+    assert!(!run(&world, &broken, &[]).status.success());
+    assert!(!run(&broken, &journal, &[]).status.success());
+    let invalid_noise = file(
+        dir,
+        "bad_noise",
+        &XML.replace("<stddev>0.015</stddev>", "<stddev>1e200</stddev>"),
+    );
+    assert!(!run(&invalid_noise, &journal, &[]).status.success());
+    let bad_ops = [
+        json!([{"op":"target","joint":"default::parcel::box","value":0.1}]),
+        json!([{"op":"step","count":1},{"op":"step","count":u64::MAX}]),
+        json!([{"op":"spawn","template":"default::gripper","alias":"robot","position":[0,0,0]}]),
+        json!([{"op":"spawn","template":"default::parcel","alias":"copy","position":[1e200,0,0]}]),
+    ];
+    for commands in bad_ops {
+        let j = file(
+            dir,
+            "bad_cmd",
+            &json!({"seed":"a","commands":commands}).to_string(),
+        );
+        assert!(!run(&world, &j, &[]).status.success(), "{commands}");
+    }
+}
+
+#[test]
+fn spherical_wrist_commands_accumulate_survive_pause_and_replay_after_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = file(
+        dir,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/gravity_wrist.sdf"),
+    );
+    let journal = file(
+        dir,
+        "wrist.json",
+        include_str!("../../../examples/replay/ball_wrist.json"),
+    );
+    let rows = success(run(&xml, &journal, &["--threads", "1"]));
+    assert_eq!(rows, success(run(&xml, &journal, &["--threads", "8"])));
+    let queued = record(&rows, 2, 0);
+    let paused = record(&rows, 3, 0);
+    shared(queued, paused, STATE);
+    let wrists = paused["wrists"].as_array().unwrap();
+    let held = wrists
+        .iter()
+        .position(|j| !j["pending_torque_nm"].is_null())
+        .unwrap();
+    let free = 1 - held;
+    assert_eq!(wrists.len(), 2);
+    assert_eq!(wrists[held]["pending_torque_nm"], json!([18., -24., 12.]));
+    assert_ne!(record(&rows, 1, 0)["inputs"], paused["inputs"]);
+    assert_eq!(
+        record(&rows, 7, 500)["wrists"][held]["pending_torque_nm"],
+        json!([0., 0., 0.])
+    );
+    let reset = record(&rows, 9, 0);
+    assert!(reset["wrists"][held]["pending_torque_nm"].is_null());
+    for step in 1..=240 {
+        let before = record(&rows, 4, step);
+        let replayed = record(&rows, 13, step);
+        assert!(before["wrists"][held]["pending_torque_nm"].is_null());
+        shared(
+            before,
+            replayed,
+            &["wrists", "physics", "contacts", "inputs", "scene"],
+        );
+    }
+    let first = &record(&rows, 4, 1)["wrists"];
+    assert_ne!(
+        first[held]["angular_velocity_rad_s"],
+        first[free]["angular_velocity_rad_s"]
+    );
+    let miss = file(
+        dir,
+        "wrong-kind",
+        r#"{"seed":"w","commands":[{"op":"ball_torque","joint":"default::held::clamp","torque_nm":[1,2,3]}]}"#,
+    );
+    assert!(!run(&xml, &miss, &[]).status.success());
+}
+
+#[test]
+fn spindle_and_universal_inputs_replay_on_the_moving_wrist() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = file(
+        dir,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/local_robot_screw_wrist.sdf"),
+    );
+    let json = include_str!("../../../examples/replay/screw_universal.json");
+    let journal = file(dir, "axis.json", json);
+    let rows = success(run(&xml, &journal, &["--threads", "1"]));
+    assert_eq!(rows, success(run(&xml, &journal, &["--threads", "8"])));
+    let queued = record(&rows, 3, 0);
+    shared(queued, record(&rows, 4, 0), STATE);
+    assert_eq!(queued["scalar_joints"][0]["pending_effort"], 2.);
+    assert_eq!(
+        queued["universal_joints"][0]["pending_effort"],
+        json!([0.8, -1.25])
+    );
+    let reset = record(&rows, 9, 0);
+    for key in ["scalar_joints", "universal_joints"] {
+        assert!(reset[key][0]["pending_effort"].is_null());
+        assert!(record(&rows, 5, 1)[key][0]["pending_effort"].is_null());
+    }
+    assert_eq!(
+        record(&rows, 8, 180)["scalar_joints"][0]["pending_effort"],
+        0.
+    );
+    assert_eq!(
+        record(&rows, 8, 180)["universal_joints"][0]["pending_effort"],
+        json!([0., 0.])
+    );
+    for tick in 1..=180 {
+        shared(
+            record(&rows, 5, tick),
+            record(&rows, 14, tick),
+            &[
+                "physics",
+                "inputs",
+                "scene",
+                "contacts",
+                "scalar_joints",
+                "universal_joints",
+            ],
+        );
+    }
+
+    let mut control: Value = serde_json::from_str(json).unwrap();
+    for c in control["commands"].as_array_mut().unwrap() {
+        match c["op"].as_str().unwrap() {
+            "universal_torque" => c["torque_nm"] = json!([0., 0.]),
+            "joint_effort" => c["effort"] = json!(0.),
+            _ => {}
+        }
+    }
+    let baseline = file(dir, "unloaded.json", &control.to_string());
+    let free = success(run(&xml, &baseline, &[]));
+    let first = record(&rows, 5, 1);
+    let passive = record(&free, 5, 1);
+    assert_ne!(
+        first["scalar_joints"][0]["velocity"],
+        passive["scalar_joints"][0]["velocity"]
+    );
+    for i in 0..2 {
+        assert_ne!(
+            first["universal_joints"][0]["velocity"][i],
+            passive["universal_joints"][0]["velocity"][i]
+        );
+    }
+    for command in [
+        json!({"op":"joint_effort","joint":"default::robot::wrist","effort":1.}),
+        json!({"op":"universal_torque","joint":"default::robot::spindle","torque_nm":[0.,1.]}),
+        json!({"op":"universal_torque","joint":"default::robot::wrist","torque_nm":[0.,3.]}),
+    ] {
+        let path = file(
+            dir,
+            "invalid.json",
+            &json!({"seed":"invalid","commands":[command]}).to_string(),
+        );
+        assert!(!run(&xml, &path, &[]).status.success());
+    }
+}
+
+#[test]
+fn tilted_curved_shapes_hit_at_their_own_support_height_and_bundle_their_surfaces() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = file(
+        dir,
+        "curves.sdf",
+        include_str!("../../../examples/worlds/local_curved_drop.sdf"),
+    );
+    let commands = file(
+        dir,
+        "drop.json",
+        include_str!("../../../examples/replay/curved_drop.json"),
+    );
+    let archive = dir.join("capture");
+    let rows = success(run(
+        &xml,
+        &commands,
+        &["--record", archive.to_str().unwrap()],
+    ));
+    assert_eq!(rows, success(run(&xml, &commands, &["--threads", "8"])));
+    let mut first = std::collections::BTreeMap::new();
+    for tick in 1..=600 {
+        let state = record(&rows, 1, tick);
+        shared(state, record(&rows, 3, tick), STATE);
+        for pair in state["pair_reactions_ns"].as_array().unwrap() {
+            if pair[2].as_f64().unwrap() > 0. {
+                first
+                    .entry((pair[0].as_u64().unwrap(), pair[1].as_u64().unwrap()))
+                    .or_insert(tick);
+            }
+        }
+    }
+    // Both centers start at 320 mm and both shapes have 45 mm radius
+    // and 210 mm overall axial length. The capsule's straight section is 120 mm.
+    let tilt = std::f64::consts::PI / 6.;
+    let height = [
+        0.105 * tilt.cos() + 0.045 * tilt.sin(),
+        0.06 * tilt.cos() + 0.045,
+    ];
+    assert_eq!(first.len(), 2);
+    for (h, tick) in height.into_iter().zip(first.values()) {
+        let ballistic_ms = 1000. * (2. * (0.32 - h) / 9.81).sqrt();
+        assert!((*tick as f64 - ballistic_ms).abs() < 1.);
+    }
+    for pair in record(&rows, 1, 600)["pair_reactions_ns"]
+        .as_array()
+        .unwrap()
+    {
+        assert!((pair[2].as_f64().unwrap() * 1000. - 0.25 * 9.81).abs() < 0.01);
+    }
+    let manifest = |epoch| -> Value {
+        serde_json::from_slice(
+            &fs::read(archive.join(format!("epoch-{epoch}/manifest.json"))).unwrap(),
+        )
+        .unwrap()
+    };
+    let initial = manifest(0);
+    assert_eq!(initial["assets"], manifest(1)["assets"]);
+    let assets = initial["assets"].as_array().unwrap();
+    assert_eq!(assets.len(), 2);
+    for entry in assets {
+        let route = entry["route"].as_str().unwrap().trim_start_matches('/');
+        let bytes = fs::read(archive.join("epoch-0").join(route)).unwrap();
+        assert_eq!(&bytes[..4], b"glTF");
+        assert_eq!(
+            bytes,
+            fs::read(archive.join("epoch-1").join(route)).unwrap()
+        );
+    }
+}
+
+#[test]
+fn a_point_load_uses_the_live_link_frame_and_is_retained_through_pause() {
+    let tmp = tempfile::tempdir().unwrap();
+    let d = tmp.path();
+    let xml = file(
+        d,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/gravity_wrist.sdf"),
+    );
+    let source = include_str!("../../../examples/replay/off_center_wrist_load.json");
+    let cmd = file(d, "loads.json", source);
+    let rec = d.join("take");
+    let rows = success(run(&xml, &cmd, &["--record", rec.to_str().unwrap()]));
+    assert_eq!(rows, success(run(&xml, &cmd, &["--threads", "8"])));
+    let frames: Vec<Value> = fs::read_to_string(rec.join("epoch-0/frames.jsonl"))
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str::<Value>(line).unwrap())
+        .filter(|line| line["kind"] == "frame")
+        .map(|line| serde_json::from_str(line["scene"].as_str().unwrap()).unwrap())
+        .collect();
+    let mut converted: Value = serde_json::from_str(source).unwrap();
+    for (command, step) in [(1usize, 0u64), (4, 160), (6, 320), (9, 0)] {
+        let sample = record(&rows, command as u64, step);
+        let load = &sample["link_loads"][0];
+        let force: [f64; 3] = serde_json::from_value(load["world_force_n"].clone()).unwrap();
+        let torque: [f64; 3] = serde_json::from_value(load["world_torque_nm"].clone()).unwrap();
+        let scene = frames
+            .iter()
+            .find(|frame| frame["nanoseconds"] == step * 1_000_000)
+            .unwrap();
+        let weight = scene["visuals"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|v| v["name"] == "default::held::payload::weight")
+            .unwrap();
+        let q =
+            glam::DQuat::from_array(serde_json::from_value(weight["rotation"].clone()).unwrap());
+        let lever = glam::DVec3::new(0.1, -0.1, 0.05);
+        assert!(((q * lever).cross(force.into()) - glam::DVec3::from(torque)).length() < 1e-12);
+        converted["commands"][command - 1] =
+            json!({"op":"wrench","link":"default::held::payload","force":force,"torque":torque});
+    }
+    let reference = file(d, "world-loads.json", &converted.to_string());
+    let explicit = success(run(&xml, &reference, &[]));
+    for (a, b) in rows[1..].iter().zip(&explicit[1..]) {
+        shared(a, b, STATE);
+    }
+    shared(record(&rows, 1, 0), record(&rows, 2, 0), STATE);
+    assert_eq!(record(&rows, 1, 0)["pending_wrenches"], 1);
+    assert_eq!(record(&rows, 3, 1)["pending_wrenches"], 0);
+    assert_ne!(
+        record(&rows, 1, 0)["link_loads"][0]["world_torque_nm"],
+        record(&rows, 4, 160)["link_loads"][0]["world_torque_nm"]
+    );
+    assert_eq!(
+        record(&rows, 7, 320)["link_loads"][0]["world_force_n"],
+        json!([0., 0., 0.])
+    );
+    assert_eq!(record(&rows, 8, 0)["pending_wrenches"], 0);
+    for i in 1..=160 {
+        shared(record(&rows, 3, i), record(&rows, 11, i), STATE);
+    }
+}
+
+#[test]
+fn a_load_wakes_the_parked_wrist_and_reaches_its_first_dynamic_solve() {
+    let tmp = tempfile::tempdir().unwrap();
+    let d = tmp.path();
+    let xml = file(
+        d,
+        "hanging.sdf",
+        include_str!("../../../examples/worlds/local_hanging_ball_wrist.sdf"),
+    );
+    let source = include_str!("../../../examples/replay/parked_wrist_load.json");
+    let normal = file(d, "parked.json", source);
+    let rows = success(run(&xml, &normal, &[]));
+    let mut control: Value = serde_json::from_str(source).unwrap();
+    control["commands"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|c| c["op"] != "set_tier");
+    let free = success(run(
+        &xml,
+        &file(d, "dynamic.json", &control.to_string()),
+        &[],
+    ));
+    assert_eq!(record(&rows, 3, 251)["model_tiers"][0][1], "prescribed");
+    let queued = record(&rows, 4, 251);
+    assert_eq!(queued["model_tiers"][0][1], "dynamic");
+    shared(queued, record(&rows, 5, 251), STATE);
+    assert_eq!(
+        queued["link_loads"][0]["world_force_n"],
+        json!([0., 120., 0.])
+    );
+    let initial = record(&rows, 7, 252);
+    assert_eq!(initial["pending_wrenches"], 0);
+    let expected = record(&free, 5, 252);
+    for i in 0..3 {
+        let velocity = |s: &Value| {
+            s["wrists"][0]["angular_velocity_rad_s"][i]
+                .as_f64()
+                .unwrap()
+        };
+        assert!(
+            (velocity(initial) - velocity(expected)).abs() < 1e-12 && velocity(initial).abs() > 0.1
+        );
+    }
+    for i in 252..=431 {
+        shared(record(&rows, 7, i), record(&rows, 15, i), STATE);
+    }
+}
+
+#[test]
+fn capped_ball_targets_track_both_directions_and_repeat_every_tick_after_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let d = tmp.path();
+    let xml = file(
+        d,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/local_ball_wrist.sdf"),
+    );
+    let source = include_str!("../../../examples/replay/tracked_ball_wrist.json");
+    let path = file(d, "drive.json", source);
+    let journal: Value = serde_json::from_str(source).unwrap();
+    let rows = success(run(&xml, &path, &[]));
+    let quat = |v: &Value| glam::DQuat::from_array(serde_json::from_value(v.clone()).unwrap());
+    let vec = |v: &Value| glam::DVec3::from_array(serde_json::from_value(v.clone()).unwrap());
+    for (op, end) in [(1, 450), (4, 950)] {
+        let q = quat(&record(&rows, op, end)["wrists"][0]["orientation_xyzw"]);
+        let target = quat(&journal["commands"][(op - 1) as usize]["orientation_xyzw"]);
+        assert!(q.angle_between(target).abs() < 0.003);
+    }
+    for row in rows
+        .iter()
+        .filter(|v| v["epoch"] == 0 && [1, 4].contains(&v["command"].as_u64().unwrap()))
+    {
+        let same = record(
+            &rows,
+            row["command"].as_u64().unwrap() + 5,
+            row["step"].as_u64().unwrap(),
+        );
+        shared(row, same, STATE);
+        shared(row, same, &["wrists"]);
+    }
+    let control = altered(d, &journal, "raw.json", |v| {
+        v["commands"] = json!([{"op":"ball_torque","joint":"default::wrist::bearing","torque_nm":[1.4/3.,2.8/3.,-2.8/3.]},{"op":"step","count":1}]);
+    });
+    let raw = success(run(&xml, &control, &[]));
+    let speed = |r: &Value| vec(&r["wrists"][0]["angular_velocity_rad_s"]);
+    assert!(speed(record(&rows, 1, 1)).distance(speed(record(&raw, 2, 1))) < 1e-12);
+    for (field, value) in [
+        ("count", json!(0)),
+        ("orientation_xyzw", json!([0, 0, 0, 0])),
+        ("max_torque_nm", json!(-1.)),
+        ("joint", json!("missing")),
+    ] {
+        let bad = altered(d, &journal, "invalid.json", |v| {
+            v["commands"][0][field] = value
+        });
+        assert!(!run(&xml, &bad, &[]).status.success());
+    }
+}
+
+#[test]
+fn the_first_heading_command_wakes_a_hanging_wrist_before_the_native_solve() {
+    let tmp = tempfile::tempdir().unwrap();
+    let d = tmp.path();
+    let xml = file(
+        d,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/local_hanging_ball_wrist.sdf"),
+    );
+    let source = include_str!("../../../examples/replay/parked_wrist_heading.json");
+    let path = file(d, "parked.json", source);
+    let normal = file(d, "dynamic.json", &source.replace("prescribed", "dynamic"));
+    let parked = success(run(&xml, &path, &[]));
+    let dynamic = success(run(&xml, &normal, &[]));
+    assert_eq!(record(&parked, 4, 251)["model_tiers"][0][1], "prescribed");
+    for tick in 252..=851 {
+        let first = record(&parked, 5, tick);
+        assert_eq!(first["model_tiers"][0][1], "dynamic");
+        shared(first, record(&parked, 11, tick), STATE);
+        let speed = |r: &Value| {
+            glam::DVec3::from_array(
+                serde_json::from_value(r["wrists"][0]["angular_velocity_rad_s"].clone()).unwrap(),
+            )
+        };
+        assert!(speed(first).distance(speed(record(&dynamic, 5, tick))) < 1e-11);
+    }
+    let journal: Value = serde_json::from_str(source).unwrap();
+    let quaternion =
+        |v: &Value| glam::DQuat::from_array(serde_json::from_value(v.clone()).unwrap());
+    let goal = quaternion(&journal["commands"][4]["orientation_xyzw"]);
+    let end = quaternion(&record(&parked, 5, 851)["wrists"][0]["orientation_xyzw"]);
+    assert!(goal.angle_between(end).abs() < 1e-6);
+}
+
+#[test]
+fn live_parcel_alias_load_matches_a_wrench_and_leaves_its_twin_undisturbed() {
+    let scratch = tempfile::tempdir().unwrap();
+    let dir = scratch.path();
+    let world = file(dir, "bench.sdf", XML);
+    let input = include_str!("../../../examples/replay/spawned_parcel_load.json");
+    let journal = file(dir, "point.json", input);
+    let archive = dir.join("point");
+    let rows = success(run(
+        &world,
+        &journal,
+        &["--record", archive.to_str().unwrap()],
+    ));
+    let queued = record(&rows, 3, 0);
+    assert_eq!(queued["pending_wrenches"], 1);
+    assert_eq!(
+        queued["link_loads"][0]["world_torque_nm"],
+        json!([0., 0., -1.2])
+    );
+    shared(queued, record(&rows, 4, 0), STATE);
+    assert_eq!(record(&rows, 5, 1)["pending_wrenches"], 0);
+
+    let source: Value = serde_json::from_str(input).unwrap();
+    let wrench = altered(dir, &source, "wrench.json", |j| {
+        j["commands"][2] =
+            json!({"op":"wrench","link":{"alias":"pushed"},"force":[60,0,0],"torque":[0,0,-1.2]});
+    });
+    let equivalent = success(run(&world, &wrench, &["--threads", "8"]));
+    assert_eq!(rows[1..], equivalent[1..]);
+
+    let frames = fs::read_to_string(archive.join("epoch-0/frames.jsonl")).unwrap();
+    let frame = frames
+        .lines()
+        .map(|s| serde_json::from_str::<Value>(s).unwrap())
+        .filter_map(|r| serde_json::from_str::<Value>(r["scene"].as_str()?).ok())
+        .find(|s| s["nanoseconds"] == 100_000_000)
+        .unwrap();
+    let mut parcels = frame["visuals"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|v| v["name"].as_str().unwrap().contains("::runtime_"));
+    let pushed = parcels.next().unwrap();
+    let control = parcels.next().unwrap();
+    assert!(parcels.next().is_none());
+    assert_eq!(control["translation"][0], -0.15);
+    assert_eq!(control["rotation"], json!([0., 0., 0., 1.]));
+    assert_eq!(pushed["translation"][2], control["translation"][2]);
+    // One millisecond at 60 N on 0.2 kg gives 0.3 m/s. The finite
+    // impulse spans the first millisecond, followed by horizontal coasting.
+    let x = pushed["translation"][0].as_f64().unwrap();
+    assert!((x + 0.15 - 0.3 * 0.0995).abs() < 0.00005);
+    let yaw = 2.
+        * pushed["rotation"][2]
+            .as_f64()
+            .unwrap()
+            .atan2(pushed["rotation"][3].as_f64().unwrap());
+    let predicted = -1.2 * 0.001 / 0.00013 * 0.0995;
+    assert!((yaw - predicted).abs() < 0.001);
+}
+
+#[test]
+fn removing_or_resetting_a_loaded_clone_clears_its_alias_and_pending_input() {
+    let scratch = tempfile::tempdir().unwrap();
+    let dir = scratch.path();
+    let world = file(dir, "robot.sdf", XML);
+    let spawn = json!({"op":"spawn","template":"default::parcel","alias":"delivery","position":[0.15,0.1,0.62]});
+    let force = json!({"op":"point_force","link":{"alias":"delivery"},"point_in_link_m":[0,0,0],"world_force_n":[5,0,0]});
+    for retire in [
+        json!({"op":"remove","alias":"delivery"}),
+        json!({"op":"reset"}),
+    ] {
+        let journal = |ops: Vec<Value>| {
+            file(
+                dir,
+                "journal.json",
+                &json!({"seed":"reuse","commands":ops}).to_string(),
+            )
+        };
+        let commands = vec![
+            spawn.clone(),
+            force.clone(),
+            retire.clone(),
+            spawn.clone(),
+            json!({"op":"step","count":1}),
+        ];
+        let pushed = success(run(&world, &journal(commands.clone()), &[]));
+        let mut control = commands;
+        control[1] = json!({"op":"paused_tick"});
+        let untouched = success(run(&world, &journal(control), &[]));
+        assert_eq!(record(&pushed, 2, 0)["pending_wrenches"], 1);
+        assert_eq!(record(&pushed, 4, 0)["pending_wrenches"], 0);
+        shared(record(&pushed, 5, 1), record(&untouched, 5, 1), STATE);
+        let stale = run(
+            &world,
+            &journal(vec![spawn.clone(), retire, force.clone()]),
+            &[],
+        );
+        assert!(!stale.status.success());
+        assert!(String::from_utf8_lossy(&stale.stderr).contains("unknown live alias delivery"));
+    }
+}
+
+#[test]
+fn changing_the_display_interval_keeps_every_solve_and_paused_lifecycle_event() {
+    let scratch = tempfile::tempdir().unwrap();
+    let dir = scratch.path();
+    let world = file(dir, "bench.sdf", XML);
+    let journal = file(dir, "two_lifetimes.json", &json!({"seed":"clocks","commands":[
+        {"op":"step","count":3},
+        {"op":"spawn","template":"default::parcel","alias":"p","position":[0.15,0.1,0.64]},
+        {"op":"step","count":2},{"op":"remove","alias":"p"},{"op":"step","count":2},{"op":"reset"},
+        {"op":"step","count":3}
+    ]}).to_string());
+    let baseline = success(run(&world, &journal, &[]));
+    for (stride, times) in [
+        ("1", vec![0, 1, 2, 3, 3, 4, 5, 5, 6, 7]),
+        ("4", vec![0, 3, 4, 5, 7]),
+        ("4294967296", vec![0, 3, 5, 7]),
+    ] {
+        let archive = dir.join(stride);
+        let result = success(run(
+            &world,
+            &journal,
+            &[
+                "--record",
+                archive.to_str().unwrap(),
+                "--record-every",
+                stride,
+            ],
+        ));
+        assert_eq!(result, baseline);
+        for (epoch, expected) in [
+            (0, times),
+            (
+                1,
+                if stride == "1" {
+                    vec![0, 1, 2, 3]
+                } else {
+                    vec![0, 3]
+                },
+            ),
+        ] {
+            let path = archive.join(format!("epoch-{epoch}/frames.jsonl"));
+            let frames = fs::read_to_string(path)
+                .unwrap()
+                .lines()
+                .map(|line| serde_json::from_str::<Value>(line).unwrap())
+                .filter_map(|r| {
+                    r["scene"]
+                        .as_str()
+                        .map(|s| serde_json::from_str::<Value>(s).unwrap())
+                })
+                .collect::<Vec<_>>();
+            assert_eq!(
+                frames
+                    .iter()
+                    .map(|s| s["nanoseconds"].as_u64().unwrap() / 1_000_000)
+                    .collect::<Vec<_>>(),
+                expected
+            );
+            if epoch == 0 {
+                let counts = frames
+                    .iter()
+                    .map(|s| s["visuals"].as_array().unwrap().len())
+                    .collect::<Vec<_>>();
+                assert_eq!(counts[0], *counts.last().unwrap());
+                assert_eq!(counts.iter().max(), Some(&(counts[0] + 1)));
+            }
+        }
+    }
+    let refused = dir.join("invalid");
+    for args in [
+        vec!["--record-every", "1"],
+        vec!["--record", refused.to_str().unwrap(), "--record-every", "0"],
+    ] {
+        assert!(!run(&world, &journal, &args).status.success());
+    }
+    assert!(!refused.exists());
+}
+
+#[test]
+fn a_refined_impact_replays_its_full_impulse_and_drops_stale_step_receipts() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let raw = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let xml = file(dir, "sorter.sdf", raw);
+    let journal = file(
+        dir,
+        "commands.json",
+        include_str!("../../../examples/replay/refined_contact.json"),
+    );
+    let rows = success(run(&xml, &journal, &[]));
+    let eight = success(run(&xml, &journal, &["--threads", "8"]));
+    assert_eq!(rows, eight);
+    let first = record(&rows, 1, 1);
+    let hit = &first["refinement"]["requested_pairs"][0];
+    assert_eq!(first["refinement"]["native_steps"], 100);
+    assert_eq!(hit["first_positive_end_ns"], 10_000_000);
+    let j = hit["normal_impulse_ns"].as_f64().unwrap();
+    assert!((j - 0.04).abs() < 1e-6);
+    assert!(hit["last_native_normal_ns"].as_f64().unwrap() < 1e-6);
+    assert_eq!(first["delivered_normal_ns"], hit["normal_impulse_ns"]);
+    assert!(
+        first["pair_reactions_ns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|p| p[2] == hit["normal_impulse_ns"])
+    );
+    let support_pair = |row: &Value| {
+        row["pair_impulses"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|p| p["a"] == 0 && p["b"] == 2)
+            .unwrap()
+            .clone()
+    };
+    let smooth = support_pair(first);
+    assert!(smooth["tangent_on_a_ns"].is_null());
+    assert_eq!(smooth["normal_on_a_ns"][2].as_f64(), Some(-j));
+
+    let rough_xml = raw.replace("<mu>0</mu><mu2>0</mu2>", "<mu>0.5</mu><mu2>0.5</mu2>");
+    let rough_world = file(dir, "rough.sdf", &rough_xml);
+    let rough = success(run(
+        &rough_world,
+        &journal,
+        &["--rapier-per-point-friction"],
+    ));
+    let rough_tick = record(&rough, 1, 1);
+    let on_pad = support_pair(rough_tick);
+    let on_parcel = &rough_tick["refinement"]["requested_pairs"][0];
+    assert!(on_pad["tangent_on_a_ns"][0].as_f64().unwrap() > 0.01);
+    for (pad, parcel) in [
+        ("normal_on_a_ns", "normal_on_foot_ns"),
+        ("tangent_on_a_ns", "tangent_on_foot_ns"),
+    ] {
+        for axis in 0..3 {
+            assert_eq!(
+                on_pad[pad][axis].as_f64().unwrap(),
+                -on_parcel[parcel][axis].as_f64().unwrap()
+            );
+        }
+    }
+    let paused = record(&rows, 2, 1);
+    let repeated = record(&rows, 5, 1);
+    for other in [paused, repeated] {
+        shared(
+            first,
+            other,
+            &[
+                "refinement",
+                "pair_reactions_ns",
+                "pair_impulses",
+                "contacts",
+                "physics",
+            ],
+        );
+    }
+    assert!(record(&rows, 3, 2).get("refinement").is_none());
+    assert!(record(&rows, 4, 0).get("refinement").is_none());
+    let reset = record(&rows, 6, 0);
+    let disabled = record(&rows, 7, 0);
+    let held = record(&rows, 8, 0);
+    assert_eq!(reset["contact_refinement_enabled"], true);
+    assert_eq!(disabled["contact_refinement_enabled"], false);
+    assert_ne!(reset["inputs"], disabled["inputs"]);
+    shared(reset, disabled, &["physics", "scene", "contacts"]);
+    shared(disabled, held, STATE);
+    let ordinary = record(&rows, 9, 1);
+    assert!(ordinary.get("refinement").is_none());
+    assert_ne!(ordinary["physics"], first["physics"]);
+    assert_eq!(record(&rows, 10, 1)["contact_refinement_enabled"], true);
+    let no_policy = file(
+        dir,
+        "ordinary.sdf",
+        include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf"),
+    );
+    assert!(!run(&no_policy, &journal, &[]).status.success());
+    let unsupported = file(
+        dir,
+        "other.sdf",
+        &raw.replace("<incoming_face>+z</incoming_face>", ""),
+    );
+    let bad = run(&unsupported, &journal, &[]);
+    assert!(!bad.status.success());
+}
+
+#[test]
+fn a_rebounding_parcel_replays_the_normal_impulse_after_separation_and_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let raw = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let material = r#"<plugin name="gz::sim::systems::ContactMaterial" filename="gz-sim-contact-material-system"><restitution link="body">0.8</restitution></plugin>"#;
+    let model = r#"<model name="parcel">"#;
+    let xml = raw.replace(model, &format!("{model}{material}"));
+    let world = file(dir, "bounce.sdf", &xml);
+    let journal = file(
+        dir,
+        "impact.json",
+        include_str!("../../../examples/replay/refined_contact.json"),
+    );
+    let rows = success(run(&world, &journal, &["--threads", "1"]));
+    assert_eq!(rows, success(run(&world, &journal, &["--threads", "8"])));
+    let impact = record(&rows, 1, 1);
+    let hit = &impact["refinement"]["requested_pairs"][0];
+    // Independent momentum from the measured outgoing flight of a free 10 g parcel.
+    assert!((hit["normal_on_foot_ns"][2].as_f64().unwrap() - 0.01 * (4.0 + 3.1625)).abs() < 1e-12);
+    assert_eq!(hit["active_at_end"], false);
+    assert_eq!(hit["last_native_normal_ns"], 0.0);
+    shared(
+        impact,
+        record(&rows, 5, 1),
+        &["refinement", "pair_reactions_ns", "physics"],
+    );
+    for invalid in [
+        xml.replace(">0.8</restitution>", ">1.1</restitution>"),
+        xml.replace("restitution link=\"body\"", "restitution link=\"missing\""),
+    ] {
+        let bad = run(&file(dir, "invalid.sdf", &invalid), &journal, &[]);
+        assert!(!bad.status.success());
+        assert!(String::from_utf8_lossy(&bad.stderr).contains("ContactMaterial"));
+    }
+}
+
+#[test]
+fn curved_deliveries_keep_their_authored_collision_response_and_repeat_after_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let raw = include_str!("../../../examples/worlds/local_curved_delivery.sdf");
+    let world = file(dir, "delivery.sdf", raw);
+    let journal = file(
+        dir,
+        "delivery.json",
+        include_str!("../../../examples/replay/curved_delivery.json"),
+    );
+    let rows = success(run(&world, &journal, &[]));
+    let xml = roxmltree::Document::parse(raw).unwrap();
+    let mut twins = String::new();
+    for (name, position) in [("cylinder", "-0.15"), ("capsule", "0.15")] {
+        let model = xml
+            .descendants()
+            .find(|n| n.has_tag_name("model") && n.attribute("name") == Some(name))
+            .unwrap();
+        let pose = model
+            .children()
+            .find(|n| n.has_tag_name("pose"))
+            .unwrap()
+            .text()
+            .unwrap();
+        twins.push_str(
+            &raw[model.range()]
+                .replace(
+                    &format!("model name=\"{name}\""),
+                    &format!("model name=\"twin_{name}\""),
+                )
+                .replace(pose, &format!("{position} -0.12 0.25 0 0 0")),
+        );
+    }
+    let control = file(
+        dir,
+        "authored.sdf",
+        &raw.replace("</world>", &format!("{twins}</world>")),
+    );
+    let drop = file(
+        dir,
+        "drop.json",
+        r#"{"seed":"curved-delivery","commands":[{"op":"step","count":750}]}"#,
+    );
+    let authored = success(run(&control, &drop, &[]));
+    let loads = |row: &Value| {
+        row["pair_reactions_ns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|p| p[0] == 0 && p[1].as_u64().unwrap() >= 3 && p[2].as_f64().unwrap() > 0.)
+            .map(|p| p[2].as_f64().unwrap())
+            .collect::<Vec<_>>()
+    };
+    for tick in 1..=750 {
+        let now = record(&rows, 4, tick + 10);
+        assert_eq!(loads(now), loads(record(&authored, 1, tick)));
+        // Reset reserves new public IDs for the next two deliveries.
+        assert_eq!(loads(now), loads(record(&rows, 11, tick + 10)));
+    }
+    let impact = loads(record(&rows, 4, 182));
+    assert_eq!(impact.len(), 2);
+    assert!(impact.iter().all(|j| (0.76..0.79).contains(j)));
+    assert_eq!(
+        record(&rows, 6, 760)["entities"],
+        record(&rows, 0, 0)["entities"]
+    );
+}
+
+#[test]
+fn contact_solver_selection_is_part_of_the_verified_execution_profile() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let world = file(
+        dir,
+        "parts.sdf",
+        include_str!("../../../examples/worlds/local_curved_delivery.sdf"),
+    );
+    let commands = file(
+        dir,
+        "delivery.json",
+        include_str!("../../../examples/replay/curved_delivery.json"),
+    );
+    let trace = dir.join("per-point.trace");
+    let trace = trace.to_str().unwrap();
+    success(run(
+        &world,
+        &commands,
+        &["--rapier-per-point-friction", "--trace", trace],
+    ));
+    success(run(
+        &world,
+        &commands,
+        &[
+            "--rapier-per-point-friction",
+            "--verify",
+            trace,
+            "--threads",
+            "8",
+        ],
+    ));
+    let mismatch = run(&world, &commands, &["--verify", trace]);
+    assert!(!mismatch.status.success());
+    assert!(String::from_utf8_lossy(&mismatch.stderr).contains("line 1"));
+    let first: Value =
+        serde_json::from_str(fs::read_to_string(trace).unwrap().lines().next().unwrap()).unwrap();
+    assert_eq!(first["rapier_per_point_friction"], true);
+}
+
+#[test]
+fn tilted_deliveries_replay_the_supplied_pose_and_validate_it_before_spawn() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let raw = include_str!("../../../examples/replay/curved_delivery_tilted.json");
+    let world = file(
+        dir,
+        "parts.sdf",
+        include_str!("../../../examples/worlds/local_curved_delivery.sdf"),
+    );
+    let journal = file(dir, "tilted.json", raw);
+    let capture = dir.join("capture");
+    let rows = success(run(
+        &world,
+        &journal,
+        &[
+            "--record",
+            capture.to_str().unwrap(),
+            "--record-every",
+            "100",
+        ],
+    ));
+    let mut impact = std::collections::BTreeMap::new();
+    for row in rows.iter().filter(|r| r["command"] == 4) {
+        for p in row["pair_reactions_ns"].as_array().unwrap() {
+            if p[0] == 0 && p[1].as_u64().unwrap() >= 3 && p[2].as_f64().unwrap() > 0. {
+                impact
+                    .entry(p[1].as_u64().unwrap())
+                    .or_insert(row["step"].as_u64().unwrap());
+            }
+        }
+    }
+    assert!(impact[&3] < 182 && impact[&4] > 182);
+    let expected =
+        serde_json::from_str::<Value>(raw).unwrap()["commands"][1]["rotation_xyzw"].clone();
+    for epoch in [0, 1] {
+        let frames =
+            fs::read_to_string(capture.join(format!("epoch-{epoch}/frames.jsonl"))).unwrap();
+        let at_birth = frames
+            .lines()
+            .filter_map(|l| {
+                let r = serde_json::from_str::<Value>(l).unwrap();
+                let s = serde_json::from_str::<Value>(r["scene"].as_str()?).unwrap();
+                (s["nanoseconds"] == 10_000_000 && s["visuals"].as_array().unwrap().len() == 5)
+                    .then_some(s)
+            })
+            .next()
+            .unwrap();
+        for v in &at_birth["visuals"].as_array().unwrap()[3..] {
+            for i in 0..4 {
+                assert!(
+                    (v["rotation"][i].as_f64().unwrap() - expected[i].as_f64().unwrap()).abs()
+                        < 1e-14
+                );
+            }
+        }
+    }
+    let broken = file(dir, "invalid.json", &raw.replace("0.9961946980917455", "2"));
+    assert!(!run(&world, &broken, &[]).status.success());
+}
+
+#[test]
+fn axial_delivery_centers_the_first_impulse_and_preserves_the_tilted_run_across_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let world = file(
+        dir,
+        "parts.sdf",
+        include_str!("../../../examples/worlds/local_curved_delivery.sdf"),
+    );
+    let upright = file(
+        dir,
+        "level.json",
+        include_str!("../../../examples/replay/curved_delivery.json"),
+    );
+    let tilted = file(
+        dir,
+        "tilt.json",
+        include_str!("../../../examples/replay/curved_delivery_tilted.json"),
+    );
+    let switch = "--rapier-axial-cap-impact";
+    for flags in [vec![switch], vec![switch, "--rapier-per-point-friction"]] {
+        let rows = success(run(&world, &upright, &flags));
+        assert_eq!(rows[0]["rapier_axial_cap_impact"], true);
+        let hit = record(&rows, 4, 182);
+        let normal = hit["pair_reactions_ns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|p| p[0] == 0 && p[1] == 3)
+            .unwrap()[2]
+            .as_f64()
+            .unwrap();
+        let ideal = 0.25 * (1. + 0.65) * (2_f64 * 9.81 * 0.145).sqrt();
+        assert!((normal / ideal - 1.).abs() < 0.005);
+    }
+    let baseline = success(run(&world, &tilted, &[]));
+    let fallback = success(run(&world, &tilted, &[switch, "--threads", "8"]));
+    assert_eq!(baseline[1..], fallback[1..]);
+}
+
+#[test]
+fn held_joint_force_survives_pause_adds_to_one_tick_effort_and_clears_on_reset() {
+    let dir = tempfile::tempdir().unwrap();
+    let rotor = include_str!("../../gz-sim-server/tests/fixtures/joint_force.sdf");
+    let plugin = r#"<plugin name="gz::sim::systems::ApplyJointForce" filename="gz-sim-apply-joint-force-system"><joint_name>hinge</joint_name></plugin>"#;
+    let xml = rotor.replace("</model>", &format!("{plugin}</model>"));
+    let world = file(dir.path(), "rotor.sdf", &xml);
+    let hinge = "default::rotor::hinge";
+    let commands = json!({"seed":"drive","commands":[
+        {"op":"set_joint_force","joint":hinge,"force":2.0},
+        {"op":"paused_tick"},
+        {"op":"step","count":2},
+        {"op":"joint_effort","joint":hinge,"effort":-1.0},
+        {"op":"step","count":1},
+        {"op":"set_joint_force","joint":hinge,"force":-2.0},
+        {"op":"step","count":2},
+        {"op":"reset"},
+        {"op":"step","count":1}
+    ]});
+    let journal = file(dir.path(), "drive.json", &commands.to_string());
+    let rows = success(run(&world, &journal, &[]));
+    let armed = record(&rows, 1, 0);
+    let id = &armed["scalar_joints"][0]["id"];
+    assert_eq!(armed["held_joint_forces"], json!([[id, 2.0]]));
+    shared(armed, record(&rows, 2, 0), STATE);
+    assert_ne!(armed["inputs"], record(&rows, 0, 0)["inputs"]);
+    assert_eq!(
+        record(&rows, 4, 2)["scalar_joints"][0]["pending_effort"],
+        -1.0
+    );
+    // I = 0.016 kg m², dt = 1 ms. A held 2 N m adds 0.125 rad/s each tick.
+    for (command, step, rate) in [
+        (3, 1, 0.125),
+        (3, 2, 0.25),
+        (5, 3, 0.3125),
+        (7, 5, 0.0625),
+        (9, 1, 0.0),
+    ] {
+        let row = record(&rows, command, step);
+        assert!((row["scalar_joints"][0]["velocity"].as_f64().unwrap() - rate).abs() < 1e-12);
+        assert!(row["scalar_joints"][0]["pending_effort"].is_null());
+    }
+    shared(record(&rows, 0, 0), record(&rows, 8, 0), STATE);
+    assert_eq!(record(&rows, 9, 1)["held_joint_forces"], json!([[id, 0.0]]));
+    for name in ["default::rotor::missing", "default::rotor::body"] {
+        let bad = altered(dir.path(), &commands, "bad.json", |j| {
+            j["commands"][0]["joint"] = name.into()
+        });
+        assert!(!run(&world, &bad, &[]).status.success());
+    }
+    let wrong = file(
+        dir.path(),
+        "wrong.sdf",
+        &xml.replace("systems::ApplyJointForce", "systems::Other"),
+    );
+    assert!(!run(&wrong, &journal, &[]).status.success());
+}
+
+const FREE_PROBE: &str = r#"<model name="probe"><link name="body">
+      <pose>0 2 0 0 0 0</pose>
+      <inertial><mass>1</mass><inertia><ixx>0.00004</ixx><iyy>0.00004</iyy><izz>0.00004</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.01</radius></sphere></geometry></collision>
+      <visual name="ball"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>1 1 1 1</diffuse></material></visual>
+      </link></model>"#;
+
+#[test]
+fn returning_pad_peak_and_a_one_tick_load_share_the_public_clock() {
+    let scratch = tempfile::tempdir().unwrap();
+    let dir = scratch.path();
+    let xml = include_str!("../../../examples/worlds/local_refined_rocking_pad_grasp.sdf");
+    // A free 1 kg body in a separate island measures exactly how long a queued
+    // force acted, independently of any contact measurement.
+    let xml = file(
+        dir,
+        "grip.sdf",
+        &xml.replace("</world>", &format!("{FREE_PROBE}</world>")),
+    );
+    let input = include_str!("../../../examples/replay/refined_rocking_pad_grasp.json");
+    let rows = success(run(&xml, &file(dir, "initial.json", input), &[]));
+    let hit = rows
+        .iter()
+        .find(|r| {
+            r["refinement"]["pad_impacts"][0]["peak_normal_force_n"]
+                .as_f64()
+                .is_some_and(|f| f > 150.0)
+        })
+        .expect("return strike must be resolved");
+    let tick = hit["step"].as_u64().unwrap();
+    assert_eq!(hit["time_ns"], tick * 200_000);
+    assert_eq!(hit["refinement"]["native_steps"], 200);
+    let impacts = hit["refinement"]["pad_impacts"].as_array().unwrap();
+    assert_eq!(impacts.len(), 2);
+    assert_ne!(impacts[0]["support"], impacts[1]["support"]);
+    for pad in impacts {
+        assert_eq!(pad["foot"], 3);
+        let peak_end = pad["peak_end_ns"].as_u64().unwrap();
+        assert!((1..=200_000).contains(&peak_end) && peak_end.is_multiple_of(1_000));
+        assert!(
+            pad["angular_impulse_on_foot_nms"][1]
+                .as_f64()
+                .unwrap()
+                .abs()
+                > 1e-7
+        );
+    }
+    // Split the final step command at the observed strike. A pause may expose
+    // the queued load without spending a native or public step.
+    let mut sequence: Value = serde_json::from_str(input).unwrap();
+    let commands = sequence["commands"].as_array_mut().unwrap();
+    commands.last_mut().unwrap()["count"] = json!(tick - 1 - 1000);
+    commands.extend([
+        json!({"op":"wrench","link":"default::probe::body","force":[0,100,0],"torque":[0,0,0]}),
+        json!({"op":"paused_tick"}),
+        json!({"op":"step","count":1}),
+        json!({"op":"step","count":2}),
+    ]);
+    let archive = dir.join("probe");
+    let source = file(dir, "loaded.json", &sequence.to_string());
+    let measured = success(run(
+        &xml,
+        &source,
+        &["--record", archive.to_str().unwrap(), "--record-every", "1"],
+    ));
+    let queued = record(&measured, 6, tick - 1);
+    let paused = record(&measured, 7, tick - 1);
+    shared(queued, paused, STATE);
+    assert_eq!(paused["pending_wrenches"], 1);
+    let resumed = record(&measured, 8, tick);
+    assert_eq!(resumed["pending_wrenches"], 0);
+    assert_eq!(resumed["refinement"], hit["refinement"]);
+    let mut coast = Vec::new();
+    for row in fs::read_to_string(archive.join("epoch-0/frames.jsonl"))
+        .unwrap()
+        .lines()
+    {
+        let row: Value = serde_json::from_str(row).unwrap();
+        if row["kind"] != "frame" {
+            continue;
+        }
+        let frame: Value = serde_json::from_str(row["scene"].as_str().unwrap()).unwrap();
+        if frame["nanoseconds"].as_u64().unwrap() >= tick * 200_000 {
+            let ball = frame["visuals"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|v| v["name"] == "default::probe::body::ball")
+                .unwrap();
+            coast.push(ball["translation"][1].as_f64().unwrap());
+        }
+    }
+    assert_eq!(coast.len(), 3);
+    // F Δt / m = 0.020 m/s, so the next two 200 µs ticks cover 8 µm.
+    assert!((coast[2] - coast[0] - 8e-6).abs() < 1e-12);
+}
+
+#[test]
+fn rocking_refinement_follows_the_loaded_parcel_across_pause_and_reset() {
+    let scratch = tempfile::tempdir().unwrap();
+    let world = file(
+        scratch.path(),
+        "grip.sdf",
+        &include_str!("../../../examples/worlds/local_rocking_pad_approach.sdf")
+            .replace("</world>", &format!("{FREE_PROBE}</world>")),
+    );
+    let input: Value = serde_json::from_str(include_str!(
+        "../../../examples/replay/refined_rocking_pad_grasp.json"
+    ))
+    .unwrap();
+    let original = input["commands"].as_array().unwrap();
+    let mut commands = original[..3].to_vec();
+    commands.extend([
+        json!({"op":"wrench","link":"default::probe::body","force":[0,0,0],"torque":[0,0.01,0]}),
+        json!({"op":"paused_tick"}),
+        json!({"op":"step","count":1}),
+    ]);
+    // Cancel and replay a moving, loaded contact from a fresh epoch.
+    for _ in 0..2 {
+        commands.push(json!({"op":"reset"}));
+        commands.extend_from_slice(&original[..4]);
+        commands.push(json!({"op":"paused_tick"}));
+        commands.push(json!({"op":"step","count":8}));
+    }
+    let journal = file(
+        scratch.path(),
+        "commands.json",
+        &json!({"seed": "rocking-restart", "commands": commands}).to_string(),
+    );
+    let rows = success(run(&world, &journal, &[]));
+    let unrelated = record(&rows, 6, 1001);
+    assert!(unrelated["refinement"].is_null());
+    assert_eq!(unrelated["pending_wrenches"], 0);
+    for first in 8..=13 {
+        let epoch = |command| rows.iter().filter(move |row| row["command"] == command);
+        let left: Vec<_> = epoch(first).collect();
+        let right: Vec<_> = epoch(first + 7).collect();
+        assert!(!left.is_empty());
+        assert_eq!(left.len(), right.len());
+        for (a, b) in left.into_iter().zip(right) {
+            shared(a, b, STATE);
+            shared(a, b, &["step", "time_ns", "refinement", "pending_wrenches"]);
+        }
+    }
+    let paused = record(&rows, 12, 1000);
+    assert_eq!(paused["pending_wrenches"], 1);
+    assert!(paused["refinement"].is_null());
+    shared(paused, record(&rows, 11, 1000), STATE);
+    let launched = record(&rows, 13, 1001);
+    assert_eq!(launched["pending_wrenches"], 0);
+    assert!(launched["refinement"]["native_steps"].as_u64().unwrap() > 1);
+    // The parcel is already turning on the first tick after the pulse,
+    // even while both edges of the compliant pad are still compressed.
+    for step in 1002..=1008 {
+        assert_eq!(record(&rows, 13, step)["refinement"]["native_steps"], 8);
+    }
+}
+
+#[test]
+fn accelerating_carry_crosses_the_predicted_friction_limit() {
+    let xml = include_str!("../../../examples/worlds/local_offset_gripper_carry.sdf");
+    let input = include_str!("../../../examples/replay/offset_carry_slip.json");
+    // 200 g of payload, 560 g of moving gripper. If both accelerate together,
+    // the pads must transmit the parcel's share of the external lift thrust.
+    let needed = 10.4956 * 0.2 / 0.76;
+    for (mu, squeeze) in [(0.5, 2.76), (0.5, 2.77), (0.4, 3.2), (0.4, 3.65)] {
+        let scratch = tempfile::tempdir().unwrap();
+        let world = file(
+            scratch.path(),
+            "carry.sdf",
+            &xml.replace(
+                "<mu>0.5</mu><mu2>0.5</mu2>",
+                &format!("<mu>{mu}</mu><mu2>{mu}</mu2>"),
+            ),
+        );
+        let mut journal: Value = serde_json::from_str(input).unwrap();
+        let commands = journal["commands"].as_array_mut().unwrap();
+        for command in commands.iter_mut().rev().skip(1).take(2) {
+            assert_eq!(command["op"], "set_joint_force");
+            command["force"] = json!(squeeze);
+        }
+        let archive = scratch.path().join("recording");
+        let source = file(scratch.path(), "carry.json", &journal.to_string());
+        let rows = success(run(
+            &world,
+            &source,
+            &[
+                "--record",
+                archive.to_str().unwrap(),
+                "--record-every",
+                "50",
+            ],
+        ));
+        let end = rows.last().unwrap();
+        let traction: f64 = end["pair_impulses"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|p| p["b"] == 3 && (p["a"] == 1 || p["a"] == 2))
+            .map(|p| -p["tangent_on_a_ns"][2].as_f64().unwrap() / 0.0002)
+            .sum();
+        let capacity: f64 = 2.0 * mu * squeeze;
+        assert!((traction - capacity.min(needed)).abs() < 0.001);
+
+        let mut last_heights = Vec::new();
+        for line in fs::read_to_string(archive.join("epoch-0/frames.jsonl"))
+            .unwrap()
+            .lines()
+        {
+            let row: Value = serde_json::from_str(line).unwrap();
+            if row["kind"] != "frame" {
+                continue;
+            }
+            let frame: Value = serde_json::from_str(row["scene"].as_str().unwrap()).unwrap();
+            if frame["nanoseconds"].as_u64().unwrap() < 280_000_000 {
+                continue;
+            }
+            let visuals = frame["visuals"].as_array().unwrap();
+            let visual = |name| visuals.iter().find(|v| v["name"] == name).unwrap();
+            let block = visual("default::parcel::body::block");
+            let left = visual("default::gripper::left::pad");
+            let q =
+                glam::DQuat::from_array(serde_json::from_value(block["rotation"].clone()).unwrap());
+            let dz = (q * glam::DVec3::new(0.0045, 0., 0.)).z;
+            last_heights.push(
+                block["translation"][2].as_f64().unwrap() + dz
+                    - left["translation"][2].as_f64().unwrap(),
+            );
+        }
+        assert_eq!(last_heights.len(), 2);
+        let down_speed = (last_heights[0] - last_heights[1]) / 0.010;
+        if capacity < needed {
+            assert!(down_speed > 0.001, "expected sustained slip at {squeeze} N");
+        } else {
+            assert!(down_speed.abs() < 0.0001, "expected hold at {squeeze} N");
+        }
+    }
+}

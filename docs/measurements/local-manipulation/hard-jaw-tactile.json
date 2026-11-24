@@ -1,0 +1,382 @@
+{
+  "comparison": {
+    "max_particle_tolerance_m": 0.0001,
+    "per_jaw_tolerance_fraction_of_sheet_weight": 0.01,
+    "reference_checked": true,
+    "reference_exchanges_per_ms": 1000,
+    "selected_exchanges_per_ms": 500,
+    "trials": [
+      {
+        "exchanges_per_ms": 16,
+        "refused_at_tick": 2482
+      },
+      {
+        "exchanges_per_ms": 32,
+        "jaw_load_error_fraction_of_weight": [
+          0.0002713143104573293,
+          0.00027106375523496435
+        ],
+        "max_particle_error_m": 0.0028501593624578425,
+        "mean_hold_jaw_load_n": [
+          0.04122721844080555,
+          0.04118288596213058
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 24821465,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 64,
+        "jaw_load_error_fraction_of_weight": [
+          2.027399413897354e-05,
+          2.015522262726032e-05
+        ],
+        "max_particle_error_m": 0.0013982598153229411,
+        "mean_hold_jaw_load_n": [
+          0.04120653171457965,
+          0.041203561828851584
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 23973032,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 80,
+        "jaw_load_error_fraction_of_weight": [
+          1.0137312713247878e-05,
+          1.0044795226748005e-05
+        ],
+        "max_particle_error_m": 0.001098459737706347,
+        "mean_hold_jaw_load_n": [
+          0.041205696411483445,
+          0.041204394968511096
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 34725285,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 100,
+        "jaw_load_error_fraction_of_weight": [
+          5.641863384932446e-06,
+          5.570320681651226e-06
+        ],
+        "max_particle_error_m": 0.0008585608963287365,
+        "mean_hold_jaw_load_n": [
+          0.041205325968476994,
+          0.04120476368311151
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 46030818,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 125,
+        "jaw_load_error_fraction_of_weight": [
+          3.5317505806508894e-06,
+          3.4769405149526142e-06
+        ],
+        "max_particle_error_m": 0.0006667278433074296,
+        "mean_hold_jaw_load_n": [
+          0.04120515208674147,
+          0.04120493618601077
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 51670975,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 160,
+        "jaw_load_error_fraction_of_weight": [
+          2.3917556278070943e-06,
+          2.3515479395591097e-06
+        ],
+        "max_particle_error_m": 0.0004989917608829457,
+        "mean_hold_jaw_load_n": [
+          0.041205058146597376,
+          0.04120502892286055
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 67744455,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 200,
+        "jaw_load_error_fraction_of_weight": [
+          1.8091456940878756e-06,
+          1.7793260285965215e-06
+        ],
+        "max_particle_error_m": 0.0003794373641427031,
+        "mean_hold_jaw_load_n": [
+          0.0412050101372084,
+          0.0412050760762349
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 62037026,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 250,
+        "jaw_load_error_fraction_of_weight": [
+          1.4278718945057244e-06,
+          1.4063123693572337e-06
+        ],
+        "max_particle_error_m": 0.00028393101810729,
+        "mean_hold_jaw_load_n": [
+          0.04120497871872222,
+          0.041205106814052476
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 61812566,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 400,
+        "jaw_load_error_fraction_of_weight": [
+          8.791711234051732e-07,
+          8.698961619977251e-07
+        ],
+        "max_particle_error_m": 0.00014096303821961015,
+        "mean_hold_jaw_load_n": [
+          0.041204933503583875,
+          0.04120515101689363
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 106854220,
+        "passes_against_finest": false,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 500,
+        "jaw_load_error_fraction_of_weight": [
+          6.555666320749983e-07,
+          6.502794376855131e-07
+        ],
+        "max_particle_error_m": 9.428730645797681e-05,
+        "mean_hold_jaw_load_n": [
+          0.04120491507767937,
+          0.04120516911419018
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 130809915,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      },
+      {
+        "exchanges_per_ms": 1000,
+        "jaw_load_error_fraction_of_weight": [
+          0.0,
+          0.0
+        ],
+        "max_particle_error_m": 0.0,
+        "mean_hold_jaw_load_n": [
+          0.04120486105636662,
+          0.04120522269981696
+        ],
+        "p95_physics_cost_per_actuator_period_ns": 338254331,
+        "passes_against_finest": true,
+        "soft_steps_per_exchange": 1
+      }
+    ],
+    "verification_exchanges_per_ms": 500
+  },
+  "changed_coverage": {
+    "crates/gz-physics-xpbd/src/collision.rs": {
+      "lines": {
+        "hit": 38,
+        "total": 39,
+        "missing": [
+          721
+        ]
+      },
+      "regions": {
+        "hit": 56,
+        "total": 58,
+        "missing": [
+          [
+            721,
+            22,
+            721,
+            23
+          ],
+          [
+            759,
+            83,
+            759,
+            84
+          ]
+        ]
+      }
+    },
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      },
+      "regions": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-xpbd/src/pad_loads.rs": {
+      "lines": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      },
+      "regions": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      }
+    }
+  },
+  "attribution": {
+    "32_before": {
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04122721844080555,
+        0.04118288596213058
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "max_pad_attribution_residual_ns": 6.062691314671686e-05,
+      "mean_hold_lift_m": [
+        0.14787791172845724,
+        0.14787854237214168
+      ]
+    },
+    "32_after": {
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.825000017783744,
+          0.0
+        ],
+        [
+          0.0,
+          0.8249999706051124
+        ]
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04122721844080555,
+        0.04118288596213058
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.04122721844080555,
+          0.0
+        ],
+        [
+          0.0,
+          0.04118288596213058
+        ]
+      ],
+      "max_pad_attribution_residual_ns": 6.789485568320268e-21,
+      "mean_hold_lift_m": [
+        0.14787791172845724,
+        0.14787854237214168
+      ]
+    },
+    "64_before": {
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04120653171457965,
+        0.041203561828851584
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "max_pad_attribution_residual_ns": 4.746175826085579e-05,
+      "mean_hold_lift_m": [
+        0.14874788174389927,
+        0.1487479153430714
+      ]
+    },
+    "64_after": {
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.8249999997258353,
+          0.0
+        ],
+        [
+          0.0,
+          0.8249999989389756
+        ]
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04120653171457965,
+        0.041203561828851584
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.04120653171457965,
+          0.0
+        ],
+        [
+          0.0,
+          0.041203561828851584
+        ]
+      ],
+      "max_pad_attribution_residual_ns": 3.3947685831165776e-21,
+      "mean_hold_lift_m": [
+        0.14874788174389927,
+        0.1487479153430714
+      ]
+    }
+  },
+  "unchanged": {
+    "32/particle-frames.json": "8c6413b6e5e5b77e7af371825094d05c50ebb4e1870315c7ad40f7edc886cc1d",
+    "32/replay/frames.jsonl": "35ba9c0047d30f56ec1a59799ca2c636f63736b01d9a3ef1759b5c58f9883253",
+    "32/replay/manifest.json": "649a93801890009a9a600eac7ae80c4ad478edcba5d86a8a42e2733ea1fdf4d5",
+    "64/particle-frames.json": "7539b8abf688512112a6ad57e5dacd8410c233c13733a2f3294e314a7248a21e",
+    "64/replay/frames.jsonl": "c2e776f727b7aefba0638f694e82b51eb2f04fb9226d976fb1107adc6bb1250c",
+    "64/replay/manifest.json": "727888affc333d64009761a9a9df7c03c1228b8c7c707b753cab0db8bfca734e"
+  },
+  "replays": {
+    "32": {
+      "frames": 137,
+      "body_poses_and_shapes_checked": 3425,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    },
+    "250": {
+      "frames": 137,
+      "body_poses_and_shapes_checked": 3425,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    }
+  }
+}

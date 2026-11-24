@@ -73,11 +73,35 @@ fn packet(
         return None;
     }
     let mut joints = Vec::with_capacity(metadata.joints.len());
+    let mut second_axes = sample.second_axes.iter();
     for (joint, value) in metadata.joints.iter().zip(&sample.joints) {
         if joint.id != value.id || !value.position.is_finite() || !value.velocity.is_finite() {
             return None;
         }
+        let kind = match joint.kind {
+            gz_sim_scene::JointStateKind::Revolute => gz_sim_proto::msgs::joint::Type::Revolute,
+            gz_sim_scene::JointStateKind::Prismatic => gz_sim_proto::msgs::joint::Type::Prismatic,
+            gz_sim_scene::JointStateKind::Screw => gz_sim_proto::msgs::joint::Type::Screw,
+            gz_sim_scene::JointStateKind::Universal => gz_sim_proto::msgs::joint::Type::Universal,
+            gz_sim_scene::JointStateKind::Revolute2 => gz_sim_proto::msgs::joint::Type::Revolute2,
+        };
+        let axis2 = if joint.kind.has_second_axis() {
+            let second = second_axes.next()?;
+            if second.id != value.id || !second.position.is_finite() || !second.velocity.is_finite()
+            {
+                return None;
+            }
+            Some(Axis {
+                position: second.position,
+                velocity: second.velocity,
+                ..Default::default()
+            })
+        } else {
+            None
+        };
         joints.push(Joint {
+            axis2,
+            r#type: kind as i32,
             id: wire_id(joint.id)?,
             name: joint.name.clone(),
             parent: joint.parent.clone(),
@@ -95,6 +119,9 @@ fn packet(
             }),
             ..Default::default()
         });
+    }
+    if second_axes.next().is_some() {
+        return None;
     }
     Some(Model {
         header: Some(Header {

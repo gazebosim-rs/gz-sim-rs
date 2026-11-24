@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- A rigid sole spans two finite, independently translating pads. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0.00000000000000000 0.00000000000000000 -9.81000000000000050</gravity>
+    <physics name="fixed" type="ignored"><max_step_size>0.0005</max_step_size><real_time_factor>1</real_time_factor></physics>
+
+    <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system"><native_steps>8</native_steps><solver_iterations>4</solver_iterations><pair><foot>default::rocker::foot</foot><support>default::lift::pad</support><follow_frictionless_face>true</follow_frictionless_face><share_coplanar_face>true</share_coplanar_face></pair><pair><foot>default::rocker::foot</foot><support>default::toe::pad</support><follow_frictionless_face>true</follow_frictionless_face><share_coplanar_face>true</share_coplanar_face></pair></plugin>
+    <model name="rocker">
+      <pose>-0.02000000000000000 0.00000000000000000 0.06000000000000000 0.00000000000000000 -0.00000000000000000 0.00000000000000000</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0.48999999999999999 -0.09000000000000000 0.22000000000000000</linear_velocity><angular_velocity>0.00000000000000000 0.00000000000000000 0.00000000000000000</angular_velocity>
+      </plugin>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system">
+        <exact_revolute_locks>true</exact_revolute_locks>
+      </plugin>
+      <link name="foot">
+        <inertial><mass>1.00000000000000000</mass><inertia><ixx>0.02010000000000000</ixx><iyy>0.02010000000000000</iyy><izz>0.02500000000000000</izz><ixy>0.00000000000000000</ixy><ixz>0.00000000000000000</ixz><iyz>0.00000000000000000</iyz></inertia></inertial>
+        <collision name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface></collision>
+        <visual name="sole"><geometry><box><size>0.36 0.20 0.12</size></box></geometry><material><diffuse>0.92 0.46 0.12 1</diffuse></material></visual>
+      </link>
+      <link name="upper">
+        <pose>0 0 0.14 0 0 0</pose>
+        <inertial><mass>1.00000000000000000</mass><inertia><ixx>0.02010000000000000</ixx><iyy>0.02010000000000000</iyy><izz>0.02500000000000000</izz><ixy>0.00000000000000000</ixy><ixz>0.00000000000000000</ixz><iyz>0.00000000000000000</iyz></inertia></inertial>
+        <collision name="c"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><box><size>0.10 0.12 0.12</size></box></geometry><material><diffuse>0.90 0.73 0.21 1</diffuse></material></visual>
+      </link>
+      <joint name="hinge" type="revolute">
+        <parent>foot</parent><child>upper</child>
+        <axis><xyz>1 0 0</xyz><limit><lower>0</lower><upper>0</upper></limit></axis>
+      </joint>
+    </model>
+    <model name="lift"><pose>-0.13 0 -0.06 0 0 0</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system"><linear_velocity>-0.009999999999999981 -0.09 0.22</linear_velocity><angular_velocity>0 0 0</angular_velocity></plugin>
+      <link name="pad"><collision name="platform"><geometry><box><size>0.25 0.26 0.12</size></box></geometry><surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface></collision><visual name="platform"><geometry><box><size>0.25 0.26 0.12</size></box></geometry><material><diffuse>0.25 0.55 0.31 1</diffuse></material></visual></link></model>
+    <model name="toe"><pose>0.19 0 -0.06 0 0 0</pose>
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system"><linear_velocity>0.17 -0.09 0.22</linear_velocity><angular_velocity>0 0 0</angular_velocity></plugin>
+      <link name="pad"><collision name="platform"><geometry><box><size>0.32 0.26 0.12</size></box></geometry><surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface></collision><visual name="platform"><geometry><box><size>0.32 0.26 0.12</size></box></geometry><material><diffuse>0.12 0.45 0.80 1</diffuse></material></visual></link></model>
+  </world>
+</sdf>

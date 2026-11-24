@@ -1,0 +1,290 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use super::*;
+
+#[test]
+fn incremental_support_ignores_departed_nodes_and_obeys_its_own_friction_budget() {
+    let plane = |normal: DVec3| {
+        PreparedBoundary::new(Boundary::Plane {
+            point: [0.; 3],
+            normal: normal.to_array(),
+            velocity: [0.5, 0., 0.1],
+        })
+        .unwrap()
+    };
+    let boundaries = [plane(DVec3::Z), plane(DVec3::X)];
+    let mut contacts = Contacts {
+        plane_loads: Some(Default::default()),
+        ..Default::default()
+    };
+    let projection = Projection {
+        event: None,
+        normal: DVec3::Z,
+        depth: 0.,
+        initial_overlap: 0.,
+    };
+    assert!(!contacts.on_single_plane(&boundaries));
+    for id in 0..3 {
+        contacts.record(id, 0, &projection, 0., None);
+    }
+    assert!(contacts.on_single_plane(&boundaries));
+    let x = [
+        DVec3::new(1., 2., 0.11),
+        DVec3::new(1., 2., 0.12),
+        DVec3::new(1., 2., 0.11),
+    ];
+    let mut p = x.map(|pos| Particle {
+        position: pos.to_array(),
+        velocity: [2., 0., -0.9],
+        inverse_mass: 0.5,
+    });
+    p[2].velocity[2] = 0.6;
+    let before = p;
+    let mut reactions = [BoundaryImpulse::default(); 2];
+    contacts
+        .finish_plane_increment(
+            &x,
+            &mut p,
+            &boundaries,
+            &mut reactions,
+            0.25,
+            Interval {
+                t0: 0.9,
+                t1: 1.,
+                h: 0.1,
+                radius: 0.01,
+            },
+        )
+        .unwrap();
+    let mut probe = crate::PlaneImpulseProbe::default();
+    let loads = contacts.plane_loads.as_mut().unwrap();
+    loads.publish();
+    // The departed and separating nodes supplied no incremental support.
+    std::mem::swap(&mut probe.loads, &mut contacts.plane_loads);
+    assert_eq!(probe.readings().unwrap().len(), 1);
+    assert_eq!(probe.readings().unwrap()[0].particle, 0);
+    let measured = DVec3::from(probe.readings().unwrap()[0].normal)
+        + DVec3::from(probe.readings().unwrap()[0].tangent);
+    assert_eq!(measured.to_array(), reactions[0].linear);
+
+    assert_eq!(p[1..], before[1..]);
+    let dv = DVec3::from(p[0].velocity) - DVec3::from(before[0].velocity);
+    assert!((dv - DVec3::new(-0.25, 0., 1.)).length() < 1e-14);
+    let impulse = dv / p[0].inverse_mass;
+    assert!((DVec3::from(reactions[0].linear) + impulse).length() < 1e-14);
+    assert!((DVec3::from(reactions[0].angular) + x[0].cross(impulse)).length() < 1e-14);
+    contacts.record(0, 1, &projection, 0., None);
+    assert!(!contacts.on_single_plane(&boundaries));
+}
+
+#[test]
+fn spring_pads_allow_at_most_one_distinct_rigid_plane_at_the_endpoint() {
+    let plane = PreparedBoundary::new(Boundary::Plane {
+        point: [0.; 3],
+        normal: [0., 0., 1.],
+        velocity: [0.; 3],
+    })
+    .unwrap();
+    let hard = PreparedBoundary::new(Boundary::Cuboid {
+        center: [0.; 3],
+        half_extents: [0.2; 3],
+        velocity: [0.; 3],
+        angular_velocity: [0.; 3],
+    })
+    .unwrap();
+    let mut pad = hard.clone();
+    pad.normal_compliance = 1e-4;
+    let boundaries = [pad, plane.clone(), plane, hard];
+    let projection = Projection {
+        event: None,
+        normal: DVec3::Z,
+        depth: 0.,
+        initial_overlap: 0.,
+    };
+    for (ids, eligible) in [
+        (&[][..], false),
+        (&[0][..], true),
+        (&[1][..], false),
+        (&[0, 1, 1][..], true),
+        (&[1, 0, 1][..], true),
+        (&[0, 1, 2][..], false),
+        (&[0, 3][..], false),
+        (&[3, 0][..], false),
+    ] {
+        let mut contacts = Contacts::default();
+        for (particle, &boundary) in ids.iter().enumerate() {
+            contacts.record(particle, boundary, &projection, 0., None);
+        }
+        assert_eq!(
+            contacts.spring_pads_with_one_plane(&boundaries),
+            eligible,
+            "{ids:?}"
+        );
+    }
+}
+
+#[test]
+fn a_static_plane_row_rejects_an_unrepresentable_force_before_moving_the_node() {
+    let boundary = PreparedBoundary::new(Boundary::Plane {
+        point: [0.; 3],
+        normal: [0., 0., 1.],
+        velocity: [0.; 3],
+    })
+    .unwrap();
+    let mut p = Particle {
+        position: [0., 0., 0.1],
+        velocity: [0.; 3],
+        inverse_mass: f64::from_bits(1),
+    };
+    let mut x = DVec3::new(0.001, 0., 0.1);
+    let mut contacts = Contacts::default();
+    contacts.record(
+        0,
+        0,
+        &Projection {
+            event: None,
+            normal: DVec3::Z,
+            depth: 0.01,
+            initial_overlap: 0.,
+        },
+        0.,
+        None,
+    );
+    let mut reaction = BoundaryImpulse::default();
+    let time = Interval {
+        h: 0.001,
+        t0: 0.,
+        t1: 0.001,
+        radius: 0.1,
+    };
+    assert_eq!(
+        contacts.items[0].project_plane_friction(
+            &mut x,
+            (&mut p, DVec3::ZERO),
+            &boundary,
+            time,
+            (0.5, 0.3, PlaneFrictionLaw::WithSlipArrest),
+            &mut reaction
+        ),
+        Err(XpbdError::Numerical)
+    );
+    assert_eq!(x, DVec3::new(0.001, 0., 0.1));
+    assert_eq!(p.velocity, [0.; 3]);
+    assert_eq!(reaction.linear, [0.; 3]);
+}
+
+#[test]
+fn finite_face_friction_refuses_rounded_edges_stale_normals_and_airborne_endpoints() {
+    let orientation = DQuat::from_rotation_y(0.36);
+    let half = DVec3::new(0.5, 0.2, 0.05);
+    let b = PreparedBoundary::new(Boundary::StaticCuboid {
+        center: [2., -1., 0.],
+        half_extents: half.to_array(),
+        orientation: orientation.to_array(),
+    })
+    .unwrap();
+    for axis in 0..3 {
+        for sign in [-1., 1.] {
+            let mut n = DVec3::ZERO;
+            n[axis] = sign;
+            let radius = 0.01;
+            let p = n * (half[axis] + radius);
+            let tangent = (axis + 1) % 3;
+            let mut edge = p;
+            edge[tangent] = half[tangent];
+            let interior = orientation * p;
+            let normal = orientation * n;
+            let matches = |start, end, row_normal| {
+                b.on_friction_face([start, end], row_normal, radius, 1e-12)
+            };
+            assert!(matches(interior, interior, normal));
+            assert!(!matches(interior, orientation * edge, normal));
+            assert!(!matches(orientation * edge, interior, normal));
+            assert!(!matches(interior + 1e-6 * normal, interior, normal));
+            let mut wrong = n;
+            wrong[tangent] = 0.0001;
+            assert!(!matches(
+                interior,
+                interior,
+                orientation * wrong.normalize()
+            ));
+        }
+    }
+}
+
+#[test]
+fn arrest_requires_a_straight_stop_and_enough_static_traction() {
+    let v = DVec3::new(-0.005, 0., 0.);
+    // The free step adds 0.03 m/s downhill. A lateral component turns
+    // the trajectory, while insufficient static traction lets it restart.
+    let target = DVec3::new(-0.025, 0., 0.);
+    assert!(straight_slip_stop(v, target - 0.01 * DVec3::Y, 1., 0.06, 0.02).is_none());
+    assert!(straight_slip_stop(v, target, 1., 0.025, 0.02).is_none());
+    let free = straight_slip_stop(v, target, 1., 0.06, 0.).unwrap();
+    assert!((free.x - (target.x - 0.5 * 0.005 / 6.)).abs() < 1e-15);
+    assert!(straight_slip_stop(-v, v, 1., 0.06, 0.001).is_none());
+}
+
+#[test]
+fn only_a_whole_shell_tucked_inside_one_fixed_orientation_face_qualifies() {
+    let q = DQuat::from_rotation_y(0.43);
+    let origin = DVec3::new(-2., 0.5, 1.);
+    let normal = q * DVec3::X;
+    let velocity = DVec3::new(0.2, 0.4, 0.);
+    let time = Interval {
+        t0: 0.1,
+        t1: 0.2,
+        h: 0.1,
+        radius: 0.01,
+    };
+    let deck = Boundary::TranslatingCuboid {
+        center: origin.to_array(),
+        half_extents: [0.25, 0.5, 1.],
+        orientation: q.to_array(),
+        velocity: velocity.to_array(),
+    };
+    let bounds = [
+        PreparedBoundary::new(deck).unwrap(),
+        PreparedBoundary::new(Boundary::Plane {
+            point: [0.; 3],
+            normal: [0., 0., 1.],
+            velocity: [0.; 3],
+        })
+        .unwrap(),
+    ];
+    let start = origin + velocity * time.t0 + q * DVec3::new(0.26, 0.1, 0.2);
+    let end = start + velocity * (time.t1 - time.t0);
+    let p = [Particle {
+        position: start.to_array(),
+        velocity: (velocity - normal).to_array(),
+        inverse_mass: 1.,
+    }];
+    let projection = |n| Projection {
+        normal: n,
+        depth: 0.,
+        initial_overlap: 0.,
+        event: None,
+    };
+    let mut contacts = Contacts::default();
+    assert!(!contacts.on_box_face(&[end], &p, &bounds, time));
+    contacts.record(0, 0, &projection(normal), 0., None);
+    assert!(contacts.on_box_face(&[end], &p, &bounds, time));
+    for offset in [-normal * 0.001, q * DVec3::Z, q * DVec3::Y] {
+        assert!(!contacts.on_box_face(&[end + offset], &p, &bounds, time));
+    }
+    let mut reactions = [BoundaryImpulse::default(); 2];
+    let mut current = p;
+    contacts
+        .finish_plane_increment(&[end], &mut current, &bounds, &mut reactions, 0.3, time)
+        .unwrap();
+    assert!(DVec3::from(current[0].velocity).distance(velocity) < 1e-13);
+    assert!(DVec3::from(reactions[0].linear).distance(-normal) < 1e-13);
+    assert!(DVec3::from(reactions[0].angular).distance((end - origin).cross(-normal)) < 1e-13);
+    contacts.record(0, 1, &projection(normal), 0., None);
+    assert!(!contacts.on_box_face(&[end], &p, &bounds, time));
+    for (boundary, n) in [(0, (normal + DVec3::Y).normalize()), (1, normal)] {
+        let mut contacts = Contacts::default();
+        contacts.record(0, boundary, &projection(n), 0., None);
+        assert!(!contacts.on_box_face(&[end], &p, &bounds, time));
+    }
+}

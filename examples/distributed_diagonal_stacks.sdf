@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="ten_ms" type="ignored"><max_step_size>0.01</max_step_size><real_time_factor>0.25</real_time_factor></physics>
+    <model name="ground"><static>true</static><link name="floor">
+      <collision name="halfspace"><geometry><plane><normal>0 0 1</normal><size>16 16</size></plane></geometry></collision>
+      <visual name="surface"><pose>0 0 -0.03 0 0 0</pose><geometry><box><size>16 16 0.06</size></box></geometry><material><diffuse>0.30 0.36 0.42 1</diffuse></material></visual>
+    </link></model>
+    <model name="west_base"><pose>-6.5 0 0.455 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.081</ixx><iyy>0.081</iyy><izz>0.081</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.45</radius></sphere></geometry></collision>
+      <visual name="paint"><geometry><sphere><radius>0.45</radius></sphere></geometry><material><diffuse>0.94 0.41 0.12 1</diffuse></material></visual>
+    </link></model>
+    <model name="west_drop"><pose>-6.5 0 1.8 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.081</ixx><iyy>0.081</iyy><izz>0.081</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.45</radius></sphere></geometry></collision>
+      <visual name="paint"><geometry><sphere><radius>0.45</radius></sphere></geometry><material><diffuse>0.94 0.41 0.12 1</diffuse></material></visual>
+    </link></model>
+    <model name="north_base"><pose>0 6.5 0.455 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.081</ixx><iyy>0.081</iyy><izz>0.081</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.45</radius></sphere></geometry></collision>
+      <visual name="paint"><geometry><sphere><radius>0.45</radius></sphere></geometry><material><diffuse>0.10 0.63 0.79 1</diffuse></material></visual>
+    </link></model>
+    <model name="north_drop"><pose>0 6.5 2.5 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.081</ixx><iyy>0.081</iyy><izz>0.081</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.45</radius></sphere></geometry></collision>
+      <visual name="paint"><geometry><sphere><radius>0.45</radius></sphere></geometry><material><diffuse>0.10 0.63 0.79 1</diffuse></material></visual>
+    </link></model>
+    <model name="east_base"><pose>6.5 0 0.455 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.081</ixx><iyy>0.081</iyy><izz>0.081</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.45</radius></sphere></geometry></collision>
+      <visual name="paint"><geometry><sphere><radius>0.45</radius></sphere></geometry><material><diffuse>0.59 0.42 0.78 1</diffuse></material></visual>
+    </link></model>
+    <model name="east_drop"><pose>6.5 0 3.2 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.081</ixx><iyy>0.081</iyy><izz>0.081</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.45</radius></sphere></geometry></collision>
+      <visual name="paint"><geometry><sphere><radius>0.45</radius></sphere></geometry><material><diffuse>0.59 0.42 0.78 1</diffuse></material></visual>
+    </link></model>
+    <model name="south_base"><pose>0 -6.5 0.455 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.081</ixx><iyy>0.081</iyy><izz>0.081</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.45</radius></sphere></geometry></collision>
+      <visual name="paint"><geometry><sphere><radius>0.45</radius></sphere></geometry><material><diffuse>0.13 0.68 0.46 1</diffuse></material></visual>
+    </link></model>
+    <model name="south_drop"><pose>0 -6.5 3.9 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.081</ixx><iyy>0.081</iyy><izz>0.081</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.45</radius></sphere></geometry></collision>
+      <visual name="paint"><geometry><sphere><radius>0.45</radius></sphere></geometry><material><diffuse>0.13 0.68 0.46 1</diffuse></material></visual>
+    </link></model>
+  </world>
+</sdf>

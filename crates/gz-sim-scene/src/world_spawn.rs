@@ -18,6 +18,8 @@ pub struct ModelTemplate {
     world_id: u64,
     source_visual_id: u64,
     collider: Collider,
+    friction: Option<f64>,
+    restitution: Option<gz_physics_multifidelity::Restitution>,
     collision_pose: WorldPose,
     visual_pose: WorldPose,
     geometry: Arc<Geometry>,
@@ -30,6 +32,44 @@ pub struct ModelTemplate {
 }
 
 impl ModelTemplate {
+    #[cfg(feature = "distributed-physics")]
+    pub(crate) fn passive_metadata_matches(&self, world: &World, root: u64) -> bool {
+        let [Some(model), Some(link), Some(collision), Some(visual)] =
+            [root, root + 1, root + 2, root + 3].map(|id| entity_by_id(world, id))
+        else {
+            return false;
+        };
+        let collision = world.entity(collision);
+        let visual = world.entity(visual);
+        let identity = WorldPose {
+            translation: [0.; 3],
+            rotation: [0., 0., 0., 1.],
+        };
+        world.get::<ModelAnchor>(model).is_some_and(|a| {
+            a.link == root + 1 && crate::passive_checkpoint::same_pose(a.link_to_model, identity)
+        }) && world
+            .get::<LinkProperties>(link)
+            .is_some_and(|p| p.0 == self.link_properties)
+            && world.get::<LinkCenterOfMass>(link).map_or([0.; 3], |c| c.0) == self.inertia.center
+            && collision.get::<CollisionDensity>().map(|d| d.0.to_bits())
+                == self.density.map(f64::to_bits)
+            && collision.contains::<AttachedPose>()
+            && collision
+                .get::<LocalPose>()
+                .is_some_and(|p| crate::passive_checkpoint::same_pose(p.0, self.collision_pose))
+            && visual.contains::<AttachedPose>()
+            && visual
+                .get::<LocalPose>()
+                .is_some_and(|p| crate::passive_checkpoint::same_pose(p.0, self.visual_pose))
+            && visual
+                .get::<VisualGeometry>()
+                .is_some_and(|g| g.0.as_ref() == self.geometry.as_ref())
+            && visual
+                .get::<VisualProperties>()
+                .is_some_and(|p| p.0 == self.properties)
+            && visual.get::<VisualMaterial>().map(|v| v.0.as_ref()) == self.material.as_deref()
+    }
+
     pub fn source_visual_id(&self) -> u64 {
         self.source_visual_id
     }
@@ -102,11 +142,24 @@ pub fn prepare_model_template(
         })
         .ok_or_else(unsupported)?;
     let model_id = root.get::<EntityId>().ok_or_else(unsupported)?.get();
-    super::world_edit::model_state(sim, model_id)?;
+    // A startup template describes construction, even when its source is fixed
+    // or currently supports a loaded contact. Validate the original hierarchy
+    // and motion kind without requesting a same-tick native pose replacement.
+    let [_, source_link, _, _] = super::world_edit::admitted_entities(world, model_id)?;
+    let body = world
+        .get::<BodyHandle>(source_link)
+        .ok_or(WorldEditError::InvalidScene)?
+        .id();
+    let backend = world.resource::<PhysicsBackend>();
+    if backend.is_kinematic(body) != Some(false)
+        || backend.is_dynamic(body) != Some(!model.is_static)
+    {
+        return Err(unsupported());
+    }
     if model.links.len() != 1
         || !model.joints.is_empty()
         || !model.models.is_empty()
-        || !model.plugins.is_empty()
+        || !model.plugins.iter().all(contact_material::is_plugin)
     {
         return Err(unsupported());
     }
@@ -118,13 +171,45 @@ pub fn prepare_model_template(
     {
         return Err(unsupported());
     }
+    let local_native = backend.downcast_ref::<MultiFidelityBackend>().is_some();
+    let restitution = if model.plugins.is_empty() {
+        None
+    } else if local_native {
+        contact_material::parse(model, PhysicsEngine::MultiFidelity)
+            .map_err(|_| unsupported())?
+            .get(&link.name)
+            .and_then(|m| m.restitution)
+    } else {
+        return Err(unsupported());
+    };
     let collision = &link.collisions[0];
+    if backend.engine() == "multifidelity"
+        && collision.surface.source.is_some()
+        && super::local_isotropic_friction(&collision.surface).is_none()
+    {
+        return Err(unsupported());
+    }
     let visual = &link.visuals[0];
     let collider = match &collision.geometry {
         Geometry::Box { size } => Collider::Primitive(Shape::Box {
             half_extents: size.map(|value| value * 0.5),
         }),
         Geometry::Sphere { radius } => Collider::Primitive(Shape::Sphere { radius: *radius }),
+        Geometry::Cylinder { radius, length } if local_native => {
+            Collider::Primitive(Shape::Cylinder {
+                radius: *radius,
+                half_height: length * 0.5,
+            })
+        }
+        Geometry::Capsule { radius, length } if local_native => {
+            Collider::Primitive(Shape::Capsule {
+                radius: *radius,
+                half_length: length * 0.5,
+            })
+        }
+        Geometry::Mesh(_) if world.resource::<PhysicsBackend>().engine() == "multifidelity" => {
+            return Err(unsupported());
+        }
         Geometry::Mesh(mesh) => Collider::Mesh(
             gz_assets::mesh::load(mesh).map_err(|_| WorldEditError::UnsupportedModel)?,
         ),
@@ -174,6 +259,12 @@ pub fn prepare_model_template(
             .ok_or_else(unsupported)?
             .get(),
         collider,
+        restitution,
+        friction: collision
+            .surface
+            .source
+            .as_ref()
+            .map(|_| collision.surface.friction.ode.mu),
         collision_pose,
         visual_pose,
         geometry,
@@ -256,6 +347,91 @@ pub fn spawn_model_template(
     template: &ModelTemplate,
     pose: WorldPose,
 ) -> Result<u64, WorldEditError> {
+    if super::damped_sole::installed(sim.world()) {
+        return Err(WorldEditError::UnsupportedModel);
+    }
+    spawn_bound_model(sim, template, pose, spawn_template_body)
+}
+
+fn spawn_template_body(
+    backend: &mut PhysicsBackend,
+    template: &ModelTemplate,
+    pose: WorldPose,
+) -> Result<BodyId, WorldEditError> {
+    let rotation = RotationSpec {
+        orientation: pose.rotation,
+        angular_velocity: [0.0; 3],
+    };
+    let result = match &template.collider {
+        Collider::Primitive(shape) => {
+            let spec = BodySpec {
+                shape: *shape,
+                position: pose.translation,
+                velocity: [0.0; 3],
+                mass: template.mass,
+            };
+            if let Some(restitution) = template.restitution {
+                backend
+                    .downcast_mut::<MultiFidelityBackend>()
+                    .ok_or(WorldEditError::InvalidScene)?
+                    .spawn_restituting_link(
+                        spec,
+                        rotation,
+                        template.inertia,
+                        template.friction.map(IsotropicFriction::new).transpose()?,
+                        restitution,
+                    )
+            } else {
+                super::spawn_surface_link(
+                    backend,
+                    spec,
+                    rotation,
+                    template.inertia,
+                    false,
+                    template.friction,
+                )
+            }
+        }
+        Collider::Mesh(mesh) => backend.spawn_mesh_link(
+            MeshBodySpec {
+                vertices: &mesh.vertices,
+                triangles: &mesh.triangles,
+                collision_position: template.collision_pose.translation,
+                collision_orientation: template.collision_pose.rotation,
+                position: pose.translation,
+                velocity: [0.0; 3],
+                mass: template.mass,
+            },
+            rotation,
+            Some(template.inertia),
+        ),
+    };
+    Ok(result?)
+}
+
+#[cfg(feature = "distributed-physics")]
+pub(super) fn restore_template_nodes(
+    sim: &mut Simulation,
+    template: &ModelTemplate,
+    birth_pose: WorldPose,
+    source: BodyId,
+    id: BodyId,
+) -> Result<u64, WorldEditError> {
+    spawn_bound_model(sim, template, birth_pose, |backend, _, pose| {
+        backend
+            .downcast_mut::<gz_physics_distributed::SceneBackend>()
+            .ok_or(WorldEditError::InvalidScene)?
+            .stage_recovered_clone(source, id, pose.translation, pose.rotation)?;
+        Ok(id)
+    })
+}
+
+fn spawn_bound_model(
+    sim: &mut Simulation,
+    template: &ModelTemplate,
+    pose: WorldPose,
+    bind: impl FnOnce(&mut PhysicsBackend, &ModelTemplate, WorldPose) -> Result<BodyId, WorldEditError>,
+) -> Result<u64, WorldEditError> {
     let world = sim.world();
     let parent = entity_by_id(world, template.world_id).ok_or(WorldEditError::InvalidScene)?;
     if world.id() != template.owner
@@ -267,7 +443,7 @@ pub fn spawn_model_template(
     let backend = world
         .get_resource::<PhysicsBackend>()
         .ok_or(WorldEditError::InvalidScene)?;
-    if backend.engine() != "rapier" {
+    if !super::world_edit::supports_model_edits(world, backend) {
         return Err(WorldEditError::UnsupportedModel);
     }
     let first = next_entity_id(world)?;
@@ -301,38 +477,11 @@ pub fn spawn_model_template(
     {
         return Err(WorldEditError::InvalidState);
     }
-    let rotation = RotationSpec {
-        orientation: pose.rotation,
-        angular_velocity: [0.0; 3],
-    };
-    let body = {
-        let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
-        match &template.collider {
-            Collider::Primitive(shape) => backend.spawn_link(
-                BodySpec {
-                    shape: *shape,
-                    position: pose.translation,
-                    velocity: [0.0; 3],
-                    mass: template.mass,
-                },
-                rotation,
-                Some(template.inertia),
-            )?,
-            Collider::Mesh(mesh) => backend.spawn_mesh_link(
-                MeshBodySpec {
-                    vertices: &mesh.vertices,
-                    triangles: &mesh.triangles,
-                    collision_position: template.collision_pose.translation,
-                    collision_orientation: template.collision_pose.rotation,
-                    position: pose.translation,
-                    velocity: [0.0; 3],
-                    mass: template.mass,
-                },
-                rotation,
-                Some(template.inertia),
-            )?,
-        }
-    };
+    let body = bind(
+        &mut sim.world_mut().resource_mut::<PhysicsBackend>(),
+        template,
+        pose,
+    )?;
     let world = sim.world_mut();
     let identity = WorldPose {
         translation: [0.0; 3],
@@ -413,5 +562,7 @@ pub fn spawn_model_template(
             .insert(VisualMaterial(material.clone()));
     }
     crate::apply_link_wrench::install(sim);
+    #[cfg(feature = "distributed-physics")]
+    crate::passive_checkpoint::note_live_birth(sim, template, model_id, pose);
     Ok(model_id)
 }

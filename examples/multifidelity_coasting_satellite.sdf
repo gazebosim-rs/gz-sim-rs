@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="clock" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="satellite">
+      <plugin filename="gz-sim-switchable-articulation-system" name="gz::sim::systems::SwitchableArticulation"/>
+      <link name="bus">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial><mass>4</mass><inertia><ixx>0.05666666666666667</ixx><iyy>0.04866666666666667</iyy><izz>0.06026666666666667</izz></inertia></inertial>
+        <collision name="shape"><geometry><box><size>0.28 0.32 0.26</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.28 0.32 0.26</size></box></geometry></visual>
+      </link>
+      <link name="turntable">
+        <pose>0 0 0.2 0 0 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.004866666666666667</ixx><iyy>0.005633333333333333</iyy><izz>0.008833333333333334</izz></inertia></inertial>
+        <collision name="shape"><geometry><box><size>0.24 0.22 0.1</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.24 0.22 0.1</size></box></geometry></visual>
+        <!-- Replay raises this indicator from inside the turntable while the assembly coasts. -->
+        <visual name="tier_indicator"><geometry><sphere><radius>0.045</radius></sphere></geometry></visual>
+      </link>
+      <link name="left_boom">
+        <pose>-0.36 0 0.2 0 0 0</pose>
+        <inertial><mass>0.8</mass><inertia><ixx>0.0006566666666666668</ixx><iyy>0.01378166666666667</iyy><izz>0.013875</izz></inertia></inertial>
+        <collision name="shape"><geometry><box><size>0.45 0.075 0.065</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.45 0.075 0.065</size></box></geometry></visual>
+      </link>
+      <link name="left_panel">
+        <pose>-0.83 0 0.2 0 0 0</pose>
+        <inertial><mass>1.1</mass><inertia><ixx>0.008955833333333335</ixx><iyy>0.017893333333333334</iyy><izz>0.026555833333333338</izz></inertia></inertial>
+        <collision name="shape"><geometry><box><size>0.44 0.31 0.04</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.44 0.31 0.04</size></box></geometry></visual>
+      </link>
+      <link name="right_boom">
+        <pose>0.36 0 0.2 0 0 0</pose>
+        <inertial><mass>0.8</mass><inertia><ixx>0.0006566666666666668</ixx><iyy>0.01378166666666667</iyy><izz>0.013875</izz></inertia></inertial>
+        <collision name="shape"><geometry><box><size>0.45 0.075 0.065</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.45 0.075 0.065</size></box></geometry></visual>
+      </link>
+      <link name="right_panel">
+        <pose>0.83 0 0.2 0 0 0</pose>
+        <inertial><mass>1.1</mass><inertia><ixx>0.008955833333333335</ixx><iyy>0.017893333333333334</iyy><izz>0.026555833333333338</izz></inertia></inertial>
+        <collision name="shape"><geometry><box><size>0.44 0.31 0.04</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.44 0.31 0.04</size></box></geometry></visual>
+      </link>
+      <joint name="mount" type="revolute">
+        <parent>bus</parent><child>turntable</child>
+        <pose relative_to="__model__">0 0 0.15 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz></axis>
+      </joint>
+      <joint name="left_shoulder" type="revolute">
+        <parent>turntable</parent><child>left_boom</child>
+        <pose relative_to="__model__">-0.125 0 0.2 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz></axis>
+      </joint>
+      <joint name="left_elbow" type="revolute">
+        <parent>left_boom</parent><child>left_panel</child>
+        <pose relative_to="__model__">-0.6 0 0.2 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz></axis>
+      </joint>
+      <joint name="right_shoulder" type="revolute">
+        <parent>turntable</parent><child>right_boom</child>
+        <pose relative_to="__model__">0.125 0 0.2 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz></axis>
+      </joint>
+      <joint name="right_elbow" type="revolute">
+        <parent>right_boom</parent><child>right_panel</child>
+        <pose relative_to="__model__">0.6 0 0.2 0 0 0</pose>
+        <axis><xyz expressed_in="__model__">0 0 1</xyz></axis>
+      </joint>
+    </model>
+  </world>
+</sdf>

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
-fn content<'a, 'input>(
+pub(super) fn content<'a, 'input>(
     node: roxmltree::Node<'a, 'input>,
 ) -> impl Iterator<Item = roxmltree::Node<'a, 'input>> {
     node.children().filter(|node| {
@@ -67,9 +67,28 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
         mut air_speed,
         mut logical_camera,
     ) = (false, false, false, false, false, false, false);
+    crate::grasp_fleet_sdf::models(world)?;
     for plugin in &world.plugins {
+        if crate::grasp_fleet_sdf::is_plugin(plugin)
+            || crate::joint_posture::is_plugin(plugin)
+            || crate::scheduled_link_force::is_plugin(plugin)
+        {
+            continue;
+        }
+        #[cfg(feature = "gpu-batch")]
+        if crate::gpu_scene::is_plugin(plugin) {
+            continue;
+        }
         // The caller preflights this configuration through its closed typed parser.
-        if crate::apply_link_wrench::is_plugin(plugin) {
+        if crate::mounted_guide::is_plugin(plugin)
+            || crate::continuous_collision::is_plugin(plugin)
+            || crate::damped_sole::is_plugin(plugin)
+            || crate::apply_link_wrench::is_plugin(plugin)
+            || crate::deformable::is_plugin(plugin)
+            || crate::free_rotation::is_plugin(plugin)
+            || crate::contact_promotion_sdf::is_plugin(plugin)
+            || crate::primary_contact::sdf::is_plugin(plugin)
+        {
             continue;
         }
         let is_physics = plugin.name == "gz::sim::systems::Physics"

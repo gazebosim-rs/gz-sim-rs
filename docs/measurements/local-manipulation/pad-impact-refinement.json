@@ -1,0 +1,710 @@
+{
+  "clock_us": 200,
+  "preload_ms": 200,
+  "kick_Nm": [
+    0,
+    6,
+    0
+  ],
+  "kick_us": 200,
+  "end_ms": 450,
+  "landing_load_window_ms": [
+    238,
+    240
+  ],
+  "jaws": [
+    "left",
+    "right"
+  ],
+  "selected_start_ms": [
+    238.4,
+    238.6,
+    238.8
+  ],
+  "public_postlaunch_steps": 1250,
+  "native_postlaunch_calls": {
+    "coarse": 1250,
+    "adaptive": 1847,
+    "fine": 250000
+  },
+  "loads": {
+    "coarse": [
+      {
+        "peak_N": 71.36375928696017,
+        "peak_time_ms": 238.8,
+        "normal_Ns": 0.028527946535857406,
+        "angular_Nms": [
+          1.941034006826425e-10,
+          0.0002976294403310049,
+          -1.2427681953885568e-07
+        ],
+        "linear_Ns": [
+          0.028527946535850248,
+          -1.624398383539344e-08,
+          0.0
+        ]
+      },
+      {
+        "peak_N": 71.65080128202824,
+        "peak_time_ms": 238.8,
+        "normal_Ns": 0.028528743387310283,
+        "angular_Nms": [
+          1.948390781045845e-10,
+          0.0002989188211306225,
+          1.232402138868397e-07
+        ],
+        "linear_Ns": [
+          -0.028528743387303105,
+          1.6293217553311295e-08,
+          0.0
+        ]
+      }
+    ],
+    "adaptive": [
+      {
+        "peak_N": 193.4044942184554,
+        "peak_time_ms": 238.563,
+        "normal_Ns": 0.028529418719660093,
+        "angular_Nms": [
+          3.281513501745274e-11,
+          0.00029825031299358554,
+          -1.293136355140138e-08
+        ],
+        "linear_Ns": [
+          0.028529418719659912,
+          -3.1243051396141775e-09,
+          0.0
+        ]
+      },
+      {
+        "peak_N": 193.39210554404033,
+        "peak_time_ms": 238.563,
+        "normal_Ns": 0.02852945003441656,
+        "angular_Nms": [
+          3.282149186205351e-11,
+          0.00029831697192653943,
+          1.025403042301915e-08
+        ],
+        "linear_Ns": [
+          -0.028529450034416388,
+          3.124306354180141e-09,
+          0.0
+        ]
+      }
+    ],
+    "fine": [
+      {
+        "peak_N": 193.91463025414754,
+        "peak_time_ms": 238.7,
+        "normal_Ns": 0.02842274166300873,
+        "angular_Nms": [
+          3.75308726792355e-17,
+          0.0002969353861804066,
+          3.315734250613131e-14
+        ],
+        "linear_Ns": [
+          0.02842274166300871,
+          -3.2190486442757495e-15,
+          0.0
+        ]
+      },
+      {
+        "peak_N": 193.91463181524674,
+        "peak_time_ms": 238.7,
+        "normal_Ns": 0.02842274166292048,
+        "angular_Nms": [
+          3.7530872720845444e-17,
+          0.00029693538650943157,
+          -3.401582239355985e-14
+        ],
+        "linear_Ns": [
+          -0.028422741662920473,
+          3.219048654692225e-15,
+          0.0
+        ]
+      }
+    ],
+    "matched": [
+      {
+        "peak_N": 193.4044942184554,
+        "peak_time_ms": 238.563,
+        "normal_Ns": 0.028529944919319428,
+        "angular_Nms": [
+          3.2701511523570464e-11,
+          0.000298296017581505,
+          -7.892791956816235e-10
+        ],
+        "linear_Ns": [
+          0.028529944919319244,
+          -3.0683972785937555e-09,
+          0.0
+        ]
+      },
+      {
+        "peak_N": 193.39210554404033,
+        "peak_time_ms": 238.563,
+        "normal_Ns": 0.02852993946428334,
+        "angular_Nms": [
+          3.270208663696404e-11,
+          0.00029829960968489786,
+          -8.585964986079643e-10
+        ],
+        "linear_Ns": [
+          -0.028529939464283175,
+          3.0684084196870686e-09,
+          0.0
+        ]
+      }
+    ]
+  },
+  "peak_pitch_error_deg": {
+    "coarse_vs_matched": 0.00977283,
+    "adaptive_vs_matched": 0.00046753,
+    "adaptive_vs_continuous": 0.21124768
+  },
+  "timing": {
+    "coarse": {
+      "batches": 9,
+      "p50_ns": 13260,
+      "p95_ns": 18050,
+      "p99_ns": 21460,
+      "max_ns": 33260,
+      "sum_ns": 17239080
+    },
+    "adaptive": {
+      "batches": 9,
+      "p50_ns": 13820,
+      "p95_ns": 15800,
+      "p99_ns": 23500,
+      "max_ns": 2300164,
+      "sum_ns": 24529683,
+      "selected_p50_ns": 2291244,
+      "selected_min_ns": 2237174,
+      "selected_max_ns": 4711269,
+      "median_paired_p95_ratio_to_coarse": 1.024122367101304
+    },
+    "fine": {
+      "batches": 9,
+      "p50_ns": 2241134,
+      "p95_ns": 3220055,
+      "p99_ns": 3250205,
+      "max_ns": 3580927,
+      "sum_ns": 2993647738
+    },
+    "paired_adaptive_over_coarse_p95_median": 1.024122367101304
+  },
+  "timing_method": "median of nine rotated release batches on CPU 5; timed 1250 public step_exact(1) calls after launch with test-side observers disabled",
+  "full_run_native_calls": {
+    "coarse": 2250,
+    "adaptive": 2847,
+    "fine": 450000
+  },
+  "compatibility": {
+    "local_serial": {
+      "records": 595,
+      "sha256_observations": "0f747fc5cfc9aafb7f71c5496fc2028dd2bb50942d8502eff84b45d6c9bd6925"
+    },
+    "groove_grasp": {
+      "records": 803,
+      "sha256_observations": "2c4208450463da847f1c4a0648ce031c9017fe4d20f7e41b99b108e5f0f41810"
+    },
+    "two_finger_load": {
+      "records": 2909,
+      "sha256_observations": "942a7e0e0a7aca98b7ee4dcdd9b8b8b160db4f92f0ede4f803c1e26b332828b8"
+    },
+    "powered_slider_impact": {
+      "records": 122,
+      "sha256_observations": "895aba16b60f0be299f26fc00d60bd9350de19f6ee31f256b1a74e3305fbb81f"
+    },
+    "refined_contact": {
+      "records": 19,
+      "sha256_observations": "d0d8a706e36d3695d0fbaad8636126bdd0310bb6f2050159db5208e0f0b2ff60"
+    }
+  },
+  "signed_pulse_controls": {
+    "reverse": {
+      "fine_left_n": 193.83031397804302,
+      "adaptive_left_n": 193.3515544832289,
+      "fine_right_n": 193.83031539704297,
+      "adaptive_right_n": 193.33874002064454,
+      "fine_left_time_ns": 205700000,
+      "adaptive_left_tick": 1028,
+      "refined_ticks": 3,
+      "torque_y_nm": -6,
+      "preload_public_ticks": 835,
+      "measured_postlaunch_ticks": [
+        41,
+        600
+      ]
+    },
+    "softer": {
+      "fine_left_n": 151.11775741224236,
+      "adaptive_left_n": 150.1192947054244,
+      "fine_right_n": 151.11775862563994,
+      "adaptive_right_n": 150.10298166741555,
+      "fine_left_time_ns": 241849000,
+      "adaptive_left_tick": 1209,
+      "refined_ticks": 3,
+      "torque_y_nm": 4.7,
+      "preload_public_ticks": 1070,
+      "measured_postlaunch_ticks": [
+        41,
+        600
+      ]
+    },
+    "stronger": {
+      "fine_left_n": 239.5702554386904,
+      "adaptive_left_n": 238.148209396411,
+      "fine_right_n": 239.57025737136155,
+      "adaptive_right_n": 238.13955275237927,
+      "fine_left_time_ns": 243664000,
+      "adaptive_left_tick": 1214,
+      "refined_ticks": 3,
+      "torque_y_nm": 7.4,
+      "preload_public_ticks": 900,
+      "measured_postlaunch_ticks": [
+        41,
+        600
+      ]
+    },
+    "held": {
+      "fine_left_n": 3.000002501795277,
+      "adaptive_left_n": 3.000002512934361,
+      "fine_right_n": 3.000002501795252,
+      "adaptive_right_n": 3.000002513131473,
+      "fine_left_time_ns": 191001000,
+      "adaptive_left_tick": 956,
+      "refined_ticks": 0,
+      "torque_y_nm": 0,
+      "preload_public_ticks": 915,
+      "measured_postlaunch_ticks": [
+        41,
+        600
+      ]
+    }
+  },
+  "coverage": {
+    "crates/gz-sim-cli/src/bin/local_replay/observation.rs": {
+      "lines": [
+        11,
+        11
+      ],
+      "regions": [
+        12,
+        12
+      ]
+    },
+    "crates/gz-sim-cli/tests/local_cpu_replay.rs": {
+      "lines": [
+        83,
+        83
+      ],
+      "regions": [
+        182,
+        182
+      ]
+    },
+    "crates/gz-sim-scene/tests/support/pad_rocking.rs": {
+      "lines": [
+        11,
+        11
+      ],
+      "regions": [
+        20,
+        20
+      ]
+    },
+    "crates/gz-sim-scene/tests/support/pad_edge_impact.rs": {
+      "lines": [
+        230,
+        230
+      ],
+      "regions": [
+        422,
+        423
+      ]
+    },
+    "crates/gz-sim-scene/src/primary_contact.rs": {
+      "lines": [
+        73,
+        78
+      ],
+      "regions": [
+        133,
+        140
+      ]
+    },
+    "crates/gz-sim-scene/src/primary_contact/sdf.rs": {
+      "lines": [
+        10,
+        10
+      ],
+      "regions": [
+        19,
+        19
+      ]
+    },
+    "crates/gz-sim-scene/src/primary_contact/returning_pad.rs": {
+      "lines": [
+        90,
+        90
+      ],
+      "regions": [
+        174,
+        174
+      ]
+    },
+    "crates/gz-physics-rapier/src/joints/robot.rs": {
+      "lines": [
+        5,
+        5
+      ],
+      "regions": [
+        11,
+        11
+      ]
+    },
+    "crates/gz-physics-multifidelity/src/lib.rs": {
+      "lines": [
+        3,
+        3
+      ],
+      "regions": [
+        5,
+        5
+      ]
+    },
+    "crates/gz-sim-scene/src/primary_contact/returning_pad.rs (unit tests)": {
+      "lines": [
+        62,
+        62
+      ],
+      "regions": [
+        97,
+        97
+      ]
+    },
+    "crates/gz-sim-scene/tests/primary_contact.rs": {
+      "lines": [
+        52,
+        52
+      ],
+      "regions": [
+        91,
+        93
+      ]
+    }
+  },
+  "coverage_count_order": [
+    "hit",
+    "instrumented_changed"
+  ],
+  "timing_batches": [
+    {
+      "batch": 1,
+      "mode": "coarse",
+      "p50_ns": 13020,
+      "p95_ns": 15100,
+      "p99_ns": 19730,
+      "max_ns": 39030,
+      "sum_ns": 16669669,
+      "selected_ns": []
+    },
+    {
+      "batch": 1,
+      "mode": "adaptive",
+      "p50_ns": 13650,
+      "p95_ns": 15800,
+      "p99_ns": 19900,
+      "max_ns": 2266084,
+      "sum_ns": 24163043,
+      "selected_ns": [
+        2266084,
+        2237174,
+        2252863
+      ]
+    },
+    {
+      "batch": 1,
+      "mode": "fine",
+      "p50_ns": 2667434,
+      "p95_ns": 8294855,
+      "p99_ns": 11150969,
+      "max_ns": 15268968,
+      "sum_ns": 4264867648,
+      "selected_ns": []
+    },
+    {
+      "batch": 2,
+      "mode": "adaptive",
+      "p50_ns": 24000,
+      "p95_ns": 46430,
+      "p99_ns": 96560,
+      "max_ns": 4073098,
+      "sum_ns": 57375081,
+      "selected_ns": [
+        3967006,
+        4073098,
+        4007327
+      ]
+    },
+    {
+      "batch": 2,
+      "mode": "fine",
+      "p50_ns": 2508875,
+      "p95_ns": 3760936,
+      "p99_ns": 3850567,
+      "max_ns": 4029887,
+      "sum_ns": 3586307443,
+      "selected_ns": []
+    },
+    {
+      "batch": 2,
+      "mode": "coarse",
+      "p50_ns": 22230,
+      "p95_ns": 23040,
+      "p99_ns": 26680,
+      "max_ns": 50550,
+      "sum_ns": 27923059,
+      "selected_ns": []
+    },
+    {
+      "batch": 3,
+      "mode": "fine",
+      "p50_ns": 2281594,
+      "p95_ns": 3230006,
+      "p99_ns": 3515456,
+      "max_ns": 3580927,
+      "sum_ns": 3246312414,
+      "selected_ns": []
+    },
+    {
+      "batch": 3,
+      "mode": "coarse",
+      "p50_ns": 19481,
+      "p95_ns": 20130,
+      "p99_ns": 26130,
+      "max_ns": 33260,
+      "sum_ns": 24545634,
+      "selected_ns": []
+    },
+    {
+      "batch": 3,
+      "mode": "adaptive",
+      "p50_ns": 20200,
+      "p95_ns": 20860,
+      "p99_ns": 26860,
+      "max_ns": 3297986,
+      "sum_ns": 35222882,
+      "selected_ns": [
+        3297986,
+        3278305,
+        3286006
+      ]
+    },
+    {
+      "batch": 4,
+      "mode": "coarse",
+      "p50_ns": 19270,
+      "p95_ns": 19940,
+      "p99_ns": 26290,
+      "max_ns": 30280,
+      "sum_ns": 24266603,
+      "selected_ns": []
+    },
+    {
+      "batch": 4,
+      "mode": "adaptive",
+      "p50_ns": 19890,
+      "p95_ns": 20421,
+      "p99_ns": 26880,
+      "max_ns": 3269516,
+      "sum_ns": 34722742,
+      "selected_ns": [
+        3269516,
+        3240556,
+        3243255
+      ]
+    },
+    {
+      "batch": 4,
+      "mode": "fine",
+      "p50_ns": 2232614,
+      "p95_ns": 3220055,
+      "p99_ns": 3250205,
+      "max_ns": 3391266,
+      "sum_ns": 2993647738,
+      "selected_ns": []
+    },
+    {
+      "batch": 5,
+      "mode": "adaptive",
+      "p50_ns": 13740,
+      "p95_ns": 14730,
+      "p99_ns": 20610,
+      "max_ns": 2256394,
+      "sum_ns": 24127873,
+      "selected_ns": [
+        2256394,
+        2252614,
+        2247154
+      ]
+    },
+    {
+      "batch": 5,
+      "mode": "fine",
+      "p50_ns": 2227614,
+      "p95_ns": 2265363,
+      "p99_ns": 2399204,
+      "max_ns": 2929476,
+      "sum_ns": 2793539946,
+      "selected_ns": []
+    },
+    {
+      "batch": 5,
+      "mode": "coarse",
+      "p50_ns": 13250,
+      "p95_ns": 15670,
+      "p99_ns": 19670,
+      "max_ns": 26120,
+      "sum_ns": 17057641,
+      "selected_ns": []
+    },
+    {
+      "batch": 6,
+      "mode": "fine",
+      "p50_ns": 2216344,
+      "p95_ns": 2343254,
+      "p99_ns": 3074625,
+      "max_ns": 3180256,
+      "sum_ns": 2811494088,
+      "selected_ns": []
+    },
+    {
+      "batch": 6,
+      "mode": "coarse",
+      "p50_ns": 13170,
+      "p95_ns": 14250,
+      "p99_ns": 20250,
+      "max_ns": 34400,
+      "sum_ns": 16767449,
+      "selected_ns": []
+    },
+    {
+      "batch": 6,
+      "mode": "adaptive",
+      "p50_ns": 13650,
+      "p95_ns": 14710,
+      "p99_ns": 20500,
+      "max_ns": 2291244,
+      "sum_ns": 24065243,
+      "selected_ns": [
+        2253974,
+        2291244,
+        2265804
+      ]
+    },
+    {
+      "batch": 7,
+      "mode": "coarse",
+      "p50_ns": 13260,
+      "p95_ns": 18050,
+      "p99_ns": 19960,
+      "max_ns": 23851,
+      "sum_ns": 17239080,
+      "selected_ns": []
+    },
+    {
+      "batch": 7,
+      "mode": "adaptive",
+      "p50_ns": 13820,
+      "p95_ns": 15770,
+      "p99_ns": 23500,
+      "max_ns": 2300164,
+      "sum_ns": 24529683,
+      "selected_ns": [
+        2300164,
+        2282364,
+        2264964
+      ]
+    },
+    {
+      "batch": 7,
+      "mode": "fine",
+      "p50_ns": 2216114,
+      "p95_ns": 2291364,
+      "p99_ns": 3044915,
+      "max_ns": 3152806,
+      "sum_ns": 2805169976,
+      "selected_ns": []
+    },
+    {
+      "batch": 8,
+      "mode": "adaptive",
+      "p50_ns": 13650,
+      "p95_ns": 15620,
+      "p99_ns": 20691,
+      "max_ns": 2253754,
+      "sum_ns": 24061523,
+      "selected_ns": [
+        2253754,
+        2241934,
+        2239474
+      ]
+    },
+    {
+      "batch": 8,
+      "mode": "fine",
+      "p50_ns": 2241134,
+      "p95_ns": 2303175,
+      "p99_ns": 2727535,
+      "max_ns": 3634846,
+      "sum_ns": 2822815068,
+      "selected_ns": []
+    },
+    {
+      "batch": 8,
+      "mode": "coarse",
+      "p50_ns": 13190,
+      "p95_ns": 16440,
+      "p99_ns": 21460,
+      "max_ns": 27530,
+      "sum_ns": 17032020,
+      "selected_ns": []
+    },
+    {
+      "batch": 9,
+      "mode": "fine",
+      "p50_ns": 3536886,
+      "p95_ns": 9244807,
+      "p99_ns": 12792283,
+      "max_ns": 17751322,
+      "sum_ns": 5181665106,
+      "selected_ns": []
+    },
+    {
+      "batch": 9,
+      "mode": "coarse",
+      "p50_ns": 22720,
+      "p95_ns": 45960,
+      "p99_ns": 1197463,
+      "max_ns": 2331794,
+      "sum_ns": 68350360,
+      "selected_ns": []
+    },
+    {
+      "batch": 9,
+      "mode": "adaptive",
+      "p50_ns": 23720,
+      "p95_ns": 43620,
+      "p99_ns": 125580,
+      "max_ns": 4711269,
+      "sum_ns": 47090183,
+      "selected_ns": [
+        4263478,
+        4264737,
+        4711269
+      ]
+    }
+  ]
+}

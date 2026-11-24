@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="local" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="guide"><static>true</static><link name="column">
+      <collision name="base"><pose>0 0 0.16 0 0 0</pose><geometry><box><size>0.55 0.55 0.08</size></box></geometry></collision>
+      <visual name="base"><pose>0 0 0.16 0 0 0</pose><geometry><box><size>0.55 0.55 0.08</size></box></geometry><material><diffuse>0.2 0.28 0.36 1</diffuse></material></visual>
+      <visual name="rail"><pose>0 0 0.66 0 0 0</pose><geometry><box><size>0.05 0.05 0.94</size></box></geometry><material><diffuse>0.58 0.63 0.69 1</diffuse></material></visual>
+    </link></model>
+    <model name="robot">
+      <link name="nut"><pose>0 0 1 0 0 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.014</ixx><iyy>0.014</iyy><izz>0.020</izz></inertia></inertial>
+        <collision name="nut"><geometry><box><size>0.48 0.12 0.08</size></box></geometry></collision>
+        <visual name="nut"><geometry><box><size>0.48 0.12 0.08</size></box></geometry><material><diffuse>0.1 0.68 0.66 1</diffuse></material></visual>
+        <visual name="marker"><pose>0.14 0 0.051 0 0 0</pose><geometry><box><size>0.04 0.12 0.022</size></box></geometry><material><diffuse>1 0.52 0.08 1</diffuse></material></visual>
+      </link>
+      <link name="tool"><pose>0.24 0 0.83 0 0 0</pose>
+        <inertial><mass>0.4</mass><inertia><ixx>0.005</ixx><iyy>0.005</iyy><izz>0.001</izz></inertia></inertial>
+        <collision name="tool"><geometry><box><size>0.07 0.06 0.34</size></box></geometry></collision>
+        <visual name="tool"><geometry><box><size>0.07 0.06 0.34</size></box></geometry><material><diffuse>0.95 0.56 0.14 1</diffuse></material></visual>
+        <visual name="fingertip"><pose>0 0 -0.16 0 0 0</pose><geometry><box><size>0.14 0.065 0.05</size></box></geometry><material><diffuse>0.12 0.25 0.35 1</diffuse></material></visual>
+      </link>
+      <joint name="wrist" type="universal"><parent>nut</parent><child>tool</child><pose>0 0 0.17 0 0 0</pose>
+        <axis><xyz>1 0 0</xyz><limit><lower>-0.9</lower><upper>0.9</upper></limit><dynamics><spring_reference>0.35</spring_reference><spring_stiffness>1.8</spring_stiffness><damping>0.35</damping></dynamics></axis>
+        <axis2><xyz>0 1 0</xyz><limit><lower>-1.2</lower><upper>1.2</upper><velocity>0.9</velocity><effort>2</effort></limit><dynamics><spring_reference>-0.2</spring_reference><spring_stiffness>0.9</spring_stiffness><damping>0.15</damping></dynamics></axis2>
+      </joint>
+      <joint name="spindle" type="screw"><parent>world</parent><child>nut</child>
+        <screw_thread_pitch>0.4</screw_thread_pitch>
+        <axis><xyz>0 0 1</xyz><limit><lower>-9</lower><upper>6</upper><velocity>1.4</velocity><effort>4</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>spindle</joint_name><use_velocity_commands>true</use_velocity_commands>
+        <initial_position>4.2</initial_position><cmd_max>1.1</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>wrist</joint_name><joint_index>1</joint_index><use_velocity_commands>true</use_velocity_commands>
+        <initial_position>0.65</initial_position><cmd_max>0.75</cmd_max>
+      </plugin>
+    </model>
+  </world>
+</sdf>

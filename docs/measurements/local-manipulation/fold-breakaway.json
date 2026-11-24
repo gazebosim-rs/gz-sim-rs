@@ -1,0 +1,559 @@
+{
+  "dt_ns": 1000000,
+  "hold_ticks": 100,
+  "load_resolution_mn": 25,
+  "ramp_ticks": 50,
+  "recovery_ticks": 200,
+  "slip_m": 0.00025,
+  "trials": [
+    {
+      "baseline_time_ns": 3150000000,
+      "columns": 5,
+      "fine": {
+        "bracket_mn": [
+          1075,
+          1100
+        ],
+        "cases": [
+          {
+            "archive": "mesh-5-fine-0",
+            "final_min_pad_m": [
+              0.0,
+              0.0
+            ],
+            "lasting_slip": false,
+            "load_mn": 0,
+            "mean_pull_side_reaction_n": [
+              -0.01426557581156004,
+              0.014265575749091524
+            ],
+            "mean_pull_squeeze_n": [
+              0.7760072862938556,
+              0.7760072505884796
+            ],
+            "min_bench_clearance_m": 0.1496127122285143,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0017633358238640091,
+            "residual_pad_m": [
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "archive": "mesh-5-fine-1075",
+            "final_min_pad_m": [
+              1.4622740119622432e-6,
+              4.281463592019016e-6
+            ],
+            "lasting_slip": false,
+            "load_mn": 1075,
+            "mean_pull_side_reaction_n": [
+              0.5340382795939916,
+              0.5418040999243423
+            ],
+            "mean_pull_squeeze_n": [
+              0.7764641043247467,
+              0.7815724646669662
+            ],
+            "min_bench_clearance_m": 0.14961268396654026,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0018358351339415988,
+            "residual_pad_m": [
+              1.4622950953026985e-6,
+              4.281467767076582e-6
+            ]
+          },
+          {
+            "archive": "mesh-5-fine-1100",
+            "final_min_pad_m": [
+              0.01100501944977247,
+              0.011006266905366687
+            ],
+            "lasting_slip": true,
+            "load_mn": 1100,
+            "mean_pull_side_reaction_n": [
+              0.5382640895034971,
+              0.5494959319518886
+            ],
+            "mean_pull_squeeze_n": [
+              0.776451817093397,
+              0.7818233249828469
+            ],
+            "min_bench_clearance_m": 0.14872369056826185,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0021566312999235977,
+            "residual_pad_m": [
+              0.011005019594626733,
+              0.011006267039490461
+            ]
+          }
+        ],
+        "iterations": 48,
+        "substeps": 64
+      },
+      "primary": {
+        "bracket_mn": [
+          1075,
+          1100
+        ],
+        "cases": [
+          {
+            "archive": "mesh-5-primary-0",
+            "final_min_pad_m": [
+              0.0,
+              0.0
+            ],
+            "lasting_slip": false,
+            "load_mn": 0,
+            "mean_pull_side_reaction_n": [
+              -0.014240349080969463,
+              0.014240349090816956
+            ],
+            "mean_pull_squeeze_n": [
+              0.77463384268594,
+              0.7746338393281106
+            ],
+            "min_bench_clearance_m": 0.14961271225571393,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0018459795499081832,
+            "residual_pad_m": [
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "archive": "mesh-5-primary-300",
+            "final_min_pad_m": [
+              2.7332814345193412e-9,
+              1.3263045176015176e-10
+            ],
+            "lasting_slip": false,
+            "load_mn": 300,
+            "mean_pull_side_reaction_n": [
+              0.13482154437219399,
+              0.16541351369591453
+            ],
+            "mean_pull_squeeze_n": [
+              0.7744338699245468,
+              0.7748317490698353
+            ],
+            "min_bench_clearance_m": 0.14961270711917318,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0018447913633577264,
+            "residual_pad_m": [
+              2.7419746907470647e-9,
+              1.3324600693642722e-10
+            ]
+          },
+          {
+            "archive": "mesh-5-primary-900",
+            "final_min_pad_m": [
+              1.5992186700244937e-7,
+              7.761018057297203e-8
+            ],
+            "lasting_slip": false,
+            "load_mn": 900,
+            "mean_pull_side_reaction_n": [
+              0.43347417544719047,
+              0.4672309793441274
+            ],
+            "mean_pull_squeeze_n": [
+              0.772837642425647,
+              0.7764185136126928
+            ],
+            "min_bench_clearance_m": 0.14961267823430158,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0020708300855893477,
+            "residual_pad_m": [
+              1.6001920507329948e-7,
+              7.767584405730075e-8
+            ]
+          },
+          {
+            "archive": "mesh-5-primary-1050",
+            "final_min_pad_m": [
+              3.59229072834609e-7,
+              1.339597919468652e-6
+            ],
+            "lasting_slip": false,
+            "load_mn": 1050,
+            "mean_pull_side_reaction_n": [
+              0.5140696485569517,
+              0.5367530610452131
+            ],
+            "mean_pull_squeeze_n": [
+              0.7753382123633723,
+              0.7802119575388515
+            ],
+            "min_bench_clearance_m": 0.14961267877353096,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.002027579183576132,
+            "residual_pad_m": [
+              3.59491748897281e-7,
+              1.339712972866754e-6
+            ]
+          },
+          {
+            "archive": "mesh-5-primary-1075",
+            "final_min_pad_m": [
+              1.5111290456578871e-6,
+              4.246763729019547e-6
+            ],
+            "lasting_slip": false,
+            "load_mn": 1075,
+            "mean_pull_side_reaction_n": [
+              0.5337602940458928,
+              0.54208203422383
+            ],
+            "mean_pull_squeeze_n": [
+              0.7752259879756398,
+              0.7803349425668084
+            ],
+            "min_bench_clearance_m": 0.1496126788120435,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0018032288173605378,
+            "residual_pad_m": [
+              1.5114104318009627e-6,
+              4.246899944651029e-6
+            ]
+          },
+          {
+            "archive": "mesh-5-primary-1100",
+            "final_min_pad_m": [
+              0.012132824936865624,
+              0.01213605093703925
+            ],
+            "lasting_slip": true,
+            "load_mn": 1100,
+            "mean_pull_side_reaction_n": [
+              0.5376490086305526,
+              0.5488683545588231
+            ],
+            "mean_pull_squeeze_n": [
+              0.7755603172930963,
+              0.7809345533564999
+            ],
+            "min_bench_clearance_m": 0.1486340894541388,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0013850637947256162,
+            "residual_pad_m": [
+              0.012132846438426846,
+              0.01213607204666959
+            ]
+          },
+          {
+            "archive": "mesh-5-primary-1150",
+            "final_min_pad_m": [
+              1.1959517786498046,
+              1.1934588754048145
+            ],
+            "lasting_slip": true,
+            "load_mn": 1150,
+            "mean_pull_side_reaction_n": [
+              0.32060551759345435,
+              0.32750849309402313
+            ],
+            "mean_pull_squeeze_n": [
+              0.4654745842100606,
+              0.46943878219031543
+            ],
+            "min_bench_clearance_m": 1.0311750384822682e-6,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 0,
+            "recovery_layer_force_n": 0.0,
+            "residual_pad_m": [
+              1.2345867939917352,
+              1.232147250995697
+            ]
+          }
+        ],
+        "iterations": 24,
+        "substeps": 32
+      }
+    },
+    {
+      "baseline_time_ns": 3250000000,
+      "columns": 7,
+      "fine": {
+        "bracket_mn": [
+          1125,
+          1150
+        ],
+        "cases": [
+          {
+            "archive": "mesh-7-fine-0",
+            "final_min_pad_m": [
+              0.0,
+              0.0
+            ],
+            "lasting_slip": false,
+            "load_mn": 0,
+            "mean_pull_side_reaction_n": [
+              -0.015528747463312101,
+              0.015528747406473914
+            ],
+            "mean_pull_squeeze_n": [
+              0.8219644290333905,
+              0.8219644788707008
+            ],
+            "min_bench_clearance_m": 0.14962090160444574,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.001906684091394363,
+            "residual_pad_m": [
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "archive": "mesh-7-fine-1125",
+            "final_min_pad_m": [
+              7.408617995665473e-7,
+              4.647928276427064e-6
+            ],
+            "lasting_slip": false,
+            "load_mn": 1125,
+            "mean_pull_side_reaction_n": [
+              0.5531102967555535,
+              0.5727711551234629
+            ],
+            "mean_pull_squeeze_n": [
+              0.8125619955520614,
+              0.8181574049659212
+            ],
+            "min_bench_clearance_m": 0.1496195278510905,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.00207236929018759,
+            "residual_pad_m": [
+              7.408623286340488e-7,
+              4.647928997012331e-6
+            ]
+          },
+          {
+            "archive": "mesh-7-fine-1150",
+            "final_min_pad_m": [
+              0.004933586295407395,
+              0.004935708493032388
+            ],
+            "lasting_slip": true,
+            "load_mn": 1150,
+            "mean_pull_side_reaction_n": [
+              0.5612987127290273,
+              0.573608440874483
+            ],
+            "mean_pull_squeeze_n": [
+              0.8097781255322298,
+              0.8156498099536236
+            ],
+            "min_bench_clearance_m": 0.14923889567758214,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0019017396164862873,
+            "residual_pad_m": [
+              0.004933586295956289,
+              0.004935708493748372
+            ]
+          }
+        ],
+        "iterations": 48,
+        "substeps": 64
+      },
+      "primary": {
+        "bracket_mn": [
+          1125,
+          1150
+        ],
+        "cases": [
+          {
+            "archive": "mesh-7-primary-0",
+            "final_min_pad_m": [
+              0.0,
+              0.0
+            ],
+            "lasting_slip": false,
+            "load_mn": 0,
+            "mean_pull_side_reaction_n": [
+              -0.015533516020239183,
+              0.015533516036555242
+            ],
+            "mean_pull_squeeze_n": [
+              0.8204853475374556,
+              0.8204853502679615
+            ],
+            "min_bench_clearance_m": 0.14962090110066711,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0018951865327319656,
+            "residual_pad_m": [
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "archive": "mesh-7-primary-300",
+            "final_min_pad_m": [
+              9.628694656697856e-9,
+              1.781064766417234e-8
+            ],
+            "lasting_slip": false,
+            "load_mn": 300,
+            "mean_pull_side_reaction_n": [
+              0.13344015416146024,
+              0.1667948886462343
+            ],
+            "mean_pull_squeeze_n": [
+              0.8202859195707743,
+              0.820683781315173
+            ],
+            "min_bench_clearance_m": 0.14962084739914017,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0018312545028325966,
+            "residual_pad_m": [
+              9.64924027034575e-9,
+              1.7840300596972532e-8
+            ]
+          },
+          {
+            "archive": "mesh-7-primary-900",
+            "final_min_pad_m": [
+              1.492671307182225e-7,
+              3.436521461086875e-7
+            ],
+            "lasting_slip": false,
+            "load_mn": 900,
+            "mean_pull_side_reaction_n": [
+              0.4302535023037712,
+              0.4704515974560609
+            ],
+            "mean_pull_squeeze_n": [
+              0.8172244133693839,
+              0.8208052538458623
+            ],
+            "min_bench_clearance_m": 0.14962044377623246,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0019117661069419482,
+            "residual_pad_m": [
+              1.494199703183565e-7,
+              3.436669356324164e-7
+            ]
+          },
+          {
+            "archive": "mesh-7-primary-1050",
+            "final_min_pad_m": [
+              3.5714743549207506e-7,
+              7.797685916237362e-7
+            ],
+            "lasting_slip": false,
+            "load_mn": 1050,
+            "mean_pull_side_reaction_n": [
+              0.5038799627834766,
+              0.5469426591506094
+            ],
+            "mean_pull_squeeze_n": [
+              0.815903258788097,
+              0.820777181125022
+            ],
+            "min_bench_clearance_m": 0.14962013324615764,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0018512161368839076,
+            "residual_pad_m": [
+              3.575761140470982e-7,
+              7.801425769911938e-7
+            ]
+          },
+          {
+            "archive": "mesh-7-primary-1100",
+            "final_min_pad_m": [
+              1.0501824634912005e-6,
+              2.3485127495330438e-6
+            ],
+            "lasting_slip": false,
+            "load_mn": 1100,
+            "mean_pull_side_reaction_n": [
+              0.5311032954737304,
+              0.5697591382981965
+            ],
+            "mean_pull_squeeze_n": [
+              0.8140065988419538,
+              0.8193563242708255
+            ],
+            "min_bench_clearance_m": 0.14961965108457848,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.00178998844090421,
+            "residual_pad_m": [
+              1.0502490195609272e-6,
+              2.3488625802792298e-6
+            ]
+          },
+          {
+            "archive": "mesh-7-primary-1125",
+            "final_min_pad_m": [
+              2.6112756123198785e-6,
+              6.968292252329533e-6
+            ],
+            "lasting_slip": false,
+            "load_mn": 1125,
+            "mean_pull_side_reaction_n": [
+              0.5552075472189726,
+              0.5706763131495851
+            ],
+            "mean_pull_squeeze_n": [
+              0.810524229752183,
+              0.8161192270795171
+            ],
+            "min_bench_clearance_m": 0.14961918789913803,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.0019526587931402138,
+            "residual_pad_m": [
+              2.6115533821524043e-6,
+              6.968738808460323e-6
+            ]
+          },
+          {
+            "archive": "mesh-7-primary-1150",
+            "final_min_pad_m": [
+              0.005964963758549961,
+              0.005967159397666538
+            ],
+            "lasting_slip": true,
+            "load_mn": 1150,
+            "mean_pull_side_reaction_n": [
+              0.5603659181226104,
+              0.5726556456993638
+            ],
+            "mean_pull_squeeze_n": [
+              0.8084266576198715,
+              0.8143005540142279
+            ],
+            "min_bench_clearance_m": 0.1491588494106415,
+            "recovered_bench_ticks": 0,
+            "recovered_support_ticks": 20,
+            "recovery_layer_force_n": 0.001736045693985503,
+            "residual_pad_m": [
+              0.005964964116964833,
+              0.005967159535656147
+            ]
+          }
+        ],
+        "iterations": 24,
+        "substeps": 32
+      }
+    }
+  ],
+  "window_ticks": 20
+}

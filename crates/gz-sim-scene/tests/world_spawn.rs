@@ -507,3 +507,57 @@ fn runtime_spawning_without_logical_camera_retains_its_existing_model_domain() {
         129
     );
 }
+
+#[test]
+fn local_templates_validate_the_impact_material_before_allocating_a_runtime_body() {
+    let material = "<plugin name='gz::sim::systems::ContactMaterial' filename='gz-sim-contact-material-system'><restitution link='body'>0.5</restitution></plugin>";
+    let with_material = XML.replace(
+        "<model name='box'>",
+        &format!("<model name='box'>{material}"),
+    );
+    let parsed = sdformat::load_str(&with_material, "impact.sdf", &NoResources).unwrap();
+    let malformed = sdformat::load_str(
+        &with_material.replace(">0.5</restitution>", ">2</restitution>"),
+        "bad.sdf",
+        &NoResources,
+    )
+    .unwrap();
+    let local = load_world_with_sdf_step(
+        &with_material,
+        "impact.sdf",
+        "w",
+        &NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .unwrap();
+    let ordinary =
+        load_world_with_sdf_step(XML, "plain.sdf", "w", &NoResources, PhysicsEngine::Rapier)
+            .unwrap();
+    assert!(prepare_model_template(&local, &parsed, &parsed.worlds[0].models[0]).is_ok());
+    assert!(prepare_model_template(&ordinary, &parsed, &parsed.worlds[0].models[0]).is_err());
+    assert!(prepare_model_template(&local, &malformed, &malformed.worlds[0].models[0]).is_err());
+
+    // A forged template must not turn a pad-only property into ordinary material.
+    let pad = sdformat::load_str(
+        &with_material.replace("restitution", "normal_stiffness"),
+        "free-pad.sdf",
+        &NoResources,
+    )
+    .unwrap();
+    assert!(prepare_model_template(&local, &pad, &pad.worlds[0].models[0]).is_err());
+
+    let xml = XML.replace(
+        "<visual name='v'><geometry><box><size>1 2 3</size></box>",
+        "<visual name='v'><geometry><ellipsoid><radii>1 2 3</radii></ellipsoid>",
+    );
+    let visual = sdformat::load_str(&xml, "ellipsoid.sdf", &NoResources).unwrap();
+    let sim = load_world_with_sdf_step(
+        &xml,
+        "ellipsoid.sdf",
+        "w",
+        &NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .unwrap();
+    assert!(prepare_model_template(&sim, &visual, &visual.worlds[0].models[0]).is_err());
+}

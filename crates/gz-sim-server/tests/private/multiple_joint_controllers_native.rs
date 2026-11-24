@@ -619,7 +619,7 @@ fn frozen(server: &Server) -> Frozen {
                     .simulation
                     .world()
                     .resource::<gz_physics::PhysicsBackend>()
-                    .joint_state(stream.joint.id())
+                    .joint_state(stream.joint.native.expect("Rapier fixture"))
                     .unwrap();
                 FrozenJoint {
                     id: stream.identity,

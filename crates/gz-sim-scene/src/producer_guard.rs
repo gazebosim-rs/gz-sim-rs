@@ -4,10 +4,20 @@
 
 use crate::{LoadError, require};
 
+#[cfg(test)]
 pub(super) fn validate(
     world: &sdformat::World,
     magnetic_consumer: bool,
     air_speed_consumer: bool,
+) -> Result<(), LoadError> {
+    validate_for_engine(world, magnetic_consumer, air_speed_consumer, false)
+}
+
+pub(super) fn validate_for_engine(
+    world: &sdformat::World,
+    magnetic_consumer: bool,
+    air_speed_consumer: bool,
+    allow_local_robot: bool,
 ) -> Result<(), LoadError> {
     let name = &world.name;
     require(world.joints.is_empty(), name, "world joints")?;
@@ -44,12 +54,12 @@ pub(super) fn validate(
         "world atmosphere",
     )?;
     for model in &world.models {
-        validate_model(model)?;
+        validate_model(model, allow_local_robot)?;
     }
     Ok(())
 }
 
-fn validate_model(model: &sdformat::Model) -> Result<(), LoadError> {
+fn validate_model(model: &sdformat::Model, allow_local_robot: bool) -> Result<(), LoadError> {
     let name = &model.scoped_name;
     require(!model.enable_wind, name, "model wind")?;
     require(model.raw_namespace.is_none(), name, "model namespace")?;
@@ -80,12 +90,9 @@ fn validate_model(model: &sdformat::Model) -> Result<(), LoadError> {
     for joint in &model.joints {
         let name = format!("{}::{}", model.scoped_name, joint.name);
         require(
-            !matches!(
-                joint.kind,
-                sdformat::JointKind::Ball
-                    | sdformat::JointKind::Gearbox
-                    | sdformat::JointKind::Screw
-            ),
+            joint.kind != sdformat::JointKind::Gearbox
+                && (allow_local_robot || joint.kind != sdformat::JointKind::Screw)
+                && (allow_local_robot || joint.kind != sdformat::JointKind::Ball),
             &name,
             "joints (unsupported type)",
         )?;
@@ -99,7 +106,7 @@ fn validate_model(model: &sdformat::Model) -> Result<(), LoadError> {
         require(joint.sensors.is_empty(), &name, "joint sensors")?;
     }
     for child in &model.models {
-        validate_model(child)?;
+        validate_model(child, allow_local_robot)?;
     }
     Ok(())
 }

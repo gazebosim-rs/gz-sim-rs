@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12"><world name="default">
+  <gravity>0 0 -9.81</gravity>
+  <physics name="cloth" type="ignored"><max_step_size>0.002</max_step_size></physics>
+  <plugin filename="gz-sim-deformables-system" name="gz::sim::systems::Deformables">
+    <cloth name="fold" columns="3" substeps="2" iterations="4" radius="0.015"
+           self_contact="true" self_friction="0.55" friction="0" stretch="0.003" shear="0.003" bend="0.18">
+      <particle position="-0.500 -0.900 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.000 -0.900 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.500 -0.900 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="-0.500 -0.430 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.000 -0.430 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.500 -0.430 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="-0.500 0.040 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.000 0.040 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.500 0.040 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="-0.500 0.510 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.000 0.510 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.500 0.510 0.65000000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="-0.500 0.720 0.70520000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.000 0.720 0.70520000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="0.500 0.720 0.70520000" velocity="0 0 0" mass="0.01" pinned="true"/>
+      <particle position="-0.475 0.470 0.73880000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="0.025 0.470 0.73880000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="0.525 0.470 0.73880000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="-0.455 0.020 0.74480000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="0.045 0.020 0.74480000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="0.545 0.020 0.74480000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="-0.435 -0.420 0.75080000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="0.065 -0.420 0.75080000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="0.565 -0.420 0.75080000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="-0.420 -0.780 0.75800000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="0.080 -0.780 0.75800000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+      <particle position="0.580 -0.780 0.75800000" velocity="0.7 0 -0.5" mass="0.01" pinned="false"/>
+    </cloth>
+  </plugin>
+</world></sdf>

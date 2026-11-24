@@ -7,7 +7,7 @@ pub use fault::StepFault;
 
 mod identity;
 pub use identity::{
-    EntityId, EntityLookup, IdentityError, ReservedId, assign_id, entity_by_id, next_entity_id,
+    EntityId, EntityLookup, IdentityError, ReservedId, advance_entity_id_floor, assign_id, entity_by_id, next_entity_id,
     reserve_id, restore_id,
 };
 
@@ -46,6 +46,8 @@ pub enum StepError {
     ZeroDuration,
     #[error("simulation time, iteration, or epoch overflow")]
     Overflow,
+    #[error("committed clock is inconsistent with the fixed timestep or last update")]
+    InvalidClock,
     #[error("a simulation system failed")]
     Faulted,
 }
@@ -60,6 +62,7 @@ pub struct Simulation {
     world: World,
     schedule: Schedule,
     reset_schedule: Schedule,
+    schedule_revision: u64,
     step_duration: Duration,
     elapsed: Duration,
     iteration: u64,
@@ -69,21 +72,55 @@ pub struct Simulation {
     faulted: bool,
 }
 
+fn validate_committed_clock(step_duration: Duration, info: UpdateInfo) -> Result<(), StepError> {
+    if step_duration.is_zero() {
+        return Err(StepError::ZeroDuration);
+    }
+    let elapsed = step_duration
+        .as_nanos()
+        .checked_mul(u128::from(info.iteration));
+    let valid_dt = if info.dt.is_zero() {
+        info.paused || (info.iteration == 0 && info.epoch != 0)
+    } else {
+        info.dt == step_duration && !info.paused && info.iteration > 0
+    };
+    if elapsed != Some(info.sim_time.as_nanos())
+        || info.start_time.checked_add(info.dt) != Some(info.sim_time)
+        || !valid_dt
+    {
+        return Err(StepError::InvalidClock);
+    }
+    Ok(())
+}
+
 impl Simulation {
     pub fn new(step_duration: Duration) -> Result<Self, StepError> {
-        if step_duration.is_zero() {
-            return Err(StepError::ZeroDuration);
-        }
+        Self::from_committed_clock(
+            step_duration,
+            UpdateInfo {
+                start_time: Duration::ZERO,
+                sim_time: Duration::ZERO,
+                dt: Duration::ZERO,
+                iteration: 0,
+                epoch: 0,
+                paused: true,
+            },
+            true,
+        )
+    }
+
+    /// Start a fresh ECS world at a previously committed clock boundary. Callers
+    /// restore domain resources before advancing. The current pause setting can
+    /// differ from the recorded update after step_exact or a pause command.
+    pub fn from_committed_clock(
+        step_duration: Duration,
+        info: UpdateInfo,
+        paused: bool,
+    ) -> Result<Self, StepError> {
+        validate_committed_clock(step_duration, info)?;
         let mut world = World::new();
         world.init_resource::<StepFault>();
-        world.insert_resource(UpdateInfo {
-            start_time: Duration::ZERO,
-            sim_time: Duration::ZERO,
-            dt: Duration::ZERO,
-            iteration: 0,
-            epoch: 0,
-            paused: true,
-        });
+        world.insert_resource(info);
         let mut schedule = Schedule::default();
         schedule.set_executor(bevy_ecs::schedule::SingleThreadedExecutor::new());
         schedule.configure_sets(
@@ -104,11 +141,12 @@ impl Simulation {
             world,
             schedule,
             reset_schedule: Schedule::default(),
+            schedule_revision: 0,
             step_duration,
-            elapsed: Duration::ZERO,
-            iteration: 0,
-            epoch: 0,
-            paused: true,
+            elapsed: info.sim_time,
+            iteration: info.iteration,
+            epoch: info.epoch,
+            paused,
             extensions: HashSet::new(),
             faulted: false,
         })
@@ -122,6 +160,7 @@ impl Simulation {
         executor: impl bevy_ecs::schedule::SystemExecutor + 'static,
     ) {
         self.schedule.set_executor(executor);
+        self.record_schedule_change();
     }
 
     /// Claims a system extension once, independently of mutable ECS resources.
@@ -142,6 +181,7 @@ impl Simulation {
         } else {
             self.schedule.add_systems(configured);
         }
+        self.record_schedule_change();
     }
 
     /// Initializes pending registrations without running tick/reset callbacks.
@@ -150,6 +190,19 @@ impl Simulation {
         self.schedule.initialize(&mut self.world)?;
         self.reset_schedule.initialize(&mut self.world)?;
         Ok(())
+    }
+
+    /// World-local version of the installed tick/reset callbacks and executor.
+    /// An external owner may use this to reject restoring a customized schedule.
+    pub fn schedule_revision(&self) -> u64 {
+        self.schedule_revision
+    }
+
+    fn record_schedule_change(&mut self) {
+        self.schedule_revision = self
+            .schedule_revision
+            .checked_add(1)
+            .expect("schedule revision exhausted");
     }
 
     /// Registered (tick, reset) system counts, including pending registrations.
@@ -183,7 +236,11 @@ impl Simulation {
         )?;
         // Rebuild now so retired executable systems release Local/query state
         // before the lifecycle boundary returns, even if no later tick runs.
-        schedule.initialize(&mut self.world)?;
+        let initialized = schedule.initialize(&mut self.world);
+        if removed != 0 {
+            self.record_schedule_change();
+        }
+        initialized?;
         Ok(removed)
     }
 
@@ -206,6 +263,23 @@ impl Simulation {
 
     pub fn elapsed(&self) -> Duration {
         self.elapsed
+    }
+
+    /// Validate the externally visible update against the privately committed clock.
+    /// Recovery callers can reject overwritten ECS clock data before publication.
+    pub fn committed_update_info(&self) -> Result<UpdateInfo, StepError> {
+        let info = *self
+            .world
+            .get_resource::<UpdateInfo>()
+            .ok_or(StepError::InvalidClock)?;
+        if info.epoch != self.epoch
+            || info.iteration != self.iteration
+            || info.sim_time != self.elapsed
+        {
+            return Err(StepError::InvalidClock);
+        }
+        validate_committed_clock(self.step_duration, info)?;
+        Ok(info)
     }
 
     /// Epoch of the committed simulation state.

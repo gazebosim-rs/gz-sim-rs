@@ -120,6 +120,8 @@ struct PendingControl {
 
 pub(super) enum ControlWork {
     World(Query),
+    #[cfg(feature = "gpu-batch")]
+    GpuRequest(Query, mpsc::SyncSender<ControlRequest>),
     Remove(usize, Query),
     InstallRemovals {
         keys: [String; 2],
@@ -297,6 +299,8 @@ pub(super) struct WorldIo {
     capacity: usize,
     control_key: String,
     removal_keys: std::sync::OnceLock<[String; 2]>,
+    #[cfg(feature = "gpu-batch")]
+    gpu_keys: std::sync::OnceLock<[String; 2]>,
     pub(super) session: zenoh::Session,
     process: String,
     node: String,
@@ -465,6 +469,16 @@ impl WorldIo {
                             Ok(ControlWork::World(_)) => {
                                 worker_rejected.fetch_add(1, Ordering::Relaxed);
                                 worker_ingress_lost.fetch_add(1, Ordering::Relaxed);
+                            }
+                            #[cfg(feature = "gpu-batch")]
+                            Ok(ControlWork::GpuRequest(query, commands)) => {
+                                if pending.len() >= capacity
+                                    || queue_request(query, &commands, &mut pending, &failed)
+                                        .is_err()
+                                {
+                                    worker_rejected.fetch_add(1, Ordering::Relaxed);
+                                    worker_ingress_lost.fetch_add(1, Ordering::Relaxed);
+                                }
                             }
                             Ok(ControlWork::Rate(request)) => {
                                 if request.execute().is_err() {
@@ -1330,6 +1344,8 @@ impl WorldIo {
             capacity,
             control_key,
             removal_keys: std::sync::OnceLock::new(),
+            #[cfg(feature = "gpu-batch")]
+            gpu_keys: std::sync::OnceLock::new(),
             session,
             process,
             node,
@@ -1459,10 +1475,75 @@ impl WorldIo {
     /// Actual world publication/query keys, including removal services once installed.
     pub(super) fn reserved_keys(&self) -> std::collections::BTreeSet<String> {
         let mut keys = self.fixed_keys();
+        #[cfg(feature = "gpu-batch")]
+        if let Some(names) = self.gpu_keys.get() {
+            keys.extend(names.iter().cloned());
+        }
         if let Some(removals) = self.removal_keys.get() {
             keys.extend(removals.iter().cloned());
         }
         keys
+    }
+
+    #[cfg(feature = "gpu-batch")]
+    pub(super) fn gpu_inputs(&self, keys: [String; 2]) -> Result<crate::gpu_control::Ingress> {
+        use crate::gpu_control::{
+            Endpoint, Ingress, MAX_REQUEST_BYTES, REPLY_TYPE, REQUEST_TYPE, placement,
+        };
+        if keys[0] == keys[1]
+            || keys.iter().any(|k| self.reserved_keys().contains(k))
+            || self.gpu_keys.get().is_some()
+        {
+            return Err("GPU control endpoint conflicts with another world operation".into());
+        }
+        let setup =
+            |key: &str, request_type: &str, reply_type: &str, limit: usize| -> Result<Endpoint> {
+                let (commands, requests) = mpsc::sync_channel(self.capacity);
+                let incoming = self.control_incoming.clone();
+                let rejected = Arc::clone(&self.rejected);
+                let dropped = Arc::clone(&self.ingress_drops);
+                let max = self.max_message_bytes.min(limit);
+                let queryable = self
+                    .session
+                    .declare_queryable(key.to_owned())
+                    .callback(move |query: Query| {
+                        if query.payload().is_some_and(|p| p.len() > max) {
+                            rejected.fetch_add(1, Ordering::Relaxed);
+                            return;
+                        }
+                        if incoming
+                            .try_send(ControlWork::GpuRequest(query, commands.clone()))
+                            .is_err()
+                        {
+                            rejected.fetch_add(1, Ordering::Relaxed);
+                            dropped.fetch_add(1, Ordering::Relaxed);
+                        }
+                    })
+                    .wait()?;
+                let token = self
+                    .session
+                    .liveliness()
+                    .declare_token(presence(
+                        key,
+                        &self.process,
+                        &self.node,
+                        "SS",
+                        &format!("{request_type}&{reply_type}"),
+                    )?)
+                    .wait()?;
+                Ok(Endpoint::new(requests, queryable, token))
+            };
+        let impulse = setup(&keys[0], REQUEST_TYPE, REPLY_TYPE, MAX_REQUEST_BYTES)?;
+        let execution = setup(
+            &keys[1],
+            placement::REQUEST_TYPE,
+            placement::REPLY_TYPE,
+            placement::MAX_REQUEST_BYTES,
+        )?;
+        self.gpu_keys
+            .set(keys)
+            .map_err(|_| "GPU control services already registered")?;
+        Ok(Ingress::new(impulse, execution))
     }
 
     pub(super) fn altimeter_output(&self, key: String) -> Result<Arc<AltimeterOutput>> {

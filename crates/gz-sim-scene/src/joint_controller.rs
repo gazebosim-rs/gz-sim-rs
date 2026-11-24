@@ -5,12 +5,20 @@ use super::*;
 use std::collections::{BTreeMap, BTreeSet};
 mod config;
 mod model;
+#[cfg(feature = "gpu-batch")]
+pub(crate) use config::Parameters;
+#[cfg(feature = "gpu-batch")]
+pub(crate) fn planar_parameters(model: &Model) -> Result<Vec<Parameters>, LoadError> {
+    Ok(config::parse_fields(model, true)?.unwrap_or_default())
+}
+#[cfg(feature = "gpu-batch")]
+pub(crate) use model::target_velocity;
 
-const MAX_CONTROLLER_OWNERS: usize = 8;
+pub(crate) const MAX_CONTROLLER_OWNERS: usize = 8;
 const MAX_CONTROLLER_INPUTS: usize = MAX_CONTROLLER_OWNERS * 2;
 
-/// Position uses a bounded, damped native reduced-coordinate servo.
-/// SDF command identities are reused; native ABS/PID command-order parity is not claimed.
+/// Position targets use a damped servo for reduced revolutes. Local screw and
+/// wrist plugins use the SDF absolute-position velocity command. Bounds are in SI units.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum JointControllerMode {
     Position,
@@ -41,6 +49,7 @@ pub enum JointControllerCommandError {
 
 #[derive(Component, Clone)]
 pub(super) struct Controller {
+    actuation: Actuation,
     owner: u64,
     publication: JointControllerConfiguration,
     joint: gz_physics::JointId,
@@ -50,8 +59,38 @@ pub(super) struct Controller {
     target: f64,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Actuation {
+    Reduced,
+    Screw,
+    Universal(usize),
+}
+
+impl Actuation {
+    fn coordinate(self, backend: &PhysicsBackend, joint: gz_physics::JointId) -> Option<f64> {
+        if let Self::Universal(axis) = self {
+            return Some(
+                backend
+                    .downcast_ref::<MultiFidelityBackend>()?
+                    .universal_joint_state(joint)?
+                    .position[axis],
+            );
+        }
+        backend.joint_state(joint).map(|state| state.position)
+    }
+
+    fn clear(self) -> MotorRequest {
+        match self {
+            Self::Universal(axis) => MotorRequest::Universal(axis, None),
+            _ => MotorRequest::Clear,
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 enum MotorRequest {
+    Universal(usize, Option<gz_physics::JointVelocityMotor>),
+    Clear,
     Position(gz_physics::JointPositionServo),
     Velocity(gz_physics::JointVelocityMotor),
 }
@@ -63,6 +102,11 @@ impl MotorRequest {
         dt: Duration,
     ) -> Result<(), PhysicsError> {
         match self {
+            Self::Universal(axis, motor) => backend
+                .downcast_ref::<MultiFidelityBackend>()
+                .ok_or(PhysicsError::InvalidJoint)?
+                .validate_universal_motor(joint, axis, motor),
+            Self::Clear => backend.validate_joint_position_servo(joint, None, dt),
             Self::Position(servo) => backend.validate_joint_position_servo(joint, Some(servo), dt),
             Self::Velocity(motor) => backend.validate_joint_velocity_servo(joint, Some(motor)),
         }
@@ -74,33 +118,43 @@ impl MotorRequest {
         dt: Duration,
     ) -> Result<(), PhysicsError> {
         match self {
+            Self::Universal(axis, motor) => backend
+                .downcast_mut::<MultiFidelityBackend>()
+                .ok_or(PhysicsError::InvalidJoint)?
+                .set_universal_motor(joint, axis, motor),
+            Self::Clear => backend.set_joint_position_servo(joint, None, dt),
             Self::Position(servo) => backend.set_joint_position_servo(joint, Some(servo), dt),
             Self::Velocity(motor) => backend.set_joint_velocity_servo(joint, Some(motor)),
         }
     }
 }
-fn request(
-    mode: JointControllerMode,
-    target: f64,
-    coordinate: f64,
-    max_velocity: f64,
-    max_force: f64,
-    dt: Duration,
-) -> Result<MotorRequest, model::InvalidControllerInput> {
-    // Retain the existing finite continuous-error and per-step admission guards.
-    // Position actuation uses the native damped servo, not this ABS velocity bound.
-    let velocity = model::target_velocity(mode, target, coordinate, max_velocity, dt)?;
-    Ok(match mode {
-        JointControllerMode::Position => MotorRequest::Position(gz_physics::JointPositionServo {
-            target_position: target,
-            max_velocity,
-            max_force,
-        }),
-        JointControllerMode::Velocity => MotorRequest::Velocity(gz_physics::JointVelocityMotor {
+impl Actuation {
+    fn request(
+        self,
+        mode: JointControllerMode,
+        target: f64,
+        coordinate: f64,
+        max_velocity: f64,
+        max_force: f64,
+        dt: Duration,
+    ) -> Result<MotorRequest, model::InvalidControllerInput> {
+        let velocity = model::target_velocity(mode, target, coordinate, max_velocity, dt)?;
+        let motor = gz_physics::JointVelocityMotor {
             target_velocity: velocity,
             max_force,
-        }),
-    })
+        };
+        Ok(match (self, mode) {
+            (Self::Universal(axis), _) => MotorRequest::Universal(axis, Some(motor)),
+            (Self::Reduced, JointControllerMode::Position) => {
+                MotorRequest::Position(gz_physics::JointPositionServo {
+                    target_position: target,
+                    max_velocity,
+                    max_force,
+                })
+            }
+            _ => MotorRequest::Velocity(motor),
+        })
+    }
 }
 
 pub(super) struct Plan(Vec<config::Parameters>);
@@ -122,9 +176,16 @@ impl Plan {
         placement: (bool, bool),
     ) -> Result<(), LoadError> {
         require(
-            engine == Some("rapier") && placement.0 && !placement.1,
+            engine
+                == Some(if self.0[0].actuation == Actuation::Reduced {
+                    "rapier"
+                } else {
+                    "multifidelity"
+                })
+                && placement.0
+                && !placement.1,
             &model.scoped_name,
-            "joint controllers require a top-level dynamic Rapier model",
+            "joint controllers require a top-level dynamic model on their supported engine",
         )?;
         let mut owners = BTreeMap::new();
         let mut slots = 0;
@@ -181,28 +242,32 @@ pub(super) fn build(
             entity: name.clone(),
             feature: "missing controller joint binding",
         })?;
-        let state = backend
-            .joint_state(handle.id())
+        let coordinate = parameters
+            .actuation
+            .coordinate(backend, handle.id())
             .ok_or(LoadError::Unsupported {
                 entity: name.clone(),
                 feature: "missing controller joint state",
             })?;
-        let motor = request(
-            parameters.publication.mode,
-            parameters.initial_target,
-            state.position,
-            parameters.max_velocity,
-            parameters.max_force,
-            sim.step_duration(),
-        )
-        .map_err(|_| LoadError::Unsupported {
-            entity: name.clone(),
-            feature: "unrepresentable controller initialization",
-        })?;
+        let motor = parameters
+            .actuation
+            .request(
+                parameters.publication.mode,
+                parameters.initial_target,
+                coordinate,
+                parameters.max_velocity,
+                parameters.max_force,
+                sim.step_duration(),
+            )
+            .map_err(|_| LoadError::Unsupported {
+                entity: name.clone(),
+                feature: "unrepresentable controller initialization",
+            })?;
         motor.validate(backend, handle.id(), sim.step_duration())?;
         prepared.push((
             node.id(),
             Controller {
+                actuation: parameters.actuation,
                 owner: node.get::<EntityId>().expect("loaded joint identity").get(),
                 publication: parameters.publication.clone(),
                 joint: handle.id(),
@@ -230,6 +295,15 @@ fn command_error(error: model::InvalidControllerInput) -> JointControllerCommand
     }
 }
 
+/// Current held SI position or velocity target on a locally owned CPU controller.
+pub fn held_joint_controller_target(sim: &Simulation, id: u64) -> Option<f64> {
+    Some(
+        sim.world()
+            .get::<Controller>(gz_sim_core::entity_by_id(sim.world(), id)?)?
+            .target,
+    )
+}
+
 /// Replace a pending SI target without stepping. Velocity commands saturate at
 /// the configured target speed; positions remain continuous, without wrapping.
 pub fn set_joint_controller_command(
@@ -246,6 +320,10 @@ pub fn set_joint_controller_command(
     }
     let entity = gz_sim_core::entity_by_id(world, id)
         .ok_or(JointControllerCommandError::MissingController(id))?;
+    #[cfg(feature = "gpu-batch")]
+    if world.contains_resource::<gpu_scene::planar_tool::ToolBindings>() {
+        return gpu_scene::planar_tool::set_joint_command(sim, id, entity, target);
+    }
     let controller = world
         .get::<Controller>(entity)
         .ok_or(JointControllerCommandError::MissingController(id))?;
@@ -260,28 +338,87 @@ pub fn set_joint_controller_command(
     }
     validate_loaded_controllers(world).map_err(|_| JointControllerCommandError::InvalidPhysics)?;
     let backend = world.resource::<PhysicsBackend>();
-    let coordinate = backend
-        .joint_state(controller.joint)
-        .ok_or(JointControllerCommandError::InvalidPhysics)?
-        .position;
-    let motor = request(
-        controller.publication.mode,
-        target,
-        coordinate,
-        controller.max_velocity,
-        controller.max_force,
-        sim.step_duration(),
-    )
-    .map_err(command_error)?;
+    let coordinate = controller
+        .actuation
+        .coordinate(backend, controller.joint)
+        .ok_or(JointControllerCommandError::InvalidPhysics)?;
+    let motor = controller
+        .actuation
+        .request(
+            controller.publication.mode,
+            target,
+            coordinate,
+            controller.max_velocity,
+            controller.max_force,
+            position_response(world, id, sim.step_duration()),
+        )
+        .map_err(command_error)?;
     motor.validate(backend, controller.joint, sim.step_duration())?;
-    let desired = match motor {
-        MotorRequest::Velocity(motor) => motor.target_velocity,
-        MotorRequest::Position(_) => target,
+    let desired = if controller.publication.mode == JointControllerMode::Velocity {
+        target.clamp(-controller.max_velocity, controller.max_velocity)
+    } else {
+        target
     };
     sim.world_mut()
         .get_mut::<Controller>(entity)
         .expect("preflighted controller")
         .target = desired;
+    Ok(())
+}
+
+#[derive(Resource, Default)]
+struct PositionResponses(BTreeMap<u64, Duration>);
+
+fn position_response(world: &World, id: u64, native: Duration) -> Duration {
+    world
+        .get_resource::<PositionResponses>()
+        .and_then(|policy| policy.0.get(&id))
+        .copied()
+        .unwrap_or(native)
+}
+
+/// Set the physical period used to turn position error into target velocity on
+/// local screws and universal axes. Native updates and actuator limits retain
+/// their authored timing. The period must span at least one physics step.
+/// Configuration survives loaded-world reset. Passing `None` restores the
+/// native one-step response. All named joints are validated before mutation.
+pub fn set_joint_position_response_period(
+    sim: &mut Simulation,
+    ids: &[u64],
+    period: Option<Duration>,
+) -> Result<(), JointControllerCommandError> {
+    if period.is_some_and(|p| p < sim.step_duration()) {
+        return Err(JointControllerCommandError::InvalidCommand);
+    }
+    for &id in ids {
+        if !joint_controller_binding_matches(sim, id) {
+            return Err(JointControllerCommandError::MissingController(id));
+        }
+        let controller = gz_sim_core::entity_by_id(sim.world(), id)
+            .and_then(|e| sim.world().get::<Controller>(e))
+            .ok_or(JointControllerCommandError::MissingController(id))?;
+        if controller.publication.mode != JointControllerMode::Position
+            || !matches!(
+                controller.actuation,
+                Actuation::Screw | Actuation::Universal(_)
+            )
+        {
+            return Err(JointControllerCommandError::InvalidCommand);
+        }
+        // The native position law requires its maximum travel per response to
+        // remain representable, even for a very long requested period.
+        if period.is_some_and(|dt| !(controller.max_velocity * dt.as_secs_f64()).is_finite()) {
+            return Err(JointControllerCommandError::InvalidCommand);
+        }
+    }
+    if let Some(value) = period {
+        let mut policy = sim.world_mut().get_resource_or_init::<PositionResponses>();
+        policy.0.extend(ids.iter().map(|id| (*id, value)));
+    } else if let Some(mut policy) = sim.world_mut().get_resource_mut::<PositionResponses>() {
+        for id in ids {
+            policy.0.remove(id);
+        }
+    }
     Ok(())
 }
 
@@ -314,6 +451,10 @@ pub fn joint_controller_binding_matches_configuration(
     let Some(entity) = gz_sim_core::entity_by_id(world, id) else {
         return false;
     };
+    #[cfg(feature = "gpu-batch")]
+    if world.contains_resource::<gpu_scene::planar_tool::ToolBindings>() {
+        return gpu_scene::planar_tool::binding_matches(sim, id, configuration);
+    }
     let Some(controller) = world.get::<Controller>(entity) else {
         return false;
     };
@@ -322,6 +463,10 @@ pub fn joint_controller_binding_matches_configuration(
             .get::<JointHandle>(entity)
             .is_some_and(|handle| handle.id() == controller.joint)
         && &controller.publication == configuration
+        && world
+            .get_resource::<PhysicsBackend>()
+            .and_then(|backend| controller.actuation.coordinate(backend, controller.joint))
+            .is_some()
 }
 
 #[derive(Resource)]
@@ -500,19 +645,21 @@ fn apply(world: &mut World) {
                 {
                     return Err(fail("invalid controller ownership".into()));
                 }
-                let state = world
-                    .resource::<PhysicsBackend>()
-                    .joint_state(controller.joint)
+                let coordinate = controller
+                    .actuation
+                    .coordinate(world.resource::<PhysicsBackend>(), controller.joint)
                     .ok_or_else(|| fail("missing controller joint state".into()))?;
-                let motor = request(
-                    controller.publication.mode,
-                    controller.target,
-                    state.position,
-                    controller.max_velocity,
-                    controller.max_force,
-                    time.dt,
-                )
-                .map_err(|error| fail(error.to_string()))?;
+                let motor = controller
+                    .actuation
+                    .request(
+                        controller.publication.mode,
+                        controller.target,
+                        coordinate,
+                        controller.max_velocity,
+                        controller.max_force,
+                        position_response(world, controller.owner, time.dt),
+                    )
+                    .map_err(|error| fail(error.to_string()))?;
                 entries[index] = Some((entity.id(), controller.joint, motor));
             }
             entries
@@ -552,7 +699,9 @@ fn reset(world: &mut World) {
             query
                 .iter_mut(world)
                 .take(MAX_CONTROLLER_INPUTS + 1)
-                .map(|(entity, controller)| (entity, controller.joint))
+                .map(|(entity, controller)| {
+                    (entity, controller.joint, controller.actuation.clear())
+                })
                 .collect()
         };
         if current.is_empty() {
@@ -561,26 +710,28 @@ fn reset(world: &mut World) {
         let slots = admitted_slots(world).unwrap_or_default();
         // Retain each earlier row's native failure before reaching a later
         // overflow, exactly as the original query-order preflight did.
-        for (index, (entity, joint)) in current.iter().enumerate() {
+        for (index, (entity, joint, clear)) in current.iter().enumerate() {
             if index >= slots {
                 return Err(ControllerFault {
                     entity: *entity,
                     message: "too many loaded controllers".into(),
                 });
             }
-            world
-                .resource::<PhysicsBackend>()
-                .validate_joint_position_servo(*joint, None, Duration::ZERO)
+            clear
+                .validate(world.resource::<PhysicsBackend>(), *joint, Duration::ZERO)
                 .map_err(|error| ControllerFault {
                     entity: *entity,
                     message: error.to_string(),
                 })?;
         }
         validate_loaded_controllers(world)?;
-        for (entity, joint) in current {
-            world
-                .resource_mut::<PhysicsBackend>()
-                .set_joint_position_servo(joint, None, Duration::ZERO)
+        for (entity, joint, clear) in current {
+            clear
+                .set(
+                    &mut world.resource_mut::<PhysicsBackend>(),
+                    joint,
+                    Duration::ZERO,
+                )
                 .map_err(|error| ControllerFault {
                     entity,
                     message: error.to_string(),

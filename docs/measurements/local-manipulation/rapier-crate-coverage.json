@@ -1,0 +1,48 @@
+{
+  "package": "gz-physics-rapier",
+  "rustc": "1.97.1",
+  "mapped_production_sources": 114,
+  "strict_threshold_percent": 95,
+  "coverage": {
+    "lines": {
+      "covered": 27821,
+      "count": 29051,
+      "percent": 95.76607
+    },
+    "regions": {
+      "covered": 45798,
+      "count": 48149,
+      "percent": 95.11724
+    }
+  },
+  "test_executables": {
+    "gz-physics-distributed": 299,
+    "gz-physics-multifidelity": 16,
+    "gz-physics-rapier": 26,
+    "gz-sim-cli": 91,
+    "gz-sim-scene": 228
+  },
+  "total_matching_profiles": 672,
+  "passing_tests": 2440,
+  "ignored_tests": 122,
+  "separate_integration_target": "gz-sim-cli example local_robot_foundations",
+  "source_paths_and_contents_sha256": "16cdb260b3f86306743fb617443ab829e3a0694bb488c03f94e35209e84a77c8",
+  "repository_verifier_sha256": "c4faffee3b84b0a50a6c057a2d2c9ede59515cc2aa8687c2cad91d96d589d8ed",
+  "rustc_workspace_wrapper_sha256": "0d7aecf2d85859aba493c4e6e18501652c5587688de517a0e5fbf44d948698ed",
+  "flags": [
+    "-C instrument-coverage",
+    "LLVM export --fatal-warnings",
+    "CARGO_PROFILE_TEST_OPT_LEVEL=1",
+    "CARGO_PROFILE_TEST_DEBUG=1",
+    "CARGO_PROFILE_TEST_DEBUG_ASSERTIONS=true",
+    "CARGO_PROFILE_TEST_OVERFLOW_CHECKS=true"
+  ],
+  "features": [
+    "gz-physics-rapier/landing-audit",
+    "gz-physics-rapier/partition-checkpoint",
+    "gz-physics-multifidelity/landing-audit",
+    "gz-sim-cli/landing-audit"
+  ],
+  "repository_verifier_commit": "ba09ff5706421226dcfbb0c1d9366242cba9b62f",
+  "llvm_source_report_sha256": "d45f0921f66494eae7df87e306c98d5b3663ef8087e998f5f6e408425a51e0b4"
+}

@@ -718,6 +718,9 @@ fn real_transport_commands_report_acceptance_and_exact_step_completion() {
     assert!(final_clock.system.unwrap().sec > 1_000_000_000);
     assert_eq!(server.counters().controls_rejected, 2);
     assert_eq!(server.counters().controls_accepted, 1);
+    // This subscriber observes only the initial and final clocks. Release its
+    // bounded local FIFO before shutdown joins the publication thread.
+    drop(subscription);
     server.shutdown();
     let stopped_info = *server.simulation.world().resource::<UpdateInfo>();
     let stopped_pending = server.pending_steps();

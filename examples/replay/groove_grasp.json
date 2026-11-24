@@ -1,0 +1,8 @@
+{
+  "seed": "groove-grasp",
+  "commands": [
+    {"op":"set_joint_force","joint":"default::gripper::left_slide","force":0.5},
+    {"op":"set_joint_force","joint":"default::gripper::right_slide","force":0.5},
+    {"op":"step","count":800}
+  ]
+}

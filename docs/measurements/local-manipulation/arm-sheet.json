@@ -1,0 +1,1020 @@
+{
+  "bend_compliance_rad_per_nm": 0.02,
+  "closest_initial_skin_gap_m": 0.00002,
+  "cloth_columns": 3,
+  "cloth_rows": 4,
+  "commanded_jaw_stroke_m": 0.07725,
+  "iterations": 24,
+  "nominal_panel_flare_m": 0.00015,
+  "pad_friction": 0.7,
+  "pad_normal_compliance_m_per_n": 0.001,
+  "parallel_coarse_attempts": [
+    {
+      "metrics": {
+        "accepted_material_substeps": 3489,
+        "case": {
+          "closed": true,
+          "mass_scale": 1.0,
+          "stiffness_scale": 1.0,
+          "substeps": 1
+        },
+        "energy": {
+          "final_material_change_j": -1.4026575369946448e-9,
+          "initial_material_j": 0.01256661,
+          "max_angular_impulse_residual_nms": 2.481543435230505e-8,
+          "max_elastic_j": 0.00006551048977244134,
+          "max_gravity_gain_j": 0.012506035431444717,
+          "max_kinetic_j": 0.0007349200488893957,
+          "max_material_gain_above_pad_work_j": 0.0,
+          "negative_pad_work_j": -0.013254981481731903,
+          "positive_pad_work_j": 0.015219386000794094,
+          "self_friction_loss_j": 0.001008895406152843
+        },
+        "max_compression_m": 0.0006099268142076147,
+        "max_hold_panel_drift_m": [
+          4.868251899659004e-7,
+          2.5380753212317364e-7
+        ],
+        "max_linear_impulse_residual_ns": 3.3692108749798067e-18,
+        "max_material_substeps": 4,
+        "max_pad_attribution_residual_ns": 1.742330095302999e-18,
+        "max_refinement_doublings": 2,
+        "max_strain": 0.00047302939948357103,
+        "mean_hold_bench_up_n": 0.0,
+        "mean_hold_jaw_squeeze_n": [
+          0.6159482652778846,
+          0.6159479562779953
+        ],
+        "mean_hold_jaw_up_n": [
+          0.030560154183411986,
+          0.051848857485164004
+        ],
+        "mean_hold_lift_m": [
+          0.14961768342616247,
+          0.14961949751652637
+        ],
+        "mean_hold_panel_normal_by_jaw_n": [
+          [
+            0.615948265277887,
+            0.0
+          ],
+          [
+            0.0,
+            0.6159479562779997
+          ]
+        ],
+        "mean_hold_panel_relative_height_m": [
+          -0.04249714221867364,
+          -0.042495328128309924
+        ],
+        "mean_hold_panel_up_by_jaw_n": [
+          [
+            0.030560154183411976,
+            0.0
+          ],
+          [
+            0.0,
+            0.05184885748516399
+          ]
+        ],
+        "mean_hold_self_contact_n": 0.2794559654180767,
+        "mean_released_bench_up_n": 0.08240400000000078,
+        "mean_released_jaw_force_n": 0.0,
+        "min_bench_margin_m": 0.02594638633104859,
+        "min_hold_bench_gap_m": 0.14961452566366196,
+        "min_hold_panel_squeeze_n": [
+          0.6156832319896687,
+          0.6156484032679697
+        ],
+        "panel_flare_m": 0.0,
+        "refined_ticks": 55,
+        "step_p95_ns": 2543099,
+        "sum_sheet_self_contact_ns": 0.5798156552361322,
+        "weight_n": 0.082404
+      },
+      "status": "completed"
+    },
+    {
+      "metrics": {
+        "accepted_material_substeps": 7528,
+        "case": {
+          "closed": true,
+          "mass_scale": 1.0,
+          "stiffness_scale": 1.0,
+          "substeps": 2
+        },
+        "energy": {
+          "final_material_change_j": -1.3989791373958393e-9,
+          "initial_material_j": 0.01256661,
+          "max_angular_impulse_residual_nms": 1.4563863883337282e-8,
+          "max_elastic_j": 4.539815715442307e-6,
+          "max_gravity_gain_j": 0.01250601537690184,
+          "max_kinetic_j": 0.0007348312837466662,
+          "max_material_gain_above_pad_work_j": 0.0,
+          "negative_pad_work_j": -0.013310847784907707,
+          "positive_pad_work_j": 0.015192089152307317,
+          "self_friction_loss_j": 0.000489671082390292
+        },
+        "max_compression_m": 0.0006185874894124622,
+        "max_hold_panel_drift_m": [
+          2.776608838683803e-9,
+          1.6165527735867435e-9
+        ],
+        "max_linear_impulse_residual_ns": 3.4077261814511207e-18,
+        "max_material_substeps": 8,
+        "max_pad_attribution_residual_ns": 2.1687113726781257e-18,
+        "max_refinement_doublings": 2,
+        "max_strain": 0.00029316147302937967,
+        "mean_hold_bench_up_n": 0.0,
+        "mean_hold_jaw_squeeze_n": [
+          0.6162348888594201,
+          0.61623487539486
+        ],
+        "mean_hold_jaw_up_n": [
+          0.03633211007952448,
+          0.046076062533473974
+        ],
+        "mean_hold_lift_m": [
+          0.14961802974869667,
+          0.14961869004902797
+        ],
+        "mean_hold_panel_normal_by_jaw_n": [
+          [
+            0.6162348888594202,
+            0.0
+          ],
+          [
+            0.0,
+            0.616234875394861
+          ]
+        ],
+        "mean_hold_panel_relative_height_m": [
+          -0.042496796004700174,
+          -0.04249613570436897
+        ],
+        "mean_hold_panel_up_by_jaw_n": [
+          [
+            0.03633211007952454,
+            0.0
+          ],
+          [
+            0.0,
+            0.04607606253347394
+          ]
+        ],
+        "mean_hold_self_contact_n": 0.24703434760487106,
+        "mean_released_bench_up_n": 0.08240399999999705,
+        "mean_released_jaw_force_n": 0.0,
+        "min_bench_margin_m": 0.025980526527965214,
+        "min_hold_bench_gap_m": 0.14961681091706858,
+        "min_hold_panel_squeeze_n": [
+          0.6162295803144273,
+          0.6162299865499696
+        ],
+        "panel_flare_m": 0.0,
+        "refined_ticks": 310,
+        "step_p95_ns": 1923489,
+        "sum_sheet_self_contact_ns": 0.4810408996561874,
+        "weight_n": 0.082404
+      },
+      "status": "completed"
+    },
+    {
+      "metrics": {
+        "accepted_material_substeps": 13880,
+        "case": {
+          "closed": true,
+          "mass_scale": 1.0,
+          "stiffness_scale": 1.0,
+          "substeps": 4
+        },
+        "energy": {
+          "final_material_change_j": -1.402589643387242e-9,
+          "initial_material_j": 0.01256661,
+          "max_angular_impulse_residual_nms": 6.093062265575105e-9,
+          "max_elastic_j": 5.004850837099789e-6,
+          "max_gravity_gain_j": 0.012506005019950554,
+          "max_kinetic_j": 0.0007349299558886055,
+          "max_material_gain_above_pad_work_j": 0.0,
+          "negative_pad_work_j": -0.013334891950324517,
+          "positive_pad_work_j": 0.015195964661613683,
+          "self_friction_loss_j": 0.00008258068353469975
+        },
+        "max_compression_m": 0.0006250487834719223,
+        "max_hold_panel_drift_m": [
+          3.497622217546459e-8,
+          2.067399246935553e-8
+        ],
+        "max_linear_impulse_residual_ns": 4.582278014135543e-18,
+        "max_material_substeps": 8,
+        "max_pad_attribution_residual_ns": 1.7366356908003836e-18,
+        "max_refinement_doublings": 1,
+        "max_strain": 0.0003224787535943685,
+        "mean_hold_bench_up_n": 0.0,
+        "mean_hold_jaw_squeeze_n": [
+          0.6159057796840172,
+          0.6159057796994327
+        ],
+        "mean_hold_jaw_up_n": [
+          0.038935104223258396,
+          0.04347310318829983
+        ],
+        "mean_hold_lift_m": [
+          0.14961815909264056,
+          0.14961847785502833
+        ],
+        "mean_hold_panel_normal_by_jaw_n": [
+          [
+            0.6159057796839971,
+            0.0
+          ],
+          [
+            0.0,
+            0.6159057796994183
+          ]
+        ],
+        "mean_hold_panel_relative_height_m": [
+          -0.04249666664219971,
+          -0.04249634787981153
+        ],
+        "mean_hold_panel_up_by_jaw_n": [
+          [
+            0.038935104223258486,
+            0.0
+          ],
+          [
+            0.0,
+            0.0434731031882998
+          ]
+        ],
+        "mean_hold_self_contact_n": 0.12312109593884409,
+        "mean_released_bench_up_n": 0.08240400000000124,
+        "mean_released_jaw_force_n": 0.0,
+        "min_bench_margin_m": 0.025954753987620243,
+        "min_hold_bench_gap_m": 0.1496166940503333,
+        "min_hold_panel_squeeze_n": [
+          0.6158776526721634,
+          0.6158755139692086
+        ],
+        "panel_flare_m": 0.0,
+        "refined_ticks": 70,
+        "step_p95_ns": 1815459,
+        "sum_sheet_self_contact_ns": 0.25777744980529316,
+        "weight_n": 0.082404
+      },
+      "status": "completed"
+    }
+  ],
+  "parallel_layer_references": [
+    {
+      "accepted_material_substeps": 27200,
+      "case": {
+        "closed": true,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 8
+      },
+      "energy": {
+        "final_material_change_j": -1.4109803655321107e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 1.6202746990876145e-9,
+        "max_elastic_j": 4.6039738445830906e-6,
+        "max_gravity_gain_j": 0.01250599459463369,
+        "max_kinetic_j": 0.0007342648856213649,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": -0.013347465657455844,
+        "positive_pad_work_j": 0.015198165119639563,
+        "self_friction_loss_j": 0.000016050910075298633
+      },
+      "max_compression_m": 0.000623001725132414,
+      "max_hold_panel_drift_m": [
+        5.795095653349236e-10,
+        4.72528655093285e-10
+      ],
+      "max_linear_impulse_residual_ns": 5.229428761222087e-18,
+      "max_material_substeps": 8,
+      "max_pad_attribution_residual_ns": 2.6122656996840018e-18,
+      "max_refinement_doublings": 0,
+      "max_strain": 0.0002976106048853122,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_jaw_squeeze_n": [
+        0.6154159724670099,
+        0.6154159724658327
+      ],
+      "mean_hold_jaw_up_n": [
+        0.04106017761255221,
+        0.04134802728470376
+      ],
+      "mean_hold_lift_m": [
+        0.14961823438424124,
+        0.14961825255355884
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.6154159724670101,
+          0.0
+        ],
+        [
+          0.0,
+          0.6154159724658332
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.042496591370454445,
+        -0.042496573201136326
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.04106017761255223,
+          0.0
+        ],
+        [
+          0.0,
+          0.0413480272847037
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.049146333273549975,
+      "mean_released_bench_up_n": 0.0824039999999982,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.025997251377891193,
+      "min_hold_bench_gap_m": 0.14961663654776647,
+      "min_hold_panel_squeeze_n": [
+        0.6154138116822893,
+        0.6154135680420273
+      ],
+      "panel_flare_m": 0.0,
+      "refined_ticks": 0,
+      "step_p95_ns": 2679559,
+      "sum_sheet_self_contact_ns": 0.10496990106523,
+      "weight_n": 0.082404
+    },
+    {
+      "accepted_material_substeps": 40800,
+      "case": {
+        "closed": true,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 12
+      },
+      "energy": {
+        "final_material_change_j": -1.413924689136481e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 8.728476075428719e-10,
+        "max_elastic_j": 4.638434887368296e-6,
+        "max_gravity_gain_j": 0.012506073587420409,
+        "max_kinetic_j": 0.0007342272979107766,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": -0.013352809749115475,
+        "positive_pad_work_j": 0.01520020972817537,
+        "self_friction_loss_j": 0.000018720550802251652
+      },
+      "max_compression_m": 0.0006235756808269655,
+      "max_hold_panel_drift_m": [
+        1.8408422008953096e-10,
+        1.8399037848837452e-10
+      ],
+      "max_linear_impulse_residual_ns": 5.9352335500771565e-18,
+      "max_material_substeps": 12,
+      "max_pad_attribution_residual_ns": 3.6863278694207545e-18,
+      "max_refinement_doublings": 0,
+      "max_strain": 0.0002981875151203406,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_jaw_squeeze_n": [
+        0.6152197013423223,
+        0.6152197013907533
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041586017878435105,
+        0.04082218379103965
+      ],
+      "mean_hold_lift_m": [
+        0.14961927274174364,
+        0.1496191892926645
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.6152197013423214,
+          0.0
+        ],
+        [
+          0.0,
+          0.6152197013907529
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.042495553036411664,
+        -0.042495636485491005
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.041586017878435015,
+          0.0
+        ],
+        [
+          0.0,
+          0.04082218379103971
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.024859495271049057,
+      "mean_released_bench_up_n": 0.08240400000000359,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.025997526793382807,
+      "min_hold_bench_gap_m": 0.14961743576981534,
+      "min_hold_panel_squeeze_n": [
+        0.6152196924719667,
+        0.6152196926547706
+      ],
+      "panel_flare_m": 0.0,
+      "refined_ticks": 0,
+      "step_p95_ns": 3836079,
+      "sum_sheet_self_contact_ns": 0.05684715582900916,
+      "weight_n": 0.082404
+    },
+    {
+      "accepted_material_substeps": 54400,
+      "case": {
+        "closed": true,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 16
+      },
+      "energy": {
+        "final_material_change_j": -1.4145513736046889e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 6.260224408086852e-10,
+        "max_elastic_j": 4.6389764091149045e-6,
+        "max_gravity_gain_j": 0.012506123708401045,
+        "max_kinetic_j": 0.0007342236463435616,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": -0.013355126246174631,
+        "positive_pad_work_j": 0.01519468430500409,
+        "self_friction_loss_j": 0.000013770381032175454
+      },
+      "max_compression_m": 0.0006236357182490652,
+      "max_hold_panel_drift_m": [
+        2.2099692909005597e-10,
+        2.1980450098935123e-10
+      ],
+      "max_linear_impulse_residual_ns": 6.240524129661216e-18,
+      "max_material_substeps": 16,
+      "max_pad_attribution_residual_ns": 4.55365964266854e-18,
+      "max_refinement_doublings": 0,
+      "max_strain": 0.0002981134741290026,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_jaw_squeeze_n": [
+        0.615167707228559,
+        0.6151677076468943
+      ],
+      "mean_hold_jaw_up_n": [
+        0.041401040088452204,
+        0.04100715824553816
+      ],
+      "mean_hold_lift_m": [
+        0.14961987318261769,
+        0.14961983634714096
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.6151677072285586,
+          0.0
+        ],
+        [
+          0.0,
+          0.6151677076468942
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.042494952620003607,
+        -0.04249498945547973
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.041401040088452086,
+          0.0
+        ],
+        [
+          0.0,
+          0.04100715824553819
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.019180889958523385,
+      "mean_released_bench_up_n": 0.08240399999999896,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.025997448897159717,
+      "min_hold_bench_gap_m": 0.14961803909365584,
+      "min_hold_panel_squeeze_n": [
+        0.6151676639984529,
+        0.6151676676238403
+      ],
+      "panel_flare_m": 0.0,
+      "refined_ticks": 0,
+      "step_p95_ns": 5394528,
+      "sum_sheet_self_contact_ns": 0.04475759393200859,
+      "weight_n": 0.082404
+    }
+  ],
+  "radius_m": 0.011,
+  "self_friction": 0.3,
+  "shear_compliance_m_per_n": 0.00002,
+  "stretch_compliance_m_per_n": 0.00001,
+  "substeps": [
+    1,
+    2,
+    4
+  ],
+  "total_mass_kg": 0.0084,
+  "trials": [
+    {
+      "accepted_material_substeps": 3400,
+      "case": {
+        "closed": true,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 1
+      },
+      "energy": {
+        "final_material_change_j": -1.3519860352778634e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 3.6214982920476955e-8,
+        "max_elastic_j": 0.00009683993043389788,
+        "max_gravity_gain_j": 0.012506009458899311,
+        "max_kinetic_j": 0.0007342229744607441,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": -0.013297418478800331,
+        "positive_pad_work_j": 0.015355331555021908,
+        "self_friction_loss_j": 0.000028939524149791802
+      },
+      "max_compression_m": 0.0007017006404577593,
+      "max_hold_panel_drift_m": [
+        1.4741796672268492e-10,
+        1.4529808606278394e-10
+      ],
+      "max_linear_impulse_residual_ns": 1.9583088152049858e-18,
+      "max_material_substeps": 1,
+      "max_pad_attribution_residual_ns": 1.7350544329734987e-18,
+      "max_refinement_doublings": 0,
+      "max_strain": 0.0005900800650948668,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_jaw_squeeze_n": [
+        0.6527154673022224,
+        0.6527154673102977
+      ],
+      "mean_hold_jaw_up_n": [
+        0.026075263097884507,
+        0.0563329568146726
+      ],
+      "mean_hold_lift_m": [
+        0.14961716910272627,
+        0.14961942279368295
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.6527154673022227,
+          0.0
+        ],
+        [
+          0.0,
+          0.6527154673102986
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.042497656540907924,
+        -0.04249540284995108
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.02607526309788451,
+          0.0
+        ],
+        [
+          0.0,
+          0.056332956814672604
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.17470881056811918,
+      "mean_released_bench_up_n": 0.08240400000000014,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.0259920705820231,
+      "min_hold_bench_gap_m": 0.14961555225012352,
+      "min_hold_panel_squeeze_n": [
+        0.6527154610293695,
+        0.6527154610340473
+      ],
+      "panel_flare_m": 0.00015,
+      "refined_ticks": 0,
+      "step_p95_ns": 474299,
+      "sum_sheet_self_contact_ns": 0.36225721854079135,
+      "weight_n": 0.082404
+    },
+    {
+      "accepted_material_substeps": 3400,
+      "case": {
+        "closed": false,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 1
+      },
+      "energy": {
+        "final_material_change_j": -1.3519860352778634e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 4.082172151568562e-13,
+        "max_elastic_j": 1.4331177807184822e-9,
+        "max_gravity_gain_j": 0.0,
+        "max_kinetic_j": 9.51780581001255e-12,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": 0.0,
+        "positive_pad_work_j": 0.0,
+        "self_friction_loss_j": 0.0
+      },
+      "max_compression_m": 0.0,
+      "max_hold_panel_drift_m": [
+        4.761869976360744e-6,
+        4.761869976305233e-6
+      ],
+      "max_linear_impulse_residual_ns": 1.0842021839014898e-19,
+      "max_material_substeps": 1,
+      "max_pad_attribution_residual_ns": 0.0,
+      "max_refinement_doublings": 0,
+      "max_strain": 1.619965387611444e-6,
+      "mean_hold_bench_up_n": 0.08240399999999991,
+      "mean_hold_jaw_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_lift_m": [
+        -3.438673843375308e-8,
+        -3.282969547700884e-8
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.19219714647774727,
+        -0.19219714492070478
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.0,
+      "mean_released_bench_up_n": 0.08240400000000037,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.02599994596072591,
+      "min_hold_bench_gap_m": 1.0408340855860843e-17,
+      "min_hold_panel_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "panel_flare_m": 0.00015,
+      "refined_ticks": 0,
+      "step_p95_ns": 290450,
+      "sum_sheet_self_contact_ns": 0.0,
+      "weight_n": 0.082404
+    },
+    {
+      "accepted_material_substeps": 6800,
+      "case": {
+        "closed": true,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 2
+      },
+      "energy": {
+        "final_material_change_j": -1.3965576195484886e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 1.9239258991004438e-8,
+        "max_elastic_j": 0.000011139283727843686,
+        "max_gravity_gain_j": 0.01250601121535728,
+        "max_kinetic_j": 0.0007342619838881918,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": -0.013354692540293724,
+        "positive_pad_work_j": 0.015324964612380105,
+        "self_friction_loss_j": 0.00006183398981865558
+      },
+      "max_compression_m": 0.0007064931148024964,
+      "max_hold_panel_drift_m": [
+        5.8135218861110616e-11,
+        5.5593814274335074e-11
+      ],
+      "max_linear_impulse_residual_ns": 2.8145914122094147e-18,
+      "max_material_substeps": 2,
+      "max_pad_attribution_residual_ns": 1.517939440117177e-18,
+      "max_refinement_doublings": 0,
+      "max_strain": 0.000263934536655297,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_jaw_squeeze_n": [
+        0.6529653563375423,
+        0.6529653563452477
+      ],
+      "mean_hold_jaw_up_n": [
+        0.03441782963998248,
+        0.04799038124833337
+      ],
+      "mean_hold_lift_m": [
+        0.1496178179372878,
+        0.14961889437612214
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.6529653563375416,
+          0.0
+        ],
+        [
+          0.0,
+          0.6529653563452471
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.04249700777383898,
+        -0.0424959313350045
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.03441782963998249,
+          0.0
+        ],
+        [
+          0.0,
+          0.04799038124833341
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.13341609060074391,
+      "mean_released_bench_up_n": 0.08240399999999978,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.025994718677900434,
+      "min_hold_bench_gap_m": 0.14961639232408847,
+      "min_hold_panel_squeeze_n": [
+        0.6529653524109904,
+        0.6529653524151896
+      ],
+      "panel_flare_m": 0.00015,
+      "refined_ticks": 0,
+      "step_p95_ns": 717880,
+      "sum_sheet_self_contact_ns": 0.27809466252498,
+      "weight_n": 0.082404
+    },
+    {
+      "accepted_material_substeps": 6800,
+      "case": {
+        "closed": false,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 2
+      },
+      "energy": {
+        "final_material_change_j": -1.3965576195484886e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 1.5982838939076862e-13,
+        "max_elastic_j": 1.4725332972665292e-9,
+        "max_gravity_gain_j": 0.0,
+        "max_kinetic_j": 3.5697684962368983e-13,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": 0.0,
+        "positive_pad_work_j": 0.0,
+        "self_friction_loss_j": 0.0
+      },
+      "max_compression_m": 0.0,
+      "max_hold_panel_drift_m": [
+        4.761869976360744e-6,
+        4.761869976305233e-6
+      ],
+      "max_linear_impulse_residual_ns": 1.0842021822220202e-19,
+      "max_material_substeps": 2,
+      "max_pad_attribution_residual_ns": 0.0,
+      "max_refinement_doublings": 0,
+      "max_strain": 1.6364066773855157e-6,
+      "mean_hold_bench_up_n": 0.08240399999999842,
+      "mean_hold_jaw_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_lift_m": [
+        -3.432527861170627e-8,
+        -3.386657532562664e-8
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.19219714641628763,
+        -0.19219714595758464
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.0,
+      "mean_released_bench_up_n": 0.08240400000000009,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.025999947368614173,
+      "min_hold_bench_gap_m": 1.0408340855860843e-17,
+      "min_hold_panel_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "panel_flare_m": 0.00015,
+      "refined_ticks": 0,
+      "step_p95_ns": 533840,
+      "sum_sheet_self_contact_ns": 0.0,
+      "weight_n": 0.082404
+    },
+    {
+      "accepted_material_substeps": 13600,
+      "case": {
+        "closed": true,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 4
+      },
+      "energy": {
+        "final_material_change_j": -1.40452131175417e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 8.72776574646851e-9,
+        "max_elastic_j": 4.548988469688887e-6,
+        "max_gravity_gain_j": 0.012506005553514709,
+        "max_kinetic_j": 0.0007343134933273451,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": -0.013385122686472982,
+        "positive_pad_work_j": 0.015331820648505173,
+        "self_friction_loss_j": 0.000030122344541763962
+      },
+      "max_compression_m": 0.0007092020744363971,
+      "max_hold_panel_drift_m": [
+        2.36507063933189e-11,
+        2.485040645483494e-11
+      ],
+      "max_linear_impulse_residual_ns": 4.0283934354730054e-18,
+      "max_material_substeps": 4,
+      "max_pad_attribution_residual_ns": 2.059999306022632e-18,
+      "max_refinement_doublings": 0,
+      "max_strain": 0.00031209470300941344,
+      "mean_hold_bench_up_n": 0.0,
+      "mean_hold_jaw_squeeze_n": [
+        0.6526415719431544,
+        0.6526415719531254
+      ],
+      "mean_hold_jaw_up_n": [
+        0.03902406777942704,
+        0.04338413965267397
+      ],
+      "mean_hold_lift_m": [
+        0.1496181515771201,
+        0.14961850387767892
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.6526415719431549,
+          0.0
+        ],
+        [
+          0.0,
+          0.6526415719531249
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.042496674159112575,
+        -0.042496321858553995
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.03902406777942702,
+          0.0
+        ],
+        [
+          0.0,
+          0.043384139652673966
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.06621216146662111,
+      "mean_released_bench_up_n": 0.08240400000000475,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.025996980634188312,
+      "min_hold_bench_gap_m": 0.14961675037422406,
+      "min_hold_panel_squeeze_n": [
+        0.6526415695685163,
+        0.6526415695816581
+      ],
+      "panel_flare_m": 0.00015,
+      "refined_ticks": 0,
+      "step_p95_ns": 912590,
+      "sum_sheet_self_contact_ns": 0.14044499161414714,
+      "weight_n": 0.082404
+    },
+    {
+      "accepted_material_substeps": 13600,
+      "case": {
+        "closed": false,
+        "mass_scale": 1.0,
+        "stiffness_scale": 1.0,
+        "substeps": 4
+      },
+      "energy": {
+        "final_material_change_j": -1.4045213134888934e-9,
+        "initial_material_j": 0.01256661,
+        "max_angular_impulse_residual_nms": 9.106386503022704e-14,
+        "max_elastic_j": 1.4145814818419987e-9,
+        "max_gravity_gain_j": 0.0,
+        "max_kinetic_j": 2.996057594599225e-13,
+        "max_material_gain_above_pad_work_j": 0.0,
+        "negative_pad_work_j": 0.0,
+        "positive_pad_work_j": 0.0,
+        "self_friction_loss_j": 0.0
+      },
+      "max_compression_m": 0.0,
+      "max_hold_panel_drift_m": [
+        4.761869976360744e-6,
+        4.761869976332989e-6
+      ],
+      "max_linear_impulse_residual_ns": 2.032879095576214e-19,
+      "max_material_substeps": 4,
+      "max_pad_attribution_residual_ns": 0.0,
+      "max_refinement_doublings": 0,
+      "max_strain": 1.6028381091270916e-6,
+      "mean_hold_bench_up_n": 0.08240399999999894,
+      "mean_hold_jaw_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_jaw_up_n": [
+        0.0,
+        0.0
+      ],
+      "mean_hold_lift_m": [
+        -3.427290772808914e-8,
+        -3.414859579622952e-8
+      ],
+      "mean_hold_panel_normal_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "mean_hold_panel_relative_height_m": [
+        -0.19219714636391705,
+        -0.19219714623960465
+      ],
+      "mean_hold_panel_up_by_jaw_n": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "mean_hold_self_contact_n": 0.0,
+      "mean_released_bench_up_n": 0.08240400000000331,
+      "mean_released_jaw_force_n": 0.0,
+      "min_bench_margin_m": 0.02599994767324978,
+      "min_hold_bench_gap_m": 1.6660405693924574e-11,
+      "min_hold_panel_squeeze_n": [
+        0.0,
+        0.0
+      ],
+      "panel_flare_m": 0.00015,
+      "refined_ticks": 0,
+      "step_p95_ns": 913759,
+      "sum_sheet_self_contact_ns": 0.0,
+      "weight_n": 0.082404
+    }
+  ]
+}

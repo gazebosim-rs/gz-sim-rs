@@ -1,0 +1,344 @@
+{
+  "cases": [
+    {
+      "baseline_ns": 3150000000,
+      "columns": 5,
+      "control": {
+        "escaped_after_tick": null,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 20,
+        "final_patch_motion_m": [
+          2.7466974354684037e-09,
+          -4.5962177627235925e-10
+        ],
+        "final_stroke_m": 0.07757469878642365,
+        "first_250um_tick": null,
+        "lost_aloft_tick": null,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 1200,
+        "outcome": "retained",
+        "patch_motion_at_400ms_m": [
+          2.873031049307681e-09,
+          -5.0479643338638415e-11
+        ],
+        "peak_patch_motion_m": [
+          3.157817885651726e-09,
+          4.785063265760892e-10
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": null,
+        "full_recording_step_p95_ns": 35537024
+      },
+      "guard": {
+        "escaped_after_tick": null,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 20,
+        "final_patch_motion_m": [
+          2.7466974354684037e-09,
+          -4.5962177627235925e-10
+        ],
+        "final_stroke_m": 0.07757469878642365,
+        "first_250um_tick": null,
+        "lost_aloft_tick": null,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 1200,
+        "outcome": "retained",
+        "patch_motion_at_400ms_m": [
+          2.873031049307681e-09,
+          -5.0479643338638415e-11
+        ],
+        "peak_patch_motion_m": [
+          3.157817885651726e-09,
+          4.785063265760892e-10
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": null,
+        "full_recording_step_p95_ns": 13999483
+      },
+      "matching_postgrip_ticks": 1200,
+      "peak_mn": 300
+    },
+    {
+      "baseline_ns": 3250000000,
+      "columns": 7,
+      "control": {
+        "escaped_after_tick": null,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 20,
+        "final_patch_motion_m": [
+          -1.284286867304918e-08,
+          4.0815819829119125e-08
+        ],
+        "final_stroke_m": 0.07766902121043864,
+        "first_250um_tick": null,
+        "lost_aloft_tick": null,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 1200,
+        "outcome": "retained",
+        "patch_motion_at_400ms_m": [
+          1.49801195978988e-09,
+          2.5409457602527592e-08
+        ],
+        "peak_patch_motion_m": [
+          1.3005131421425786e-08,
+          4.1002529134991084e-08
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": null,
+        "full_recording_step_p95_ns": 45465591
+      },
+      "guard": {
+        "escaped_after_tick": null,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 20,
+        "final_patch_motion_m": [
+          -1.284286867304918e-08,
+          4.0815819829119125e-08
+        ],
+        "final_stroke_m": 0.07766902121043864,
+        "first_250um_tick": null,
+        "lost_aloft_tick": null,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 1200,
+        "outcome": "retained",
+        "patch_motion_at_400ms_m": [
+          1.49801195978988e-09,
+          2.5409457602527592e-08
+        ],
+        "peak_patch_motion_m": [
+          1.3005131421425786e-08,
+          4.1002529134991084e-08
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": null,
+        "full_recording_step_p95_ns": 72267160
+      },
+      "matching_postgrip_ticks": 1200,
+      "peak_mn": 300
+    },
+    {
+      "baseline_ns": 3150000000,
+      "columns": 5,
+      "control": {
+        "escaped_after_tick": null,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 20,
+        "final_patch_motion_m": [
+          0.012132824273301273,
+          0.01213606329187668
+        ],
+        "final_stroke_m": 0.07760586432132138,
+        "first_250um_tick": 65,
+        "lost_aloft_tick": null,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 1200,
+        "outcome": "retained",
+        "patch_motion_at_400ms_m": [
+          0.012132846569483206,
+          0.012136071862943937
+        ],
+        "peak_patch_motion_m": [
+          0.01213287984350167,
+          0.012136114883158751
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": null,
+        "full_recording_step_p95_ns": 19704702
+      },
+      "guard": {
+        "escaped_after_tick": null,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 20,
+        "final_patch_motion_m": [
+          0.0011021310279322224,
+          0.0011062096926396068
+        ],
+        "final_stroke_m": 0.0777256011999801,
+        "first_250um_tick": 65,
+        "lost_aloft_tick": null,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 1200,
+        "outcome": "retained",
+        "patch_motion_at_400ms_m": [
+          0.0011021330037266064,
+          0.0011062144463289915
+        ],
+        "peak_patch_motion_m": [
+          0.0011021351219889014,
+          0.0011062165629880842
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": 62,
+        "full_recording_step_p95_ns": 59975430
+      },
+      "matching_postgrip_ticks": 62,
+      "peak_mn": 1100
+    },
+    {
+      "baseline_ns": 3250000000,
+      "columns": 7,
+      "control": {
+        "escaped_after_tick": null,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 20,
+        "final_patch_motion_m": [
+          0.017402435811719817,
+          0.0174073107257027
+        ],
+        "final_stroke_m": 0.07768545087269287,
+        "first_250um_tick": 67,
+        "lost_aloft_tick": null,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 1200,
+        "outcome": "retained",
+        "patch_motion_at_400ms_m": [
+          0.01740238706599777,
+          0.017407363526750597
+        ],
+        "peak_patch_motion_m": [
+          0.017402436262231993,
+          0.01740739355645928
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": null,
+        "full_recording_step_p95_ns": 44272798
+      },
+      "guard": {
+        "escaped_after_tick": null,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 20,
+        "final_patch_motion_m": [
+          0.001079269310368725,
+          0.001085965188448891
+        ],
+        "final_stroke_m": 0.07781405596017477,
+        "first_250um_tick": 67,
+        "lost_aloft_tick": null,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 1200,
+        "outcome": "retained",
+        "patch_motion_at_400ms_m": [
+          0.0010792702825466864,
+          0.0010859168797371067
+        ],
+        "peak_patch_motion_m": [
+          0.001079275175208195,
+          0.0010859654670609857
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": 64,
+        "full_recording_step_p95_ns": 78409969
+      },
+      "matching_postgrip_ticks": 64,
+      "peak_mn": 1160
+    },
+    {
+      "baseline_ns": 3150000000,
+      "columns": 5,
+      "control": {
+        "escaped_after_tick": 132,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 0,
+        "final_patch_motion_m": [
+          0.08814530121013937,
+          0.08812502685518395
+        ],
+        "final_stroke_m": 0.07760228415206054,
+        "first_250um_tick": 51,
+        "lost_aloft_tick": 121,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 132,
+        "outcome": "lost_aloft",
+        "patch_motion_at_400ms_m": null,
+        "peak_patch_motion_m": [
+          0.12532168708588273,
+          0.12528100657445632
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": null,
+        "full_recording_step_p95_ns": 17164466
+      },
+      "guard": {
+        "escaped_after_tick": 140,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 0,
+        "final_patch_motion_m": [
+          0.08795832698269848,
+          0.08792366025254571
+        ],
+        "final_stroke_m": 0.07772469878642364,
+        "first_250um_tick": 51,
+        "lost_aloft_tick": 129,
+        "lower_after_tick": 99,
+        "observed_postgrip_ticks": 140,
+        "outcome": "lost_aloft",
+        "patch_motion_at_400ms_m": null,
+        "peak_patch_motion_m": [
+          0.12298462116887902,
+          0.12292020675988513
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": 50,
+        "full_recording_step_p95_ns": 13481026
+      },
+      "matching_postgrip_ticks": 50,
+      "peak_mn": 1250
+    },
+    {
+      "baseline_ns": 3250000000,
+      "columns": 7,
+      "control": {
+        "escaped_after_tick": 133,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 0,
+        "final_patch_motion_m": [
+          0.0864466364189289,
+          0.08642782054669712
+        ],
+        "final_stroke_m": 0.07766506543128489,
+        "first_250um_tick": 52,
+        "lost_aloft_tick": 123,
+        "lower_after_tick": null,
+        "observed_postgrip_ticks": 133,
+        "outcome": "lost_aloft",
+        "patch_motion_at_400ms_m": null,
+        "peak_patch_motion_m": [
+          0.12354913643940345,
+          0.12350701836423392
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": null,
+        "full_recording_step_p95_ns": 45831552
+      },
+      "guard": {
+        "escaped_after_tick": 142,
+        "final_bench_supported_ticks": 0,
+        "final_bilateral_ticks": 0,
+        "final_patch_motion_m": [
+          0.08707457574605906,
+          0.08703425657345995
+        ],
+        "final_stroke_m": 0.07781035648128135,
+        "first_250um_tick": 52,
+        "lost_aloft_tick": 132,
+        "lower_after_tick": 100,
+        "observed_postgrip_ticks": 142,
+        "outcome": "lost_aloft",
+        "patch_motion_at_400ms_m": null,
+        "peak_patch_motion_m": [
+          0.12223255464770068,
+          0.12215668637906649
+        ],
+        "release_after_tick": null,
+        "tighten_after_tick": 51,
+        "full_recording_step_p95_ns": 42767924
+      },
+      "matching_postgrip_ticks": 51,
+      "peak_mn": 1300
+    }
+  ],
+  "dt_ns": 1000000,
+  "extra_stroke_m": 0.00015,
+  "horizon_ticks": 1200,
+  "step_cost_scope": "All recorded native steps including pickup and closure, shared workstation; independently repeated initial states."
+}

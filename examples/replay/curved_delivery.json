@@ -1,0 +1,80 @@
+{
+  "seed": "curved-delivery",
+  "commands": [
+    {
+      "op": "step",
+      "count": 10
+    },
+    {
+      "op": "spawn",
+      "template": "default::cylinder",
+      "alias": "roller",
+      "position": [
+        -0.15,
+        -0.12,
+        0.25
+      ]
+    },
+    {
+      "op": "spawn",
+      "template": "default::capsule",
+      "alias": "canister",
+      "position": [
+        0.15,
+        -0.12,
+        0.25
+      ]
+    },
+    {
+      "op": "step",
+      "count": 750
+    },
+    {
+      "op": "remove",
+      "alias": "roller"
+    },
+    {
+      "op": "remove",
+      "alias": "canister"
+    },
+    {
+      "op": "reset"
+    },
+    {
+      "op": "step",
+      "count": 10
+    },
+    {
+      "op": "spawn",
+      "template": "default::cylinder",
+      "alias": "roller",
+      "position": [
+        -0.15,
+        -0.12,
+        0.25
+      ]
+    },
+    {
+      "op": "spawn",
+      "template": "default::capsule",
+      "alias": "canister",
+      "position": [
+        0.15,
+        -0.12,
+        0.25
+      ]
+    },
+    {
+      "op": "step",
+      "count": 750
+    },
+    {
+      "op": "remove",
+      "alias": "roller"
+    },
+    {
+      "op": "remove",
+      "alias": "canister"
+    }
+  ]
+}

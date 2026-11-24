@@ -1,0 +1,415 @@
+{
+  "physics_source": "6b202dcae0c3a0b5de4203378c495628725ffaff",
+  "preceding_physics_source": "b393c7aa877619c4d1d3d1f69bce9ba1904b882e",
+  "identical_observations_and_recordings_across_final_restriction": {
+    "left": {
+      "frames.jsonl": "f1c1a376d7e0548ac7b3b1f82f91df611649aa80987183f6c336cb93a0242ed0",
+      "manifest.json": "54d66423d27b34f382edfb672fee6b7c7df9a74d77e01f3816abe8772f34b8b6"
+    },
+    "away": {
+      "frames.jsonl": "82765009c06e45b06589875eb9f1ec8fc0a80b55675b5c538b183096d93692e1",
+      "manifest.json": "f51eea919688e04a91b7d84c9deec123e30c8f9a3985225aec53c2faf920cc7e"
+    },
+    "right": {
+      "frames.jsonl": "77402936c1d93bcda71688dd9cb648bab07257cc4ce82e1f55590fe5cc6c5d40",
+      "manifest.json": "843c4b86ade323042cde8647813970e5be36b838b2e99bd1e9e67532015340ca"
+    }
+  },
+  "readback_source": "b9e38d9",
+  "readback_binary_sha256": "67c8a04b2c02ce1878d6896e435ede33ed62eebcdc533359cb5c138cfbdeff74",
+  "replay_server_binary_sha256": "d2ea6696e648d9c587635ea68c10ac416d246772a4dffea30edc862121a0f630",
+  "renderer_checker_binary_sha256": "33d0da5ebb269cfb7a2f083bf0ba556520e4577338c9fe6b77a80aefe51e35dc",
+  "coverage": {
+    "lines": [
+      217,
+      220
+    ],
+    "regions": [
+      408,
+      424
+    ],
+    "functions": [
+      18,
+      18
+    ],
+    "source": "tools/physics-audit/numerics/src/bin/powered_slider_view.rs",
+    "binary_sha256": "67c8a04b2c02ce1878d6896e435ede33ed62eebcdc533359cb5c138cfbdeff74",
+    "profile_sha256": "11acf9ff8eb0709f0ce8938eff1b39d46901101e90300c494ddef55d7c577757"
+  },
+  "negative_qualification_controls": [
+    {
+      "case": "initial frame missing",
+      "error": "Error: \"missing initial frame\""
+    },
+    {
+      "case": "wrong incoming sphere",
+      "error": "Error: \"unexpected incoming sphere pose\""
+    },
+    {
+      "case": "nonconsecutive physics steps",
+      "error": "Error: \"nonconsecutive advancing observations\""
+    },
+    {
+      "case": "missing held effort",
+      "error": "Error: \"expected one powered slider\""
+    },
+    {
+      "case": "command reversed within episode",
+      "error": "Error: \"slider force changed during the trial\""
+    },
+    {
+      "case": "wrong input force",
+      "error": "Error: \"slider force changed during the trial\""
+    },
+    {
+      "case": "non-numeric encoder",
+      "error": "Error: \"expected numerical observation\""
+    },
+    {
+      "case": "unexpected second impact",
+      "error": "Error: \"the fixture has more than one loaded tick\""
+    },
+    {
+      "case": "recording ends early",
+      "error": "Error: \"recording ended before the final observed physics step\""
+    },
+    {
+      "case": "missing visual",
+      "error": "Error: \"missing fixture visual default::parcel::body::sphere\""
+    },
+    {
+      "case": "frame without encoder tick",
+      "error": "Error: \"recorded frame does not have an encoder observation\""
+    },
+    {
+      "case": "missing contact frame",
+      "error": "Error: \"frame cadence missed the first impulse\""
+    },
+    {
+      "case": "forged visual position",
+      "error": "Error: \"native replay errors: rig 2e-1 m, quaternion 2.2247786310271853e-16, sphere 1.9056696300839837e-8 m (bound 1.1149659398240698e-6)\""
+    },
+    {
+      "case": "forged rotation",
+      "error": "Error: \"native replay errors: rig 5.594315114139762e-17 m, quaternion 1.4142135623730951e0, sphere 1.9056696300839837e-8 m (bound 1.1149659398240698e-6)\""
+    },
+    {
+      "case": "forged sphere",
+      "error": "Error: \"native replay errors: rig 5.594315114139762e-17 m, quaternion 2.2247786310271853e-16, sphere 4.239481554359363e-1 m (bound 1.1149659398240698e-6)\""
+    },
+    {
+      "case": "premature pulse",
+      "error": "Error: \"first loaded tick does not bracket the incoming face crossing\""
+    },
+    {
+      "case": "empty receipt",
+      "error": "Error: \"empty scene\""
+    },
+    {
+      "case": "release claimed on a held trajectory",
+      "error": "Error: \"held/release motion disagrees with impact side\""
+    },
+    {
+      "case": "missing encoder array",
+      "error": "Error: \"missing joint encoders\""
+    },
+    {
+      "case": "missing force array",
+      "error": "Error: \"missing persistent force\""
+    },
+    {
+      "case": "missing slider encoder",
+      "error": "Error: \"missing encoder\""
+    },
+    {
+      "case": "missing clock",
+      "error": "Error: \"missing public time\""
+    },
+    {
+      "case": "missing timestep",
+      "error": "Error: \"missing authored timestep\""
+    },
+    {
+      "case": "missing trace header",
+      "error": "Error: \"missing execution profile\""
+    },
+    {
+      "case": "non-numeric force",
+      "error": "Error: \"expected numerical observation\""
+    },
+    {
+      "case": "invalid impulse quantity",
+      "error": "Error: \"expected numerical observation\""
+    },
+    {
+      "case": "missing frame seconds",
+      "error": "Error: \"scene seconds\""
+    },
+    {
+      "case": "missing frame fraction",
+      "error": "Error: \"scene nanoseconds\""
+    },
+    {
+      "case": "invalid incoming coordinates",
+      "error": "Error: Error(\"invalid length 0, expected an array of length 3\", line: 0, column: 0)"
+    },
+    {
+      "case": "invalid wrist coordinates",
+      "error": "Error: Error(\"invalid length 0, expected an array of length 3\", line: 0, column: 0)"
+    },
+    {
+      "case": "invalid wrist rotation",
+      "error": "Error: Error(\"invalid length 0, expected an array of length 4\", line: 0, column: 0)"
+    },
+    {
+      "case": "missing wrist in later frame",
+      "error": "Error: \"missing fixture visual default::wrist_rig::wrist::hub\""
+    },
+    {
+      "case": "missing sphere in later frame",
+      "error": "Error: \"missing fixture visual default::parcel::body::sphere\""
+    },
+    {
+      "case": "invalid sphere in later frame",
+      "error": "Error: Error(\"invalid length 0, expected an array of length 3\", line: 0, column: 0)"
+    },
+    {
+      "case": "no contact",
+      "error": "Error: \"the native solver delivered no impact\""
+    },
+    {
+      "case": "missing arguments",
+      "error": "Error: \"expected TRACE REPLAY_DIRECTORY OUTPUT_DIRECTORY\""
+    }
+  ],
+  "portable_archive_sha256": "08f90e06c1feba533158828527227f5ab285dca9e75d86e5d91b52c07240b6d9",
+  "cases": {
+    "left": {
+      "observations": {
+        "approach_x_m_s": 0.75,
+        "end_angle_rad": -0.16654094802879044,
+        "end_ns": 24000000,
+        "end_slide_m": 0.0,
+        "first_clearance_ns": null,
+        "first_contact_ns": 67000,
+        "force_n": 2.0,
+        "frames": 360,
+        "geometric_crossing_ns": 66666.66666666626,
+        "max_encoder_pose_error_m": 5.594315114139762e-17,
+        "max_encoder_quaternion_chord_error": 2.2247786310271853e-16,
+        "max_slide_m": 1.1757455251788703e-07,
+        "max_slide_time_ns": 68000,
+        "max_sphere_impulse_path_error_m": 1.9056696300839837e-08,
+        "positive_impulse_ns": 0.07299318796481394,
+        "release_clearance_m": 1e-06,
+        "reseated_ns": null,
+        "sphere_impulse_path_bound_m": 1.1149659398240698e-06
+      },
+      "first_loaded_joint_encoders": [
+        {
+          "id": 10,
+          "position": -3.633441819211847e-07,
+          "velocity": -6.9586171681327516,
+          "pending_effort": null
+        },
+        {
+          "id": 11,
+          "position": 0.0,
+          "velocity": 0.0,
+          "pending_effort": null
+        }
+      ],
+      "profile": {
+        "binary_sha256": "2b3ec26e13b5bc45f0396ceba84f77579877e663fd62cc49267fddde6a203155",
+        "cargo_lock_sha256": "0ab50949211f513f6845b6f11eff97323fe121e5ce75198b00c35a5f6cdaaa88",
+        "compiled_distributed": false,
+        "compiled_gpu_batch": false,
+        "cpu": "AuthenticAMD|26|68|0|AMD Ryzen 9 9950X3D 16-Core Processor|0xb404035|fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d amd_lbr_pmc_freeze",
+        "journal_sha256": "2022136640c156411e320c68236c4cbf7b6c8853448e223b10a0999976dca343",
+        "numerics": "native serial Rapier f64/enhanced-determinism",
+        "package": "0.1.0",
+        "platform": "linux-x86_64",
+        "profile": "local-cpu-v1",
+        "seed": "powered-slider-view",
+        "step_ns": 1000,
+        "world_sha256": "848745862f7ac35d902e524cd68438fda857d0ed1f7699f90e9edc2bdf732370"
+      },
+      "trace_sha256": "0b2c04eb23bea0ff562cabbd4da5d3a69e5057bc5e15b99192dbdfceaefa4f33",
+      "fresh_four_thread_trace_and_archive_exact": true,
+      "recording_geometry_sha256": "f1c1a376d7e0548ac7b3b1f82f91df611649aa80987183f6c336cb93a0242ed0",
+      "browser": {
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "body_poses_and_shapes_checked": 1440,
+        "coordinate_tolerance": 1e-12,
+        "captured_ms": {
+          "end": 24.0,
+          "first_contact": 0.067,
+          "incoming": 0.0
+        },
+        "frames": 360
+      },
+      "max_outside_commanded_stop_m": 0.0,
+      "max_clearance_inside_stop_m": 1.1757455251788703e-07,
+      "reset": {
+        "advanced_observations_per_epoch": 24000,
+        "differing_observations": 0,
+        "held_effort_resets_to_zero": true,
+        "compared_fields": "All ordinary observation fields, excluding epoch and command sequence number"
+      },
+      "reset_trace_sha256": "d034ca574f5b49be3ee59fbc2c5544233f72605fdb6e599390fd86299314ce0f"
+    },
+    "away": {
+      "observations": {
+        "approach_x_m_s": -0.75,
+        "end_angle_rad": 0.14901413324006396,
+        "end_ns": 24000000,
+        "end_slide_m": 0.0,
+        "first_clearance_ns": 69000,
+        "first_contact_ns": 67000,
+        "force_n": 2.0,
+        "frames": 360,
+        "geometric_crossing_ns": 66666.66666666626,
+        "max_encoder_pose_error_m": 5.594315114139762e-17,
+        "max_encoder_quaternion_chord_error": 2.2247786310271853e-16,
+        "max_slide_m": 0.002063696290867057,
+        "max_slide_time_ns": 7835000,
+        "max_sphere_impulse_path_error_m": 1.7058109669579324e-08,
+        "positive_impulse_ns": 0.06531748452117994,
+        "release_clearance_m": 1e-06,
+        "reseated_ns": 15602000,
+        "sphere_impulse_path_bound_m": 1.0765874226058997e-06
+      },
+      "first_loaded_joint_encoders": [
+        {
+          "id": 10,
+          "position": 1.4881502378323194e-07,
+          "velocity": 2.8478260439675553,
+          "pending_effort": null
+        },
+        {
+          "id": 11,
+          "position": -2.7758740253325036e-08,
+          "velocity": -0.5316734521179933,
+          "pending_effort": null
+        }
+      ],
+      "profile": {
+        "binary_sha256": "2b3ec26e13b5bc45f0396ceba84f77579877e663fd62cc49267fddde6a203155",
+        "cargo_lock_sha256": "0ab50949211f513f6845b6f11eff97323fe121e5ce75198b00c35a5f6cdaaa88",
+        "compiled_distributed": false,
+        "compiled_gpu_batch": false,
+        "cpu": "AuthenticAMD|26|68|0|AMD Ryzen 9 9950X3D 16-Core Processor|0xb404035|fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d amd_lbr_pmc_freeze",
+        "journal_sha256": "2022136640c156411e320c68236c4cbf7b6c8853448e223b10a0999976dca343",
+        "numerics": "native serial Rapier f64/enhanced-determinism",
+        "package": "0.1.0",
+        "platform": "linux-x86_64",
+        "profile": "local-cpu-v1",
+        "seed": "powered-slider-view",
+        "step_ns": 1000,
+        "world_sha256": "e173b83538d4c4cddf2d8d9d2ded17f939e39a4f6337a591999d43dfa3035049"
+      },
+      "trace_sha256": "b0d849c852b60344f7746e3ec893de464a988ab2cdd95eb9249983238c893de6",
+      "fresh_four_thread_trace_and_archive_exact": true,
+      "recording_geometry_sha256": "82765009c06e45b06589875eb9f1ec8fc0a80b55675b5c538b183096d93692e1",
+      "browser": {
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "body_poses_and_shapes_checked": 1440,
+        "coordinate_tolerance": 1e-12,
+        "captured_ms": {
+          "end": 24.0,
+          "first_contact": 0.067,
+          "incoming": 0.0,
+          "largest_slide": 7.839,
+          "reseated": 15.611
+        },
+        "frames": 360
+      },
+      "max_outside_commanded_stop_m": 0.0,
+      "max_clearance_inside_stop_m": 0.002063696290867057,
+      "reset": {
+        "advanced_observations_per_epoch": 24000,
+        "differing_observations": 0,
+        "held_effort_resets_to_zero": true,
+        "compared_fields": "All ordinary observation fields, excluding epoch and command sequence number"
+      },
+      "reset_trace_sha256": "140b07a1af48f1760f2398b9738523c98378cbca69f3aae89c65f401ef70aa05"
+    },
+    "right": {
+      "observations": {
+        "approach_x_m_s": -0.75,
+        "end_angle_rad": 0.16654094802879044,
+        "end_ns": 24000000,
+        "end_slide_m": 0.0,
+        "first_clearance_ns": null,
+        "first_contact_ns": 67000,
+        "force_n": -2.0,
+        "frames": 360,
+        "geometric_crossing_ns": 66666.66666666626,
+        "max_encoder_pose_error_m": 5.594315114139762e-17,
+        "max_encoder_quaternion_chord_error": 2.2247786310271853e-16,
+        "max_slide_m": 1.1757455251788703e-07,
+        "max_slide_time_ns": 68000,
+        "max_sphere_impulse_path_error_m": 1.9056696300839837e-08,
+        "positive_impulse_ns": 0.07299318796481394,
+        "release_clearance_m": 1e-06,
+        "reseated_ns": null,
+        "sphere_impulse_path_bound_m": 1.1149659398240698e-06
+      },
+      "first_loaded_joint_encoders": [
+        {
+          "id": 10,
+          "position": 3.633441819211847e-07,
+          "velocity": 6.9586171681327516,
+          "pending_effort": null
+        },
+        {
+          "id": 11,
+          "position": 0.0,
+          "velocity": 0.0,
+          "pending_effort": null
+        }
+      ],
+      "profile": {
+        "binary_sha256": "2b3ec26e13b5bc45f0396ceba84f77579877e663fd62cc49267fddde6a203155",
+        "cargo_lock_sha256": "0ab50949211f513f6845b6f11eff97323fe121e5ce75198b00c35a5f6cdaaa88",
+        "compiled_distributed": false,
+        "compiled_gpu_batch": false,
+        "cpu": "AuthenticAMD|26|68|0|AMD Ryzen 9 9950X3D 16-Core Processor|0xb404035|fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d amd_lbr_pmc_freeze",
+        "journal_sha256": "a42e3c4dd87aadd62f55b95b160b937a7d33b40ac12d0d08f9ffd4e52c8165ff",
+        "numerics": "native serial Rapier f64/enhanced-determinism",
+        "package": "0.1.0",
+        "platform": "linux-x86_64",
+        "profile": "local-cpu-v1",
+        "seed": "powered-slider-view",
+        "step_ns": 1000,
+        "world_sha256": "ea68122f702620c726641a5b6dbe22b505ff9c58a5740dda8ec661e13a54b2f9"
+      },
+      "trace_sha256": "90f92d2ff264bdd9367868b5c97518a03f5a275ad9adb5f478dc87010d071549",
+      "fresh_four_thread_trace_and_archive_exact": true,
+      "recording_geometry_sha256": "77402936c1d93bcda71688dd9cb648bab07257cc4ce82e1f55590fe5cc6c5d40",
+      "browser": {
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "body_poses_and_shapes_checked": 1440,
+        "coordinate_tolerance": 1e-12,
+        "captured_ms": {
+          "end": 24.0,
+          "first_contact": 0.067,
+          "incoming": 0.0
+        },
+        "frames": 360
+      },
+      "max_outside_commanded_stop_m": 0.0,
+      "max_clearance_inside_stop_m": 1.1757455251788703e-07,
+      "reset": {
+        "advanced_observations_per_epoch": 24000,
+        "differing_observations": 0,
+        "held_effort_resets_to_zero": true,
+        "compared_fields": "All ordinary observation fields, excluding epoch and command sequence number"
+      },
+      "reset_trace_sha256": "b153c00c8069f8c9c051e45d2e81399424b04fbb9f78715d00aa425cfc40babd"
+    }
+  }
+}

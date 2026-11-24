@@ -5,7 +5,7 @@ use super::JointControllerMode;
 use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
-pub(super) enum InvalidControllerInput {
+pub(crate) enum InvalidControllerInput {
     #[error("controller time step must be positive and representable")]
     Time,
     #[error("controller command must be finite and representable")]
@@ -21,7 +21,7 @@ pub(super) enum InvalidControllerInput {
 /// motor target; position mode retains its numeric admission guards, then selects
 /// the backend's damped position servo instead of actuating this ABS result.
 /// This is not a physical speed guarantee. Validate before returning any bound.
-pub(super) fn target_velocity(
+pub(crate) fn target_velocity(
     mode: JointControllerMode,
     target: f64,
     coordinate: f64,

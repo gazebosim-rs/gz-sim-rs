@@ -13,9 +13,26 @@ pub struct JointStatePublication {
     pub joints: Vec<JointStateJointPublication>,
 }
 
+/// Native joint type reported on the standard state topic.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum JointStateKind {
+    Revolute,
+    Prismatic,
+    Screw,
+    Universal,
+    Revolute2,
+}
+impl JointStateKind {
+    /// Whether the native message carries two independent angular measurements.
+    pub fn has_second_axis(self) -> bool {
+        matches!(self, Self::Universal | Self::Revolute2)
+    }
+}
+
 /// Native joint pose is construction pose relative to the child, not world pose.
 #[derive(Clone, Debug, PartialEq)]
 pub struct JointStateJointPublication {
+    pub kind: JointStateKind,
     pub id: u64,
     pub name: String,
     pub parent: String,
@@ -42,6 +59,8 @@ pub struct JointStateSample {
     pub revision: u64,
     pub pose: WorldPose,
     pub joints: Vec<JointStateValue>,
+    /// Additional measured axes, in the same ascending joint-ID order as `joints`.
+    pub second_axes: Vec<JointStateValue>,
 }
 
 #[derive(Component, Clone)]
@@ -196,33 +215,50 @@ impl Plan {
         placement: (bool, bool),
     ) -> Result<(), LoadError> {
         require(
-            engine == Some("rapier")
-                && placement.0
+            matches!(
+                engine,
+                Some("rapier" | "multifidelity" | "gpu-planar" | "gpu-gripper")
+            ) && placement.0
                 && !placement.1
                 && model.models.is_empty()
                 && model.raw_namespace.is_none(),
             &model.scoped_name,
-            "joint-state requires a top-level dynamic Rapier model",
+            "joint-state requires a supported top-level dynamic model",
         )?;
         require(
-            sim.world()
-                .iter_entities()
-                .filter(|e| e.contains::<Publisher>())
-                .count()
-                < 8,
+            engine == Some("gpu-gripper")
+                || sim
+                    .world()
+                    .iter_entities()
+                    .filter(|e| e.contains::<Publisher>())
+                    .count()
+                    < 8,
             &model.scoped_name,
             "multiple joint-state models",
         )?;
         require(
-            model.joints.iter().all(|j| {
-                j.kind == sdformat::JointKind::Revolute
-                    && j.axis.is_some()
-                    && j.axis2.is_none()
-                    && (j.parent == "world" || model.links.iter().any(|link| link.name == j.parent))
-                    && model.links.iter().any(|link| link.name == j.child)
-            }),
+            model
+                .joints
+                .iter()
+                .filter(|j| self.names.contains(&j.name))
+                .all(|j| {
+                    use sdformat::JointKind::{Prismatic, Revolute, Revolute2, Screw, Universal};
+                    let supported = match engine {
+                        Some("multifidelity") => {
+                            matches!(j.kind, Revolute | Prismatic | Screw | Universal | Revolute2)
+                        }
+                        Some("gpu-gripper") => j.kind == Prismatic,
+                        _ => j.kind == Revolute,
+                    };
+                    supported
+                        && j.axis.is_some()
+                        && j.axis2.is_some() == matches!(j.kind, Universal | Revolute2)
+                        && (j.parent == "world"
+                            || model.links.iter().any(|link| link.name == j.parent))
+                        && model.links.iter().any(|link| link.name == j.child)
+                }),
             &model.scoped_name,
-            "joint-state single-axis revolute joints",
+            "joint-state publisher requires supported measurement axes",
         )
     }
 }
@@ -232,7 +268,7 @@ pub(super) fn build(
     sim: &mut Simulation,
     model: &Model,
     model_entity: Entity,
-    backend: &PhysicsBackend,
+    backend: Option<&PhysicsBackend>,
     plan: &Plan,
 ) -> Result<(), LoadError> {
     let mut metadata = Vec::with_capacity(plan.names.len());
@@ -240,7 +276,10 @@ pub(super) fn build(
         let scoped = format!("{}::{name}", model.scoped_name);
         let node = sim
             .world()
-            .iter_entities()
+            .get::<Children>(model_entity)
+            .into_iter()
+            .flat_map(|children| children.iter())
+            .filter_map(|child| sim.world().get_entity(child).ok())
             .find(|node| node.get::<Name>().is_some_and(|n| n.0 == scoped))
             .ok_or_else(|| invalid(model, "missing joint-state joint"))?;
         require(
@@ -249,24 +288,44 @@ pub(super) fn build(
             &scoped,
             "joint-state ownership",
         )?;
-        let handle = node
-            .get::<JointHandle>()
-            .ok_or_else(|| invalid(model, "missing joint-state binding"))?;
-        let state = backend
-            .joint_state(handle.id())
-            .ok_or_else(|| invalid(model, "missing joint-state value"))?;
-        require(
-            state.position.is_finite() && state.velocity.is_finite(),
-            &scoped,
-            "finite joint-state value",
-        )?;
         let joint = model
             .joints
             .iter()
             .find(|j| &j.name == name)
             .expect("plan checked joint name");
-        let axis = joint.axis.as_ref().expect("validated revolute axis");
+        let kind = match joint.kind {
+            sdformat::JointKind::Prismatic => JointStateKind::Prismatic,
+            sdformat::JointKind::Screw => JointStateKind::Screw,
+            sdformat::JointKind::Universal => JointStateKind::Universal,
+            sdformat::JointKind::Revolute2 => JointStateKind::Revolute2,
+            _ => JointStateKind::Revolute,
+        };
+        let finite = if kind.has_second_axis() {
+            let native = backend
+                .and_then(|b| b.downcast_ref::<MultiFidelityBackend>())
+                .and_then(|b| b.universal_joint_state(node.get::<JointHandle>()?.id()))
+                .ok_or_else(|| invalid(model, "missing joint-state value"))?;
+            native
+                .position
+                .into_iter()
+                .chain(native.velocity)
+                .all(f64::is_finite)
+        } else {
+            let state = if let Some(backend) = backend {
+                let handle = node
+                    .get::<JointHandle>()
+                    .ok_or_else(|| invalid(model, "missing joint-state binding"))?;
+                backend.joint_state(handle.id())
+            } else {
+                node.get::<JointSample>().map(|s| s.state)
+            }
+            .ok_or_else(|| invalid(model, "missing joint-state value"))?;
+            state.position.is_finite() && state.velocity.is_finite()
+        };
+        require(finite, &scoped, "finite joint-state value")?;
+        let axis = joint.axis.as_ref().expect("validated primary axis");
         metadata.push(JointStateJointPublication {
+            kind,
             id: node.get::<EntityId>().expect("loaded joint identity").get(),
             name: name.clone(),
             parent: joint.parent.clone(),
@@ -363,6 +422,7 @@ fn reading(
         return None;
     }
     let mut values = Vec::with_capacity(publisher.publication.joints.len());
+    let mut second_axes = Vec::new();
     for joint in &publisher.publication.joints {
         let id = gz_sim_core::entity_by_id(world, joint.id)?;
         if world.get::<ChildOf>(id)?.parent() != entity
@@ -370,19 +430,32 @@ fn reading(
         {
             return None;
         }
-        let sample = world.get::<JointSample>(id)?;
-        if sample.time != time.sim_time
-            || sample.epoch != time.epoch
-            || !sample.state.position.is_finite()
-            || !sample.state.velocity.is_finite()
-        {
+        let measurement = |position: f64, velocity: f64| {
+            (position.is_finite() && velocity.is_finite()).then_some(JointStateValue {
+                id: joint.id,
+                position,
+                velocity,
+            })
+        };
+        let (stamp, epoch) = if joint.kind.has_second_axis() {
+            let sample = world.get::<UniversalJointSample>(id)?;
+            values.push(measurement(
+                sample.state.position[0],
+                sample.state.velocity[0],
+            )?);
+            second_axes.push(measurement(
+                sample.state.position[1],
+                sample.state.velocity[1],
+            )?);
+            (sample.time, sample.epoch)
+        } else {
+            let sample = world.get::<JointSample>(id)?;
+            values.push(measurement(sample.state.position, sample.state.velocity)?);
+            (sample.time, sample.epoch)
+        };
+        if stamp != time.sim_time || epoch != time.epoch {
             return None;
         }
-        values.push(JointStateValue {
-            id: joint.id,
-            position: sample.state.position,
-            velocity: sample.state.velocity,
-        });
     }
     Some(JointStateSample {
         time: time.sim_time,
@@ -390,6 +463,7 @@ fn reading(
         revision: publisher.revision.checked_add(1)?,
         pose,
         joints: values,
+        second_axes,
     })
 }
 
@@ -400,6 +474,7 @@ fn sample(world: &mut World) {
         .filter(|e| e.contains::<Publisher>())
         .map(|e| e.id())
         .collect();
+    let mut checked_bindings = None;
     for entity in models {
         let publisher = world.get::<Publisher>(entity).expect("selected publisher");
         let suppressed = publisher
@@ -409,7 +484,7 @@ fn sample(world: &mut World) {
         if suppressed {
             continue;
         }
-        let value = if joints::bindings_valid(world) {
+        let value = if *checked_bindings.get_or_insert_with(|| joints::bindings_valid(world)) {
             reading(world, entity, publisher, time)
         } else {
             None

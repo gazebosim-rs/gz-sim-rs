@@ -12,6 +12,7 @@ impl RapierBackend {
         // No fallible operation or physics step follows this validated replacement.
         self.replace_joint_motor(id, motor)?;
         if let Some(motor) = motor {
+            let axis = self.joints.records[&id].initial.motor_axis();
             let data = match self.joints.records[&id].handle {
                 Handle::Impulse(handle) => {
                     &mut self
@@ -37,9 +38,9 @@ impl RapierBackend {
             // Pinned Rapier's maintained reciprocal-zero convention makes all three
             // motor coefficients zero here, while retaining its enabled motor axis
             // and symmetric max_force * dt constraint impulse bounds.
-            data.set_motor_model(JointAxis::AngX, MotorModel::AccelerationBased)
-                .set_motor_velocity(JointAxis::AngX, motor.target_velocity, 0.0)
-                .set_motor_max_force(JointAxis::AngX, motor.max_force);
+            data.set_motor_model(axis, MotorModel::AccelerationBased)
+                .set_motor_velocity(axis, motor.target_velocity, 0.0)
+                .set_motor_max_force(axis, motor.max_force);
         }
         Ok(())
     }

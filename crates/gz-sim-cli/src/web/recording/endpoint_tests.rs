@@ -153,3 +153,116 @@ fn explicit_readonly_refusal_and_bad_credit_leave_reconnect_available() {
     reconnected.close(None).unwrap();
     drop(reconnected);
 }
+
+#[test]
+fn playback_session_returns_close_code_and_reconnects_with_fresh_credit_at_the_paused_cursor() {
+    use tungstenite::protocol::{CloseFrame, frame::coding::CloseCode};
+
+    let fixture = Fixture::new();
+    let mut first = fixture.connect();
+    let initial = tuple(&mut first, "publication_credit");
+    send(
+        &mut first,
+        json!({"version":1,"kind":"control","request_id":1,"action":"resume"}),
+    );
+    let playing = tuple(&mut first, "ack");
+    assert_eq!(playing[2]["playing"], true);
+    send(
+        &mut first,
+        json!({"version":1,"kind":"publication_ready","token":initial[3]["token"]}),
+    );
+    let second = tuple(&mut first, "publication_credit");
+    assert_eq!(second[2]["frame"], 2);
+    send(
+        &mut first,
+        json!({"version":1,"kind":"control","request_id":2,"action":"pause"}),
+    );
+    let paused = tuple(&mut first, "ack");
+    assert_eq!(paused[2]["frame"], 2);
+    assert_eq!(paused[2]["playing"], false);
+    // Ping/pong is independent of the unreturned normal presentation token.
+    first.send(Message::Ping(vec![3, 1, 4].into())).unwrap();
+    assert_eq!(first.read().unwrap(), Message::Pong(vec![3, 1, 4].into()));
+    let close = CloseFrame {
+        code: CloseCode::Away,
+        reason: "closing local playback".into(),
+    };
+    first.close(Some(close.clone())).unwrap();
+    assert_eq!(first.read().unwrap(), Message::Close(Some(close)));
+    drop(first);
+
+    let mut next = fixture.connect();
+    let current = tuple(&mut next, "publication_credit");
+    assert_eq!(current[2]["frame"], 2);
+    assert_eq!(current[2]["playing"], false);
+    assert_eq!(current[3]["token"], 1);
+    assert!(current[0]["sequence"].as_u64() > paused[0]["sequence"].as_u64());
+    // Restart is the supported seek to origin. Its priority reply bypasses
+    // held credit and the new connection can start its request ids at one.
+    send(
+        &mut next,
+        json!({"version":1,"kind":"control","request_id":1,"action":"reset"}),
+    );
+    let reset = tuple(&mut next, "ack");
+    assert_eq!(reset[2]["frame"], 1);
+    assert_eq!(reset[2]["epoch"], 1);
+    assert_eq!(reset[3]["paused"], true);
+    send(
+        &mut next,
+        json!({"version":1,"kind":"publication_ready","token":1}),
+    );
+    let restored = tuple(&mut next, "publication_credit");
+    assert_eq!(restored[2]["frame"], 1);
+    assert_eq!(restored[3]["token"], 2);
+
+    send(
+        &mut next,
+        json!({"version":1,"kind":"control","request_id":2,"action":"seek","frame":3}),
+    );
+    assert!(next.read().is_err());
+    drop(next);
+    let mut verified = fixture.connect();
+    let snapshot = tuple(&mut verified, "publication_credit");
+    assert_eq!(
+        (snapshot[2]["frame"].as_u64(), snapshot[2]["epoch"].as_u64()),
+        (Some(1), Some(1))
+    );
+}
+
+#[test]
+fn playback_session_keeps_the_active_peer_when_a_second_viewer_connects() {
+    let fixture = Fixture::new();
+    let mut active = fixture.connect();
+    let initial = tuple(&mut active, "publication_credit");
+    let stream = TcpStream::connect((std::net::Ipv4Addr::LOCALHOST, fixture.port)).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(2)))
+        .unwrap();
+    assert!(
+        tungstenite::client(
+            format!(
+                "ws://127.0.0.1:{}/?replay=1&lifecycle=1&lifecycle_credit=1",
+                fixture.port
+            ),
+            stream
+        )
+        .is_err()
+    );
+    send(
+        &mut active,
+        json!({"version":1,"kind":"lifecycle","request_id":1,"world_id":1,"epoch":0,"action":"remove","model_id":2}),
+    );
+    let denied = tuple(&mut active, "lifecycle_ack");
+    assert_eq!(denied[3]["ok"], false);
+    assert_eq!(denied[3]["error"], "recorded playback is read-only");
+    send(
+        &mut active,
+        json!({"version":1,"kind":"publication_ready","token":initial[3]["token"]}),
+    );
+    assert_eq!(tuple(&mut active, "publication_credit")[2]["frame"], 1);
+    send(
+        &mut active,
+        json!({"version":1,"kind":"lifecycle","request_id":1,"world_id":1,"epoch":0,"action":"remove","model_id":2}),
+    );
+    assert!(active.read().is_err());
+}

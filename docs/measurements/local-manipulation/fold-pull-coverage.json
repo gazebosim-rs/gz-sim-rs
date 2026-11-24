@@ -1,0 +1,392 @@
+{
+  "baseline": "03252cdec597b095916ac434d07b792c9153add5",
+  "method": "LLVM source-coordinate union of changed production Rust across the all-feature XPBD tests, scene regressions, robot example tests and executed fold-pull command. The complete XPBD source union adds scene and example profiles to the package report. The release gate runs separately.",
+  "changed": {
+    "lines": [
+      388,
+      393
+    ],
+    "regions": [
+      691,
+      716
+    ]
+  },
+  "by_crate": {
+    "gz-physics-xpbd": {
+      "lines": [
+        8,
+        8
+      ],
+      "regions": [
+        10,
+        10
+      ]
+    },
+    "gz-sim-cli": {
+      "lines": [
+        315,
+        320
+      ],
+      "regions": [
+        584,
+        609
+      ]
+    },
+    "gz-sim-scene": {
+      "lines": [
+        65,
+        65
+      ],
+      "regions": [
+        97,
+        97
+      ]
+    }
+  },
+  "xpbd_source": {
+    "lines": [
+      9165,
+      9533
+    ],
+    "regions": [
+      18406,
+      19077
+    ]
+  },
+  "passed_regressions": {
+    "kernel": 160,
+    "scene_lib": 318,
+    "scene": 101,
+    "example": 60
+  },
+  "gz_web_rs": {
+    "native_coordinates": {
+      "mesh-5-pull": {
+        "checked_native_coordinates": 228,
+        "maximum_native_coordinate_error_m": [
+          2.148657889388143e-18,
+          4.7704895589362195e-18,
+          3.903127820947816e-18
+        ],
+        "checked_trace_ticks": 1900
+      },
+      "mesh-5-sham": {
+        "checked_native_coordinates": 228,
+        "maximum_native_coordinate_error_m": [
+          2.148657889388143e-18,
+          3.2526065174565133e-18,
+          3.903127820947816e-18
+        ],
+        "checked_trace_ticks": 1900
+      },
+      "mesh-7-pull": {
+        "checked_native_coordinates": 240,
+        "maximum_native_coordinate_error_m": [
+          3.3820966792680145e-18,
+          3.0357660829594124e-18,
+          2.8189256484623115e-18
+        ],
+        "checked_trace_ticks": 2000
+      },
+      "mesh-7-sham": {
+        "checked_native_coordinates": 240,
+        "maximum_native_coordinate_error_m": [
+          3.3820966792680145e-18,
+          3.0357660829594124e-18,
+          2.8189256484623115e-18
+        ],
+        "checked_trace_ticks": 2000
+      }
+    },
+    "pairs": {
+      "5": {
+        "matched_native_prefix_frames": 127,
+        "matched_trace_prefix_ticks": 1500,
+        "maximum_excursion_from_sham_in_recorded_frames_m": [
+          2.786878250666549e-08,
+          3.062095263548642e-09,
+          1.5560006560132178e-10
+        ],
+        "recovered_final_frame_displacement_vs_sham_m": [
+          1.7348660041680628e-09,
+          2.7332814362540647e-09,
+          1.326304532780348e-10
+        ],
+        "verified_per_tick_peaks_m": [
+          2.7868782508030112e-08,
+          3.0787725259842635e-09,
+          1.5608468684202847e-10
+        ],
+        "verified_residual_mean_m": [
+          1.740760806034755e-09,
+          2.741974690747065e-09,
+          1.332460069364272e-10
+        ]
+      },
+      "7": {
+        "matched_native_prefix_frames": 131,
+        "matched_trace_prefix_ticks": 1600,
+        "maximum_excursion_from_sham_in_recorded_frames_m": [
+          4.665248599894293e-08,
+          1.2466323981788485e-08,
+          1.9502542637035367e-08
+        ],
+        "recovered_final_frame_displacement_vs_sham_m": [
+          1.6821098872640104e-08,
+          9.670317267004153e-09,
+          1.7810647662003937e-08
+        ],
+        "verified_per_tick_peaks_m": [
+          4.665248599961082e-08,
+          1.2487870170233006e-08,
+          1.950254263811957e-08
+        ],
+        "verified_residual_mean_m": [
+          1.6880457609534808e-08,
+          9.649240270345748e-09,
+          1.7840300596972532e-08
+        ]
+      }
+    },
+    "browser": {
+      "mesh-5-pull": {
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9790%2F",
+        "frames": 143,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "baseline": 3150.0,
+          "held": 1650.0,
+          "peak": 3300.0,
+          "recovered": 3550.0,
+          "released": 3350.0
+        },
+        "body_poses_and_shapes_checked": 4719,
+        "independent_particle_positions_checked": 2860
+      },
+      "mesh-5-sham": {
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9791%2F",
+        "frames": 143,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "baseline": 3150.0,
+          "held": 1650.0,
+          "peak": 3300.0,
+          "recovered": 3550.0,
+          "released": 3350.0
+        },
+        "body_poses_and_shapes_checked": 4719,
+        "independent_particle_positions_checked": 2860
+      },
+      "mesh-7-pull": {
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9792%2F",
+        "frames": 147,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "baseline": 3250.0,
+          "held": 1650.0,
+          "peak": 3400.0,
+          "recovered": 3650.0,
+          "released": 3450.0
+        },
+        "body_poses_and_shapes_checked": 6027,
+        "independent_particle_positions_checked": 4116
+      },
+      "mesh-7-sham": {
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9793%2F",
+        "frames": 147,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "approach": 0.0,
+          "baseline": 3250.0,
+          "held": 1650.0,
+          "peak": 3400.0,
+          "recovered": 3650.0,
+          "released": 3450.0
+        },
+        "body_poses_and_shapes_checked": 6027,
+        "independent_particle_positions_checked": 4116
+      }
+    },
+    "geometry": {
+      "mesh-5-pull": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.01042798044121068,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005720195587893186,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010427579182916504,
+            "pair_indices": [
+              1,
+              15
+            ],
+            "skin_clearance_m": -0.0005724208170834952,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02200002897761024,
+          "pair_indices": [
+            2,
+            19
+          ],
+          "skin_clearance_m": 2.8977610241898155e-08,
+          "time_ns": 3300000000
+        },
+        "cross_panel_triangle_pairs": 9152,
+        "frames": 143,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 3.6292145922569435e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 6864
+      },
+      "mesh-5-sham": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.01042798044121068,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005720195587893186,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010427579182916504,
+            "pair_indices": [
+              1,
+              15
+            ],
+            "skin_clearance_m": -0.0005724208170834952,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02200002987409681,
+          "pair_indices": [
+            2,
+            19
+          ],
+          "skin_clearance_m": 2.987409681090569e-08,
+          "time_ns": 2975000000
+        },
+        "cross_panel_triangle_pairs": 9152,
+        "frames": 143,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 3.6292145922569435e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 6864
+      },
+      "mesh-7-pull": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010428040924112744,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005719590758872552,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010421486372427477,
+            "pair_indices": [
+              1,
+              23
+            ],
+            "skin_clearance_m": -0.0005785136275725227,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.022000035924744026,
+          "pair_indices": [
+            7,
+            29
+          ],
+          "skin_clearance_m": 3.592474402680512e-08,
+          "time_ns": 3325000000
+        },
+        "cross_panel_triangle_pairs": 21168,
+        "frames": 147,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 2.260109705661678e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 10584
+      },
+      "mesh-7-sham": {
+        "closest_jaws": [
+          {
+            "core_distance_m": 0.010428040924112744,
+            "pair_indices": [
+              0,
+              1
+            ],
+            "skin_clearance_m": -0.0005719590758872552,
+            "time_ns": 625000000
+          },
+          {
+            "core_distance_m": 0.010421486372427477,
+            "pair_indices": [
+              1,
+              23
+            ],
+            "skin_clearance_m": -0.0005785136275725227,
+            "time_ns": 625000000
+          }
+        ],
+        "closest_panels": {
+          "core_distance_m": 0.02200003793694714,
+          "pair_indices": [
+            7,
+            29
+          ],
+          "skin_clearance_m": 3.793694714274154e-08,
+          "time_ns": 3075000000
+        },
+        "cross_panel_triangle_pairs": 21168,
+        "frames": 147,
+        "max_triangle_indentation_beyond_nearest_vertex_m": 2.260109705661678e-06,
+        "panel_midsurface_intersections": 0,
+        "triangle_box_core_intersections": 0,
+        "triangle_box_pairs": 10584
+      }
+    },
+    "numerical_tool_coverage": {
+      "tools/physics-audit/numerics/src/bin/fold_pull_response.rs": {
+        "lines": [
+          188,
+          190
+        ],
+        "regions": [
+          383,
+          399
+        ]
+      }
+    }
+  },
+  "additional_tool_coverage": {
+    "tools/physics-audit/numerics/src/bin/fold_pull_balance.rs": {
+      "lines": [
+        98,
+        98
+      ],
+      "regions": [
+        214,
+        219
+      ]
+    }
+  }
+}

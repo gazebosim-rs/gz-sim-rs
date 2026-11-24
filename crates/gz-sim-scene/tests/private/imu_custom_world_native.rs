@@ -162,7 +162,7 @@ fn actual_native_custom_world_matches_all_component_readings_at_unchanged_bound(
         signed_modes += usize::from(sign_mode);
         let mut positive_world = None;
         let mut disabled_getter = None;
-        let mut channel_noise = crate::noise::ImuNoise::new(&imu, [45; 32], 7).unwrap();
+        let mut channel_noise = crate::noise::ImuNoise::new(&imu, [45; 32], 7, None).unwrap();
         assert_eq!(rows.len(), 6);
         for (index, row) in rows.iter().enumerate() {
             calls += 1;
@@ -225,7 +225,11 @@ fn actual_native_custom_world_matches_all_component_readings_at_unchanged_bound(
             .unwrap();
             if let Some(noise) = &mut channel_noise {
                 noise
-                    .apply(&mut reading, Duration::from_nanos(row.time_ns))
+                    .apply(
+                        &mut reading,
+                        Duration::from_nanos(row.time_ns),
+                        row.time_ns / 1_000_000,
+                    )
                     .unwrap();
             }
             match row.publication {

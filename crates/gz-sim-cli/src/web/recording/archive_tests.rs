@@ -372,3 +372,50 @@ fn contradictory_actions_missing_nullable_fields_and_foreign_success_are_refused
     let foreign = scene(0, 1, 0, true).replace("\"world\":\"default\"", "\"world\":\"foreign\"");
     assert!(Scene::decode(&foreign, |_| false).is_err());
 }
+
+#[test]
+fn checkpoint_header_binds_the_first_physical_stamp_and_rejects_inconsistent_history() {
+    use super::super::clock::Origin;
+    let origin = Origin {
+        epoch: 4,
+        seconds: 9,
+        nanoseconds: 0,
+    };
+    let admit_cut = |header: Record, next_epoch, next_time| {
+        let mut bytes = lines::encode(&header, lines::LINE_BYTES).unwrap();
+        for entry in [
+            frame(1, 4, 9, true),
+            frame(2, next_epoch, next_time, true),
+            Record::Footer { frames: 2 },
+        ] {
+            bytes.extend(lines::encode(&entry, lines::LINE_BYTES).unwrap());
+        }
+        Archive::admit(
+            bytes.into(),
+            2,
+            "http://127.0.0.1:1".into(),
+            BTreeMap::new(),
+        )
+    };
+    let header = || Record::CheckpointHeader { version: 2, origin };
+    let archive = admit_cut(header(), 4, 11).unwrap();
+    assert_eq!(archive.origin, origin);
+    assert!(admit_cut(header(), 5, 0).is_ok());
+    assert!(admit_cut(header(), 5, 1).is_err());
+    assert!(admit_cut(header(), 4, 8).is_err());
+    assert!(admit_cut(Record::Header { version: 1 }, 4, 11).is_err());
+    assert!(
+        admit_cut(
+            Record::CheckpointHeader {
+                version: 2,
+                origin: Origin {
+                    seconds: 8,
+                    ..origin
+                }
+            },
+            4,
+            11
+        )
+        .is_err()
+    );
+}

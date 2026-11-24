@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="local" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="stand"><static>true</static>
+      <link name="post"><pose>0 0 0.48 0 0 0</pose>
+        <collision name="post"><geometry><box><size>0.65 0.65 0.04</size></box></geometry>
+          <surface><friction><ode><mu>0.75</mu><mu2>0.75</mu2></ode></friction></surface>
+        </collision>
+        <visual name="post"><geometry><box><size>0.65 0.65 0.04</size></box></geometry><material><diffuse>0.36 0.43 0.50 1</diffuse></material></visual>
+        <collision name="west"><pose>-0.32 0 0.04 0 0 0</pose><geometry><box><size>0.01 0.65 0.04</size></box></geometry><surface><friction><ode><mu>0.75</mu><mu2>0.75</mu2></ode></friction></surface></collision>
+        <visual name="west"><pose>-0.32 0 0.04 0 0 0</pose><geometry><box><size>0.01 0.65 0.04</size></box></geometry><material><diffuse>0.36 0.43 0.50 1</diffuse></material></visual>
+        <collision name="east"><pose>0.32 0 0.04 0 0 0</pose><geometry><box><size>0.01 0.65 0.04</size></box></geometry><surface><friction><ode><mu>0.75</mu><mu2>0.75</mu2></ode></friction></surface></collision>
+        <visual name="east"><pose>0.32 0 0.04 0 0 0</pose><geometry><box><size>0.01 0.65 0.04</size></box></geometry><material><diffuse>0.36 0.43 0.50 1</diffuse></material></visual>
+        <collision name="north"><pose>0 0.32 0.04 0 0 0</pose><geometry><box><size>0.63 0.01 0.04</size></box></geometry><surface><friction><ode><mu>0.75</mu><mu2>0.75</mu2></ode></friction></surface></collision>
+        <visual name="north"><pose>0 0.32 0.04 0 0 0</pose><geometry><box><size>0.63 0.01 0.04</size></box></geometry><material><diffuse>0.36 0.43 0.50 1</diffuse></material></visual>
+        <collision name="south"><pose>0 -0.32 0.04 0 0 0</pose><geometry><box><size>0.63 0.01 0.04</size></box></geometry><surface><friction><ode><mu>0.75</mu><mu2>0.75</mu2></ode></friction></surface></collision>
+        <visual name="south"><pose>0 -0.32 0.04 0 0 0</pose><geometry><box><size>0.63 0.01 0.04</size></box></geometry><material><diffuse>0.36 0.43 0.50 1</diffuse></material></visual>
+        <visual name="base"><pose>0 0 -0.245 0 0 0</pose><geometry><box><size>0.16 0.16 0.45</size></box></geometry><material><diffuse>0.22 0.27 0.33 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="parcel">
+      <link name="box"><pose>0 0 0.535 0 0 0</pose>
+        <inertial><mass>0.2</mass><inertia><ixx>0.00016</ixx><iyy>0.00014</iyy><izz>0.00013</izz></inertia></inertial>
+        <collision name="box"><geometry><box><size>0.06 0.055 0.07</size></box></geometry>
+          <surface><friction><ode><mu>0.85</mu><mu2>0.85</mu2></ode></friction></surface>
+        </collision>
+        <visual name="box"><geometry><box><size>0.06 0.055 0.07</size></box></geometry><material><diffuse>0.72 0.29 0.20 1</diffuse></material></visual>
+      </link>
+    </model>
+    <!-- A thin plate moves inside the tray while the parcel is in the air. -->
+    <model name="receiver"><link name="plate"><pose>0.18 0 0.502 0 0 0</pose>
+      <inertial><mass>1</mass><inertia><ixx>0.003</ixx><iyy>0.003</iyy><izz>0.005</izz></inertia></inertial>
+      <collision name="plate"><geometry><box><size>0.09 0.09 0.002</size></box></geometry></collision>
+      <visual name="plate"><geometry><box><size>0.09 0.09 0.002</size></box></geometry><material><diffuse>0.24 0.74 0.42 1</diffuse></material></visual>
+    </link><plugin filename="gz-sim-prescribed-motion-system" name="gz::sim::systems::PrescribedMotion">
+      <trajectory end="hold">
+        <waypoint time_ns="0" displacement="0 0 0" velocity="0 0 0"/>
+        <waypoint time_ns="3450000000" displacement="0 0 0" velocity="0 0 0"/>
+        <waypoint time_ns="4350000000" displacement="-0.18 0 0" velocity="0 0 0"/>
+      </trajectory></plugin>
+    </model>
+    <model name="gripper">
+      <link name="nut"><pose>0 0 0.76 0 0 0</pose>
+        <inertial><mass>0.7</mass><inertia><ixx>0.003</ixx><iyy>0.003</iyy><izz>0.0045</izz></inertia></inertial>
+        <collision name="nut"><geometry><box><size>0.17 0.10 0.045</size></box></geometry>
+          <surface><friction><ode><mu>0.7</mu><mu2>0.7</mu2></ode></friction></surface>
+        </collision>
+        <visual name="nut"><geometry><box><size>0.17 0.10 0.045</size></box></geometry><material><diffuse>0.15 0.54 0.62 1</diffuse></material></visual>
+        <visual name="index"><pose>0.065 0 0.028 0 0 0</pose><geometry><box><size>0.025 0.035 0.011</size></box></geometry><material><diffuse>0.93 0.7 0.25 1</diffuse></material></visual>
+      </link>
+      <link name="palm"><pose>0 0 0.695 0 0 0</pose>
+        <inertial><mass>0.4</mass><inertia><ixx>0.0012</ixx><iyy>0.0016</iyy><izz>0.0018</izz></inertia></inertial>
+        <collision name="palm"><geometry><box><size>0.175 0.095 0.035</size></box></geometry>
+          <surface><friction><ode><mu>0.7</mu><mu2>0.7</mu2></ode></friction></surface>
+        </collision>
+        <visual name="palm"><geometry><box><size>0.175 0.095 0.035</size></box></geometry><material><diffuse>0.17 0.39 0.50 1</diffuse></material></visual>
+      </link>
+      <link name="left"><pose>-0.06 0 0.556 0 0 0</pose>
+        <inertial><mass>0.08</mass><inertia><ixx>9.2e-05</ixx><iyy>7.2e-05</iyy><izz>2.9e-05</izz></inertia></inertial>
+        <collision name="left"><geometry><box><size>0.018 0.067 0.10</size></box></geometry>
+          <surface><friction><ode><mu>0.85</mu><mu2>0.85</mu2></ode></friction></surface>
+        </collision>
+        <visual name="left"><geometry><box><size>0.018 0.067 0.10</size></box></geometry><material><diffuse>0.96 0.55 0.13 1</diffuse></material></visual>
+        <visual name="stalk"><pose>0 0 0.083 0 0 0</pose><geometry><box><size>0.016 0.023 0.086</size></box></geometry><material><diffuse>0.55 0.60 0.64 1</diffuse></material></visual>
+      </link>
+      <link name="right"><pose>0.06 0 0.556 0 0 0</pose>
+        <inertial><mass>0.08</mass><inertia><ixx>9.2e-05</ixx><iyy>7.2e-05</iyy><izz>2.9e-05</izz></inertia></inertial>
+        <collision name="right"><geometry><box><size>0.018 0.067 0.10</size></box></geometry>
+          <surface><friction><ode><mu>0.85</mu><mu2>0.85</mu2></ode></friction></surface>
+        </collision>
+        <visual name="right"><geometry><box><size>0.018 0.067 0.10</size></box></geometry><material><diffuse>0.96 0.55 0.13 1</diffuse></material></visual>
+        <visual name="stalk"><pose>0 0 0.083 0 0 0</pose><geometry><box><size>0.016 0.023 0.086</size></box></geometry><material><diffuse>0.55 0.60 0.64 1</diffuse></material></visual>
+      </link>
+      <joint name="spindle" type="screw"><parent>world</parent><child>nut</child>
+        <screw_thread_pitch>0.50</screw_thread_pitch>
+        <axis><xyz>0 0 1</xyz><limit><lower>0</lower><upper>1.6</upper><velocity>0.60</velocity><effort>3.0</effort></limit><dynamics><damping>1.3</damping></dynamics></axis>
+      </joint>
+      <joint name="wrist" type="universal"><parent>nut</parent><child>palm</child><pose>0 0 0.04 0 0 0</pose>
+        <axis><xyz>1 0 0</xyz><limit><lower>-0.45</lower><upper>0</upper></limit><dynamics><spring_reference>0.04</spring_reference><spring_stiffness>4</spring_stiffness><damping>0.4</damping></dynamics></axis>
+        <axis2><xyz>0 1 0</xyz><limit><lower>-0.45</lower><upper>0</upper><velocity>0.22</velocity><effort>2</effort></limit><dynamics><spring_reference>0.04</spring_reference><spring_stiffness>4</spring_stiffness><damping>0.4</damping></dynamics></axis2>
+      </joint>
+      <joint name="close_left" type="prismatic"><parent>palm</parent><child>left</child>
+        <axis><xyz>1 0 0</xyz><limit><lower>0</lower><upper>0.047</upper></limit>
+          <dynamics><spring_reference>-0.0005</spring_reference><spring_stiffness>100</spring_stiffness><damping>8</damping></dynamics>
+        </axis>
+      </joint>
+      <joint name="close_right" type="prismatic"><parent>palm</parent><child>right</child>
+        <axis><xyz>-1 0 0</xyz><limit><lower>0</lower><upper>0.047</upper></limit>
+          <dynamics><spring_reference>-0.0005</spring_reference><spring_stiffness>100</spring_stiffness><damping>8</damping></dynamics>
+        </axis>
+      </joint>
+      <plugin name="gz::sim::systems::SwitchableArticulation" filename="gz-sim-switchable-articulation-system">
+        <additional_pgs_iterations>41</additional_pgs_iterations>
+      </plugin>
+    </model>
+  </world>
+</sdf>

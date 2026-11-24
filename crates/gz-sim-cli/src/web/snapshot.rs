@@ -12,7 +12,7 @@ pub(super) const MAX_BYTES: usize = 65536;
 // and returns only the validated constant, so no input borrow is retained.
 type StaticKind = &'static str;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub(super) enum Shape {
     Box { size: [f64; 3] },
@@ -20,7 +20,7 @@ pub(super) enum Shape {
     Mesh { uri: String, scale: [f64; 3] },
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Visual {
     id: u64,
@@ -31,7 +31,7 @@ pub(super) struct Visual {
     color: [f64; 4],
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Scene {
     version: u8,
@@ -42,9 +42,46 @@ pub(super) struct Scene {
     pub epoch: u64,
     pub seconds: u64,
     pub nanoseconds: u32,
-    sequence: u64,
+    pub(super) sequence: u64,
     pub paused: bool,
     visuals: Vec<Visual>,
+}
+
+/// Last healthy presentation of a managed convoy. Geometry and stable entity
+/// IDs are fixed for this profile. Only the committed transforms and clock
+/// change between ticks. Serialization is deferred until a fence is observed.
+pub(crate) struct ConvoyView(Scene);
+
+impl ConvoyView {
+    #[cfg(feature = "distributed-physics")]
+    pub(crate) fn new(sim: &Simulation, world: &str) -> io::Result<Self> {
+        Ok(Self(extract(sim, world, 0)?))
+    }
+
+    pub(crate) fn refresh(&mut self, sim: &Simulation) -> io::Result<()> {
+        let elapsed = sim.elapsed();
+        let scene = &mut self.0;
+        scene.paused = sim.is_paused();
+        if (scene.epoch, scene.seconds, scene.nanoseconds)
+            == (sim.epoch(), elapsed.as_secs(), elapsed.subsec_nanos())
+        {
+            return Ok(());
+        }
+        for visual in &mut scene.visuals {
+            let pose = entity_by_id(sim.world(), visual.id)
+                .and_then(|entity| sim.world().get::<WorldPose>(entity))
+                .ok_or_else(|| invalid("missing committed convoy visual"))?;
+            visual.translation = pose.translation;
+            visual.rotation = pose.rotation;
+        }
+        scene.epoch = sim.epoch();
+        scene.seconds = elapsed.as_secs();
+        scene.nanoseconds = elapsed.subsec_nanos();
+        Ok(())
+    }
+
+    #[cfg(feature = "distributed-physics")]
+    pub(crate) fn encoded(&self) -> io::Result<String> { encode(&self.0) }
 }
 
 fn scene_kind<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<&'static str, D::Error> {
@@ -259,6 +296,114 @@ fn representable(value: f64) -> bool {
     value.is_finite() && (value as f32).is_finite()
 }
 
+pub(super) fn visual_definition(
+    id: u64,
+    name: &str,
+    pose: WorldPose,
+    geometry: &sdformat::Geometry,
+    material: Option<&sdformat::Material>,
+    properties: &sdformat::VisualProperties,
+    assets: Option<&super::assets::Assets>,
+) -> io::Result<Visual> {
+    let color = if matches!(geometry, sdformat::Geometry::Mesh(_)) {
+        if material.is_some() {
+            return Err(invalid(
+                "M2 mesh visuals use embedded glTF materials; omit the SDF material override",
+            ));
+        }
+        // Required wire field for compatibility; the mesh renderer uses its glTF material.
+        [1.0; 4]
+    } else {
+        let material = material.ok_or_else(|| invalid("gzweb visual has no material"))?;
+        if material.script.is_some() || material.pbr.is_some() || !material.normal_map.is_empty() {
+            return Err(invalid(
+                "gzweb MVP supports visible opaque diffuse primitives only",
+            ));
+        }
+        material.diffuse.map(f64::from)
+    };
+    if properties.transparency != 0.0 || properties.visibility_flags != u32::MAX {
+        return Err(invalid(
+            "gzweb MVP supports visible opaque diffuse primitives only",
+        ));
+    }
+    let positive = |v: f64| representable(v) && v as f32 > 0.0;
+    let shape = match geometry {
+        sdformat::Geometry::Box { size } if size.iter().copied().all(positive) => {
+            Shape::Box { size: *size }
+        }
+        sdformat::Geometry::Sphere { radius } if positive(*radius) => {
+            Shape::Sphere { radius: *radius }
+        }
+        sdformat::Geometry::Cylinder { radius, length }
+            if positive(*radius) && positive(*length) =>
+        {
+            Shape::Mesh {
+                uri: assets
+                    .ok_or_else(|| invalid("cylinder visuals require generated glTF resources"))?
+                    .cylinder_uri(color.map(|v| v as f32))?,
+                scale: [*radius, *radius, *length],
+            }
+        }
+        sdformat::Geometry::Capsule { radius, length }
+            if positive(*radius) && positive(*length) =>
+        {
+            Shape::Mesh {
+                uri: assets
+                    .ok_or_else(|| invalid("capsule visuals require generated glTF resources"))?
+                    .capsule_uri(*radius, *length, color.map(|v| v as f32))?,
+                scale: [1.; 3],
+            }
+        }
+        sdformat::Geometry::Mesh(mesh) if mesh.scale.iter().copied().all(positive) => Shape::Mesh {
+            uri: assets
+                .ok_or_else(|| invalid("mesh visuals require admitted local glTF resources"))?
+                .uri(id, mesh)?,
+            scale: mesh.scale,
+        },
+        sdformat::Geometry::Mesh(_) => {
+            return Err(invalid(
+                "gzweb mesh scale must be positive, finite and representable",
+            ));
+        }
+        _ => {
+            return Err(invalid(
+                "gzweb requires a supported visual with positive finite dimensions",
+            ));
+        }
+    };
+    let norm = pose.rotation.iter().map(|v| v * v).sum::<f64>();
+    if name.len() > 256
+        || !pose
+            .translation
+            .iter()
+            .chain(pose.rotation.iter())
+            .copied()
+            .all(representable)
+        || (norm - 1.0).abs() > 1e-6
+        || !color
+            .iter()
+            .all(|v| v.is_finite() && (0.0..=1.0).contains(v))
+        || color[3] != 1.0
+    {
+        return Err(invalid(
+            "gzweb visual has invalid pose, name or opaque color",
+        ));
+    }
+    Ok(Visual {
+        id,
+        name: name.to_owned(),
+        translation: pose.translation,
+        rotation: pose.rotation,
+        color: if matches!(shape, Shape::Mesh { .. }) {
+            [1.0; 4]
+        } else {
+            color
+        },
+        shape,
+    })
+}
+
 pub(super) fn extract(sim: &Simulation, world_name: &str, sequence: u64) -> io::Result<Scene> {
     extract_with_assets(sim, world_name, sequence, None)
 }
@@ -309,96 +454,22 @@ pub(super) fn extract_with_assets(
         let geometry = entity
             .get::<VisualGeometry>()
             .ok_or_else(|| invalid("gzweb visual has no geometry"))?;
-        let color = if matches!(geometry.0.as_ref(), sdformat::Geometry::Mesh(_)) {
-            if entity.contains::<VisualMaterial>() {
-                return Err(invalid(
-                    "M2 mesh visuals use embedded glTF materials; omit the SDF material override",
-                ));
-            }
-            // Required wire field for compatibility; the mesh renderer uses its glTF material.
-            [1.0; 4]
-        } else {
-            let material = &entity
-                .get::<VisualMaterial>()
-                .ok_or_else(|| invalid("gzweb visual has no material"))?
-                .0;
-            if material.script.is_some()
-                || material.pbr.is_some()
-                || !material.normal_map.is_empty()
-            {
-                return Err(invalid(
-                    "gzweb MVP supports visible opaque diffuse primitives only",
-                ));
-            }
-            material.diffuse.map(f64::from)
-        };
         let properties = &entity
             .get::<VisualProperties>()
             .ok_or_else(|| invalid("gzweb visual has no properties"))?
             .0;
-        if properties.transparency != 0.0 || properties.visibility_flags != u32::MAX {
-            return Err(invalid(
-                "gzweb MVP supports visible opaque diffuse primitives only",
-            ));
-        }
-        let positive = |v: f64| representable(v) && v as f32 > 0.0;
-        let shape = match geometry.0.as_ref() {
-            sdformat::Geometry::Box { size } if size.iter().copied().all(positive) => {
-                Shape::Box { size: *size }
-            }
-            sdformat::Geometry::Sphere { radius } if positive(*radius) => {
-                Shape::Sphere { radius: *radius }
-            }
-            sdformat::Geometry::Mesh(mesh) if mesh.scale.iter().copied().all(positive) => {
-                Shape::Mesh {
-                    uri: assets
-                        .ok_or_else(|| {
-                            invalid("mesh visuals require admitted local glTF resources")
-                        })?
-                        .uri(id, mesh)?,
-                    scale: mesh.scale,
-                }
-            }
-            sdformat::Geometry::Mesh(_) => {
-                return Err(invalid(
-                    "gzweb mesh scale must be positive, finite and representable",
-                ));
-            }
-            _ => {
-                return Err(invalid(
-                    "gzweb MVP supports finite box and sphere visuals only",
-                ));
-            }
-        };
-        let norm = pose.rotation.iter().map(|v| v * v).sum::<f64>();
-        if name.len() > 256
-            || !pose
-                .translation
-                .iter()
-                .chain(pose.rotation.iter())
-                .copied()
-                .all(representable)
-            || (norm - 1.0).abs() > 1e-6
-            || !color
-                .iter()
-                .all(|v| v.is_finite() && (0.0..=1.0).contains(v))
-            || color[3] != 1.0
-        {
-            return Err(invalid(
-                "gzweb visual has invalid pose, name or opaque color",
-            ));
-        }
         if visuals.len() == 128 {
             return Err(invalid("gzweb snapshot exceeds 128 visuals"));
         }
-        visuals.push(Visual {
+        visuals.push(visual_definition(
             id,
-            name: name.clone(),
-            translation: pose.translation,
-            rotation: pose.rotation,
-            shape,
-            color,
-        });
+            name,
+            *pose,
+            &geometry.0,
+            entity.get::<VisualMaterial>().map(|m| m.0.as_ref()),
+            properties,
+            assets,
+        )?);
     }
     visuals.sort_unstable_by_key(|visual| visual.id);
     let version = if visuals

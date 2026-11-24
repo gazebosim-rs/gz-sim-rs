@@ -1,0 +1,613 @@
+{
+  "fixture": "examples/worlds/local_material_slip_arrest.sdf",
+  "source_after": "a39187a",
+  "source_before": "d0dafcb",
+  "surfaces": [
+    {
+      "surface": "plane",
+      "substeps": 1,
+      "uphill_travel_m": -2.4999999999955702e-06,
+      "downhill_travel_m": 0.5100000000000005,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "plane",
+      "substeps": 2,
+      "uphill_travel_m": -2.4999999999955702e-06,
+      "downhill_travel_m": 0.5075000000000005,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "plane",
+      "substeps": 4,
+      "uphill_travel_m": -2.4999999999955702e-06,
+      "downhill_travel_m": 0.5062500000000046,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "plane",
+      "substeps": 8,
+      "uphill_travel_m": -2.4999999999955702e-06,
+      "downhill_travel_m": 0.5056249999999902,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "plane",
+      "substeps": 16,
+      "uphill_travel_m": -1.5234375000443892e-06,
+      "downhill_travel_m": 0.5053125000000002,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "plane",
+      "substeps": 32,
+      "uphill_travel_m": -1.7675781251625841e-06,
+      "downhill_travel_m": 0.5051562500000066,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "box",
+      "substeps": 1,
+      "uphill_travel_m": -2.5000000000535255e-06,
+      "downhill_travel_m": 0.5100000000000003,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "box",
+      "substeps": 2,
+      "uphill_travel_m": -2.4999999999955702e-06,
+      "downhill_travel_m": 0.5074999999999997,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "box",
+      "substeps": 4,
+      "uphill_travel_m": -2.4999999999955702e-06,
+      "downhill_travel_m": 0.5062500000000012,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "box",
+      "substeps": 8,
+      "uphill_travel_m": -2.4999999999955702e-06,
+      "downhill_travel_m": 0.5056250000000018,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "box",
+      "substeps": 16,
+      "uphill_travel_m": -1.5234375000443892e-06,
+      "downhill_travel_m": 0.5053125000000004,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    },
+    {
+      "surface": "box",
+      "substeps": 32,
+      "uphill_travel_m": -1.7675781251625841e-06,
+      "downhill_travel_m": 0.5051562499999867,
+      "uphill_drift_after_public_tick_m": 0.0,
+      "strip_ends_disagree_m": 0.0
+    }
+  ],
+  "simulations": {
+    "uphill-before": {
+      "frames": 101,
+      "displacement_m": {
+        "uphill_0": [
+          4.999999999998052e-05,
+          0.005000000000000077,
+          0.5
+        ],
+        "uphill_1": [
+          4.999999999998052e-05,
+          0.005000000000000077,
+          0.5
+        ],
+        "downhill_0": [
+          0.00015000000000003194,
+          0.006000000000000097,
+          0.5100000000000005
+        ],
+        "downhill_1": [
+          0.00015000000000003194,
+          0.006000000000000097,
+          0.5100000000000005
+        ]
+      },
+      "time_ms": [
+        10,
+        100,
+        1000
+      ],
+      "browser": {
+        "body_poses_and_shapes_checked": 505,
+        "captured_ms": {
+          "end": 1000.0,
+          "midpoint": 500.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frame_times_ms": [
+          0.0,
+          10.0,
+          20.0,
+          30.0,
+          40.0,
+          50.0,
+          60.0,
+          70.0,
+          80.0,
+          90.0,
+          100.0,
+          110.0,
+          120.0,
+          130.0,
+          140.0,
+          150.0,
+          160.0,
+          170.0,
+          180.0,
+          190.0,
+          200.0,
+          210.0,
+          220.0,
+          230.0,
+          240.0,
+          250.0,
+          260.0,
+          270.0,
+          280.0,
+          290.0,
+          300.0,
+          310.0,
+          320.0,
+          330.0,
+          340.0,
+          350.0,
+          360.0,
+          370.0,
+          380.0,
+          390.0,
+          400.0,
+          410.0,
+          420.0,
+          430.0,
+          440.0,
+          450.0,
+          460.0,
+          470.0,
+          480.0,
+          490.0,
+          500.0,
+          510.0,
+          520.0,
+          530.0,
+          540.0,
+          550.0,
+          560.0,
+          570.0,
+          580.0,
+          590.0,
+          600.0,
+          610.0,
+          620.0,
+          630.0,
+          640.0,
+          650.0,
+          660.0,
+          670.0,
+          680.0,
+          690.0,
+          700.0,
+          710.0,
+          720.0,
+          730.0,
+          740.0,
+          750.0,
+          760.0,
+          770.0,
+          780.0,
+          790.0,
+          800.0,
+          810.0,
+          820.0,
+          830.0,
+          840.0,
+          850.0,
+          860.0,
+          870.0,
+          880.0,
+          890.0,
+          900.0,
+          910.0,
+          920.0,
+          930.0,
+          940.0,
+          950.0,
+          960.0,
+          970.0,
+          980.0,
+          990.0,
+          1000.0
+        ],
+        "frames": 101,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 101,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10027%2F"
+      }
+    },
+    "uphill-after": {
+      "frames": 101,
+      "displacement_m": {
+        "uphill_0": [
+          -2.499999999985999e-06,
+          -2.499999999985999e-06,
+          -2.499999999985999e-06
+        ],
+        "uphill_1": [
+          -2.499999999985999e-06,
+          -2.499999999985999e-06,
+          -2.499999999985999e-06
+        ],
+        "downhill_0": [
+          0.00015000000000003194,
+          0.006000000000000097,
+          0.5100000000000005
+        ],
+        "downhill_1": [
+          0.00015000000000003194,
+          0.006000000000000097,
+          0.5100000000000005
+        ]
+      },
+      "time_ms": [
+        10,
+        100,
+        1000
+      ],
+      "browser": {
+        "body_poses_and_shapes_checked": 505,
+        "captured_ms": {
+          "end": 1000.0,
+          "midpoint": 500.0
+        },
+        "coordinate_tolerance": 1e-12,
+        "frame_times_ms": [
+          0.0,
+          10.0,
+          20.0,
+          30.0,
+          40.0,
+          50.0,
+          60.0,
+          70.0,
+          80.0,
+          90.0,
+          100.0,
+          110.0,
+          120.0,
+          130.0,
+          140.0,
+          150.0,
+          160.0,
+          170.0,
+          180.0,
+          190.0,
+          200.0,
+          210.0,
+          220.0,
+          230.0,
+          240.0,
+          250.0,
+          260.0,
+          270.0,
+          280.0,
+          290.0,
+          300.0,
+          310.0,
+          320.0,
+          330.0,
+          340.0,
+          350.0,
+          360.0,
+          370.0,
+          380.0,
+          390.0,
+          400.0,
+          410.0,
+          420.0,
+          430.0,
+          440.0,
+          450.0,
+          460.0,
+          470.0,
+          480.0,
+          490.0,
+          500.0,
+          510.0,
+          520.0,
+          530.0,
+          540.0,
+          550.0,
+          560.0,
+          570.0,
+          580.0,
+          590.0,
+          600.0,
+          610.0,
+          620.0,
+          630.0,
+          640.0,
+          650.0,
+          660.0,
+          670.0,
+          680.0,
+          690.0,
+          700.0,
+          710.0,
+          720.0,
+          730.0,
+          740.0,
+          750.0,
+          760.0,
+          770.0,
+          780.0,
+          790.0,
+          800.0,
+          810.0,
+          820.0,
+          830.0,
+          840.0,
+          850.0,
+          860.0,
+          870.0,
+          880.0,
+          890.0,
+          900.0,
+          910.0,
+          920.0,
+          930.0,
+          940.0,
+          950.0,
+          960.0,
+          970.0,
+          980.0,
+          990.0,
+          1000.0
+        ],
+        "frames": 101,
+        "indicator_positions_checked": 0,
+        "lifecycle_catalogs_checked": 101,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "source_trajectories": 1,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10026%2F"
+      }
+    }
+  },
+  "folded_sheet": {
+    "16": {
+      "identical_files": {
+        "particle-frames.json": true,
+        "panel-forces.json": true,
+        "replay/frames.jsonl": true
+      },
+      "released_particle_sha256": "3965041ac1cb7e423583c1de5146ad422b1f19f8950a7c18c474408a4c75a6c1",
+      "current_run": {
+        "frames": 137,
+        "simulated_ns": 3400000000,
+        "step_ns": 62500,
+        "step_p95_ns": 205050,
+        "steps": 54400
+      }
+    },
+    "500": {
+      "identical_files": {
+        "particle-frames.json": true,
+        "panel-forces.json": true,
+        "replay/frames.jsonl": true
+      },
+      "released_particle_sha256": "cdbc086c46cc528630d399dd8bcb4d20efb09651dcea553077643c1e8dbea08f",
+      "current_run": {
+        "frames": 137,
+        "simulated_ns": 3400000000,
+        "step_ns": 2000,
+        "step_p95_ns": 218230,
+        "steps": 1700000
+      }
+    },
+    "1000": {
+      "identical_files": {
+        "particle-frames.json": true,
+        "panel-forces.json": true,
+        "replay/frames.jsonl": true
+      },
+      "released_particle_sha256": "2de30d1cd420d98f7d21dee95bda5fe24d279dbc212d8a4a5f0a9f8d37a181b0",
+      "current_run": {
+        "frames": 137,
+        "simulated_ns": 3400000000,
+        "step_ns": 1000,
+        "step_p95_ns": 219471,
+        "steps": 3400000
+      }
+    },
+    "2000": {
+      "identical_files": {
+        "particle-frames.json": true,
+        "panel-forces.json": true,
+        "replay/frames.jsonl": true
+      },
+      "released_particle_sha256": "d1137c035a11a4326d5bee8e21dc4a01b96cf12e297b5950b3ff14289b5bab01",
+      "current_run": {
+        "frames": 137,
+        "simulated_ns": 3400000000,
+        "step_ns": 500,
+        "step_p95_ns": 221240,
+        "steps": 6800000
+      }
+    }
+  },
+  "guided_setdown": {
+    "supported-16": {
+      "all_4300_readings_match": true,
+      "actuator_ms": 1,
+      "exchanges_per_ms": 16,
+      "measurement": {
+        "airborne_after_opening_s": 0.0,
+        "final_deck_lateral_clearance_m": -0.15399783118052224,
+        "final_grip_n": 0.0,
+        "final_jaw_up_n": 0.0,
+        "final_table_n": 0.08240399999999447,
+        "first_opening_tick": 3112,
+        "first_pad_free_tick": 3138,
+        "fully_open_tick": 3461,
+        "max_downward_adjustment_m": 0.001123463897025002,
+        "max_loose_gap_m": 1.5029644195863057e-14,
+        "min_raised_clearance_m": 0.1496112883952182,
+        "peak_loose_table_interval_ns": 8.240406706141316e-05,
+        "preceding_20ms_table_force_range_n": [
+          0.07322048396813534,
+          0.11909392811541038
+        ],
+        "search_exhausted_tick": null
+      },
+      "mode": "Supported",
+      "public_ms": 1.0,
+      "reset_checked": true,
+      "weight_n": 0.082404
+    },
+    "finite-16": {
+      "all_4300_readings_match": true,
+      "actuator_ms": 1,
+      "exchanges_per_ms": 16,
+      "measurement": {
+        "airborne_after_opening_s": 0.0,
+        "final_deck_lateral_clearance_m": -0.153997832066393,
+        "final_grip_n": 0.0,
+        "final_jaw_up_n": 0.0,
+        "final_table_n": 0.08240400000000107,
+        "first_opening_tick": 3112,
+        "first_pad_free_tick": 3137,
+        "fully_open_tick": 3461,
+        "max_downward_adjustment_m": 0.0011234639662119931,
+        "max_loose_gap_m": 3.490263633665336e-14,
+        "min_raised_clearance_m": 0.14961128876271257,
+        "peak_loose_table_interval_ns": 5.224837183803576e-06,
+        "preceding_20ms_table_force_range_n": [
+          0.07322055082873263,
+          0.11909388406252389
+        ],
+        "search_exhausted_tick": null
+      },
+      "mode": "Finite",
+      "public_ms": 0.0625,
+      "reset_checked": false,
+      "weight_n": 0.082404
+    },
+    "missing-16": {
+      "all_4300_readings_match": true,
+      "actuator_ms": 1,
+      "exchanges_per_ms": 16,
+      "measurement": {
+        "airborne_after_opening_s": 0.0,
+        "final_deck_lateral_clearance_m": 0.10848870109443505,
+        "final_grip_n": 1.6500001587270434,
+        "final_jaw_up_n": 0.08250267036879418,
+        "final_table_n": 0.0,
+        "first_opening_tick": null,
+        "first_pad_free_tick": null,
+        "fully_open_tick": null,
+        "max_downward_adjustment_m": 0.004,
+        "max_loose_gap_m": null,
+        "min_raised_clearance_m": 0.14961128876271257,
+        "peak_loose_table_interval_ns": null,
+        "preceding_20ms_table_force_range_n": null,
+        "search_exhausted_tick": 4151
+      },
+      "mode": "Missing",
+      "public_ms": 0.0625,
+      "reset_checked": false,
+      "weight_n": 0.082404
+    },
+    "supported-500": {
+      "all_4300_readings_match": true,
+      "actuator_ms": 1,
+      "exchanges_per_ms": 500,
+      "measurement": {
+        "airborne_after_opening_s": 0.0,
+        "final_deck_lateral_clearance_m": -0.15400198456736758,
+        "final_grip_n": 0.0,
+        "final_jaw_up_n": 0.0,
+        "final_table_n": 0.08240399999999008,
+        "first_opening_tick": 3110,
+        "first_pad_free_tick": 3135,
+        "fully_open_tick": 3459,
+        "max_downward_adjustment_m": 0.0011254344076348439,
+        "max_loose_gap_m": 1.3877787807814457e-17,
+        "min_raised_clearance_m": 0.14961806506033837,
+        "peak_loose_table_interval_ns": 1.7970663610662095e-07,
+        "preceding_20ms_table_force_range_n": [
+          0.07391773825748184,
+          0.11729667377307613
+        ],
+        "search_exhausted_tick": null
+      },
+      "mode": "Supported",
+      "public_ms": 0.002,
+      "reset_checked": false,
+      "weight_n": 0.082404
+    }
+  },
+  "coverage": {
+    "crates/gz-physics-xpbd/src/collision.rs": {
+      "lines": {
+        "hit": 40,
+        "total": 40,
+        "missing": []
+      },
+      "regions": {
+        "hit": 68,
+        "total": 68,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      },
+      "regions": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-xpbd/src/one_way_checkpoint.rs": {
+      "lines": {
+        "hit": 21,
+        "total": 21,
+        "missing": []
+      },
+      "regions": {
+        "hit": 19,
+        "total": 19,
+        "missing": []
+      }
+    }
+  },
+  "timed_sheet_finest_gap_m": 0.0003283049302547338
+}

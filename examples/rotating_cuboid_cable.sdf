@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="ten_ms" type="ignored"><max_step_size>0.01</max_step_size></physics>
+    <model name="bar">
+      <pose>0 0 0.6 0 0 -0.36</pose>
+      <link name="body">
+        <inertial><mass>2</mass><inertia><ixx>0.1</ixx><iyy>0.12</iyy><izz>0.16</izz></inertia></inertial>
+        <collision name="box"><geometry><box><size>2 0.16 0.28</size></box></geometry></collision>
+        <visual name="blue"><geometry><box><size>2 0.16 0.28</size></box></geometry>
+          <material><diffuse>0.06 0.38 0.58 1</diffuse></material></visual>
+      </link>
+    </model>
+    <!-- The Rust example starts the free bar at 8 rad/s about world Z. -->
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <box link="default::bar::body" coupling="two_way"/>
+      <cable name="cable" substeps="1" iterations="16" radius="0.04" self_contact="false"
+             friction="0" stretch="0" bend="0">
+        <particle position="1.0429948963187562 0 0.51" velocity="0 0 0" mass="0.005"/>
+        <particle position="1.0429948963187562 0 0.69" velocity="0 0 0" mass="0.005"/>
+      </cable>
+    </plugin>
+  </world>
+</sdf>

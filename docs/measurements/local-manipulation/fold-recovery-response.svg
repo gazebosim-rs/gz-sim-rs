@@ -1,0 +1,227 @@
+<svg width="1120" height="742" viewBox="0 0 1120 742" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="1120" height="742" opacity="1" fill="#FFFFFF" stroke="none"/>
+<rect x="32" y="83" width="15" height="11" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="255" y="83" width="15" height="11" opacity="1" fill="#D89A46" stroke="none"/>
+<rect x="440" y="83" width="15" height="11" opacity="1" fill="#C2CACE" stroke="none"/>
+<polyline fill="none" opacity="1" stroke="#E0E3E4" stroke-width="1" points="250,145 250,697 "/>
+<polyline fill="none" opacity="1" stroke="#E0E3E4" stroke-width="1" points="363,145 363,697 "/>
+<polyline fill="none" opacity="1" stroke="#E0E3E4" stroke-width="1" points="476,145 476,697 "/>
+<polyline fill="none" opacity="1" stroke="#E0E3E4" stroke-width="1" points="589,145 589,697 "/>
+<polyline fill="none" opacity="1" stroke="#E0E3E4" stroke-width="1" points="701,145 701,697 "/>
+<polyline fill="none" opacity="1" stroke="#E0E3E4" stroke-width="1" points="814,145 814,697 "/>
+<polyline fill="none" opacity="1" stroke="#E0E3E4" stroke-width="1" points="927,145 927,697 "/>
+<rect x="250" y="160" width="677" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="250" y="206" width="677" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="250" y="252" width="677" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="250" y="298" width="677" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="250" y="344" width="46" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="296" y="344" width="4" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<rect x="300" y="344" width="627" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="285,343 285,358 "/>
+<rect x="250" y="390" width="86" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="336" y="390" width="8" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<rect x="344" y="390" width="583" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="250" y="436" width="48" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="298" y="436" width="3" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<rect x="301" y="436" width="626" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="286,435 286,450 "/>
+<rect x="250" y="482" width="67" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="317" y="482" width="10" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<rect x="327" y="482" width="7" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="334" y="482" width="9" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<rect x="343" y="482" width="0" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="343" y="482" width="7" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<rect x="350" y="482" width="0" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="350" y="482" width="1" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<rect x="351" y="482" width="576" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="250" y="528" width="25" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="275" y="528" width="54" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="278,527 278,542 "/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="306,527 306,542 "/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="329,527 329,542 "/>
+<rect x="250" y="574" width="25" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="275" y="574" width="49" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="324,573 324,588 "/>
+<rect x="250" y="620" width="25" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="275" y="620" width="55" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="279,619 279,634 "/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="306,619 306,634 "/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="330,619 330,634 "/>
+<rect x="250" y="666" width="25" height="12" opacity="1" fill="#0D7371" stroke="none"/>
+<rect x="275" y="666" width="50" height="12" opacity="1" fill="#C2CACE" stroke="none"/>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="2" points="325,665 325,680 "/>
+<text x="30" y="17" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="23.387096774193548" opacity="1" fill="#000000">
+Can the robot recover a slipping folded sheet?
+</text>
+<text x="32" y="58" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+Each band follows the measured weight support after the sideways force starts.
+</text>
+<text x="54" y="78" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Both fingers carry weight
+</text>
+<text x="277" y="78" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Bench carries ≥80%
+</text>
+<text x="462" y="78" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Other or changing support
+</text>
+<text x="704" y="78" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+T  tighten   ·   L  lower   ·   R  open   ·   E  escaped
+</text>
+<text x="32" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Sheet / load
+</text>
+<text x="166" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Branch
+</text>
+<text x="952" y="110" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Sheet travel
+</text>
+<text x="952" y="130" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+in grip at 400 ms
+</text>
+<text x="244" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+0
+</text>
+<text x="357" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+200
+</text>
+<text x="470" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+400
+</text>
+<text x="583" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+600
+</text>
+<text x="695" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+800
+</text>
+<text x="808" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+1000
+</text>
+<text x="921" y="126" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+1200
+</text>
+<text x="500" y="106" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Time after grip (ms)
+</text>
+<text x="32" y="158" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+5 points  ·  0.30 N
+</text>
+<text x="166" y="158" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Guard
+</text>
+<text x="952" y="158" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+2.9 nm
+</text>
+<text x="166" y="204" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Control
+</text>
+<text x="952" y="204" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+2.9 nm
+</text>
+<text x="32" y="250" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+7 points  ·  0.30 N
+</text>
+<text x="166" y="250" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Guard
+</text>
+<text x="952" y="250" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+25.4 nm
+</text>
+<text x="166" y="296" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Control
+</text>
+<text x="952" y="296" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+25.4 nm
+</text>
+<text x="32" y="342" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+5 points  ·  1.10 N
+</text>
+<text x="166" y="342" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Guard
+</text>
+<text x="281" y="359" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+T
+</text>
+<text x="952" y="342" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+1.11 mm
+</text>
+<text x="166" y="388" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Control
+</text>
+<text x="952" y="388" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+12.14 mm
+</text>
+<text x="32" y="434" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+7 points  ·  1.16 N
+</text>
+<text x="166" y="434" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Guard
+</text>
+<text x="282" y="451" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+T
+</text>
+<text x="952" y="434" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+1.09 mm
+</text>
+<text x="166" y="480" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Control
+</text>
+<text x="952" y="480" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+17.41 mm
+</text>
+<text x="32" y="526" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+5 points  ·  1.25 N
+</text>
+<text x="166" y="526" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Guard
+</text>
+<text x="274" y="543" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+T
+</text>
+<text x="302" y="543" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+L
+</text>
+<text x="325" y="543" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+E
+</text>
+<text x="952" y="526" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+Ended earlier
+</text>
+<text x="166" y="572" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Control
+</text>
+<text x="320" y="589" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+E
+</text>
+<text x="952" y="572" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+Ended earlier
+</text>
+<text x="32" y="618" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+7 points  ·  1.30 N
+</text>
+<text x="166" y="618" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Guard
+</text>
+<text x="275" y="635" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+T
+</text>
+<text x="302" y="635" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+L
+</text>
+<text x="326" y="635" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+E
+</text>
+<text x="952" y="618" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+Ended earlier
+</text>
+<text x="166" y="664" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.096774193548388" opacity="1" fill="#000000">
+Control
+</text>
+<text x="321" y="681" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="10.483870967741936" opacity="1" fill="#000000">
+E
+</text>
+<text x="952" y="664" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="12.903225806451614" opacity="1" fill="#000000">
+Ended earlier
+</text>
+</svg>

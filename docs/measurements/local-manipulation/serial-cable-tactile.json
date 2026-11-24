@@ -1,0 +1,492 @@
+{
+  "world": "examples/worlds/local_serial_cable.sdf",
+  "step_s": 0.001,
+  "cable_mass_kg": 0.022,
+  "drag_trigger_n": 0.04,
+  "loss_trigger_min_squeeze_n": 0.3,
+  "loss_required_ticks": 8,
+  "known_payload_and_ideal_sensors": true,
+  "qualified": [
+    {
+      "alarms": [],
+      "case": "clear",
+      "final_center_m": [
+        -0.001511822976934518,
+        0.4634207546212892,
+        0.6050000000000001
+      ],
+      "first_failed_squeeze_tick": null,
+      "first_halt_command_tick": null,
+      "first_obstacle_tick": null,
+      "first_opening_command_tick": 10233,
+      "held_weight_n": 0.2152198142691337,
+      "last_pass_crossing_gap_m": null,
+      "lost_grip_detection_tick": null,
+      "matched_clear_prefix_ticks": 13107,
+      "maximum_forward_stop_distance_m": null,
+      "minimum_rigid_robot_obstacle_gap_m": 0.4192319735782664,
+      "obstacle_impulse_magnitude_sum_ns": 0.0,
+      "obstacle_loaded_ticks": 0,
+      "peak_axial_strain": 0.0008313596433062731,
+      "peak_lift_drag_n": 0.012548860007245134,
+      "peak_momentum_residual_ns": 5.17786356303173e-18,
+      "peak_obstacle_n": 0.0,
+      "peak_transport_drag_n": 0.00600689522476047,
+      "peak_transport_rail_acceleration_m_s2": 0.614668523199538,
+      "peak_transport_speed_m_s": 0.2204855678676281,
+      "placement_dwell_mean_n": 0.2221011793567467,
+      "placement_dwell_min_n": 0.19896964871557454,
+      "reset_identical_ticks": 13107,
+      "rest_mean_load_n": 0.21581999999999785,
+      "rest_peak_particle_speed_m_s": 0.0,
+      "rest_support": "shelf"
+    },
+    {
+      "alarms": [],
+      "case": "fast",
+      "final_center_m": [
+        -0.004629051921802351,
+        0.4632862360668216,
+        0.6050000000000001
+      ],
+      "first_failed_squeeze_tick": null,
+      "first_halt_command_tick": null,
+      "first_obstacle_tick": null,
+      "first_opening_command_tick": 8557,
+      "held_weight_n": 0.2152198142691337,
+      "last_pass_crossing_gap_m": null,
+      "lost_grip_detection_tick": null,
+      "matched_clear_prefix_ticks": 5400,
+      "maximum_forward_stop_distance_m": null,
+      "minimum_rigid_robot_obstacle_gap_m": 0.4193824276499456,
+      "obstacle_impulse_magnitude_sum_ns": 0.0,
+      "obstacle_loaded_ticks": 0,
+      "peak_axial_strain": 0.0008313596433062731,
+      "peak_lift_drag_n": 0.012548860007245134,
+      "peak_momentum_residual_ns": 5.4224506272444794e-18,
+      "peak_obstacle_n": 0.0,
+      "peak_transport_drag_n": 0.005993767423028812,
+      "peak_transport_rail_acceleration_m_s2": 1.2167782107881941,
+      "peak_transport_speed_m_s": 0.4610682764610173,
+      "placement_dwell_mean_n": 0.2217054802895791,
+      "placement_dwell_min_n": 0.19950838567646254,
+      "reset_identical_ticks": 11431,
+      "rest_mean_load_n": 0.21581999999999785,
+      "rest_peak_particle_speed_m_s": 0.0,
+      "rest_support": "shelf"
+    },
+    {
+      "alarms": [
+        {
+          "detection_tick": 7134,
+          "filtered_drag_n": 0.04067100928771475,
+          "first_obstacle_tick": 7014,
+          "first_retreat_command_tick": 7135,
+          "latency_ms": 120
+        }
+      ],
+      "case": "snag",
+      "final_center_m": [
+        -0.0012874545306918513,
+        0.4518475070379208,
+        0.6050000000000001
+      ],
+      "first_failed_squeeze_tick": null,
+      "first_halt_command_tick": null,
+      "first_obstacle_tick": 7014,
+      "first_opening_command_tick": 15108,
+      "held_weight_n": 0.2152198142691337,
+      "last_pass_crossing_gap_m": 0.007308714731618017,
+      "lost_grip_detection_tick": null,
+      "matched_clear_prefix_ticks": 7013,
+      "maximum_forward_stop_distance_m": null,
+      "minimum_rigid_robot_obstacle_gap_m": 0.04796363310552659,
+      "obstacle_impulse_magnitude_sum_ns": 0.0487490310986236,
+      "obstacle_loaded_ticks": 639,
+      "peak_axial_strain": 0.001252077638518978,
+      "peak_lift_drag_n": 0.012548860007245134,
+      "peak_momentum_residual_ns": 4.942870313816251e-18,
+      "peak_obstacle_n": 0.44706245215790585,
+      "peak_transport_drag_n": 0.04067100928771475,
+      "peak_transport_rail_acceleration_m_s2": 0.614668523199538,
+      "peak_transport_speed_m_s": 0.2116558253054245,
+      "placement_dwell_mean_n": 0.21568933104337382,
+      "placement_dwell_min_n": 0.1945285817467024,
+      "reset_identical_ticks": 17982,
+      "rest_mean_load_n": 0.21581999999999785,
+      "rest_peak_particle_speed_m_s": 0.0,
+      "rest_support": "shelf"
+    },
+    {
+      "alarms": [],
+      "case": "rub",
+      "final_center_m": [
+        -0.0027048856612718938,
+        0.4710619083125103,
+        0.6050000000000001
+      ],
+      "first_failed_squeeze_tick": null,
+      "first_halt_command_tick": null,
+      "first_obstacle_tick": 7116,
+      "first_opening_command_tick": 10226,
+      "held_weight_n": 0.2152198142691337,
+      "last_pass_crossing_gap_m": 4.390576927137957e-06,
+      "lost_grip_detection_tick": null,
+      "matched_clear_prefix_ticks": 7115,
+      "maximum_forward_stop_distance_m": null,
+      "minimum_rigid_robot_obstacle_gap_m": 0.0764581419865023,
+      "obstacle_impulse_magnitude_sum_ns": 0.005768965279169753,
+      "obstacle_loaded_ticks": 153,
+      "peak_axial_strain": 0.0008320710550031585,
+      "peak_lift_drag_n": 0.012548860007245134,
+      "peak_momentum_residual_ns": 4.942870313816251e-18,
+      "peak_obstacle_n": 0.21120350202953636,
+      "peak_transport_drag_n": 0.03393232674365855,
+      "peak_transport_rail_acceleration_m_s2": 0.614668523199538,
+      "peak_transport_speed_m_s": 0.2206527701236955,
+      "placement_dwell_mean_n": 0.22160818505133292,
+      "placement_dwell_min_n": 0.19676441354058963,
+      "reset_identical_ticks": 13100,
+      "rest_mean_load_n": 0.21581999999999785,
+      "rest_peak_particle_speed_m_s": 0.0,
+      "rest_support": "shelf"
+    },
+    {
+      "alarms": [
+        {
+          "detection_tick": 7085,
+          "filtered_drag_n": 0.040066914043834036,
+          "first_obstacle_tick": 7014,
+          "first_retreat_command_tick": 7086,
+          "latency_ms": 71
+        },
+        {
+          "detection_tick": 10996,
+          "filtered_drag_n": 0.040012284650830295,
+          "first_obstacle_tick": 10872,
+          "first_retreat_command_tick": 10997,
+          "latency_ms": 124
+        }
+      ],
+      "case": "limit",
+      "final_center_m": [
+        0.004000419239211639,
+        0.0025305802077783836,
+        0.5250000000000001
+      ],
+      "first_failed_squeeze_tick": null,
+      "first_halt_command_tick": null,
+      "first_obstacle_tick": 7014,
+      "first_opening_command_tick": 18982,
+      "held_weight_n": 0.2152198142691337,
+      "last_pass_crossing_gap_m": 2.9944054781398666e-06,
+      "lost_grip_detection_tick": null,
+      "matched_clear_prefix_ticks": 7013,
+      "maximum_forward_stop_distance_m": null,
+      "minimum_rigid_robot_obstacle_gap_m": 0.033004843378470976,
+      "obstacle_impulse_magnitude_sum_ns": 0.07805814651496619,
+      "obstacle_loaded_ticks": 1083,
+      "peak_axial_strain": 0.0013723183246381332,
+      "peak_lift_drag_n": 0.012548860007245134,
+      "peak_momentum_residual_ns": 5.496932413526586e-18,
+      "peak_obstacle_n": 0.5814194703988862,
+      "peak_transport_drag_n": 0.040066914043834036,
+      "peak_transport_rail_acceleration_m_s2": 0.614668523199538,
+      "peak_transport_speed_m_s": 0.2086668796883689,
+      "placement_dwell_mean_n": 0.22194193056251174,
+      "placement_dwell_min_n": 0.19644373219849862,
+      "reset_identical_ticks": 21856,
+      "rest_mean_load_n": 0.21581999999999785,
+      "rest_peak_particle_speed_m_s": 0.0,
+      "rest_support": "source"
+    },
+    {
+      "alarms": [],
+      "case": "lost",
+      "final_center_m": [
+        0.011705060402050283,
+        0.01077707506845491,
+        0.5250000000000001
+      ],
+      "first_failed_squeeze_tick": 6054,
+      "first_halt_command_tick": 6062,
+      "first_obstacle_tick": null,
+      "first_opening_command_tick": null,
+      "held_weight_n": 0.2152198142691337,
+      "last_pass_crossing_gap_m": null,
+      "lost_grip_detection_tick": 6061,
+      "matched_clear_prefix_ticks": 6049,
+      "maximum_forward_stop_distance_m": 0.00370756812316537,
+      "minimum_rigid_robot_obstacle_gap_m": 0.42003681748768223,
+      "obstacle_impulse_magnitude_sum_ns": 0.0,
+      "obstacle_loaded_ticks": 0,
+      "peak_axial_strain": 0.001116301883298032,
+      "peak_lift_drag_n": 0.012548860007245134,
+      "peak_momentum_residual_ns": 8.475737914694879e-18,
+      "peak_obstacle_n": 0.0,
+      "peak_transport_drag_n": 0.00600689522476047,
+      "peak_transport_rail_acceleration_m_s2": 3.6807463938878304,
+      "peak_transport_speed_m_s": 0.08206078937340888,
+      "placement_dwell_mean_n": null,
+      "placement_dwell_min_n": null,
+      "reset_identical_ticks": 8561,
+      "rest_mean_load_n": 0.21581999999999785,
+      "rest_peak_particle_speed_m_s": 0.0,
+      "rest_support": "source"
+    }
+  ],
+  "gz_web_rs": {
+    "clear": {
+      "body_poses_and_shapes_checked": 3645,
+      "captured_ms": {
+        "event-10232-Opening": 10232.0,
+        "event-10607-Withdrawn": 10607.0,
+        "event-5400-Transport": 5400.0,
+        "event-9400-Placing": 9400.0,
+        "rest": 13107.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 135,
+      "independent_particle_positions_checked": 1485,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 135,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10064%2F"
+    },
+    "fast": {
+      "body_poses_and_shapes_checked": 3213,
+      "captured_ms": {
+        "event-5400-Transport": 5400.0,
+        "event-7724-Placing": 7724.0,
+        "event-8556-Opening": 8556.0,
+        "event-8931-Withdrawn": 8931.0,
+        "rest": 11431.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 119,
+      "independent_particle_positions_checked": 1309,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 119,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10065%2F"
+    },
+    "snag": {
+      "body_poses_and_shapes_checked": 5049,
+      "captured_ms": {
+        "event-13596-Placing": 13596.0,
+        "event-15107-Opening": 15107.0,
+        "event-15482-Withdrawn": 15482.0,
+        "event-5400-Transport": 5400.0,
+        "event-7134-Backoff": 7134.0,
+        "event-8596-Raising": 8596.0,
+        "event-9596-Transport": 9596.0,
+        "rest": 17982.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 187,
+      "independent_particle_positions_checked": 2057,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 187,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9964%2F"
+    },
+    "rub": {
+      "body_poses_and_shapes_checked": 3591,
+      "captured_ms": {
+        "event-10225-Opening": 10225.0,
+        "event-10600-Withdrawn": 10600.0,
+        "event-5400-Transport": 5400.0,
+        "event-9400-Placing": 9400.0,
+        "rest": 13100.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 133,
+      "independent_particle_positions_checked": 1463,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 133,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9965%2F"
+    },
+    "limit": {
+      "body_poses_and_shapes_checked": 6156,
+      "captured_ms": {
+        "event-10996-Backoff": 10996.0,
+        "event-12459-Returning": 12459.0,
+        "event-15959-Placing": 15959.0,
+        "event-18981-Opening": 18981.0,
+        "event-19356-Withdrawn": 19356.0,
+        "event-5400-Transport": 5400.0,
+        "event-7085-Backoff": 7085.0,
+        "event-8547-Raising": 8547.0,
+        "event-9547-Transport": 9547.0,
+        "rest": 21856.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 228,
+      "independent_particle_positions_checked": 2508,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 228,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10066%2F"
+    },
+    "lost": {
+      "body_poses_and_shapes_checked": 2376,
+      "captured_ms": {
+        "event-5400-Transport": 5400.0,
+        "event-6061-LostGrip": 6061.0,
+        "rest": 8561.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 88,
+      "independent_particle_positions_checked": 968,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 88,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9966%2F"
+    }
+  },
+  "coverage": {
+    "changed_production": {
+      "crates/gz-sim-cli/examples/serial_cable.rs": {
+        "mapped_lines": [
+          5,
+          6
+        ],
+        "mapped_regions": [
+          7,
+          9
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag.rs": {
+        "mapped_lines": [
+          0,
+          0
+        ],
+        "mapped_regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/controller.rs": {
+        "mapped_lines": [
+          29,
+          29
+        ],
+        "mapped_regions": [
+          52,
+          53
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile.rs": {
+        "mapped_lines": [
+          142,
+          147
+        ],
+        "mapped_regions": [
+          258,
+          287
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/sensor.rs": {
+        "mapped_lines": [
+          52,
+          52
+        ],
+        "mapped_regions": [
+          81,
+          81
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/plot.rs": {
+        "mapped_lines": [
+          76,
+          77
+        ],
+        "mapped_regions": [
+          123,
+          130
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_cable/snag/tactile/qualification.rs": {
+        "mapped_lines": [
+          130,
+          130
+        ],
+        "mapped_regions": [
+          298,
+          299
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable.rs": {
+        "mapped_lines": [
+          21,
+          22
+        ],
+        "mapped_regions": [
+          34,
+          35
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/config.rs": {
+        "mapped_lines": [
+          1,
+          1
+        ],
+        "mapped_regions": [
+          1,
+          1
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "native",
+        "sha256": "a11c8bf8bb04637e25ed9f3f5c35118d54019eedc54d0ef69d5a41f65c68ac35"
+      },
+      {
+        "case": "app",
+        "sha256": "c172a2712685f515a8cf8a9ec637c1498861e2f8719a32612fc669f783a67df0"
+      },
+      {
+        "case": "product",
+        "sha256": "f5bc874d049cc3d2b767fcc61002f42478c1780c0fd8d4c39be76c1696ce9b05"
+      }
+    ],
+    "mapped_lines": [
+      456,
+      464
+    ],
+    "mapped_regions": [
+      854,
+      895
+    ]
+  },
+  "tests": {
+    "optimized_example": 16,
+    "native_articulated_cable_wrench": 12
+  },
+  "reproduction": {
+    "comparison_sha256": "89e14e8d03bb0b81483cb8098eb9c0e4b839bce51d9a59aad68dec3d1bd4f450",
+    "all_native_archives_and_per_tick_traces_identical_across_the_instrumented_and_two_uninstrumented_recordings": true,
+    "legacy_route_sha256": "44d7706e1f847d22db96ad9855868167e36c7ae43bd1a7913d25621c6537565a"
+  },
+  "coverage_method": "LLVM export against each matching binary and profile, union by changed production source position. One instrumented native scene regression, one release example test executable and one release recording executable. Test-only source excluded."
+}

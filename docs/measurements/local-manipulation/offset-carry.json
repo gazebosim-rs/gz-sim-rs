@@ -1,0 +1,1615 @@
+{
+  "method": "Local Rust physics, 200 us public clock, 1 us continuous fine reference. Durations in slip_us are from the start of each phase. Source hashes are SHA-256.",
+  "source_hashes": {
+    "crates/gz-sim-scene/tests/support/offset_carry.rs": "0b32f568c11aae4c9394ea5d3b318c4c2687e5435e81ff1d1e120617b01f7d6d",
+    "crates/gz-sim-scene/tests/support/pad_rocking.rs": "48b07315e00e048d54ea19f8acd2a60dd48f12b374a39c195fcfc0a7fd4159f2",
+    "crates/gz-sim-scene/tests/two_finger_load.rs": "74472b8dcce5c1fe5c1690f75afa39f58fbbc4504cd13737c4de9915133d5449",
+    "examples/worlds/local_offset_gripper_carry.sdf": "eb53af2e7ee448b205685ec2acbcf4edcc11bc9b15bc647824006fb5705f355e",
+    "examples/replay/offset_carry_hold.json": "cf49ad8e167bbd2949e86717ce58be4dab42b780da623b5c7d22ea7559b2fe15",
+    "examples/replay/offset_carry_slip.json": "50d7c8a988cbb392672a9483a6957209cc9c0d30e45c9a1a3aa55559077a1eae",
+    "examples/replay/offset_carry_rock.json": "18753241ceb919332837f5a3b07bfec9dda74b3810fbc9f2105f4a3a43d47079"
+  },
+  "threshold_predicted_n_per_finger": 2.762,
+  "fixture_reference": {
+    "fine-hold": {
+      "com_drop_relative_to_pads_after_210ms_mm": -6.661338147750939e-13,
+      "max_absolute_pitch_after_210ms_deg": 0.00015011159849651027,
+      "pad_rise_after_lift_start_mm": 39.20006999999487,
+      "parcel_com_rise_after_lift_start_mm": 39.20006999959569,
+      "public_steps": 1450,
+      "public_ticks_by_native_calls": {
+        "200": 1450
+      }
+    },
+    "fine-rock": {
+      "com_drop_relative_to_pads_after_210ms_mm": 2.6711481352863498,
+      "max_absolute_pitch_after_210ms_deg": 6.431948617049191,
+      "pad_rise_after_lift_start_mm": 39.903003719836406,
+      "parcel_com_rise_after_lift_start_mm": 37.23185558415021,
+      "public_steps": 1450,
+      "public_ticks_by_native_calls": {
+        "200": 1450
+      }
+    },
+    "fine-slip": {
+      "com_drop_relative_to_pads_after_210ms_mm": 10.089632306956641,
+      "max_absolute_pitch_after_210ms_deg": 0.06760984243232192,
+      "pad_rise_after_lift_start_mm": 41.85523639658506,
+      "parcel_com_rise_after_lift_start_mm": 31.76560408922857,
+      "public_steps": 1450,
+      "public_ticks_by_native_calls": {
+        "200": 1450
+      }
+    },
+    "hold": {
+      "com_drop_relative_to_pads_after_210ms_mm": -7.771561172376096e-13,
+      "max_absolute_pitch_after_210ms_deg": 0.00010012027376921511,
+      "pad_rise_after_lift_start_mm": 39.2140043678858,
+      "parcel_com_rise_after_lift_start_mm": 39.21398776999574,
+      "public_steps": 1450,
+      "public_ticks_by_native_calls": {
+        "1": 1450
+      }
+    },
+    "rock": {
+      "com_drop_relative_to_pads_after_210ms_mm": 2.669347874768635,
+      "max_absolute_pitch_after_210ms_deg": 6.42689795345235,
+      "pad_rise_after_lift_start_mm": 39.914634734927624,
+      "parcel_com_rise_after_lift_start_mm": 37.24527026226815,
+      "public_steps": 1450,
+      "public_ticks_by_native_calls": {
+        "1": 1346,
+        "200": 4,
+        "8": 100
+      }
+    },
+    "slip": {
+      "com_drop_relative_to_pads_after_210ms_mm": 10.089907069143756,
+      "max_absolute_pitch_after_210ms_deg": 0.06754057924642423,
+      "pad_rise_after_lift_start_mm": 41.869243070292384,
+      "parcel_com_rise_after_lift_start_mm": 31.779319403257787,
+      "public_steps": 1450,
+      "public_ticks_by_native_calls": {
+        "1": 1450
+      }
+    }
+  },
+  "native_phase_observations": [
+    {
+      "name": "hold",
+      "grid": "Adaptive",
+      "phase": 0,
+      "wrist_motion_m": 0.0,
+      "relative_drop_m": 6.768e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00010334,
+      "normal_n": [
+        4.200025393913968,
+        4.20002539590066
+      ],
+      "friction_z_n": [
+        0.6858365788127748,
+        1.276163421179886
+      ],
+      "moment_com_ynm": [
+        0.013318177878374797,
+        -0.013318177878449211
+      ],
+      "moment_origin_ynm": -0.008829000000026916,
+      "lin_res_ns": 1.6653345369377348e-16,
+      "ang_res_nms": 2.79304103820059e-15,
+      "native_calls": 750
+    },
+    {
+      "name": "hold",
+      "grid": "Adaptive",
+      "phase": 1,
+      "wrist_motion_m": 0.007206004368,
+      "relative_drop_m": 1.6598e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00010012,
+      "normal_n": [
+        4.20000144287935,
+        4.200001443819221
+      ],
+      "friction_z_n": [
+        0.9652564462687623,
+        1.7967435537309118
+      ],
+      "moment_com_ynm": [
+        0.018747533382874822,
+        -0.018747533382879097
+      ],
+      "moment_origin_ynm": -0.012428999999983781,
+      "lin_res_ns": 1.1379786002407855e-15,
+      "ang_res_nms": 1.5632374885020642e-15,
+      "native_calls": 300
+    },
+    {
+      "name": "hold",
+      "grid": "Adaptive",
+      "phase": 2,
+      "wrist_motion_m": 0.032008,
+      "relative_drop_m": -0.0,
+      "slip_us": null,
+      "pitch_deg": 0.00010012,
+      "normal_n": [
+        4.20000003148061,
+        4.200000031501273
+      ],
+      "friction_z_n": [
+        0.9652563380671744,
+        1.7967436619326065
+      ],
+      "moment_com_ynm": [
+        0.018747527546266036,
+        -0.018747527546266136
+      ],
+      "moment_origin_ynm": -0.012428999999980095,
+      "lin_res_ns": -2.0261570199409107e-15,
+      "ang_res_nms": 9.617021590308524e-19,
+      "native_calls": 400
+    },
+    {
+      "name": "slip",
+      "grid": "Adaptive",
+      "phase": 0,
+      "wrist_motion_m": 0.0,
+      "relative_drop_m": 6.768e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00010334,
+      "normal_n": [
+        4.200025393913968,
+        4.20002539590066
+      ],
+      "friction_z_n": [
+        0.6858365788127748,
+        1.276163421179886
+      ],
+      "moment_com_ynm": [
+        0.013318177878374797,
+        -0.013318177878449211
+      ],
+      "moment_origin_ynm": -0.008829000000026916,
+      "lin_res_ns": 1.6653345369377348e-16,
+      "ang_res_nms": 2.79304103820059e-15,
+      "native_calls": 750
+    },
+    {
+      "name": "slip",
+      "grid": "Adaptive",
+      "phase": 1,
+      "wrist_motion_m": 0.007206004368,
+      "relative_drop_m": 1.6598e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00010012,
+      "normal_n": [
+        4.20000144287935,
+        4.200001443819221
+      ],
+      "friction_z_n": [
+        0.9652564462687623,
+        1.7967435537309118
+      ],
+      "moment_com_ynm": [
+        0.018747533382874822,
+        -0.018747533382879097
+      ],
+      "moment_origin_ynm": -0.012428999999983781,
+      "lin_res_ns": 1.1379786002407855e-15,
+      "ang_res_nms": 1.5632374885020642e-15,
+      "native_calls": 300
+    },
+    {
+      "name": "slip",
+      "grid": "Adaptive",
+      "phase": 2,
+      "wrist_motion_m": 0.034663238702,
+      "relative_drop_m": 0.010089907069,
+      "slip_us": 8200,
+      "pitch_deg": 0.06754058,
+      "normal_n": [
+        2.299672782811618,
+        2.299674614151498
+      ],
+      "friction_z_n": [
+        1.1498363914057474,
+        1.1498373070756465
+      ],
+      "moment_com_ynm": [
+        0.017823498174900327,
+        -0.017825209129714612
+      ],
+      "moment_origin_ynm": -0.010350235398198234,
+      "lin_res_ns": 9.992007221626409e-16,
+      "ang_res_nms": 3.474156638964065e-14,
+      "native_calls": 400
+    },
+    {
+      "name": "hold",
+      "grid": "Fine",
+      "phase": 0,
+      "wrist_motion_m": 0.0,
+      "relative_drop_m": 6.1768e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00015011,
+      "normal_n": [
+        4.200025215071641,
+        4.200025215071708
+      ],
+      "friction_z_n": [
+        0.6860741155309705,
+        1.275925884469029
+      ],
+      "moment_com_ynm": [
+        0.013319392557169124,
+        -0.013319392557169126
+      ],
+      "moment_origin_ynm": -0.0088289999999697,
+      "lin_res_ns": 1.1102230246251565e-16,
+      "ang_res_nms": 9.57049400681965e-20,
+      "native_calls": 150000
+    },
+    {
+      "name": "hold",
+      "grid": "Fine",
+      "phase": 1,
+      "wrist_motion_m": 0.00720003,
+      "relative_drop_m": 0.0,
+      "slip_us": null,
+      "pitch_deg": 0.00015011,
+      "normal_n": [
+        4.2000014265545875,
+        4.200001426554601
+      ],
+      "friction_z_n": [
+        0.9655100716231535,
+        1.79648992837243
+      ],
+      "moment_com_ynm": [
+        0.018748783917578227,
+        -0.01874878391757823
+      ],
+      "moment_origin_ynm": -0.012428999999937474,
+      "lin_res_ns": -9.350853424905381e-14,
+      "ang_res_nms": 1.0871896124677026e-18,
+      "native_calls": 60000
+    },
+    {
+      "name": "hold",
+      "grid": "Fine",
+      "phase": 2,
+      "wrist_motion_m": 0.03200004,
+      "relative_drop_m": -0.0,
+      "slip_us": null,
+      "pitch_deg": 0.00015011,
+      "normal_n": [
+        4.20000003098318,
+        4.2000000309831815
+      ],
+      "friction_z_n": [
+        0.9655099656242835,
+        1.7964900343708308
+      ],
+      "moment_com_ynm": [
+        0.01874877818579508,
+        -0.018748778185795067
+      ],
+      "moment_origin_ynm": -0.012428999999935344,
+      "lin_res_ns": 3.3392733023163146e-13,
+      "ang_res_nms": 1.134525854217438e-18,
+      "native_calls": 80000
+    },
+    {
+      "name": "slip",
+      "grid": "Fine",
+      "phase": 0,
+      "wrist_motion_m": 0.0,
+      "relative_drop_m": 6.1768e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00015011,
+      "normal_n": [
+        4.200025215071641,
+        4.200025215071708
+      ],
+      "friction_z_n": [
+        0.6860741155309705,
+        1.275925884469029
+      ],
+      "moment_com_ynm": [
+        0.013319392557169124,
+        -0.013319392557169126
+      ],
+      "moment_origin_ynm": -0.0088289999999697,
+      "lin_res_ns": 1.1102230246251565e-16,
+      "ang_res_nms": 9.57049400681965e-20,
+      "native_calls": 150000
+    },
+    {
+      "name": "slip",
+      "grid": "Fine",
+      "phase": 1,
+      "wrist_motion_m": 0.00720003,
+      "relative_drop_m": 0.0,
+      "slip_us": null,
+      "pitch_deg": 0.00015011,
+      "normal_n": [
+        4.2000014265545875,
+        4.200001426554601
+      ],
+      "friction_z_n": [
+        0.9655100716231535,
+        1.79648992837243
+      ],
+      "moment_com_ynm": [
+        0.018748783917578227,
+        -0.01874878391757823
+      ],
+      "moment_origin_ynm": -0.012428999999937474,
+      "lin_res_ns": -9.350853424905381e-14,
+      "ang_res_nms": 1.0871896124677026e-18,
+      "native_calls": 60000
+    },
+    {
+      "name": "slip",
+      "grid": "Fine",
+      "phase": 2,
+      "wrist_motion_m": 0.034655206396,
+      "relative_drop_m": 0.010089632307,
+      "slip_us": 8200,
+      "pitch_deg": 0.06760984,
+      "normal_n": [
+        2.2996747535514457,
+        2.2996734371019585
+      ],
+      "friction_z_n": [
+        1.1498373767757224,
+        1.1498367185509786
+      ],
+      "moment_com_ynm": [
+        0.017823779775316614,
+        -0.017824532145825793
+      ],
+      "moment_origin_ynm": -0.010349278601646306,
+      "lin_res_ns": 1.6436574323819286e-12,
+      "ang_res_nms": 4.865782102508989e-17,
+      "native_calls": 80000
+    },
+    {
+      "name": "mirror",
+      "grid": "Adaptive",
+      "phase": 0,
+      "wrist_motion_m": 0.0,
+      "relative_drop_m": 7.0121e-08,
+      "slip_us": null,
+      "pitch_deg": -4.229e-05,
+      "normal_n": [
+        4.200025393913695,
+        4.200025395901558
+      ],
+      "friction_z_n": [
+        1.2764685469862382,
+        0.6855314530063462
+      ],
+      "moment_com_ynm": [
+        0.01331678989250781,
+        -0.013316789892548432
+      ],
+      "moment_origin_ynm": 0.008828999999923506,
+      "lin_res_ns": -5.551115123125783e-17,
+      "ang_res_nms": 4.244971169171089e-15,
+      "native_calls": 750
+    },
+    {
+      "name": "mirror",
+      "grid": "Adaptive",
+      "phase": 1,
+      "wrist_motion_m": 0.007206004402,
+      "relative_drop_m": 1.6729e-08,
+      "slip_us": null,
+      "pitch_deg": -4.265e-05,
+      "normal_n": [
+        4.200001442879539,
+        4.200001443819665
+      ],
+      "friction_z_n": [
+        1.7970306217212235,
+        0.9649693782784386
+      ],
+      "moment_com_ynm": [
+        0.01874623513244417,
+        -0.018746235132446415
+      ],
+      "moment_origin_ynm": 0.01242899999999248,
+      "lin_res_ns": 9.71445146547012e-16,
+      "ang_res_nms": 5.81272767901249e-16,
+      "native_calls": 300
+    },
+    {
+      "name": "mirror",
+      "grid": "Adaptive",
+      "phase": 2,
+      "wrist_motion_m": 0.032008,
+      "relative_drop_m": -0.0,
+      "slip_us": null,
+      "pitch_deg": -4.265e-05,
+      "normal_n": [
+        4.200000031480611,
+        4.200000031501283
+      ],
+      "friction_z_n": [
+        1.7970307294283976,
+        0.9649692705714824
+      ],
+      "moment_com_ynm": [
+        0.018746229299118504,
+        -0.01874622929911854
+      ],
+      "moment_origin_ynm": 0.01242899999999567,
+      "lin_res_ns": -1.2212453270876722e-15,
+      "ang_res_nms": 1.1356246893032399e-18,
+      "native_calls": 400
+    },
+    {
+      "name": "rock",
+      "grid": "Ordinary",
+      "phase": 0,
+      "wrist_motion_m": 0.0,
+      "relative_drop_m": 6.768e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00010334,
+      "normal_n": [
+        4.200025393913968,
+        4.20002539590066
+      ],
+      "friction_z_n": [
+        0.6858365788127748,
+        1.276163421179886
+      ],
+      "moment_com_ynm": [
+        0.013318177878374797,
+        -0.013318177878449211
+      ],
+      "moment_origin_ynm": -0.008829000000026916,
+      "lin_res_ns": 1.6653345369377348e-16,
+      "ang_res_nms": 2.79304103820059e-15,
+      "native_calls": 750
+    },
+    {
+      "name": "rock",
+      "grid": "Ordinary",
+      "phase": 1,
+      "wrist_motion_m": 0.007206004368,
+      "relative_drop_m": 1.6598e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00010012,
+      "normal_n": [
+        4.20000144287935,
+        4.200001443819221
+      ],
+      "friction_z_n": [
+        0.9652564462687623,
+        1.7967435537309118
+      ],
+      "moment_com_ynm": [
+        0.018747533382874822,
+        -0.018747533382879097
+      ],
+      "moment_origin_ynm": -0.012428999999983781,
+      "lin_res_ns": 1.1379786002407855e-15,
+      "ang_res_nms": 1.5632374885020642e-15,
+      "native_calls": 300
+    },
+    {
+      "name": "rock",
+      "grid": "Ordinary",
+      "phase": 2,
+      "wrist_motion_m": 0.032711156439,
+      "relative_drop_m": 0.002671994467,
+      "slip_us": 3400,
+      "pitch_deg": 0.23084875,
+      "normal_n": [
+        4.200433498462171,
+        4.20035873291028
+      ],
+      "friction_z_n": [
+        2.100216411961633,
+        0.6619186164410087
+      ],
+      "moment_com_ynm": [
+        0.024595877633447668,
+        -0.024594079017642684
+      ],
+      "moment_origin_ynm": -0.012427709479936285,
+      "lin_res_ns": -1.2490009027033011e-15,
+      "ang_res_nms": 1.0823220063643932e-09,
+      "native_calls": 400
+    },
+    {
+      "name": "rock",
+      "grid": "Adaptive",
+      "phase": 0,
+      "wrist_motion_m": 0.0,
+      "relative_drop_m": 6.768e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00010334,
+      "normal_n": [
+        4.200025393913968,
+        4.20002539590066
+      ],
+      "friction_z_n": [
+        0.6858365788127748,
+        1.276163421179886
+      ],
+      "moment_com_ynm": [
+        0.013318177878374797,
+        -0.013318177878449211
+      ],
+      "moment_origin_ynm": -0.008829000000026916,
+      "lin_res_ns": 1.6653345369377348e-16,
+      "ang_res_nms": 2.79304103820059e-15,
+      "native_calls": 750
+    },
+    {
+      "name": "rock",
+      "grid": "Adaptive",
+      "phase": 1,
+      "wrist_motion_m": 0.007206004368,
+      "relative_drop_m": 1.6598e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00010012,
+      "normal_n": [
+        4.20000144287935,
+        4.200001443819221
+      ],
+      "friction_z_n": [
+        0.9652564462687623,
+        1.7967435537309118
+      ],
+      "moment_com_ynm": [
+        0.018747533382874822,
+        -0.018747533382879097
+      ],
+      "moment_origin_ynm": -0.012428999999983781,
+      "lin_res_ns": 1.1379786002407855e-15,
+      "ang_res_nms": 1.5632374885020642e-15,
+      "native_calls": 300
+    },
+    {
+      "name": "rock",
+      "grid": "Adaptive",
+      "phase": 2,
+      "wrist_motion_m": 0.032708630367,
+      "relative_drop_m": 0.002669347875,
+      "slip_us": 3400,
+      "pitch_deg": 0.23113597,
+      "normal_n": [
+        4.200418266748704,
+        4.200357599762458
+      ],
+      "friction_z_n": [
+        2.100209107573553,
+        0.6619270732189028
+      ],
+      "moment_com_ynm": [
+        0.0246179685682567,
+        -0.02461615461752085
+      ],
+      "moment_origin_ynm": -0.012427698825563181,
+      "lin_res_ns": 1.6653345369377348e-16,
+      "ang_res_nms": 1.6469295466664194e-11,
+      "native_calls": 1896
+    },
+    {
+      "name": "rock",
+      "grid": "Fine",
+      "phase": 0,
+      "wrist_motion_m": 0.0,
+      "relative_drop_m": 6.1768e-08,
+      "slip_us": null,
+      "pitch_deg": 0.00015011,
+      "normal_n": [
+        4.200025215071641,
+        4.200025215071708
+      ],
+      "friction_z_n": [
+        0.6860741155309705,
+        1.275925884469029
+      ],
+      "moment_com_ynm": [
+        0.013319392557169124,
+        -0.013319392557169126
+      ],
+      "moment_origin_ynm": -0.0088289999999697,
+      "lin_res_ns": 1.1102230246251565e-16,
+      "ang_res_nms": 9.57049400681965e-20,
+      "native_calls": 150000
+    },
+    {
+      "name": "rock",
+      "grid": "Fine",
+      "phase": 1,
+      "wrist_motion_m": 0.00720003,
+      "relative_drop_m": 0.0,
+      "slip_us": null,
+      "pitch_deg": 0.00015011,
+      "normal_n": [
+        4.2000014265545875,
+        4.200001426554601
+      ],
+      "friction_z_n": [
+        0.9655100716231535,
+        1.79648992837243
+      ],
+      "moment_com_ynm": [
+        0.018748783917578227,
+        -0.01874878391757823
+      ],
+      "moment_origin_ynm": -0.012428999999937474,
+      "lin_res_ns": -9.350853424905381e-14,
+      "ang_res_nms": 1.0871896124677026e-18,
+      "native_calls": 60000
+    },
+    {
+      "name": "rock",
+      "grid": "Fine",
+      "phase": 2,
+      "wrist_motion_m": 0.03270297372,
+      "relative_drop_m": 0.002671148135,
+      "slip_us": 3400,
+      "pitch_deg": 0.23127767,
+      "normal_n": [
+        4.20041634854723,
+        4.200358765609191
+      ],
+      "friction_z_n": [
+        2.10020817427359,
+        0.6619267497363337
+      ],
+      "moment_com_ynm": [
+        0.024610705246668182,
+        -0.02460890588618976
+      ],
+      "moment_origin_ynm": -0.012427707580957485,
+      "lin_res_ns": 6.386280393400057e-13,
+      "ang_res_nms": 6.6497913755233e-13,
+      "native_calls": 80000
+    }
+  ],
+  "left_jaw_return": {
+    "coarse": {
+      "return_peak_n": 45.31484476363782,
+      "simulation_time_ns": 230600000
+    },
+    "adaptive": {
+      "return_peak_n": 152.00771785426957,
+      "simulation_time_ns": 230326000
+    },
+    "fine": {
+      "return_peak_n": 151.13882895376292,
+      "simulation_time_ns": 230334000
+    }
+  },
+  "squeeze_sweep": [
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.3,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 10.089907069143756,
+      "last_10ms_slide_speed_mm_s": 236.22423637584822,
+      "measured_vertical_friction_n": 2.299673698481394,
+      "carrier_rise_mm": 34.663238702417885
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.69,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 1.694838030376955,
+      "last_10ms_slide_speed_mm_s": 38.588242519915774,
+      "measured_vertical_friction_n": 2.6897406155439363,
+      "carrier_rise_mm": 32.45401000800568
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.74,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 0.6313581945019409,
+      "last_10ms_slide_speed_mm_s": 13.412252185923679,
+      "measured_vertical_friction_n": 2.7397494207708415,
+      "carrier_rise_mm": 32.17414689330167
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.75,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 0.42002600683432867,
+      "last_10ms_slide_speed_mm_s": 8.394374876824484,
+      "measured_vertical_friction_n": 2.749751141068901,
+      "carrier_rise_mm": 32.118533159704974
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.76,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 0.2095302612105665,
+      "last_10ms_slide_speed_mm_s": 3.3871622065195783,
+      "measured_vertical_friction_n": 2.75975286120613,
+      "carrier_rise_mm": 32.06313954243578
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.77,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 0.03729611074398953,
+      "last_10ms_slide_speed_mm_s": 0.03585960412499922,
+      "measured_vertical_friction_n": 2.762258447903021,
+      "carrier_rise_mm": 32.01781476599713
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.78,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 0.026940135596731363,
+      "last_10ms_slide_speed_mm_s": 0.0359600738408794,
+      "measured_vertical_friction_n": 2.7622591428560095,
+      "carrier_rise_mm": 32.01508950937926
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.8,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 0.02626149769086039,
+      "last_10ms_slide_speed_mm_s": 0.035065635034525755,
+      "measured_vertical_friction_n": 2.7622527312717904,
+      "carrier_rise_mm": 32.014910920457
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 2.85,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 0.024603896011943238,
+      "last_10ms_slide_speed_mm_s": 0.03282883242472501,
+      "measured_vertical_friction_n": 2.762236697624845,
+      "carrier_rise_mm": 32.01447470948837
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 3.0,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": 0.01963628125278838,
+      "last_10ms_slide_speed_mm_s": 0.02611698951549002,
+      "measured_vertical_friction_n": 2.7621885893557963,
+      "carrier_rise_mm": 32.013167442446644
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.5,
+      "jaw_force_n": 4.2,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 2.762,
+      "relative_com_drop_mm": -7.216449660063518e-13,
+      "last_10ms_slide_speed_mm_s": -5.551115123125783e-12,
+      "measured_vertical_friction_n": 2.7619999999997873,
+      "carrier_rise_mm": 32.00800000001131
+    },
+    {
+      "parcel_kg": 0.15,
+      "mu": 0.5,
+      "jaw_force_n": 2.05,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.2173802816901405,
+      "critical_jaw_n": 2.2173802816901405,
+      "relative_com_drop_mm": 4.6742318333384265,
+      "last_10ms_slide_speed_mm_s": 108.49460919085118,
+      "measured_vertical_friction_n": 2.0496837826632954,
+      "carrier_rise_mm": 40.77774052817723
+    },
+    {
+      "parcel_kg": 0.15,
+      "mu": 0.5,
+      "jaw_force_n": 2.35,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.2173802816901405,
+      "critical_jaw_n": 2.2173802816901405,
+      "relative_com_drop_mm": 0.017832271755058304,
+      "last_10ms_slide_speed_mm_s": 0.01770292418767916,
+      "measured_vertical_friction_n": 2.217494144670217,
+      "carrier_rise_mm": 39.793994141927634
+    },
+    {
+      "parcel_kg": 0.25,
+      "mu": 0.5,
+      "jaw_force_n": 3.05,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 3.2393827160493824,
+      "critical_jaw_n": 3.2393827160493824,
+      "relative_com_drop_mm": 3.5870043298825705,
+      "last_10ms_slide_speed_mm_s": 83.37785973331901,
+      "measured_vertical_friction_n": 3.049784032880798,
+      "carrier_rise_mm": 26.293642077139523
+    },
+    {
+      "parcel_kg": 0.25,
+      "mu": 0.5,
+      "jaw_force_n": 3.4,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 3.2393827160493824,
+      "critical_jaw_n": 3.2393827160493824,
+      "relative_com_drop_mm": 0.02635607160694775,
+      "last_10ms_slide_speed_mm_s": 0.04182380286543719,
+      "measured_vertical_friction_n": 3.239713003447371,
+      "carrier_rise_mm": 25.19467656532631
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.4,
+      "jaw_force_n": 3.2,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 3.4524999999999997,
+      "relative_com_drop_mm": 4.431920778413256,
+      "last_10ms_slide_speed_mm_s": 103.53254109423115,
+      "measured_vertical_friction_n": 2.5598626023594697,
+      "carrier_rise_mm": 33.17429494169921
+    },
+    {
+      "parcel_kg": 0.2,
+      "mu": 0.4,
+      "jaw_force_n": 3.65,
+      "offset_x_m": 0.0045,
+      "required_traction_n": 2.762,
+      "critical_jaw_n": 3.4524999999999997,
+      "relative_com_drop_mm": 0.014998204659999459,
+      "last_10ms_slide_speed_mm_s": 0.0202616846467496,
+      "measured_vertical_friction_n": 2.7621450656734936,
+      "carrier_rise_mm": 32.01194689597464
+    }
+  ],
+  "fine_threshold_bracket": [
+    {
+      "jaw_force_n": 2.76,
+      "relative_drop_mm": 0.2086996604645508,
+      "down_speed_final_10ms_mm_s": 3.376682820760424,
+      "friction_vertical_n": 2.759753626055537
+    },
+    {
+      "jaw_force_n": 2.77,
+      "relative_drop_mm": 0.03671765942486749,
+      "down_speed_final_10ms_mm_s": 0.035712793589048886,
+      "friction_vertical_n": 2.762257396215799
+    }
+  ],
+  "timing_method": "Median of three rotated optimized batches on CPU 5, 1450 public ticks per run, excluding test-side measurement and archive work.",
+  "timing": {
+    "hold": {
+      "Ordinary": {
+        "p95_ns": 15850,
+        "wall_ns": 20667177
+      },
+      "Adaptive": {
+        "p95_ns": 16350,
+        "wall_ns": 21349797
+      },
+      "Fine": {
+        "p95_ns": 3932051,
+        "wall_ns": 3435547008
+      }
+    },
+    "slip": {
+      "Ordinary": {
+        "p95_ns": 15900,
+        "wall_ns": 20713407
+      },
+      "Adaptive": {
+        "p95_ns": 16630,
+        "wall_ns": 21486179
+      },
+      "Fine": {
+        "p95_ns": 2298576,
+        "wall_ns": 3298299861
+      }
+    },
+    "rock": {
+      "Ordinary": {
+        "p95_ns": 16160,
+        "wall_ns": 20858977
+      },
+      "Adaptive": {
+        "p95_ns": 96391,
+        "wall_ns": 39816309
+      },
+      "Fine": {
+        "p95_ns": 2389307,
+        "wall_ns": 3327390511
+      }
+    }
+  },
+  "timing_batches": [
+    {
+      "batch": 0,
+      "journal": "hold",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 24670,
+      "p95_ns": 27991,
+      "wall_ns": 38549404
+    },
+    {
+      "batch": 0,
+      "journal": "hold",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 24670,
+      "p95_ns": 27991,
+      "wall_ns": 38549404
+    },
+    {
+      "batch": 0,
+      "journal": "slip",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 24400,
+      "p95_ns": 27530,
+      "wall_ns": 36422361
+    },
+    {
+      "batch": 0,
+      "journal": "slip",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 24400,
+      "p95_ns": 27530,
+      "wall_ns": 36422361
+    },
+    {
+      "batch": 0,
+      "journal": "rock",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 24350,
+      "p95_ns": 27340,
+      "wall_ns": 35867189
+    },
+    {
+      "batch": 0,
+      "journal": "rock",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 24350,
+      "p95_ns": 27340,
+      "wall_ns": 35867189
+    },
+    {
+      "batch": 0,
+      "journal": "hold",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 24960,
+      "p95_ns": 27081,
+      "wall_ns": 36626181
+    },
+    {
+      "batch": 0,
+      "journal": "hold",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 24960,
+      "p95_ns": 27081,
+      "wall_ns": 36626181
+    },
+    {
+      "batch": 0,
+      "journal": "slip",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 25130,
+      "p95_ns": 27750,
+      "wall_ns": 37422023
+    },
+    {
+      "batch": 0,
+      "journal": "slip",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 25130,
+      "p95_ns": 27750,
+      "wall_ns": 37422023
+    },
+    {
+      "batch": 0,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 24970,
+      "p95_ns": 171271,
+      "wall_ns": 69020381
+    },
+    {
+      "batch": 0,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1346,
+      "p50_ns": 24950,
+      "p95_ns": 28760,
+      "wall_ns": 34899467
+    },
+    {
+      "batch": 0,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 8,
+      "tick_count": 100,
+      "p50_ns": 171721,
+      "p95_ns": 204661,
+      "wall_ns": 17552948
+    },
+    {
+      "batch": 0,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 200,
+      "tick_count": 4,
+      "p50_ns": 4133721,
+      "p95_ns": 4212292,
+      "wall_ns": 16567966
+    },
+    {
+      "batch": 0,
+      "journal": "hold",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 2272776,
+      "p95_ns": 3932051,
+      "wall_ns": 3435547008
+    },
+    {
+      "batch": 0,
+      "journal": "hold",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 2272776,
+      "p95_ns": 3932051,
+      "wall_ns": 3435547008
+    },
+    {
+      "batch": 0,
+      "journal": "slip",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 2273846,
+      "p95_ns": 2298576,
+      "wall_ns": 3298299861
+    },
+    {
+      "batch": 0,
+      "journal": "slip",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 2273846,
+      "p95_ns": 2298576,
+      "wall_ns": 3298299861
+    },
+    {
+      "batch": 0,
+      "journal": "rock",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 2272436,
+      "p95_ns": 2308787,
+      "wall_ns": 3302122842
+    },
+    {
+      "batch": 0,
+      "journal": "rock",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 2272436,
+      "p95_ns": 2308787,
+      "wall_ns": 3302122842
+    },
+    {
+      "batch": 1,
+      "journal": "hold",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 13970,
+      "p95_ns": 15200,
+      "wall_ns": 20733326
+    },
+    {
+      "batch": 1,
+      "journal": "hold",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 13970,
+      "p95_ns": 15200,
+      "wall_ns": 20733326
+    },
+    {
+      "batch": 1,
+      "journal": "slip",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 14010,
+      "p95_ns": 15910,
+      "wall_ns": 20871798
+    },
+    {
+      "batch": 1,
+      "journal": "slip",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 14010,
+      "p95_ns": 15910,
+      "wall_ns": 20871798
+    },
+    {
+      "batch": 1,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 13990,
+      "p95_ns": 94860,
+      "wall_ns": 38143075
+    },
+    {
+      "batch": 1,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1346,
+      "p50_ns": 13981,
+      "p95_ns": 15420,
+      "wall_ns": 19265733
+    },
+    {
+      "batch": 1,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 8,
+      "tick_count": 100,
+      "p50_ns": 95120,
+      "p95_ns": 102391,
+      "wall_ns": 9626496
+    },
+    {
+      "batch": 1,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 200,
+      "tick_count": 4,
+      "p50_ns": 2316947,
+      "p95_ns": 2319326,
+      "wall_ns": 9250846
+    },
+    {
+      "batch": 1,
+      "journal": "hold",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 2264796,
+      "p95_ns": 2559117,
+      "wall_ns": 3334884412
+    },
+    {
+      "batch": 1,
+      "journal": "hold",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 2264796,
+      "p95_ns": 2559117,
+      "wall_ns": 3334884412
+    },
+    {
+      "batch": 1,
+      "journal": "slip",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 2261576,
+      "p95_ns": 2289626,
+      "wall_ns": 3282300167
+    },
+    {
+      "batch": 1,
+      "journal": "slip",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 2261576,
+      "p95_ns": 2289626,
+      "wall_ns": 3282300167
+    },
+    {
+      "batch": 1,
+      "journal": "rock",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 2281997,
+      "p95_ns": 2399467,
+      "wall_ns": 3327390511
+    },
+    {
+      "batch": 1,
+      "journal": "rock",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 2281997,
+      "p95_ns": 2399467,
+      "wall_ns": 3327390511
+    },
+    {
+      "batch": 1,
+      "journal": "hold",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 13420,
+      "p95_ns": 15350,
+      "wall_ns": 20012965
+    },
+    {
+      "batch": 1,
+      "journal": "hold",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 13420,
+      "p95_ns": 15350,
+      "wall_ns": 20012965
+    },
+    {
+      "batch": 1,
+      "journal": "slip",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 13431,
+      "p95_ns": 15310,
+      "wall_ns": 20018855
+    },
+    {
+      "batch": 1,
+      "journal": "slip",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 13431,
+      "p95_ns": 15310,
+      "wall_ns": 20018855
+    },
+    {
+      "batch": 1,
+      "journal": "rock",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 13380,
+      "p95_ns": 15520,
+      "wall_ns": 20033016
+    },
+    {
+      "batch": 1,
+      "journal": "rock",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 13380,
+      "p95_ns": 15520,
+      "wall_ns": 20033016
+    },
+    {
+      "batch": 2,
+      "journal": "hold",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 2263576,
+      "p95_ns": 4040271,
+      "wall_ns": 3515390198
+    },
+    {
+      "batch": 2,
+      "journal": "hold",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 2263576,
+      "p95_ns": 4040271,
+      "wall_ns": 3515390198
+    },
+    {
+      "batch": 2,
+      "journal": "slip",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 4104171,
+      "p95_ns": 4171282,
+      "wall_ns": 5354207599
+    },
+    {
+      "batch": 2,
+      "journal": "slip",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 4104171,
+      "p95_ns": 4171282,
+      "wall_ns": 5354207599
+    },
+    {
+      "batch": 2,
+      "journal": "rock",
+      "policy": "Fine",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 2299897,
+      "p95_ns": 2389307,
+      "wall_ns": 3363238230
+    },
+    {
+      "batch": 2,
+      "journal": "rock",
+      "policy": "Fine",
+      "calls": 200,
+      "tick_count": 1450,
+      "p50_ns": 2299897,
+      "p95_ns": 2389307,
+      "wall_ns": 3363238230
+    },
+    {
+      "batch": 2,
+      "journal": "hold",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 13820,
+      "p95_ns": 15850,
+      "wall_ns": 20667177
+    },
+    {
+      "batch": 2,
+      "journal": "hold",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 13820,
+      "p95_ns": 15850,
+      "wall_ns": 20667177
+    },
+    {
+      "batch": 2,
+      "journal": "slip",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 13790,
+      "p95_ns": 15900,
+      "wall_ns": 20713407
+    },
+    {
+      "batch": 2,
+      "journal": "slip",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 13790,
+      "p95_ns": 15900,
+      "wall_ns": 20713407
+    },
+    {
+      "batch": 2,
+      "journal": "rock",
+      "policy": "Ordinary",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 13770,
+      "p95_ns": 16160,
+      "wall_ns": 20858977
+    },
+    {
+      "batch": 2,
+      "journal": "rock",
+      "policy": "Ordinary",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 13770,
+      "p95_ns": 16160,
+      "wall_ns": 20858977
+    },
+    {
+      "batch": 2,
+      "journal": "hold",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 14310,
+      "p95_ns": 16350,
+      "wall_ns": 21349797
+    },
+    {
+      "batch": 2,
+      "journal": "hold",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 14310,
+      "p95_ns": 16350,
+      "wall_ns": 21349797
+    },
+    {
+      "batch": 2,
+      "journal": "slip",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 14310,
+      "p95_ns": 16630,
+      "wall_ns": 21486179
+    },
+    {
+      "batch": 2,
+      "journal": "slip",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1450,
+      "p50_ns": 14310,
+      "p95_ns": 16630,
+      "wall_ns": 21486179
+    },
+    {
+      "batch": 2,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 0,
+      "tick_count": 1450,
+      "p50_ns": 14250,
+      "p95_ns": 96391,
+      "wall_ns": 39816309
+    },
+    {
+      "batch": 2,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 1,
+      "tick_count": 1346,
+      "p50_ns": 14240,
+      "p95_ns": 18900,
+      "wall_ns": 20226895
+    },
+    {
+      "batch": 2,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 8,
+      "tick_count": 100,
+      "p50_ns": 98200,
+      "p95_ns": 115990,
+      "wall_ns": 10072338
+    },
+    {
+      "batch": 2,
+      "journal": "rock",
+      "policy": "Adaptive",
+      "calls": 200,
+      "tick_count": 4,
+      "p50_ns": 2351067,
+      "p95_ns": 2450017,
+      "wall_ns": 9517076
+    }
+  ],
+  "changed_test_coverage_hit_and_total": {
+    "crates/gz-sim-scene/tests/support/offset_carry.rs": {
+      "lines": [
+        364,
+        364
+      ],
+      "regions": [
+        719,
+        720
+      ]
+    },
+    "crates/gz-sim-scene/tests/support/pad_rocking.rs": {
+      "lines": [
+        3,
+        3
+      ],
+      "regions": [
+        8,
+        8
+      ]
+    },
+    "crates/gz-sim-cli/tests/local_cpu_replay.rs": {
+      "lines": [
+        67,
+        67
+      ],
+      "regions": [
+        141,
+        141
+      ]
+    }
+  },
+  "adaptive_vs_fine_max_relative_com_trajectory_error_m_by_phase": {
+    "hold": [
+      2.073530136481594e-08,
+      1.6910452371732276e-08,
+      8.881784197001252e-16
+    ],
+    "slip": [
+      2.073530136481594e-08,
+      1.6910452371732276e-08,
+      2.7476218711353084e-07
+    ]
+  },
+  "relative_slide_accel_m_s2": 3.134999999999998,
+  "phases": "preload 0\u2013150 ms, lift 150\u2013210 ms, comparison 210\u2013290 ms; normal, friction and moment are means over the final 10 ms of each phase, and about-origin moment translates the mean wrench using the ending orientation. Each displacement and onset is relative to phase start.",
+  "return_after_maximum_tilt": {
+    "coarse_n": 45.31484476363782,
+    "coarse_ns": 20600000,
+    "adaptive_n": 152.00771785426957,
+    "adaptive_ns": 20326000,
+    "fine_n": 151.13882895376292,
+    "fine_ns": 20334000,
+    "max_drop_error_m": 1.8496993298144915e-06
+  }
+}

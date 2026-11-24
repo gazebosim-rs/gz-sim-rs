@@ -1,0 +1,149 @@
+{
+  "world": "examples/worlds/local_sorter_crossing.sdf",
+  "first_positive_interval_end_ms": 10,
+  "vertical_impulse_N_s": 0.040000081591,
+  "expected_normal_momentum_change_N_s": 0.04,
+  "reference_step_us": 100,
+  "samples": [
+    {
+      "ms": 0.0,
+      "parcel": {
+        "adaptive": {
+          "position_mm": 0.0,
+          "rotation_deg": 0.0
+        },
+        "ordinary": {
+          "position_mm": 0.0,
+          "rotation_deg": 0.0
+        },
+        "fine": {
+          "position_mm": 0.0,
+          "rotation_deg": 0.0
+        }
+      },
+      "bypass_adaptive_xyz_m": [
+        -0.02,
+        0.11,
+        0.079
+      ]
+    },
+    {
+      "ms": 20.0,
+      "parcel": {
+        "adaptive": {
+          "position_mm": 0.0024858789057571884,
+          "rotation_deg": 0.035602506865945446
+        },
+        "ordinary": {
+          "position_mm": 23.04970724112064,
+          "rotation_deg": 0.05583122715034926
+        },
+        "fine": {
+          "position_mm": 0.0024858789057571884,
+          "rotation_deg": 0.035602506865945446
+        }
+      },
+      "bypass_adaptive_xyz_m": [
+        0.01999999999999987,
+        0.11,
+        -0.0010000000000002008
+      ]
+    },
+    {
+      "ms": 40.0,
+      "parcel": {
+        "adaptive": {
+          "position_mm": 0.0008229775887574897,
+          "rotation_deg": 0.010553222289198845
+        },
+        "ordinary": {
+          "position_mm": 22.511873719492034,
+          "rotation_deg": 12.86597299569335
+        },
+        "fine": {
+          "position_mm": 0.0021097482067605755,
+          "rotation_deg": 0.031286598040050406
+        }
+      },
+      "bypass_adaptive_xyz_m": [
+        0.05999999999999987,
+        0.11,
+        -0.08100000000000021
+      ]
+    },
+    {
+      "ms": 60.0,
+      "parcel": {
+        "adaptive": {
+          "position_mm": 0.0004603856859769495,
+          "rotation_deg": 0.015746968697068122
+        },
+        "ordinary": {
+          "position_mm": 22.554773468884143,
+          "rotation_deg": 34.00436373470331
+        },
+        "fine": {
+          "position_mm": 0.00200459269746045,
+          "rotation_deg": 0.03279283974635556
+        }
+      },
+      "bypass_adaptive_xyz_m": [
+        0.09999999999999985,
+        0.11,
+        -0.1610000000000002
+      ]
+    },
+    {
+      "ms": 80.0,
+      "parcel": {
+        "adaptive": {
+          "position_mm": 9.779378319640956e-05,
+          "rotation_deg": 0.020940715104937103
+        },
+        "ordinary": {
+          "position_mm": 22.628784309614705,
+          "rotation_deg": 55.14275447371328
+        },
+        "fine": {
+          "position_mm": 0.0018994371881603245,
+          "rotation_deg": 0.03429908145266084
+        }
+      },
+      "bypass_adaptive_xyz_m": [
+        0.13999999999999985,
+        0.11,
+        -0.24100000000000016
+      ]
+    }
+  ],
+  "changed_coverage": {
+    "crates/gz-sim-scene/src/primary_contact/geometry.rs": {
+      "lines": {
+        "hit": 29,
+        "total": 29,
+        "missing": []
+      },
+      "regions": {
+        "hit": 66,
+        "total": 66,
+        "missing": []
+      }
+    }
+  },
+  "webgpu": {
+    "adaptive": {
+      "body_poses_and_shapes_checked": 20,
+      "frames": 5,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10060%2F"
+    },
+    "fine": {
+      "body_poses_and_shapes_checked": 1604,
+      "frames": 401,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10061%2F"
+    }
+  }
+}

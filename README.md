@@ -226,6 +226,8 @@ it checks an isolated copy of the staged tree. Rust 1.97.1 is pinned.
 The [scene contract](docs/SCENE.md) describes the working SDF-to-ECS path and its
 explicit limitations. Run `cargo test --locked -p gz-sim-scene` to exercise it.
 
+The opt-in multi-fidelity backend supports moving platforms, switchable articulated models and XPBD cables and cloth. The separate `gz-physics-gpu` crate runs batches of vertical rigid-body and XPBD contact fixtures on a hardware Vulkan adapter with f64 support. The opt-in `gz-physics-distributed` crate runs two Bevy workers over loopback Zenoh TCP. The examples exercise box promotion, worker recovery and migration of a contacting pair with its native solver state and queued impulses. In `selective_handoff`, each worker also simulates a moving bystander that keeps its owner throughout the transfer. See the [runnable examples, qualification measurements and physics worklog](docs/MULTIFIDELITY_WORKLOG.md).
+
 Run the headless scene example with:
 
 ```sh

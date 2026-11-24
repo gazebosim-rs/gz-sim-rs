@@ -1,0 +1,17 @@
+{
+  "seed": "two-finger-load",
+  "commands": [
+    {"op":"set_joint_force","joint":"default::gripper::left_slide","force":3.0},
+    {"op":"set_joint_force","joint":"default::gripper::right_slide","force":3.0},
+    {"op":"step","count":500},
+    {"op":"set_joint_force","joint":"default::gripper::left_slide","force":1.5},
+    {"op":"set_joint_force","joint":"default::gripper::right_slide","force":1.5},
+    {"op":"step","count":1100},
+    {"op":"set_joint_force","joint":"default::gripper::left_slide","force":-3.0},
+    {"op":"set_joint_force","joint":"default::gripper::right_slide","force":-3.0},
+    {"op":"step","count":800},
+    {"op":"set_joint_force","joint":"default::gripper::left_slide","force":3.0},
+    {"op":"set_joint_force","joint":"default::gripper::right_slide","force":3.0},
+    {"op":"step","count":500}
+  ]
+}

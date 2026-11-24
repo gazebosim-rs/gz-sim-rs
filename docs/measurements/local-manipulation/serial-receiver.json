@@ -1,0 +1,2592 @@
+{
+  "kind": "serial-diagonal-receiver-v1",
+  "integration_parent": "07941dd0ddfe0b29f754069497b052cbfe44b825",
+  "mass_kg": 0.4,
+  "friction": 0.35,
+  "step_ms": 1,
+  "ticks": 18000,
+  "tested_com_x_mm": [
+    -10,
+    10
+  ],
+  "tested_com_y_mm": [
+    -8,
+    8
+  ],
+  "loaded_set_downs": 8,
+  "fixed_grip_deliveries_under_pull": 2,
+  "sham_conditions": 8,
+  "ordinary_plus_cold_and_reset_native_steps": 1728000,
+  "cases": {
+    "x+10-y+8-t4450-n0": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              0.0005098692302644339,
+              0.01886250519411101,
+              0.6602983722288437
+            ],
+            "rail_position_m": 0.019023736555519987,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "71f6685b2328e49b0f952272703b25bbe4dd3736ce325feeadffa7b932fec493"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018068697213425963,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6787028062465674,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9682,
+        "settled_horizontal_error_mm": 0.9233401004164608,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "649b9cc8de66e7db2d4f2ce3571026fd1a94427e45dd180ec174abdadb489473"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              0.0005098692302644339,
+              0.01886250519411101,
+              0.6602983722288437
+            ],
+            "rail_position_m": 0.019023736555519987,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "71f6685b2328e49b0f952272703b25bbe4dd3736ce325feeadffa7b932fec493"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018068697213425963,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6787028062465674,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9682,
+        "settled_horizontal_error_mm": 0.9233401004164608,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "649b9cc8de66e7db2d4f2ce3571026fd1a94427e45dd180ec174abdadb489473"
+      }
+    },
+    "x+10-y+8-t4450-n8": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              0.0005098692302644339,
+              0.01886250519411101,
+              0.6602983722288437
+            ],
+            "rail_position_m": 0.019023736555519987,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "71f6685b2328e49b0f952272703b25bbe4dd3736ce325feeadffa7b932fec493"
+          },
+          "first_alarm": {
+            "elapsed_ms": 4454,
+            "parcel_position_m": [
+              0.0005111497899335255,
+              0.019236685919678302,
+              0.6600782454603095
+            ],
+            "rail_position_m": 0.01939988210256301,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "7acfc84ee49247d59dcd60a8f12daa2a574f25c6aa2794547f3188c51cdaece0"
+          },
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": 4454,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.15739164687176052,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": 4495,
+        "max_parcel_palm_motion_mm": 127.97778640269891,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": null,
+        "final_station_loads_n": [
+          3.9239999549123827,
+          0.0
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "2e72dd958193585deb275e5361c7c1196b6bf89c870c0a55f351935e34c2e93b"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              0.0005098692302644339,
+              0.01886250519411101,
+              0.6602983722288437
+            ],
+            "rail_position_m": 0.019023736555519987,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "71f6685b2328e49b0f952272703b25bbe4dd3736ce325feeadffa7b932fec493"
+          },
+          "first_alarm": {
+            "elapsed_ms": 4454,
+            "parcel_position_m": [
+              0.0005111497899335255,
+              0.019236685919678302,
+              0.6600782454603095
+            ],
+            "rail_position_m": 0.01939988210256301,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "7acfc84ee49247d59dcd60a8f12daa2a574f25c6aa2794547f3188c51cdaece0"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 4503,
+            "parcel_position_m": [
+              0.0008582897598967748,
+              0.023091931431573596,
+              0.6497376637505046
+            ],
+            "rail_position_m": 0.023320635467627405,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c2b5b99a9b82c959b5057bc79c9f068f8df6b7052b217ef13ff367fc61bf4917"
+          }
+        },
+        "first_alarm_ms": 4454,
+        "repeat_ms": 4503,
+        "extra_effort_per_jaw_n": 7.151871150139602,
+        "decision": "pickup",
+        "min_parcel_to_barrier_gap_m": 0.15798318961618688,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 20.22242878191027,
+        "airborne_recovery_ticks": 3986,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": 8489,
+        "recovery_open_ms": 9567,
+        "support_dwell_ms": 30,
+        "support_at_recovery_open_n": 3.68902506536386,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": 1.0351848764348912,
+        "final_station_loads_n": [
+          3.923999999521367,
+          0.0
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "8fbc0925320a83728049940b696a114e3faf50cc8ee5e6f3e57326f8c746dfb1"
+      },
+      "matched_sham_palm_relative_distance_mm": {
+        "first_ms": 4449,
+        "sample_ms": 1,
+        "samples": 166,
+        "at_first_alarm": 0.22019268764133196,
+        "at_decision": [
+          10.563300504944209,
+          25.34020137329366
+        ],
+        "at_pull_end": [
+          14.60568263802725,
+          36.72256630239262
+        ],
+        "100_ms_after_pull_ended": [
+          20.05350626204134,
+          124.91361085619121
+        ],
+        "peak_over_166_samples": [
+          20.05350626204134,
+          124.91361085619121
+        ]
+      }
+    },
+    "x+10-y+8-t6200-n0": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              0.0005429010051355406,
+              0.3348122633594155,
+              0.6603765483121002
+            ],
+            "rail_position_m": 0.3347348144702189,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "a5fa72247e98e90fa590251bc5ea33f75c50897743e02bfe2a7332b29415cfbb"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018068697213425963,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6787028062465674,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9682,
+        "settled_horizontal_error_mm": 0.9233401004164608,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "59a4bca968ca3a4c9163b8a0d7668db11564820c847c2a93246e5fc78d39ee68"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              0.0005429010051355406,
+              0.3348122633594155,
+              0.6603765483121002
+            ],
+            "rail_position_m": 0.3347348144702189,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "a5fa72247e98e90fa590251bc5ea33f75c50897743e02bfe2a7332b29415cfbb"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018068697213425963,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6787028062465674,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9682,
+        "settled_horizontal_error_mm": 0.9233401004164608,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "59a4bca968ca3a4c9163b8a0d7668db11564820c847c2a93246e5fc78d39ee68"
+      }
+    },
+    "x+10-y+8-t6200-n8": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              0.0005429010051355406,
+              0.3348122633594155,
+              0.6603765483121002
+            ],
+            "rail_position_m": 0.3347348144702189,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "a5fa72247e98e90fa590251bc5ea33f75c50897743e02bfe2a7332b29415cfbb"
+          },
+          "first_alarm": {
+            "elapsed_ms": 6204,
+            "parcel_position_m": [
+              0.0005443255858318709,
+              0.3357880686289546,
+              0.6601564202122496
+            ],
+            "rail_position_m": 0.33571031784496314,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "e894c695697f6222e4a2d00393d6534ba7d4fc7488a2ea0726e1b15d3dd241bf"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 6253,
+            "parcel_position_m": [
+              0.0006937388762689638,
+              0.3451664129966745,
+              0.6350154759356132
+            ],
+            "rail_position_m": 0.34513473121533583,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "245b37063c011e8ac3290f7b8d3cb10e995077ed6b966d5b7bbb59abd941eaf2"
+          }
+        },
+        "first_alarm_ms": 6204,
+        "repeat_ms": 6253,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018068697213425963,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 151.52603938647005,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": null,
+        "final_station_loads_n": [
+          3.4893286355335404,
+          0.9819348691570525
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "692d18a5f463d5164a6471e88584898e43624158167a142abaff9bbe9a24fe68"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              0.0005429010051355406,
+              0.3348122633594155,
+              0.6603765483121002
+            ],
+            "rail_position_m": 0.3347348144702189,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "a5fa72247e98e90fa590251bc5ea33f75c50897743e02bfe2a7332b29415cfbb"
+          },
+          "first_alarm": {
+            "elapsed_ms": 6204,
+            "parcel_position_m": [
+              0.0005443255858318709,
+              0.3357880686289546,
+              0.6601564202122496
+            ],
+            "rail_position_m": 0.33571031784496314,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "e894c695697f6222e4a2d00393d6534ba7d4fc7488a2ea0726e1b15d3dd241bf"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 6253,
+            "parcel_position_m": [
+              0.0008925077111270148,
+              0.34516788631892714,
+              0.6497760258857593
+            ],
+            "rail_position_m": 0.3451341847114054,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "fba4171dd37e92469900f634b4219720615b93ffcc0d489700d4c0e08620a28b"
+          }
+        },
+        "first_alarm_ms": 6204,
+        "repeat_ms": 6253,
+        "extra_effort_per_jaw_n": 7.151629968399437,
+        "decision": "receiver",
+        "min_parcel_to_barrier_gap_m": 0.018068697213425963,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 20.2683310337267,
+        "airborne_recovery_ticks": 2546,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": 8799,
+        "recovery_open_ms": 9563,
+        "support_dwell_ms": 30,
+        "support_at_recovery_open_n": 3.688966693808472,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": 1.0886398591957391,
+        "final_station_loads_n": [
+          0.0,
+          3.9240000000000266
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "53b62629b18d38f3144689c9bb5dd0aa3ae7651706eb1644e8bacaee7d81171c"
+      },
+      "matched_sham_palm_relative_distance_mm": {
+        "first_ms": 6199,
+        "sample_ms": 1,
+        "samples": 166,
+        "at_first_alarm": 0.22025225849472713,
+        "at_decision": [
+          10.603745406215653,
+          25.364005363272422
+        ],
+        "at_pull_end": [
+          14.665477389155146,
+          36.75647144063463
+        ],
+        "100_ms_after_pull_ended": [
+          20.188230108840425,
+          94.42767015137501
+        ],
+        "peak_over_166_samples": [
+          20.188230108840425,
+          94.42767015137501
+        ]
+      }
+    },
+    "x+10-y-8-t4450-n0": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              -0.0013128297344399045,
+              0.018805499905295495,
+              0.6606205966704324
+            ],
+            "rail_position_m": 0.019023490459087133,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "8c1eb68a7197cd96ef6e5ec320a6731aabfc5cc65f87ccf1b532441d3ff77161"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018445942523975883,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6788117119614429,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9824,
+        "settled_horizontal_error_mm": 1.426080467296706,
+        "final_station_loads_n": [
+          0.0,
+          3.9240000000000266
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "c4e2a00817237ddd4e6d4ab7854718748f0f2f97f920b03620d154dce148f24e"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              -0.0013128297344399045,
+              0.018805499905295495,
+              0.6606205966704324
+            ],
+            "rail_position_m": 0.019023490459087133,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "8c1eb68a7197cd96ef6e5ec320a6731aabfc5cc65f87ccf1b532441d3ff77161"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018445942523975883,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6788117119614429,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9824,
+        "settled_horizontal_error_mm": 1.426080467296706,
+        "final_station_loads_n": [
+          0.0,
+          3.9240000000000266
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "c4e2a00817237ddd4e6d4ab7854718748f0f2f97f920b03620d154dce148f24e"
+      }
+    },
+    "x+10-y-8-t4450-n8": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              -0.0013128297344399045,
+              0.018805499905295495,
+              0.6606205966704324
+            ],
+            "rail_position_m": 0.019023490459087133,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "8c1eb68a7197cd96ef6e5ec320a6731aabfc5cc65f87ccf1b532441d3ff77161"
+          },
+          "first_alarm": {
+            "elapsed_ms": 4454,
+            "parcel_position_m": [
+              -0.0013139550912483625,
+              0.019179852953722695,
+              0.6604004776459776
+            ],
+            "rail_position_m": 0.019399652716056582,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "54de14cddda0ae2f3c223c75abe0fae879f6b8be3d3b04bd85bbd69a1fde9a9e"
+          },
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": 4454,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.157547686297732,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": 4495,
+        "max_parcel_palm_motion_mm": 127.87090827629102,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": null,
+        "final_station_loads_n": [
+          3.9239995628006055,
+          0.0
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "6b79a399803547b5ddd5275ecf94a2a458e52198cd448cbbd328f2b3d385cb6c"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              -0.0013128297344399045,
+              0.018805499905295495,
+              0.6606205966704324
+            ],
+            "rail_position_m": 0.019023490459087133,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "8c1eb68a7197cd96ef6e5ec320a6731aabfc5cc65f87ccf1b532441d3ff77161"
+          },
+          "first_alarm": {
+            "elapsed_ms": 4454,
+            "parcel_position_m": [
+              -0.0013139550912483625,
+              0.019179852953722695,
+              0.6604004776459776
+            ],
+            "rail_position_m": 0.019399652716056582,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "54de14cddda0ae2f3c223c75abe0fae879f6b8be3d3b04bd85bbd69a1fde9a9e"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 4503,
+            "parcel_position_m": [
+              -0.0015908955519816914,
+              0.023019653457248723,
+              0.6500641172404532
+            ],
+            "rail_position_m": 0.023324292270822035,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "0cc1c3fbbca6a89b91894d139221fc6679a4cf8b27d466cc9f4676dd439182da"
+          }
+        },
+        "first_alarm_ms": 4454,
+        "repeat_ms": 4503,
+        "extra_effort_per_jaw_n": 7.15241078234137,
+        "decision": "pickup",
+        "min_parcel_to_barrier_gap_m": 0.1579577515123534,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 20.219391394394396,
+        "airborne_recovery_ticks": 3994,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": 8497,
+        "recovery_open_ms": 9277,
+        "support_dwell_ms": 30,
+        "support_at_recovery_open_n": 3.6887634930587185,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": 1.2714715714884304,
+        "final_station_loads_n": [
+          3.9239999997735535,
+          0.0
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "5f4a285957e5777c7f6e5ac356d0a87d55d075a2b00e38e48616d15b6c51c140"
+      },
+      "matched_sham_palm_relative_distance_mm": {
+        "first_ms": 4449,
+        "sample_ms": 1,
+        "samples": 166,
+        "at_first_alarm": 0.22019473720695953,
+        "at_decision": [
+          10.560491244780058,
+          25.336271238959288
+        ],
+        "at_pull_end": [
+          14.602568900064904,
+          36.71748343909417
+        ],
+        "100_ms_after_pull_ended": [
+          20.05058932091679,
+          125.04071256233082
+        ],
+        "peak_over_166_samples": [
+          20.05058932091679,
+          125.0893907413942
+        ]
+      }
+    },
+    "x+10-y-8-t6200-n0": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              -0.0012789278455812734,
+              0.3347556815487266,
+              0.6606983416462838
+            ],
+            "rail_position_m": 0.33473485685312093,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "27aadb7fa73cb90a0d78480afbd80ee9dafe8b989ae04245ad21f34b52917437"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018445942523975883,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6788117119614429,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9824,
+        "settled_horizontal_error_mm": 1.426080467296706,
+        "final_station_loads_n": [
+          0.0,
+          3.9240000000000266
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "df1d420c4be4dc9194a3ab3a6fb6c29e660238a7a940a31707a161c76de8e242"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              -0.0012789278455812734,
+              0.3347556815487266,
+              0.6606983416462838
+            ],
+            "rail_position_m": 0.33473485685312093,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "27aadb7fa73cb90a0d78480afbd80ee9dafe8b989ae04245ad21f34b52917437"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018445942523975883,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6788117119614429,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9824,
+        "settled_horizontal_error_mm": 1.426080467296706,
+        "final_station_loads_n": [
+          0.0,
+          3.9240000000000266
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "df1d420c4be4dc9194a3ab3a6fb6c29e660238a7a940a31707a161c76de8e242"
+      }
+    },
+    "x+10-y-8-t6200-n8": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              -0.0012789278455812734,
+              0.3347556815487266,
+              0.6606983416462838
+            ],
+            "rail_position_m": 0.33473485685312093,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "27aadb7fa73cb90a0d78480afbd80ee9dafe8b989ae04245ad21f34b52917437"
+          },
+          "first_alarm": {
+            "elapsed_ms": 6204,
+            "parcel_position_m": [
+              -0.0012798270587821708,
+              0.33573167143867755,
+              0.660478220496657
+            ],
+            "rail_position_m": 0.3357103745479507,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "1d1e78fde1fba04347facbe45961266297549d5d6f6ba3f69b1c377f7c176036"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 6253,
+            "parcel_position_m": [
+              -0.0013553367550250195,
+              0.3451050286701501,
+              0.6353423313032225
+            ],
+            "rail_position_m": 0.34513585019782034,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "56df2465d99daa09dd271c8aa7dc69b818dd2d9faee2b3941862c13c8ac144b4"
+          }
+        },
+        "first_alarm_ms": 6204,
+        "repeat_ms": 6253,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018445942523975883,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 151.85487519433397,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": null,
+        "final_station_loads_n": [
+          3.4060273448461844,
+          0.964064975911061
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "f6d1a038ced707487bb6fe5ca48ca7491ea32bb4739631eba1bd3579e33af649"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              -0.0012789278455812734,
+              0.3347556815487266,
+              0.6606983416462838
+            ],
+            "rail_position_m": 0.33473485685312093,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "27aadb7fa73cb90a0d78480afbd80ee9dafe8b989ae04245ad21f34b52917437"
+          },
+          "first_alarm": {
+            "elapsed_ms": 6204,
+            "parcel_position_m": [
+              -0.0012798270587821708,
+              0.33573167143867755,
+              0.660478220496657
+            ],
+            "rail_position_m": 0.3357103745479507,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "1d1e78fde1fba04347facbe45961266297549d5d6f6ba3f69b1c377f7c176036"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 6253,
+            "parcel_position_m": [
+              -0.0015541162806371198,
+              0.34509608053113144,
+              0.6501039208874434
+            ],
+            "rail_position_m": 0.3451381080335338,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "7c22232d91e72cf8279660b6c47499627aa03bf7a61ee1387503ce73c8819959"
+          }
+        },
+        "first_alarm_ms": 6204,
+        "repeat_ms": 6253,
+        "extra_effort_per_jaw_n": 7.1521819244112965,
+        "decision": "receiver",
+        "min_parcel_to_barrier_gap_m": 0.018445942523975883,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 20.262063112056175,
+        "airborne_recovery_ticks": 2554,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": 8807,
+        "recovery_open_ms": 9564,
+        "support_dwell_ms": 30,
+        "support_at_recovery_open_n": 3.6888008096186264,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": 1.273793737754031,
+        "final_station_loads_n": [
+          0.0,
+          3.9240000000000266
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "3a4533e01287925818481263df5fe7d296e664ee9e0f4256be438d0edd7a4eda"
+      },
+      "matched_sham_palm_relative_distance_mm": {
+        "first_ms": 6199,
+        "sample_ms": 1,
+        "samples": 166,
+        "at_first_alarm": 0.22025349460863045,
+        "at_decision": [
+          10.598952049504549,
+          25.358715076482017
+        ],
+        "at_pull_end": [
+          14.659974093736588,
+          36.749289679766086
+        ],
+        "100_ms_after_pull_ended": [
+          20.182304128317604,
+          94.57859916504043
+        ],
+        "peak_over_166_samples": [
+          20.182304128317604,
+          94.57859916504043
+        ]
+      }
+    },
+    "x-10-y+8-t4450-n0": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              0.0009333688337628612,
+              0.01892498613320921,
+              0.6609287673158264
+            ],
+            "rail_position_m": 0.019022810261757127,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c70a266cbebb2cc75b14348340709d3803d3f8b4359138834ab3c371773efd19"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018726004920853096,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6749411782380419,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9594,
+        "settled_horizontal_error_mm": 1.4369694412684604,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "ab98dccece35d7ae9282cf7caa0c8d45830996d642632040868005b768486776"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              0.0009333688337628612,
+              0.01892498613320921,
+              0.6609287673158264
+            ],
+            "rail_position_m": 0.019022810261757127,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c70a266cbebb2cc75b14348340709d3803d3f8b4359138834ab3c371773efd19"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018726004920853096,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6749411782380419,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9594,
+        "settled_horizontal_error_mm": 1.4369694412684604,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "ab98dccece35d7ae9282cf7caa0c8d45830996d642632040868005b768486776"
+      }
+    },
+    "x-10-y+8-t4450-n8": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              0.0009333688337628612,
+              0.01892498613320921,
+              0.6609287673158264
+            ],
+            "rail_position_m": 0.019022810261757127,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c70a266cbebb2cc75b14348340709d3803d3f8b4359138834ab3c371773efd19"
+          },
+          "first_alarm": {
+            "elapsed_ms": 4454,
+            "parcel_position_m": [
+              0.0009339529942028035,
+              0.019300791527204347,
+              0.6607085651369214
+            ],
+            "rail_position_m": 0.019398912867509832,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "2dd9efc634a43833140c3a00becf8cc1fed8498b626f2ceaa7f245b03623ae27"
+          },
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": 4454,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.12104199417627073,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": 4496,
+        "max_parcel_palm_motion_mm": 144.03079093112362,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": null,
+        "final_station_loads_n": [
+          3.9239999608500113,
+          0.0
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "f95bcb9b0aa6982861ca2eed304cb40e6e018b183366bb5843dbb7f15e22a025"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              0.0009333688337628612,
+              0.01892498613320921,
+              0.6609287673158264
+            ],
+            "rail_position_m": 0.019022810261757127,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c70a266cbebb2cc75b14348340709d3803d3f8b4359138834ab3c371773efd19"
+          },
+          "first_alarm": {
+            "elapsed_ms": 4454,
+            "parcel_position_m": [
+              0.0009339529942028035,
+              0.019300791527204347,
+              0.6607085651369214
+            ],
+            "rail_position_m": 0.019398912867509832,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "2dd9efc634a43833140c3a00becf8cc1fed8498b626f2ceaa7f245b03623ae27"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 4503,
+            "parcel_position_m": [
+              0.0012385144508860304,
+              0.02325408525366008,
+              0.6503452346478349
+            ],
+            "rail_position_m": 0.023308070172805034,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "76a413df01a533957e9623540542a8027f694a87f01539ed3f893c7f537d0207"
+          }
+        },
+        "first_alarm_ms": 4454,
+        "repeat_ms": 4503,
+        "extra_effort_per_jaw_n": 7.150853122633383,
+        "decision": "pickup",
+        "min_parcel_to_barrier_gap_m": 0.1571364884480284,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 20.374203423148455,
+        "airborne_recovery_ticks": 3991,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": 8494,
+        "recovery_open_ms": 9684,
+        "support_dwell_ms": 30,
+        "support_at_recovery_open_n": 3.6888099181527703,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": 1.3638656201281714,
+        "final_station_loads_n": [
+          3.923999999989824,
+          0.0
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "2eb8b7e881206b6031897194b976e942f733e2e87992cbdebee787b56670471c"
+      },
+      "matched_sham_palm_relative_distance_mm": {
+        "first_ms": 4449,
+        "sample_ms": 1,
+        "samples": 166,
+        "at_first_alarm": 0.22035647106546408,
+        "at_decision": [
+          10.587548802274313,
+          25.348860743238298
+        ],
+        "at_pull_end": [
+          14.657837708747122,
+          36.72957963725197
+        ],
+        "100_ms_after_pull_ended": [
+          20.244656972864487,
+          126.37261728776875
+        ],
+        "peak_over_166_samples": [
+          20.244656972864487,
+          126.37261728776875
+        ]
+      }
+    },
+    "x-10-y+8-t6200-n0": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              0.0009652092263893377,
+              0.3348757851448006,
+              0.6610045412168423
+            ],
+            "rail_position_m": 0.33473475960386917,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c131411963fd48476b9e88a16a67fdb397a46919a9e99b78046b4fcb1c132eba"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018726004920853096,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6749411782380419,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9594,
+        "settled_horizontal_error_mm": 1.4369694412684604,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "775c78ade8548c6f6c7d0287507ca432b08a1a69ad119d30d3884647696f0295"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              0.0009652092263893377,
+              0.3348757851448006,
+              0.6610045412168423
+            ],
+            "rail_position_m": 0.33473475960386917,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c131411963fd48476b9e88a16a67fdb397a46919a9e99b78046b4fcb1c132eba"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018726004920853096,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6749411782380419,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9594,
+        "settled_horizontal_error_mm": 1.4369694412684604,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "775c78ade8548c6f6c7d0287507ca432b08a1a69ad119d30d3884647696f0295"
+      }
+    },
+    "x-10-y+8-t6200-n8": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              0.0009652092263893377,
+              0.3348757851448006,
+              0.6610045412168423
+            ],
+            "rail_position_m": 0.33473475960386917,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c131411963fd48476b9e88a16a67fdb397a46919a9e99b78046b4fcb1c132eba"
+          },
+          "first_alarm": {
+            "elapsed_ms": 6204,
+            "parcel_position_m": [
+              0.0009660386439700767,
+              0.3358532061854525,
+              0.6607843016064585
+            ],
+            "rail_position_m": 0.3357102011473341,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "ff08722252a88add18b31f7b2992e2345ebf3c4d7d79aebbac6df382781f4500"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 6253,
+            "parcel_position_m": [
+              0.0010701362928746648,
+              0.34533610812622983,
+              0.6356746055525737
+            ],
+            "rail_position_m": 0.3451228038466752,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "9331aad600a67c5a3b69a3f494ed4712c701565fa9f84b454a52d835bd715626"
+          }
+        },
+        "first_alarm_ms": 6204,
+        "repeat_ms": 6253,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.018726004920853096,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 49.112777044478804,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9462,
+        "settled_horizontal_error_mm": 9.085344189945463,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "9741e57564af7d0af164be2d2772fffddb610b8ec1efd506b6992f5536ac983e"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              0.0009652092263893377,
+              0.3348757851448006,
+              0.6610045412168423
+            ],
+            "rail_position_m": 0.33473475960386917,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "c131411963fd48476b9e88a16a67fdb397a46919a9e99b78046b4fcb1c132eba"
+          },
+          "first_alarm": {
+            "elapsed_ms": 6204,
+            "parcel_position_m": [
+              0.0009660386439700767,
+              0.3358532061854525,
+              0.6607843016064585
+            ],
+            "rail_position_m": 0.3357102011473341,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "ff08722252a88add18b31f7b2992e2345ebf3c4d7d79aebbac6df382781f4500"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 6253,
+            "parcel_position_m": [
+              0.0012730401045595186,
+              0.34533122186201415,
+              0.6504510958524825
+            ],
+            "rail_position_m": 0.345122282695704,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "b2e8da23a6e48db4c1cdc918472a58d24862a9b84926066a8b9df3ac4d59146b"
+          }
+        },
+        "first_alarm_ms": 6204,
+        "repeat_ms": 6253,
+        "extra_effort_per_jaw_n": 7.150401555941112,
+        "decision": "receiver",
+        "min_parcel_to_barrier_gap_m": 0.018726004920853096,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 20.205471713458042,
+        "airborne_recovery_ticks": 2554,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": 8807,
+        "recovery_open_ms": 9830,
+        "support_dwell_ms": 30,
+        "support_at_recovery_open_n": 3.6887722488401757,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": 1.2596646358747248,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "c07f3318ec04a237d525b08eb95f043d2a88f005425407ba0f7766ebbc7d3b0a"
+      },
+      "matched_sham_palm_relative_distance_mm": {
+        "first_ms": 6199,
+        "sample_ms": 1,
+        "samples": 166,
+        "at_first_alarm": 0.22029508567754433,
+        "at_decision": [
+          10.556431054674125,
+          25.33178528986565
+        ],
+        "at_pull_end": [
+          14.611951603284636,
+          36.703099772433674
+        ],
+        "100_ms_after_pull_ended": [
+          20.170529706767514,
+          49.142520510252034
+        ],
+        "peak_over_166_samples": [
+          20.170529706767514,
+          49.15923771059066
+        ]
+      }
+    },
+    "x-10-y-8-t4450-n0": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              -0.0012446420419170868,
+              0.01886049577613291,
+              0.6609189634531756
+            ],
+            "rail_position_m": 0.019022834361123606,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "fd9fbbe678ab3b53c7462d9a6dc20ef27452394da43d4ac7e4930c4ced035e70"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.01877574237861994,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6749725962957146,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9407,
+        "settled_horizontal_error_mm": 1.4863171038938936,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "bf5e564598846efe75538bd7960927dbbc0e6392d4bf53647c89a6c74f4c6308"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              -0.0012446420419170868,
+              0.01886049577613291,
+              0.6609189634531756
+            ],
+            "rail_position_m": 0.019022834361123606,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "fd9fbbe678ab3b53c7462d9a6dc20ef27452394da43d4ac7e4930c4ced035e70"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.01877574237861994,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6749725962957146,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9407,
+        "settled_horizontal_error_mm": 1.4863171038938936,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "bf5e564598846efe75538bd7960927dbbc0e6392d4bf53647c89a6c74f4c6308"
+      }
+    },
+    "x-10-y-8-t4450-n8": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              -0.0012446420419170868,
+              0.01886049577613291,
+              0.6609189634531756
+            ],
+            "rail_position_m": 0.019022834361123606,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "fd9fbbe678ab3b53c7462d9a6dc20ef27452394da43d4ac7e4930c4ced035e70"
+          },
+          "first_alarm": {
+            "elapsed_ms": 4454,
+            "parcel_position_m": [
+              -0.0012451357782151586,
+              0.019236320208454474,
+              0.6606986794158956
+            ],
+            "rail_position_m": 0.019398949841057743,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "155ababf939b040005a4849720adfbf1afd0ee4c42448709e14906dd3ee5b83f"
+          },
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": 4454,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.1241411108518677,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": 4496,
+        "max_parcel_palm_motion_mm": 142.5338288022441,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": null,
+        "final_station_loads_n": [
+          3.923999659212863,
+          0.0
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "51957ba7b19a08cacc5c2be473580d72d7bdee6b96f76d3e83b3a6ae30a26897"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 4450,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 4449,
+            "parcel_position_m": [
+              -0.0012446420419170868,
+              0.01886049577613291,
+              0.6609189634531756
+            ],
+            "rail_position_m": 0.019022834361123606,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "fd9fbbe678ab3b53c7462d9a6dc20ef27452394da43d4ac7e4930c4ced035e70"
+          },
+          "first_alarm": {
+            "elapsed_ms": 4454,
+            "parcel_position_m": [
+              -0.0012451357782151586,
+              0.019236320208454474,
+              0.6606986794158956
+            ],
+            "rail_position_m": 0.019398949841057743,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "155ababf939b040005a4849720adfbf1afd0ee4c42448709e14906dd3ee5b83f"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 4503,
+            "parcel_position_m": [
+              -0.0015330921457892702,
+              0.023174689177638576,
+              0.650329259661394
+            ],
+            "rail_position_m": 0.023311576319489654,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "9af768e3c4c36dfef444a13ad76f8362d6e09343a45ea8e3f345084dd4e10d3b"
+          }
+        },
+        "first_alarm_ms": 4454,
+        "repeat_ms": 4503,
+        "extra_effort_per_jaw_n": 7.150591967230378,
+        "decision": "pickup",
+        "min_parcel_to_barrier_gap_m": 0.15719047151270663,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 20.386946169259257,
+        "airborne_recovery_ticks": 3992,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": 8495,
+        "recovery_open_ms": 9266,
+        "support_dwell_ms": 30,
+        "support_at_recovery_open_n": 3.68928213240686,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": 1.579463211392697,
+        "final_station_loads_n": [
+          3.9240000000191335,
+          0.0
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "0d5b0e1423d6a44fa10861dc5f67afd9ebd289e93fc94911da5ebbbfefc54914"
+      },
+      "matched_sham_palm_relative_distance_mm": {
+        "first_ms": 4449,
+        "sample_ms": 1,
+        "samples": 166,
+        "at_first_alarm": 0.22044306033837438,
+        "at_decision": [
+          10.594280191408465,
+          25.350140449741467
+        ],
+        "at_pull_end": [
+          14.666055962628244,
+          36.730978024478155
+        ],
+        "100_ms_after_pull_ended": [
+          20.257251099631617,
+          126.45407565012302
+        ],
+        "peak_over_166_samples": [
+          20.257251099631617,
+          126.45407565012302
+        ]
+      }
+    },
+    "x-10-y-8-t6200-n0": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              -0.0012105984232087495,
+              0.3348113147255069,
+              0.6609940430754375
+            ],
+            "rail_position_m": 0.3347347904155407,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "086f66ab853c611a78ddac741c3134dfc2f9e863943be8243b733bd4127f532d"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.01877574237861994,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6749725962957146,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9407,
+        "settled_horizontal_error_mm": 1.4863171038938936,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "dc4d87a0819a52158be6db06376cb9f27304197d39d6bf488c93d490ae92225b"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 0.0
+          },
+          "force_ticks": 0,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              -0.0012105984232087495,
+              0.3348113147255069,
+              0.6609940430754375
+            ],
+            "rail_position_m": 0.3347347904155407,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "086f66ab853c611a78ddac741c3134dfc2f9e863943be8243b733bd4127f532d"
+          },
+          "first_alarm": null,
+          "repeated_alarm": null
+        },
+        "first_alarm_ms": null,
+        "repeat_ms": null,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.01877574237861994,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 0.6749725962957146,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9407,
+        "settled_horizontal_error_mm": 1.4863171038938936,
+        "final_station_loads_n": [
+          0.0,
+          3.924000000000027
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "dc4d87a0819a52158be6db06376cb9f27304197d39d6bf488c93d490ae92225b"
+      }
+    },
+    "x-10-y-8-t6200-n8": {
+      "observe": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              -0.0012105984232087495,
+              0.3348113147255069,
+              0.6609940430754375
+            ],
+            "rail_position_m": 0.3347347904155407,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "086f66ab853c611a78ddac741c3134dfc2f9e863943be8243b733bd4127f532d"
+          },
+          "first_alarm": {
+            "elapsed_ms": 6204,
+            "parcel_position_m": [
+              -0.0012109261423559918,
+              0.335788765591948,
+              0.6607737215559539
+            ],
+            "rail_position_m": 0.3357102445176366,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "5a720d8d0f4a60e52d68d4ddfac323e97032f1b90dd63929cc1ae444f5a7499a"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 6253,
+            "parcel_position_m": [
+              -0.0012908773772562134,
+              0.34526704318463697,
+              0.6356627385960665
+            ],
+            "rail_position_m": 0.34512364557774927,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "ffd1a6458780410846bc0f99a66faffe65cd6f67acbfa679e20848ae28c2d6ae"
+          }
+        },
+        "first_alarm_ms": 6204,
+        "repeat_ms": 6253,
+        "extra_effort_per_jaw_n": 0.0,
+        "decision": null,
+        "min_parcel_to_barrier_gap_m": 0.01877574237861994,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 51.64876829732937,
+        "airborne_recovery_ticks": 0,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": null,
+        "recovery_open_ms": null,
+        "support_dwell_ms": null,
+        "support_at_recovery_open_n": null,
+        "ordinary_shelf_open_ms": 9451,
+        "settled_horizontal_error_mm": 2.561177050304148,
+        "final_station_loads_n": [
+          0.0,
+          3.9240000000000266
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "7b0b2eab5fe8f9cb4f2a78d552885898741d70ecfbeb04e73eb9ca2b00e46374"
+      },
+      "guarded": {
+        "pull": {
+          "command": {
+            "first_ms": 6200,
+            "duration_ms": 65,
+            "downward_n": 8.0
+          },
+          "force_ticks": 65,
+          "incoming": {
+            "elapsed_ms": 6199,
+            "parcel_position_m": [
+              -0.0012105984232087495,
+              0.3348113147255069,
+              0.6609940430754375
+            ],
+            "rail_position_m": 0.3347347904155407,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "086f66ab853c611a78ddac741c3134dfc2f9e863943be8243b733bd4127f532d"
+          },
+          "first_alarm": {
+            "elapsed_ms": 6204,
+            "parcel_position_m": [
+              -0.0012109261423559918,
+              0.335788765591948,
+              0.6607737215559539
+            ],
+            "rail_position_m": 0.3357102445176366,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "5a720d8d0f4a60e52d68d4ddfac323e97032f1b90dd63929cc1ae444f5a7499a"
+          },
+          "repeated_alarm": {
+            "elapsed_ms": 6253,
+            "parcel_position_m": [
+              -0.0014978018395589779,
+              0.3452516808234948,
+              0.6504360286672968
+            ],
+            "rail_position_m": 0.34512584160580856,
+            "bodies": 10,
+            "contact_points": 12,
+            "body_and_contact_sha256": "82a39bc3ecd1c64daffc2a9b26ded4dd9e069e5092c9bbed10c5f437b9ff90fc"
+          }
+        },
+        "first_alarm_ms": 6204,
+        "repeat_ms": 6253,
+        "extra_effort_per_jaw_n": 7.15013777441979,
+        "decision": "receiver",
+        "min_parcel_to_barrier_gap_m": 0.01877574237861994,
+        "parcel_barrier_impulse_ns": 0.0,
+        "route_abort_ms": null,
+        "max_parcel_palm_motion_mm": 20.21528530706044,
+        "airborne_recovery_ticks": 2556,
+        "single_pad_recovery_ticks": 0,
+        "no_pad_recovery_ticks": 0,
+        "first_station_load_ms": 8809,
+        "recovery_open_ms": 9880,
+        "support_dwell_ms": 30,
+        "support_at_recovery_open_n": 3.688564767243042,
+        "ordinary_shelf_open_ms": null,
+        "settled_horizontal_error_mm": 1.4659606742083555,
+        "final_station_loads_n": [
+          0.0,
+          3.9240000000000266
+        ],
+        "final_pad_load_n": 0.0,
+        "frame_stream_sha256": "093aaae926da1b410a1c88cb72eb23ae4e9846ceac236a3af5409aa3be428af8"
+      },
+      "matched_sham_palm_relative_distance_mm": {
+        "first_ms": 6199,
+        "sample_ms": 1,
+        "samples": 166,
+        "at_first_alarm": 0.2203786901959255,
+        "at_decision": [
+          10.561447458387082,
+          25.333136503969822
+        ],
+        "at_pull_end": [
+          14.618051106052622,
+          36.7041854740727
+        ],
+        "100_ms_after_pull_ended": [
+          20.180225955086744,
+          51.68491526289439
+        ],
+        "peak_over_166_samples": [
+          20.180225955086744,
+          51.734499782971454
+        ]
+      }
+    }
+  },
+  "friction_028_boundary_cases": {
+    "m0.4-u0.28-x+10-y+8-t6200-d65-z0-guarded": {
+      "incoming": {
+        "elapsed_ms": 6199,
+        "parcel_position_m": [
+          0.0005571243313906545,
+          0.33471509822811446,
+          0.6556564414958891
+        ],
+        "rail_position_m": 0.334734810070739,
+        "bodies": 10,
+        "contact_points": 12,
+        "body_and_contact_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1"
+      },
+      "force_n": 0.0,
+      "recovery_station": null,
+      "supported_open_ms": null,
+      "shelf_release_ms": 9733,
+      "no_pad_recovery_ticks": 0,
+      "final_tray_shelf_and_pad_loads_n": [
+        0.0,
+        3.924000000000027,
+        0.0
+      ]
+    },
+    "m0.4-u0.28-x+10-y+8-t6200-d65-z0-observe": {
+      "incoming": {
+        "elapsed_ms": 6199,
+        "parcel_position_m": [
+          0.0005571243313906545,
+          0.33471509822811446,
+          0.6556564414958891
+        ],
+        "rail_position_m": 0.334734810070739,
+        "bodies": 10,
+        "contact_points": 12,
+        "body_and_contact_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1"
+      },
+      "force_n": 0.0,
+      "recovery_station": null,
+      "supported_open_ms": null,
+      "shelf_release_ms": 9733,
+      "no_pad_recovery_ticks": 0,
+      "final_tray_shelf_and_pad_loads_n": [
+        0.0,
+        3.924000000000027,
+        0.0
+      ]
+    },
+    "m0.4-u0.28-x+10-y+8-t6200-d65-z12-guarded": {
+      "incoming": {
+        "elapsed_ms": 6199,
+        "parcel_position_m": [
+          0.0005571243313906545,
+          0.33471509822811446,
+          0.6556564414958891
+        ],
+        "rail_position_m": 0.334734810070739,
+        "bodies": 10,
+        "contact_points": 12,
+        "body_and_contact_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1"
+      },
+      "force_n": 12.0,
+      "recovery_station": "receiver",
+      "supported_open_ms": null,
+      "shelf_release_ms": null,
+      "no_pad_recovery_ticks": 11701,
+      "final_tray_shelf_and_pad_loads_n": [
+        2.687682999467295,
+        0.6605532307233732,
+        0.0
+      ]
+    },
+    "m0.4-u0.28-x+10-y+8-t6200-d65-z12-observe": {
+      "incoming": {
+        "elapsed_ms": 6199,
+        "parcel_position_m": [
+          0.0005571243313906545,
+          0.33471509822811446,
+          0.6556564414958891
+        ],
+        "rail_position_m": 0.334734810070739,
+        "bodies": 10,
+        "contact_points": 12,
+        "body_and_contact_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1"
+      },
+      "force_n": 12.0,
+      "recovery_station": null,
+      "supported_open_ms": null,
+      "shelf_release_ms": null,
+      "no_pad_recovery_ticks": 0,
+      "final_tray_shelf_and_pad_loads_n": [
+        2.736770598949627,
+        0.8760800687035997,
+        0.0
+      ]
+    },
+    "m0.4-u0.28-x+10-y+8-t6200-d65-z6-guarded": {
+      "incoming": {
+        "elapsed_ms": 6199,
+        "parcel_position_m": [
+          0.0005571243313906545,
+          0.33471509822811446,
+          0.6556564414958891
+        ],
+        "rail_position_m": 0.334734810070739,
+        "bodies": 10,
+        "contact_points": 12,
+        "body_and_contact_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1"
+      },
+      "force_n": 6.0,
+      "recovery_station": "receiver",
+      "supported_open_ms": 9420,
+      "shelf_release_ms": null,
+      "no_pad_recovery_ticks": 0,
+      "final_tray_shelf_and_pad_loads_n": [
+        0.0,
+        3.924000000000027,
+        0.0
+      ]
+    },
+    "m0.4-u0.28-x+10-y+8-t6200-d65-z6-observe": {
+      "incoming": {
+        "elapsed_ms": 6199,
+        "parcel_position_m": [
+          0.0005571243313906545,
+          0.33471509822811446,
+          0.6556564414958891
+        ],
+        "rail_position_m": 0.334734810070739,
+        "bodies": 10,
+        "contact_points": 12,
+        "body_and_contact_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1"
+      },
+      "force_n": 6.0,
+      "recovery_station": null,
+      "supported_open_ms": null,
+      "shelf_release_ms": null,
+      "no_pad_recovery_ticks": 0,
+      "final_tray_shelf_and_pad_loads_n": [
+        2.9841514405361385,
+        0.8746173732858005,
+        0.0
+      ]
+    },
+    "m0.4-u0.28-x+10-y+8-t6200-d65-z8-guarded": {
+      "incoming": {
+        "elapsed_ms": 6199,
+        "parcel_position_m": [
+          0.0005571243313906545,
+          0.33471509822811446,
+          0.6556564414958891
+        ],
+        "rail_position_m": 0.334734810070739,
+        "bodies": 10,
+        "contact_points": 12,
+        "body_and_contact_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1"
+      },
+      "force_n": 8.0,
+      "recovery_station": "receiver",
+      "supported_open_ms": null,
+      "shelf_release_ms": null,
+      "no_pad_recovery_ticks": 0,
+      "final_tray_shelf_and_pad_loads_n": [
+        0.0,
+        13.246668005893241,
+        27.750023664434924
+      ]
+    },
+    "m0.4-u0.28-x+10-y+8-t6200-d65-z8-observe": {
+      "incoming": {
+        "elapsed_ms": 6199,
+        "parcel_position_m": [
+          0.0005571243313906545,
+          0.33471509822811446,
+          0.6556564414958891
+        ],
+        "rail_position_m": 0.334734810070739,
+        "bodies": 10,
+        "contact_points": 12,
+        "body_and_contact_sha256": "1b6e2f1a1f864246015a1f8c5577d0a320e26c7aa8257e81e6783bfc5cfae6c1"
+      },
+      "force_n": 8.0,
+      "recovery_station": null,
+      "supported_open_ms": null,
+      "shelf_release_ms": null,
+      "no_pad_recovery_ticks": 0,
+      "final_tray_shelf_and_pad_loads_n": [
+        2.9174587835116985,
+        0.8588565377199995,
+        0.0
+      ]
+    }
+  },
+  "timing": {
+    "cpu": "AMD Ryzen 9 9950X3D",
+    "affinity": [
+      9
+    ],
+    "warm_ticks": 6199,
+    "measured_ticks_per_run": 4001,
+    "blocks": [
+      {
+        "downward_n": 0,
+        "frames": 454,
+        "mode": "GuardedCarry",
+        "p50_ns": 129870,
+        "p95_ns": 182320,
+        "p99_ns": 226711,
+        "recovery_open_ms": null,
+        "shelf_release_ms": 9682
+      },
+      {
+        "downward_n": 8,
+        "frames": 455,
+        "mode": "ObserveCarry",
+        "p50_ns": 122230,
+        "p95_ns": 178441,
+        "p99_ns": 235011,
+        "recovery_open_ms": null,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 133581,
+        "p95_ns": 180121,
+        "p99_ns": 219431,
+        "recovery_open_ms": 9563,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 136360,
+        "p95_ns": 177401,
+        "p99_ns": 203471,
+        "recovery_open_ms": 9563,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 0,
+        "frames": 454,
+        "mode": "GuardedCarry",
+        "p50_ns": 131810,
+        "p95_ns": 176230,
+        "p99_ns": 193051,
+        "recovery_open_ms": null,
+        "shelf_release_ms": 9682
+      },
+      {
+        "downward_n": 8,
+        "frames": 455,
+        "mode": "ObserveCarry",
+        "p50_ns": 115601,
+        "p95_ns": 147550,
+        "p99_ns": 171750,
+        "recovery_open_ms": null,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 455,
+        "mode": "ObserveCarry",
+        "p50_ns": 115940,
+        "p95_ns": 151401,
+        "p99_ns": 182181,
+        "recovery_open_ms": null,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 8,
+        "frames": 457,
+        "mode": "GuardedCarry",
+        "p50_ns": 124181,
+        "p95_ns": 163470,
+        "p99_ns": 180581,
+        "recovery_open_ms": 9563,
+        "shelf_release_ms": null
+      },
+      {
+        "downward_n": 0,
+        "frames": 454,
+        "mode": "GuardedCarry",
+        "p50_ns": 121800,
+        "p95_ns": 144341,
+        "p99_ns": 165080,
+        "recovery_open_ms": null,
+        "shelf_release_ms": 9682
+      }
+    ],
+    "median_of_block_percentiles": {
+      "('GuardedCarry', 0)": {
+        "p50_ns": 129870,
+        "p95_ns": 176230,
+        "p99_ns": 193051
+      },
+      "('GuardedCarry', 8)": {
+        "p50_ns": 133581,
+        "p95_ns": 177401,
+        "p99_ns": 203471
+      },
+      "('ObserveCarry', 8)": {
+        "p50_ns": 115940,
+        "p95_ns": 151401,
+        "p99_ns": 182181
+      }
+    }
+  },
+  "prior_44_streams_and_reports_unchanged": true,
+  "viewers": {
+    "x+10-y+8-t4450-n8-guarded": {
+      "body_poses_and_shapes_checked": 9618,
+      "captured_ms": {
+        "alarm": 4454.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "finish": 18000.0,
+        "lower": 6503.0,
+        "pull_end": 4514.0,
+        "pull_start": 4450.0,
+        "repeat": 4503.0,
+        "return_open": 9567.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 458,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 458,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9930%2F"
+    },
+    "x+10-y+8-t6200-n0-guarded": {
+      "body_poses_and_shapes_checked": 9534,
+      "captured_ms": {
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "delivery": 9682.0,
+        "finish": 18000.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 454,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 454,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9931%2F"
+    },
+    "x+10-y+8-t6200-n8-guarded": {
+      "body_poses_and_shapes_checked": 9597,
+      "captured_ms": {
+        "alarm": 6204.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "finish": 18000.0,
+        "lower": 8328.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6253.0,
+        "return_open": 9563.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 457,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 457,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9928%2F"
+    },
+    "x+10-y+8-t6200-n8-observe": {
+      "body_poses_and_shapes_checked": 9555,
+      "captured_ms": {
+        "alarm": 6204.0,
+        "arrival": 7680.0,
+        "carry": 5800.0,
+        "finish": 18000.0,
+        "pull_end": 6264.0,
+        "pull_start": 6200.0,
+        "repeat": 6253.0,
+        "start": 0.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 455,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 455,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9929%2F"
+    }
+  },
+  "changed_executable_coverage": {
+    "baseline": "85414d3",
+    "object_sha256": {
+      "tests": "c6b0cc4654b345f5ae9da32d94060d01b95a6d1967c0a28916bbd51d143f4eb5",
+      "app": "b64666f994c35b24f5ce4e497de52e18fb8ea76884f75dc9788d85f26d1ad2a3"
+    },
+    "lines": [
+      226,
+      228
+    ],
+    "regions": [
+      363,
+      375
+    ],
+    "files": {
+      "crates/gz-sim-cli/examples/serial_transfer.rs": {
+        "lines": [
+          27,
+          28
+        ],
+        "missed_lines": [
+          [
+            376
+          ]
+        ],
+        "regions": [
+          58,
+          61
+        ],
+        "missed_regions": [
+          [
+            294,
+            54,
+            294,
+            55
+          ],
+          [
+            368,
+            73,
+            368,
+            74
+          ],
+          [
+            376,
+            18,
+            376,
+            19
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/obstacle.rs": {
+        "lines": [
+          32,
+          33
+        ],
+        "missed_lines": [
+          [
+            34
+          ]
+        ],
+        "regions": [
+          53,
+          57
+        ],
+        "missed_regions": [
+          [
+            34,
+            10,
+            34,
+            11
+          ],
+          [
+            181,
+            50,
+            181,
+            51
+          ],
+          [
+            184,
+            72,
+            184,
+            73
+          ],
+          [
+            271,
+            89,
+            271,
+            90
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/carry.rs": {
+        "lines": [
+          21,
+          21
+        ],
+        "missed_lines": [],
+        "regions": [
+          30,
+          33
+        ],
+        "missed_regions": [
+          [
+            130,
+            75,
+            130,
+            76
+          ],
+          [
+            136,
+            58,
+            136,
+            59
+          ],
+          [
+            137,
+            68,
+            137,
+            69
+          ]
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_transfer/pull.rs": {
+        "lines": [
+          146,
+          146
+        ],
+        "missed_lines": [],
+        "regions": [
+          222,
+          224
+        ],
+        "missed_regions": [
+          [
+            136,
+            50,
+            136,
+            51
+          ],
+          [
+            146,
+            73,
+            146,
+            74
+          ]
+        ]
+      }
+    }
+  }
+}

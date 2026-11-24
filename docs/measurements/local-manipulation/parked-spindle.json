@@ -1,0 +1,231 @@
+{
+  "dynamic": {
+    "carried_ticks": 1050,
+    "final_support_n": 1.9620001174136301,
+    "first_jaw": [
+      [
+        1274,
+        0.09738642157794762
+      ],
+      [
+        1274,
+        0.10118312261501658
+      ]
+    ],
+    "held_impulses_ns": [
+      0.00938204475244533,
+      0.009357996756306396,
+      0.0,
+      0.0
+    ],
+    "lift_m": 0.12670486822235294,
+    "loaded_refusal": null,
+    "park_at": [],
+    "parked_ticks": 0,
+    "peak_wrist_rad": 0.009780435213703864,
+    "release_support_ns": 0.011326875531229528,
+    "retained_command": null,
+    "wake_at": []
+  },
+  "max_all_link_angular_velocity_error_rad_s": 1.1332068395526507,
+  "max_all_link_position_error_m": 0.0008972191183414119,
+  "max_all_link_rotation_error_rad": 0.007226621335229478,
+  "max_all_link_velocity_error_m_s": 0.07402040182977818,
+  "max_angular_momentum_error_kg_m2_s": 0.005418110598432004,
+  "max_coordinate_error": [
+    0.006450582230109969,
+    2.0269428749219998e-05,
+    0.00010168112285180442,
+    0.0003856583752794955,
+    0.0008966212283763528
+  ],
+  "max_coordinate_rate_error": [
+    0.808664924670937,
+    0.018862257490431304,
+    0.16767538562565593,
+    0.02863456856703997,
+    0.030985906611206385
+  ],
+  "max_impulse_error_ns": [
+    0.0010573161844101443,
+    0.0034915426768857595,
+    0.011031875036648627,
+    0.013545626015889854
+  ],
+  "max_kinetic_plus_gravitational_energy_error_j": 0.011025209014213999,
+  "max_linear_momentum_error_kg_m_s": 0.08122700417254856,
+  "switched": {
+    "carried_ticks": 1050,
+    "final_support_n": 1.9620031638247524,
+    "first_jaw": [
+      [
+        1274,
+        0.09737417124730163
+      ],
+      [
+        1274,
+        0.10117905877813786
+      ]
+    ],
+    "held_impulses_ns": [
+      0.009383012667938301,
+      0.009363739683831125,
+      0.0,
+      0.0
+    ],
+    "lift_m": 0.12669580631457256,
+    "loaded_refusal": "fidelity transition deferred: mounted robot has an external contact",
+    "park_at": [
+      1000,
+      9000
+    ],
+    "parked_ticks": 750,
+    "peak_wrist_rad": 0.009782657780512682,
+    "release_support_ns": 0.011242553184186984,
+    "retained_command": [
+      12.0,
+      12.0,
+      2.0
+    ],
+    "wake_at": [
+      1251,
+      9501
+    ]
+  },
+  "p95_ns": {
+    "full_step_p95_ns": {
+      "dynamic_then_switched": [
+        [
+          616832,
+          607872
+        ],
+        [
+          606302,
+          606101
+        ],
+        [
+          603892,
+          601402
+        ]
+      ],
+      "median": [
+        606302,
+        606101
+      ]
+    },
+    "park_window_p95_ns": {
+      "dynamic_then_switched": [
+        [
+          621372,
+          5660
+        ],
+        [
+          608732,
+          5650
+        ],
+        [
+          611891,
+          5570
+        ]
+      ],
+      "median": [
+        611891,
+        5650
+      ]
+    }
+  },
+  "profile": {
+    "step_ns": 1000000,
+    "public_steps_per_run": 10000,
+    "cpu": "AMD Ryzen 9 9950X3D",
+    "logical_cpu": 7,
+    "release_exe_sha256": "c9d895718cc4ee15874e843fc5128e7c6f0609de35dd8e4d1109e01134f71849",
+    "contact_order": [
+      "left jaw",
+      "right jaw",
+      "pickup tray",
+      "receiving plate"
+    ],
+    "coordinate_order": [
+      "screw (rad)",
+      "universal axis 1 (rad)",
+      "universal axis 2 (rad)",
+      "left jaw (m)",
+      "right jaw (m)"
+    ]
+  },
+  "archive": {
+    "switched": {
+      "frames_jsonl_sha256": "d162cd1efc9cb94e0f38aecffad2dfb1317f9d6fbafde069d57b0d83c255369b",
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9904%2F",
+      "frames": 251,
+      "captured_ms": {
+        "carrying": 3960.0,
+        "first_grasp": 1360.0,
+        "parked": 1080.0,
+        "parked_again": 9200.0,
+        "released": 8600.0,
+        "supported": 8360.0
+      },
+      "body_poses_and_shapes_checked": 3765,
+      "coordinate_tolerance": 1e-12,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    },
+    "dynamic": {
+      "frames_jsonl_sha256": "3045a2bf0f08896bf30904750c83df659e4dbf7daa6c47c47927aa98b64e7f73",
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9905%2F",
+      "frames": 251,
+      "captured_ms": {
+        "carrying": 3960.0,
+        "first_grasp": 1360.0,
+        "parked": 1080.0,
+        "parked_again": 9200.0,
+        "released": 8600.0,
+        "supported": 8360.0
+      },
+      "body_poses_and_shapes_checked": 3765,
+      "coordinate_tolerance": 1e-12,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    }
+  },
+  "coverage": {
+    "changed_production": {
+      "crates/gz-physics-rapier/src/joints/parked_robot.rs": {
+        "mapped_lines": [
+          75,
+          75
+        ],
+        "mapped_regions": [
+          150,
+          150
+        ]
+      },
+      "crates/gz-sim-cli/examples/parked_spindle.rs": {
+        "mapped_lines": [
+          308,
+          315
+        ],
+        "mapped_regions": [
+          583,
+          611
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "app",
+        "sha256": "e16c225ec524afb699d57e78d72c3a8ace3db0cdfcfa33b1817d17975e0f2b39"
+      },
+      {
+        "case": "solver",
+        "sha256": "422cf717c83932fbde7262d6f44e3e5090aba2240e9431bee452c703a4666273"
+      },
+      {
+        "case": "product",
+        "sha256": "879edde73ff181b8f404fd76c8f7ff338bf8b79cd9f49d8a3f2a71d34123bda4"
+      }
+    ]
+  }
+}

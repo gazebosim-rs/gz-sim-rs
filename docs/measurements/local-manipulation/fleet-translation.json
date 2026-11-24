@@ -1,0 +1,199 @@
+{
+  "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor",
+  "cpus": "24-31",
+  "order": [
+    "baseline",
+    "optimized",
+    "optimized",
+    "baseline",
+    "optimized",
+    "baseline",
+    "baseline",
+    "optimized"
+  ],
+  "warmup_ticks": 20,
+  "measured_ticks": 100,
+  "dt_ms": 10,
+  "workloads": {
+    "10000": {
+      "baseline": {
+        "samples": [
+          {
+            "real_time_factor": 9.42392,
+            "p50_ms": 1.1028,
+            "p95_ms": 1.3154,
+            "p99_ms": 1.4321,
+            "max_deck_error_m": 3.608225e-15,
+            "peak_rss_kib": 503912
+          },
+          {
+            "real_time_factor": 11.31135,
+            "p50_ms": 0.8073,
+            "p95_ms": 1.419,
+            "p99_ms": 1.6439,
+            "max_deck_error_m": 3.608225e-15,
+            "peak_rss_kib": 503812
+          },
+          {
+            "real_time_factor": 4.26431,
+            "p50_ms": 2.2198,
+            "p95_ms": 3.4434,
+            "p99_ms": 4.4846,
+            "max_deck_error_m": 3.608225e-15,
+            "peak_rss_kib": 503684
+          },
+          {
+            "real_time_factor": 4.76845,
+            "p50_ms": 2.0588,
+            "p95_ms": 2.4356,
+            "p99_ms": 2.7397,
+            "max_deck_error_m": 3.608225e-15,
+            "peak_rss_kib": 503844
+          }
+        ],
+        "median": {
+          "real_time_factor": 7.096185,
+          "p50_ms": 1.5808,
+          "p95_ms": 1.9273,
+          "p99_ms": 2.1917999999999997,
+          "max_deck_error_m": 3.608225e-15,
+          "peak_rss_kib": 503828.0
+        }
+      },
+      "optimized": {
+        "samples": [
+          {
+            "real_time_factor": 8.44454,
+            "p50_ms": 1.2615,
+            "p95_ms": 1.5112,
+            "p99_ms": 1.5322,
+            "max_deck_error_m": 3.608225e-15,
+            "peak_rss_kib": 504196
+          },
+          {
+            "real_time_factor": 12.36024,
+            "p50_ms": 0.78,
+            "p95_ms": 0.9888,
+            "p99_ms": 1.0365,
+            "max_deck_error_m": 3.608225e-15,
+            "peak_rss_kib": 504616
+          },
+          {
+            "real_time_factor": 5.38809,
+            "p50_ms": 1.7759,
+            "p95_ms": 2.7614,
+            "p99_ms": 3.4226,
+            "max_deck_error_m": 3.608225e-15,
+            "peak_rss_kib": 504156
+          },
+          {
+            "real_time_factor": 6.78558,
+            "p50_ms": 1.489,
+            "p95_ms": 1.7475,
+            "p99_ms": 1.7933,
+            "max_deck_error_m": 3.608225e-15,
+            "peak_rss_kib": 504600
+          }
+        ],
+        "median": {
+          "real_time_factor": 7.61506,
+          "p50_ms": 1.37525,
+          "p95_ms": 1.62935,
+          "p99_ms": 1.66275,
+          "max_deck_error_m": 3.608225e-15,
+          "peak_rss_kib": 504398.0
+        }
+      }
+    },
+    "100000": {
+      "baseline": {
+        "samples": [
+          {
+            "real_time_factor": 0.84916,
+            "p50_ms": 11.4417,
+            "p95_ms": 15.0822,
+            "p99_ms": 18.0078,
+            "max_deck_error_m": 6.536993e-12,
+            "peak_rss_kib": 4621244
+          },
+          {
+            "real_time_factor": 0.90221,
+            "p50_ms": 10.4908,
+            "p95_ms": 13.7754,
+            "p99_ms": 19.3208,
+            "max_deck_error_m": 6.536993e-12,
+            "peak_rss_kib": 4621528
+          },
+          {
+            "real_time_factor": 0.88705,
+            "p50_ms": 11.0382,
+            "p95_ms": 15.4907,
+            "p99_ms": 18.4224,
+            "max_deck_error_m": 6.536993e-12,
+            "peak_rss_kib": 4621292
+          },
+          {
+            "real_time_factor": 1.05548,
+            "p50_ms": 9.1178,
+            "p95_ms": 13.0639,
+            "p99_ms": 16.2924,
+            "max_deck_error_m": 6.536993e-12,
+            "peak_rss_kib": 4621036
+          }
+        ],
+        "median": {
+          "real_time_factor": 0.89463,
+          "p50_ms": 10.7645,
+          "p95_ms": 14.428799999999999,
+          "p99_ms": 18.2151,
+          "max_deck_error_m": 6.536993e-12,
+          "peak_rss_kib": 4621268.0
+        }
+      },
+      "optimized": {
+        "samples": [
+          {
+            "real_time_factor": 0.38925,
+            "p50_ms": 23.5411,
+            "p95_ms": 43.2508,
+            "p99_ms": 52.0013,
+            "max_deck_error_m": 6.536993e-12,
+            "peak_rss_kib": 4620300
+          },
+          {
+            "real_time_factor": 1.10147,
+            "p50_ms": 8.5325,
+            "p95_ms": 12.1089,
+            "p99_ms": 12.5804,
+            "max_deck_error_m": 6.536993e-12,
+            "peak_rss_kib": 4621288
+          },
+          {
+            "real_time_factor": 0.9725,
+            "p50_ms": 9.9327,
+            "p95_ms": 12.4226,
+            "p99_ms": 18.2105,
+            "max_deck_error_m": 6.536993e-12,
+            "peak_rss_kib": 4621124
+          },
+          {
+            "real_time_factor": 1.01379,
+            "p50_ms": 9.3331,
+            "p95_ms": 13.1489,
+            "p99_ms": 19.6244,
+            "max_deck_error_m": 6.536993e-12,
+            "peak_rss_kib": 4620716
+          }
+        ],
+        "median": {
+          "real_time_factor": 0.993145,
+          "p50_ms": 9.6329,
+          "p95_ms": 12.78575,
+          "p99_ms": 18.917450000000002,
+          "max_deck_error_m": 6.536993e-12,
+          "peak_rss_kib": 4620920.0
+        }
+      }
+    }
+  }
+}

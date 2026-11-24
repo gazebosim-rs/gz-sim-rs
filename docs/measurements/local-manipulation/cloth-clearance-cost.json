@@ -1,0 +1,1560 @@
+{
+  "geometry_revision": "1b4d135",
+  "control_revision": "f711cce",
+  "cpu": "AMD Ryzen 9 9950X3D",
+  "rustc": "1.97.1 (8bab26f4f 2026-07-14)",
+  "projection_profile_ns": {
+    "passes": 1305600,
+    "distance": 426063741,
+    "bending": 1120896649,
+    "shell": 2687005386,
+    "boundary": 2331741587,
+    "remaining_features": 25821419
+  },
+  "campaigns": [
+    {
+      "logical_cpu": 8,
+      "runs": [
+        {
+          "policy": "old",
+          "sample": 0,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 10.75088341999799,
+          "process_cpu_s": 10.740221,
+          "p95_ns": 3943933,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "new",
+          "sample": 0,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 9.868180846009636,
+          "process_cpu_s": 9.492659999999999,
+          "p95_ns": 4156133,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "old",
+          "sample": 0,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 17.992134723986965,
+          "process_cpu_s": 17.914360000000002,
+          "p95_ns": 7974076,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "new",
+          "sample": 0,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 13.177295739005785,
+          "process_cpu_s": 13.166212,
+          "p95_ns": 6873363,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "new",
+          "sample": 1,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 7.543155036997632,
+          "process_cpu_s": 7.531967999999999,
+          "p95_ns": 2303838,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "old",
+          "sample": 1,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 12.76647772200522,
+          "process_cpu_s": 12.527267999999994,
+          "p95_ns": 6255871,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "new",
+          "sample": 1,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 14.387488009000663,
+          "process_cpu_s": 14.341993999999996,
+          "p95_ns": 7396735,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "old",
+          "sample": 1,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 17.155202679001377,
+          "process_cpu_s": 16.579205000000016,
+          "p95_ns": 7886745,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "new",
+          "sample": 2,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 8.891145866000443,
+          "process_cpu_s": 8.860495999999989,
+          "p95_ns": 3773843,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "old",
+          "sample": 2,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 11.247588176993304,
+          "process_cpu_s": 11.224534000000004,
+          "p95_ns": 5091027,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "new",
+          "sample": 2,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 14.815450131995021,
+          "process_cpu_s": 14.633349000000008,
+          "p95_ns": 7486845,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "old",
+          "sample": 2,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 14.19163158100855,
+          "process_cpu_s": 14.103066999999978,
+          "p95_ns": 5833269,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "old",
+          "sample": 3,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 11.607569637999404,
+          "process_cpu_s": 11.595988000000007,
+          "p95_ns": 4499895,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "new",
+          "sample": 3,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 8.912094793005963,
+          "process_cpu_s": 8.865350999999993,
+          "p95_ns": 3720282,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "old",
+          "sample": 3,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 13.885918095998932,
+          "process_cpu_s": 13.874853999999985,
+          "p95_ns": 5820479,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "new",
+          "sample": 3,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 12.945830894997925,
+          "process_cpu_s": 12.933620999999976,
+          "p95_ns": 6687842,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        }
+      ],
+      "summary": [
+        {
+          "pad_damping_ns_per_m": 4,
+          "policy": "old",
+          "median_wall_s": 11.427578907496354,
+          "median_process_cpu_s": 11.410261000000006,
+          "median_p95_ns": 4795461.0
+        },
+        {
+          "pad_damping_ns_per_m": 4,
+          "policy": "new",
+          "median_wall_s": 8.901620329503203,
+          "median_process_cpu_s": 8.86292349999999,
+          "median_p95_ns": 3747062.5
+        },
+        {
+          "pad_damping_ns_per_m": 0,
+          "policy": "old",
+          "median_wall_s": 15.673417130004964,
+          "median_process_cpu_s": 15.341135999999997,
+          "median_p95_ns": 6860007.0
+        },
+        {
+          "pad_damping_ns_per_m": 0,
+          "policy": "new",
+          "median_wall_s": 13.782391874003224,
+          "median_process_cpu_s": 13.754102999999997,
+          "median_p95_ns": 7135049.0
+        }
+      ]
+    },
+    {
+      "logical_cpu": 12,
+      "runs": [
+        {
+          "policy": "old",
+          "sample": 0,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 17.89277361999848,
+          "process_cpu_s": 15.118425,
+          "p95_ns": 11758589,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "new",
+          "sample": 0,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 11.42016338800022,
+          "process_cpu_s": 11.138644000000001,
+          "p95_ns": 3968343,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "old",
+          "sample": 0,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 14.010790532003739,
+          "process_cpu_s": 13.957643999999997,
+          "p95_ns": 5852539,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "new",
+          "sample": 0,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 13.472955591001664,
+          "process_cpu_s": 13.447106000000005,
+          "p95_ns": 6931372,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "new",
+          "sample": 1,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 8.53488640600699,
+          "process_cpu_s": 8.472802000000003,
+          "p95_ns": 3558892,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "old",
+          "sample": 1,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 13.58306816899858,
+          "process_cpu_s": 12.859003999999992,
+          "p95_ns": 5703919,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "new",
+          "sample": 1,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 14.325044936005725,
+          "process_cpu_s": 14.295725999999995,
+          "p95_ns": 7362354,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "old",
+          "sample": 1,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 14.845097498007817,
+          "process_cpu_s": 14.819984999999999,
+          "p95_ns": 6688062,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "new",
+          "sample": 2,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 9.580833770000027,
+          "process_cpu_s": 9.484422,
+          "p95_ns": 3817193,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "old",
+          "sample": 2,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 11.836014542001067,
+          "process_cpu_s": 11.807792000000005,
+          "p95_ns": 4886296,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "new",
+          "sample": 2,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 12.97420582799532,
+          "process_cpu_s": 12.945477999999994,
+          "p95_ns": 6456191,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "old",
+          "sample": 2,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 14.121436953006196,
+          "process_cpu_s": 14.108783999999993,
+          "p95_ns": 6138589,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "old",
+          "sample": 3,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 13.13947581499815,
+          "process_cpu_s": 12.914183999999995,
+          "p95_ns": 6140570,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "new",
+          "sample": 3,
+          "pad_damping_ns_per_m": 4,
+          "exchanges": 16,
+          "wall_s": 7.639170739988913,
+          "process_cpu_s": 7.6282770000000255,
+          "p95_ns": 2301588,
+          "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+          "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+          "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+          "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+        },
+        {
+          "policy": "old",
+          "sample": 3,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 14.985453565997886,
+          "process_cpu_s": 14.974689999999992,
+          "p95_ns": 6657771,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        },
+        {
+          "policy": "new",
+          "sample": 3,
+          "pad_damping_ns_per_m": 0,
+          "exchanges": 16,
+          "wall_s": 12.818763132003369,
+          "process_cpu_s": 12.770464999999989,
+          "p95_ns": 6342391,
+          "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+          "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+          "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+          "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+        }
+      ],
+      "summary": [
+        {
+          "pad_damping_ns_per_m": 4,
+          "policy": "old",
+          "median_wall_s": 13.361271991998365,
+          "median_process_cpu_s": 12.886593999999993,
+          "median_p95_ns": 5922244.5
+        },
+        {
+          "pad_damping_ns_per_m": 4,
+          "policy": "new",
+          "median_wall_s": 9.057860088003508,
+          "median_process_cpu_s": 8.978612000000002,
+          "median_p95_ns": 3688042.5
+        },
+        {
+          "pad_damping_ns_per_m": 0,
+          "policy": "old",
+          "median_wall_s": 14.483267225507007,
+          "median_process_cpu_s": 14.464384499999996,
+          "median_p95_ns": 6398180.0
+        },
+        {
+          "pad_damping_ns_per_m": 0,
+          "policy": "new",
+          "median_wall_s": 13.223580709498492,
+          "median_process_cpu_s": 13.196292,
+          "median_p95_ns": 6693781.5
+        }
+      ]
+    }
+  ],
+  "native_250": [
+    {
+      "pad_damping_ns_per_m": 0,
+      "matched": {
+        "particle-frames.json": "327965ae881a619307c1076bcf45d41261495b2e873114a9be8a66d59404528e",
+        "panel-forces.json": "ecce49bccb226210dc591c3c76558c7aa9903a2ed138e58488c1d7bbc01e2935",
+        "replay/frames.jsonl": "d510854c6f1b7ad33a6caa3d797e5a323bdf7c4630a047d0143e01975de07346"
+      },
+      "refined_ticks": 261
+    },
+    {
+      "pad_damping_ns_per_m": 4,
+      "matched": {
+        "particle-frames.json": "8d2a1949c05e84db47ce484d71c9d17408eec1e647d6c90b7d27a089574842bf",
+        "panel-forces.json": "c043973fdeaa7290520dd7b5955cb8a8c2261c68f0ee4b463e5fbd8a46e33fe8",
+        "replay/frames.jsonl": "8f1a90a64952b9bdcf3fd5ba6ceaac18150e10dff6b52a79970daf2d6f7e0c9b"
+      },
+      "refined_ticks": 0
+    }
+  ],
+  "changed_source_counts": {
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      },
+      "regions": {
+        "hit": 2,
+        "total": 2,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-xpbd/src/surface.rs": {
+      "lines": {
+        "hit": 21,
+        "total": 21,
+        "missing": []
+      },
+      "regions": {
+        "hit": 45,
+        "total": 45,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-xpbd/src/surface/clearance.rs": {
+      "lines": {
+        "hit": 79,
+        "total": 81,
+        "missing": [
+          101,
+          102
+        ]
+      },
+      "regions": {
+        "hit": 135,
+        "total": 137,
+        "missing": [
+          [
+            101,
+            25,
+            101,
+            46
+          ],
+          [
+            102,
+            32,
+            102,
+            37
+          ]
+        ]
+      }
+    }
+  },
+  "viewer": {
+    "renderer": "WebGPU",
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9991%2F",
+    "frames": 137,
+    "body_poses_and_shapes_checked": 3425,
+    "independent_particle_positions_checked": 1644,
+    "reset_ms": 0.0
+  },
+  "follow_up": {
+    "retained_revision": "791d20f",
+    "retained_changed_coverage": {
+      "crates/gz-physics-xpbd/src/surface/clearance.rs": {
+        "lines": {
+          "hit": 1,
+          "total": 1,
+          "missing": []
+        },
+        "regions": {
+          "hit": 6,
+          "total": 6,
+          "missing": []
+        }
+      }
+    },
+    "campaigns": [
+      {
+        "change": "bounded rebuild",
+        "baseline": "f711cce",
+        "candidate": "791d20f",
+        "logical_cpu": 8,
+        "summary_by_pad_damping": {
+          "0": {
+            "old": {
+              "median_process_cpu_s": 17.128236499999993,
+              "median_tick_p95_ns": 7682625.0
+            },
+            "new": {
+              "median_process_cpu_s": 15.340700000000009,
+              "median_tick_p95_ns": 7647490.0
+            }
+          },
+          "4": {
+            "old": {
+              "median_process_cpu_s": 11.79118200000001,
+              "median_tick_p95_ns": 4453389.0
+            },
+            "new": {
+              "median_process_cpu_s": 8.699226499999998,
+              "median_tick_p95_ns": 3093550.0
+            }
+          }
+        },
+        "runs": [
+          {
+            "policy": "old",
+            "sample": 0,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 16.332432451003115,
+            "process_cpu_s": 14.267827,
+            "p95_ns": 10494615,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 0,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 8.219414719002089,
+            "process_cpu_s": 8.179274999999997,
+            "p95_ns": 2856520,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 0,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 16.092066298006102,
+            "process_cpu_s": 16.051056,
+            "p95_ns": 7077114,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 0,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 14.457419565995224,
+            "process_cpu_s": 14.435536000000004,
+            "p95_ns": 7249204,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 1,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 7.914935136999702,
+            "process_cpu_s": 7.896794999999998,
+            "p95_ns": 2608168,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 1,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 10.41142615499848,
+            "process_cpu_s": 10.391277999999996,
+            "p95_ns": 3173910,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 1,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 13.249479199002963,
+            "process_cpu_s": 13.23848100000001,
+            "p95_ns": 6567791,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 1,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 15.06089849199634,
+            "process_cpu_s": 15.04965599999999,
+            "p95_ns": 6550342,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 2,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 9.236173048993805,
+            "process_cpu_s": 9.219177999999998,
+            "p95_ns": 3330580,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 2,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 11.680429204003303,
+            "process_cpu_s": 11.08783900000001,
+            "p95_ns": 3921462,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 2,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 16.505289489010465,
+            "process_cpu_s": 16.24586400000001,
+            "p95_ns": 8045776,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 2,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 18.463611371000297,
+            "process_cpu_s": 18.20541699999999,
+            "p95_ns": 8288136,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 3,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 12.598198708001291,
+            "process_cpu_s": 12.494525000000012,
+            "p95_ns": 4985316,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 3,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 14.753013497989741,
+            "process_cpu_s": 11.93069,
+            "p95_ns": 7274583,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 3,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 23.194416465004906,
+            "process_cpu_s": 21.064805000000007,
+            "p95_ns": 11263936,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 3,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 20.668626750004478,
+            "process_cpu_s": 18.769062999999992,
+            "p95_ns": 10468454,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          }
+        ]
+      },
+      {
+        "change": "bounded rebuild",
+        "baseline": "f711cce",
+        "candidate": "791d20f",
+        "logical_cpu": 12,
+        "summary_by_pad_damping": {
+          "0": {
+            "old": {
+              "median_process_cpu_s": 15.614559500000013,
+              "median_tick_p95_ns": 6710557.0
+            },
+            "new": {
+              "median_process_cpu_s": 15.131670499999995,
+              "median_tick_p95_ns": 7665744.0
+            }
+          },
+          "4": {
+            "old": {
+              "median_process_cpu_s": 11.722354500000005,
+              "median_tick_p95_ns": 4560144.0
+            },
+            "new": {
+              "median_process_cpu_s": 8.130481,
+              "median_tick_p95_ns": 2712568.5
+            }
+          }
+        },
+        "runs": [
+          {
+            "policy": "old",
+            "sample": 0,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 11.029656742990483,
+            "process_cpu_s": 11.004366999999998,
+            "p95_ns": 4182614,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 0,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 7.943753006999032,
+            "process_cpu_s": 7.879090000000001,
+            "p95_ns": 2428747,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 0,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 21.66343711099762,
+            "process_cpu_s": 21.555010000000003,
+            "p95_ns": 9145610,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 0,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 12.809835895008291,
+            "process_cpu_s": 12.783936,
+            "p95_ns": 6315670,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 1,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 7.556960770991282,
+            "process_cpu_s": 7.535370999999996,
+            "p95_ns": 2276977,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 1,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 12.63121478400717,
+            "process_cpu_s": 12.440342000000014,
+            "p95_ns": 5529007,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 1,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 15.21422530199925,
+            "process_cpu_s": 15.180573000000003,
+            "p95_ns": 7747864,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 1,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 14.568206816999009,
+            "process_cpu_s": 14.546510999999997,
+            "p95_ns": 6201020,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 2,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 8.405764694005484,
+            "process_cpu_s": 8.381872,
+            "p95_ns": 2996390,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 2,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 10.951090971997473,
+            "process_cpu_s": 10.926704000000004,
+            "p95_ns": 3844312,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 2,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 15.11132845300017,
+            "process_cpu_s": 15.082767999999987,
+            "p95_ns": 7583624,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 2,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 15.850765046998276,
+            "process_cpu_s": 15.813955000000025,
+            "p95_ns": 6605022,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 3,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 13.637233839996043,
+            "process_cpu_s": 13.59817600000001,
+            "p95_ns": 4937674,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 3,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 9.420930039996165,
+            "process_cpu_s": 9.385735999999978,
+            "p95_ns": 3367861,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 3,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 15.486651173006976,
+            "process_cpu_s": 15.415164000000003,
+            "p95_ns": 6816092,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 3,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 16.131708544999128,
+            "process_cpu_s": 16.08416999999999,
+            "p95_ns": 8485117,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          }
+        ]
+      },
+      {
+        "change": "discard expired reference",
+        "baseline": "f711cce",
+        "candidate": "f79aadf",
+        "logical_cpu": 8,
+        "summary_by_pad_damping": {
+          "0": {
+            "old": {
+              "median_process_cpu_s": 20.41750250000001,
+              "median_tick_p95_ns": 12248539.0
+            },
+            "new": {
+              "median_process_cpu_s": 18.14072799999999,
+              "median_tick_p95_ns": 9721035.5
+            }
+          },
+          "4": {
+            "old": {
+              "median_process_cpu_s": 15.720008499999999,
+              "median_tick_p95_ns": 7789500.0
+            },
+            "new": {
+              "median_process_cpu_s": 10.683564000000004,
+              "median_tick_p95_ns": 3660931.5
+            }
+          }
+        },
+        "runs": [
+          {
+            "policy": "old",
+            "sample": 0,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 16.343784643991967,
+            "process_cpu_s": 14.509727,
+            "p95_ns": 7822995,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 0,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 10.97778548199858,
+            "process_cpu_s": 10.754546,
+            "p95_ns": 3492941,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 0,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 21.25808260499616,
+            "process_cpu_s": 20.037465,
+            "p95_ns": 9411580,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 0,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 20.141553307010327,
+            "process_cpu_s": 17.873344000000003,
+            "p95_ns": 9662700,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 1,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 15.015952576999553,
+            "process_cpu_s": 11.594172000000002,
+            "p95_ns": 8465077,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 1,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 18.05657331099792,
+            "process_cpu_s": 15.638045000000007,
+            "p95_ns": 7756005,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 1,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 22.078170303007937,
+            "process_cpu_s": 19.153658999999994,
+            "p95_ns": 13801554,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 1,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 19.84942887199577,
+            "process_cpu_s": 19.47217800000002,
+            "p95_ns": 8810756,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 2,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 11.507654640998226,
+            "process_cpu_s": 10.61258200000001,
+            "p95_ns": 3465161,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 2,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 16.910125919006532,
+            "process_cpu_s": 15.80197199999999,
+            "p95_ns": 5602958,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 2,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 18.998222353999154,
+            "process_cpu_s": 18.408111999999978,
+            "p95_ns": 9779371,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 2,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 26.838575696005137,
+            "process_cpu_s": 20.797540000000016,
+            "p95_ns": 18584809,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 3,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 18.2042317680025,
+            "process_cpu_s": 15.81753099999997,
+            "p95_ns": 11622287,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 3,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 10.758870428006048,
+            "process_cpu_s": 10.135852000000018,
+            "p95_ns": 3828922,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 3,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 27.619152489001863,
+            "process_cpu_s": 21.992632999999998,
+            "p95_ns": 15085498,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 3,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 15.36723776999861,
+            "process_cpu_s": 15.333237000000006,
+            "p95_ns": 7828185,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          }
+        ]
+      },
+      {
+        "change": "discard expired reference",
+        "baseline": "791d20f",
+        "candidate": "f79aadf",
+        "logical_cpu": 8,
+        "summary_by_pad_damping": {
+          "0": {
+            "old": {
+              "median_process_cpu_s": 15.105825500000003,
+              "median_tick_p95_ns": 7627239.0
+            },
+            "new": {
+              "median_process_cpu_s": 16.759552499999998,
+              "median_tick_p95_ns": 8835153.0
+            }
+          },
+          "4": {
+            "old": {
+              "median_process_cpu_s": 8.315134499999996,
+              "median_tick_p95_ns": 2920843.5
+            },
+            "new": {
+              "median_process_cpu_s": 8.573662499999983,
+              "median_tick_p95_ns": 3414975.5
+            }
+          }
+        },
+        "runs": [
+          {
+            "policy": "old",
+            "sample": 0,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 12.473715312007698,
+            "process_cpu_s": 11.229951999999999,
+            "p95_ns": 4064603,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 0,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 11.467374393992941,
+            "process_cpu_s": 10.063050000000002,
+            "p95_ns": 4051023,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 0,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 17.087847082002554,
+            "process_cpu_s": 16.995473000000004,
+            "p95_ns": 8013695,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 0,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 17.472314579004887,
+            "process_cpu_s": 17.113716999999998,
+            "p95_ns": 9075609,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 1,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 8.873802115005674,
+            "process_cpu_s": 8.805286999999993,
+            "p95_ns": 3152370,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 1,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 8.81007599401346,
+            "process_cpu_s": 8.327138000000001,
+            "p95_ns": 2990729,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 1,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 16.842920894996496,
+            "process_cpu_s": 16.79932399999999,
+            "p95_ns": 8594697,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 1,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 14.733195110995439,
+            "process_cpu_s": 14.684510000000014,
+            "p95_ns": 7452084,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 2,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 8.237157348994515,
+            "process_cpu_s": 8.191376999999996,
+            "p95_ns": 2660789,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 2,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 8.348661472002277,
+            "process_cpu_s": 8.30313099999999,
+            "p95_ns": 2661459,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 2,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 15.553628330002539,
+            "process_cpu_s": 15.501363999999997,
+            "p95_ns": 7832755,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 2,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 13.736465762005537,
+            "process_cpu_s": 13.678773000000009,
+            "p95_ns": 6883952,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "old",
+            "sample": 3,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 8.219309781998163,
+            "process_cpu_s": 8.177756000000016,
+            "p95_ns": 2850958,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "new",
+            "sample": 3,
+            "pad_damping_ns_per_m": 4,
+            "exchanges": 16,
+            "wall_s": 8.542795367990038,
+            "process_cpu_s": 8.342037999999976,
+            "p95_ns": 3677581,
+            "node_trajectory": "8b6c27512b3394762c7190601b9f2e4dffece0858c21f60f8fa88791e0202a47",
+            "forces": "64108e3212e2dc6ea35eeab7db0898f10fa3a14a916ad7abecfec6579f2167cd",
+            "archive": "fb08e95e1294eb2f2ada64d999a16b5d4230c2af421c98d09972aec8f967049b",
+            "physics_metrics": "70c72a83857dcd0bd5ee8218b60d559efb14fed4d3c59e4a675696c7f2a10a49"
+          },
+          {
+            "policy": "old",
+            "sample": 3,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 15.850165799987735,
+            "process_cpu_s": 15.527140999999993,
+            "p95_ns": 7802394,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          },
+          {
+            "policy": "new",
+            "sample": 3,
+            "pad_damping_ns_per_m": 0,
+            "exchanges": 16,
+            "wall_s": 17.49371761699149,
+            "process_cpu_s": 16.719781,
+            "p95_ns": 9150219,
+            "node_trajectory": "3dfc91efa7f28528bf279f99764b1bf6ade992d5c61dc6c0f0b6225597ca57e7",
+            "forces": "08843788ad94be5a06f6bade136dddeb6ea1c37dd42d028b768b5d8ca98674ce",
+            "archive": "9b299944527b24ba147f4b387a1c34a8b40ae0ea8d370b26e47d45dc9c78a74f",
+            "physics_metrics": "999c60ef0fc067879ca71a9e51641a15ea7a072f4ce9b3624632070b071c2565"
+          }
+        ]
+      }
+    ],
+    "release_binary_sha256": {
+      "pad-runner": "36353f9ef79295220e83b92396906c8875cbabd168b8469162706190b076d22b",
+      "clear-retry-runner": "55a7b5663478716d43bf26e12f5529b588bdf68639bff9cd227a2690f829fa7b",
+      "expired-runner": "8112e441ec5398b8a35f46eba826f963bbd4a973b335a04efbc6faf9315a0fa8"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="gpu" type="ignored"><max_step_size>0.001</max_step_size><real_time_factor>1</real_time_factor></physics>
+    <plugin name="gz::sim::systems::GpuBatch" filename="gz-sim-gpu-batch-system">
+      <environment id="7" profile="planar-tool" model="arm" plane="floor::base">
+        <drive joint="shoulder" damping="6"/>
+        <drive joint="elbow" damping="1.5"/>
+      </environment>
+    </plugin>
+    <model name="floor">
+      <static>true</static><pose>0 0 0.65 0 0 0</pose>
+      <link name="base">
+        <collision name="plane"><geometry><plane><normal>0 0 1</normal><size>2 1</size></plane></geometry>
+          <surface><friction><ode><mu>0.30</mu><mu2>0.30</mu2></ode></friction></surface>
+        </collision>
+        <visual name="surface"><pose>0.35 0 -0.013 0 0 0</pose><geometry><box><size>0.45 0.22 0.026</size></box></geometry>
+          <material><diffuse>0.30 0.36 0.42 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="arm"><pose>0 0 0.60 0 0 0</pose>
+      <link name="upper"><pose>0 0 0 0 -0.48 0</pose>
+        <inertial><pose>0.15 0 0 0 0 0</pose><mass>0.80</mass><inertia>
+          <ixx>0.0003</ixx><iyy>0.0062</iyy><izz>0.0062</izz></inertia></inertial>
+        <visual name="shoulder_hub"><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.24 0.28 0.31 1</diffuse></material></visual>
+        <visual name="upper_bar"><pose>0.15 0 0 0 0 0</pose><geometry><box><size>0.30 0.042 0.042</size></box></geometry><material><diffuse>0.08 0.61 0.70 1</diffuse></material></visual>
+      </link>
+      <link name="forearm"><pose relative_to="upper">0.30 0 0 0 0.62 0</pose>
+        <inertial><pose>0.12 0 0 0 0 0</pose><mass>0.40</mass><inertia>
+          <ixx>0.0002</ixx><iyy>0.0034</iyy><izz>0.0034</izz></inertia></inertial>
+        <collision name="round_tool"><pose>0.21 0 0 0 0 0</pose><geometry><sphere><radius>0.018</radius></sphere></geometry>
+          <surface><friction><ode><mu>0.30</mu><mu2>0.30</mu2></ode></friction></surface>
+        </collision>
+        <visual name="forearm_bar"><pose>0.105 0 0 0 0 0</pose><geometry><box><size>0.21 0.032 0.032</size></box></geometry><material><diffuse>0.28 0.74 0.48 1</diffuse></material></visual>
+        <visual name="tool"><pose>0.21 0 0 0 0 0</pose><geometry><sphere><radius>0.018</radius></sphere></geometry><material><diffuse>0.94 0.46 0.10 1</diffuse></material></visual>
+      </link>
+      <plugin name="gz::sim::systems::JointPositionController" filename="gz-sim-joint-position-controller-system">
+        <joint_name>shoulder</joint_name><use_velocity_commands>true</use_velocity_commands><cmd_max>2.4</cmd_max>
+      </plugin>
+      <joint name="shoulder" type="revolute"><parent>world</parent><child>upper</child><axis><xyz>0 -1 0</xyz><limit><lower>-0.36</lower><upper>0.02</upper><velocity>3</velocity><effort>8</effort></limit></axis></joint>
+      <plugin name="gz::sim::systems::JointPositionController" filename="gz-sim-joint-position-controller-system">
+        <joint_name>elbow</joint_name><use_velocity_commands>true</use_velocity_commands><cmd_max>3.2</cmd_max>
+      </plugin>
+      <joint name="elbow" type="revolute"><parent>upper</parent><child>forearm</child><axis><xyz>0 -1 0</xyz><limit><lower>-0.15</lower><upper>1.2</upper><velocity>4</velocity><effort>2.8</effort></limit></axis></joint>
+      <plugin name="gz::sim::systems::JointStatePublisher" filename="gz-sim-joint-state-publisher-system">
+        <joint_name>shoulder</joint_name><joint_name>elbow</joint_name>
+      </plugin>
+    </model>
+  </world>
+</sdf>

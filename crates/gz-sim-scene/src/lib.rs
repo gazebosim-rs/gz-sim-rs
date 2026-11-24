@@ -3,10 +3,37 @@
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
 mod apply_link_wrench;
+pub mod articulated_contact;
+mod articulation;
+pub mod contact_promotion;
+mod contact_promotion_sdf;
+mod continuous_collision;
+pub mod damped_sole;
+pub mod deformable;
+pub mod fidelity_zone;
+mod flat_publication;
+mod free_rotation;
+mod grasp_fleet_sdf;
+pub mod grasp_guard;
+mod mounted_guide;
+pub mod sole_episodes;
+pub mod support_loss_promotion;
+pub use articulation::{
+    ArticulationTier, FidelityError, articulation_root_pose, begin_model_free_coast,
+    model_fidelity, set_model_fidelity,
+};
+mod contact_material;
 mod joint_controller;
+pub mod joint_posture;
 mod joint_state_publisher;
 mod odometry_publisher;
 mod pose_publisher;
+mod prescribed_motion;
+pub mod primary_contact;
+pub mod receiving_support;
+mod scheduled_link_force;
+#[cfg(feature = "distributed-physics")]
+pub mod trajectory_workers;
 pub use apply_link_wrench::{
     APPLY_LINK_WRENCH_CAPACITY, ApplyLinkWrenchConfiguration, ApplyLinkWrenchError,
     ApplyLinkWrenchMode, apply_link_wrench_active, clear_apply_link_wrench,
@@ -14,11 +41,13 @@ pub use apply_link_wrench::{
 };
 pub use joint_controller::{
     JointControllerCommandError, JointControllerConfiguration, JointControllerMode,
-    joint_controller_binding_matches, joint_controller_binding_matches_configuration,
-    set_joint_controller_command,
+    held_joint_controller_target, joint_controller_binding_matches,
+    joint_controller_binding_matches_configuration, set_joint_controller_command,
+    set_joint_position_response_period,
 };
 pub use joint_state_publisher::{
-    JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
+    JointStateJointPublication, JointStateKind, JointStatePublication, JointStateSample,
+    JointStateValue,
 };
 pub use odometry_publisher::{
     GroundTruthOdometryDimensions, GroundTruthOdometryError, GroundTruthOdometryNoise,
@@ -30,6 +59,20 @@ pub use pose_publisher::{
     StaticPoseSample,
 };
 mod diff_drive;
+#[cfg(feature = "distributed-physics")]
+mod distributed;
+#[cfg(feature = "distributed-physics")]
+pub mod distributed_hinge;
+#[cfg(feature = "distributed-physics")]
+pub use distributed::step_with_placement;
+#[cfg(feature = "distributed-physics")]
+pub use distributed_hinge::{
+    distributed_floating_tree_spec, distributed_grounded_tree_spec, distributed_hinge_spec,
+    distributed_motor_tree_spec, distributed_moving_hinge_spec, distributed_payload_tree_spec,
+    distributed_stopped_tree_spec,
+};
+#[cfg(feature = "distributed-physics")]
+pub mod passive_checkpoint;
 pub use diff_drive::{
     DiffDriveCommandError, DiffDriveConfiguration, DiffDriveSample, diff_drive_binding_matches,
     diff_drive_binding_matches_configuration, set_diff_drive_command,
@@ -40,13 +83,20 @@ mod world_systems;
 pub use joint_forces::JointForceConfiguration;
 
 mod joints;
+mod local_replay;
 mod noise;
-pub use joints::{JointDefinition, JointHandle, JointSample};
+pub use joints::{
+    BallJointSample, JointDefinition, JointHandle, JointSample, UniversalJointSample,
+};
+pub use local_replay::{load_local_replay_world, load_local_replay_world_with_runtime};
 
 mod inputs;
 pub use inputs::{
-    InputError, JointForceCommand, queue_joint_effort, queue_link_world_velocity,
-    queue_link_world_wrench, set_joint_force,
+    InputError, JointForceCommand, joint_gravity_load, locked_subtree_inertia,
+    pending_free_link_wrench, pending_link_world_wrench, queue_ball_joint_drive,
+    queue_ball_joint_effort, queue_joint_effort, queue_link_force_at_point,
+    queue_link_world_velocity, queue_link_world_wrench, queue_universal_joint_effort,
+    set_joint_force, subtree_momentum_about,
 };
 
 mod schedule;
@@ -97,6 +147,8 @@ pub use magnetometer::{
     MagnetometerPublication, MagnetometerSample, MagnetometerSampleError,
     clear_magnetometer_interest, set_magnetometer_interest,
 };
+#[cfg(feature = "gpu-batch")]
+pub mod gpu_scene;
 mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
@@ -124,6 +176,7 @@ use gz_physics::{
     BodyId, BodySpec, CollisionSpec, Inertia, MeshBodySpec, PhysicsBackend, PhysicsError,
     PhysicsReset, PlaneSpec, RotationSpec, Shape,
 };
+use gz_physics_multifidelity::{IsotropicFriction, MaterialLinkMotion, MultiFidelityBackend};
 use gz_physics_rapier::RapierBackend;
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
 use gz_sim_core::{
@@ -277,12 +330,33 @@ impl From<Transform> for WorldPose {
 
 impl WorldPose {
     fn compose(self, child: Self) -> Self {
+        // Translating model, link and visual frames are common in large fleets.
+        // Their composed translation requires no quaternion arithmetic.
+        if self.rotation == [0., 0., 0., 1.] && child.rotation == [0., 0., 0., 1.] {
+            return Self {
+                translation: (DVec3::from_array(self.translation)
+                    + DVec3::from_array(child.translation))
+                .to_array(),
+                rotation: [0., 0., 0., 1.],
+            };
+        }
         let rotation = DQuat::from_array(self.rotation);
+        let child_rotation = DQuat::from_array(child.rotation);
+        let mut composed = rotation * child_rotation;
+        // Two valid near-unit rotations can yield an out-of-budget derived
+        // frame, e.g. relative link motion on resuming an older native cut.
+        // Preserve exact native body observations and ordinary products.
+        if (composed.to_array().iter().map(|v| v * v).sum::<f64>() - 1.).abs() > 1e-12
+            && (rotation.length_squared() - 1.).abs() <= 1e-12
+            && (child_rotation.length_squared() - 1.).abs() <= 1e-12
+        {
+            composed = composed.normalize();
+        }
         Self {
             translation: (DVec3::from_array(self.translation)
                 + rotation * DVec3::from_array(child.translation))
             .to_array(),
-            rotation: (rotation * DQuat::from_array(child.rotation)).to_array(),
+            rotation: composed.to_array(),
         }
     }
 
@@ -336,6 +410,7 @@ struct Imu {
     link: u64,
     rotation: DQuat,
     reference: DQuat,
+    initial_velocity: DVec3,
     previous_velocity: DVec3,
     schedule: SampleSchedule,
     sdf_rate_hz: f64,
@@ -362,11 +437,15 @@ pub struct ImuPublication {
 }
 
 struct SceneContext<'a> {
+    gpu_tool_scene: bool,
+    sole_observers: bool,
     world: &'a str,
+    engine: PhysicsEngine,
     spherical_coordinates: Option<sdformat::SphericalCoordinates>,
     links: BTreeMap<String, u64>,
     visuals: Vec<Entity>,
     cameras: Vec<Entity>,
+    named_imu_streams: bool,
     noise_seed: [u8; 32],
     field_world: [f64; 3],
     wind_world: [f64; 3],
@@ -416,6 +495,8 @@ struct Gravity([f64; 3]);
 
 #[derive(Debug, thiserror::Error)]
 pub enum LoadError {
+    #[error("translation trajectory for {entity}: {reason}")]
+    TranslationPath { entity: String, reason: String },
     #[error("{0}")]
     Sdf(#[from] sdformat::Diagnostic),
     #[error("world {0} was not found")]
@@ -430,6 +511,24 @@ pub enum LoadError {
         entity: String,
         source: gz_assets::mesh::MeshError,
     },
+    #[error("{entity}: joint posture configuration: {reason}")]
+    JointPosture { entity: String, reason: String },
+    #[error("scheduled link force on {entity}: {reason}")]
+    ScheduledLinkForce { entity: String, reason: String },
+    #[error("{entity}: contact promotion configuration: {reason}")]
+    ContactPromotion { entity: String, reason: String },
+    #[error("{entity}: primary contact refinement configuration: {reason}")]
+    PrimaryContactRefinement { entity: String, reason: String },
+    #[error("{world}: damped sole configuration: {reason}")]
+    DampedSole { world: String, reason: String },
+    #[error("{world}: deformable configuration: {reason}")]
+    Deformable { world: String, reason: String },
+    #[cfg(feature = "gpu-batch")]
+    #[error("{entity}: GPU batch configuration: {reason}")]
+    GpuScene { entity: String, reason: String },
+    #[cfg(feature = "gpu-batch")]
+    #[error(transparent)]
+    Gpu(#[from] gz_physics_gpu::GpuError),
     #[error(transparent)]
     Physics(#[from] PhysicsError),
     #[error(transparent)]
@@ -484,7 +583,7 @@ pub fn load_world_with_engine(
     resolver: &dyn ResourceResolver,
     engine: PhysicsEngine,
 ) -> Result<Simulation, LoadError> {
-    load_world_configured(
+    load_world_seeded(
         xml,
         source,
         world_name,
@@ -504,7 +603,7 @@ pub fn load_world_with_sdf_step(
     resolver: &dyn ResourceResolver,
     engine: PhysicsEngine,
 ) -> Result<Simulation, LoadError> {
-    load_world_configured(xml, source, world_name, None, resolver, engine, [0; 32])
+    load_world_seeded(xml, source, world_name, None, resolver, engine, [0; 32])
 }
 
 /// Uses independent deterministic streams keyed by public sensor identity.
@@ -519,18 +618,233 @@ pub fn load_world_seeded(
     engine: PhysicsEngine,
     seed: [u8; 32],
 ) -> Result<Simulation, LoadError> {
-    load_world_configured(xml, source, world_name, step, resolver, engine, seed)
+    load_world_configured(
+        xml,
+        source,
+        world_name,
+        resolver,
+        WorldLoadOptions {
+            step,
+            engine,
+            noise_seed: seed,
+            distributed_worker: None,
+        },
+    )
 }
 
-fn load_world_configured(
+/// Runtime settings supplied by the application. SDF cannot select an executable.
+#[derive(Clone, Copy, Debug)]
+pub struct WorldLoadOptions<'a> {
+    pub engine: PhysicsEngine,
+    /// An omitted override uses the first SDF physics profile.
+    pub step: Option<Duration>,
+    pub noise_seed: [u8; 32],
+    /// Trusted local physics worker. Distributed and resident GPU worlds default to the sibling
+    /// executables `physics_worker` and `gz_pair_worker`, respectively.
+    pub distributed_worker: Option<&'a std::path::Path>,
+}
+
+/// Loads the complete SDF scene and initializes its selected backend before returning.
+pub fn load_world_configured(
     xml: &str,
     source: &str,
     world_name: &str,
-    step_override: Option<Duration>,
     resolver: &dyn ResourceResolver,
-    engine: PhysicsEngine,
-    noise_seed: [u8; 32],
+    options: WorldLoadOptions<'_>,
 ) -> Result<Simulation, LoadError> {
+    load_world_on_adapter(xml, source, world_name, resolver, options, None)
+}
+/// Load the same SDF world with an explicitly selected hardware adapter for GPU batches.
+/// CPU engines reject any GPU selector.
+pub fn load_world_on_adapter(
+    xml: &str,
+    source: &str,
+    world_name: &str,
+    resolver: &dyn ResourceResolver,
+    options: WorldLoadOptions<'_>,
+    gpu_adapter: Option<&str>,
+) -> Result<Simulation, LoadError> {
+    load_world_with_runtime(
+        xml,
+        source,
+        world_name,
+        resolver,
+        options,
+        WorldRuntimeOptions {
+            gpu_adapter,
+            ..Default::default()
+        },
+    )
+}
+
+#[cfg(feature = "distributed-physics")]
+pub use gz_physics_distributed::pool::PeriodicPlacement;
+
+/// Application-selected execution policies. Omitted policies retain the engine defaults.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WorldRuntimeOptions<'a> {
+    /// Select one Coulomb constraint per rigid contact point in local Rapier, local multi-fidelity or a three- to eight-worker pool.
+    pub rapier_per_point_friction: bool,
+    /// Resolve cold, fully supported free cylinder cap impacts with a centered native row.
+    pub rapier_axial_cap_impact: bool,
+    /// Select packed warm handoff payloads on supporting distributed workers.
+    pub distributed_packed_handoffs: bool,
+    /// Optional explicit adapter for GPU batches.
+    pub gpu_adapter: Option<&'a str>,
+    /// Keep prospective contact groups on one owner during distributed cold start and reset.
+    pub distributed_contact_placement: bool,
+    /// Negotiate a 64-member native solver profile on all three to eight pool workers.
+    pub distributed_native_64: bool,
+    /// Construct one native solver in ascending public-ID order on cold start and reset.
+    pub distributed_canonical_reference: bool,
+    /// Maximum worker-local native solver helpers granted per distributed barrier.
+    pub distributed_local_helper_limit: Option<usize>,
+    /// Wall-clock measurements can move one independent native island inside a completed tick.
+    #[cfg(feature = "distributed-physics")]
+    pub distributed_periodic_placement: Option<PeriodicPlacement>,
+}
+
+/// Load an SDF scene with application-selected execution policies.
+pub fn load_world_with_runtime(
+    xml: &str,
+    source: &str,
+    world_name: &str,
+    resolver: &dyn ResourceResolver,
+    options: WorldLoadOptions<'_>,
+    runtime: WorldRuntimeOptions<'_>,
+) -> Result<Simulation, LoadError> {
+    load_world_at_clock(xml, source, world_name, resolver, options, runtime, None)
+}
+
+fn load_world_at_clock(
+    xml: &str,
+    source: &str,
+    world_name: &str,
+    resolver: &dyn ResourceResolver,
+    options: WorldLoadOptions<'_>,
+    runtime: WorldRuntimeOptions<'_>,
+    clock: Option<(UpdateInfo, bool)>,
+) -> Result<Simulation, LoadError> {
+    load_world_with_automatic_owner(
+        xml,
+        source,
+        world_name,
+        resolver,
+        options,
+        runtime,
+        clock,
+        false,
+        #[cfg(feature = "distributed-physics")]
+        None,
+    )
+}
+#[allow(clippy::too_many_arguments)]
+fn load_world_with_automatic_owner(
+    xml: &str,
+    source: &str,
+    world_name: &str,
+    resolver: &dyn ResourceResolver,
+    options: WorldLoadOptions<'_>,
+    runtime: WorldRuntimeOptions<'_>,
+    clock: Option<(UpdateInfo, bool)>,
+    named_imu_streams: bool,
+    #[cfg(feature = "distributed-physics")] managed_material: Option<
+        deformable::managed_impact::MaterialOwner,
+    >,
+) -> Result<Simulation, LoadError> {
+    require(
+        !runtime.rapier_axial_cap_impact
+            || matches!(
+                options.engine,
+                PhysicsEngine::Rapier | PhysicsEngine::MultiFidelity
+            ),
+        world_name,
+        "axial-cap impacts require local Rapier or multi-fidelity physics",
+    )?;
+    require(
+        !runtime.rapier_per_point_friction || options.engine.supports_per_point_friction(),
+        world_name,
+        "per-point Coulomb friction requires local Rapier, local multi-fidelity or three to eight distributed workers",
+    )?;
+    let gpu_adapter = runtime.gpu_adapter;
+    #[cfg(feature = "distributed-physics")]
+    if let Some(config) = runtime.distributed_periodic_placement {
+        require(
+            config.validate().is_ok()
+                && !runtime.distributed_canonical_reference
+                && matches!(
+                    options.engine,
+                    PhysicsEngine::DistributedPool(3..=8)
+                        | PhysicsEngine::DistributedAdaptive(3..=8)
+                        | PhysicsEngine::DistributedIslands(3..=8)
+                ),
+            world_name,
+            "periodic placement requires a valid window on an ordinary three- to eight-worker pool",
+        )?;
+    }
+    require(
+        !runtime.distributed_native_64
+            || matches!(
+                options.engine,
+                PhysicsEngine::DistributedPool(3..=8)
+                    | PhysicsEngine::DistributedAdaptive(3..=8)
+                    | PhysicsEngine::DistributedIslands(3..=8)
+            ),
+        world_name,
+        "extended native capacity requires three to eight distributed workers",
+    )?;
+    require(
+        !runtime.distributed_canonical_reference
+            || (runtime.distributed_native_64
+                && !runtime.distributed_contact_placement
+                && matches!(
+                    options.engine,
+                    PhysicsEngine::DistributedPool(3..=8)
+                        | PhysicsEngine::DistributedAdaptive(3..=8)
+                )),
+        world_name,
+        "canonical reference placement requires extended native capacity and uniform distributed stepping",
+    )?;
+    require(
+        !runtime.distributed_packed_handoffs || options.engine.is_distributed(),
+        world_name,
+        "packed handoffs require the distributed engine",
+    )?;
+    require(
+        !runtime.distributed_contact_placement || options.engine.is_distributed(),
+        world_name,
+        "contact placement requires the distributed engine",
+    )?;
+    require(
+        runtime.distributed_local_helper_limit.is_none() || options.engine.is_distributed(),
+        world_name,
+        "a physics worker helper limit requires the distributed engine",
+    )?;
+    let WorldLoadOptions {
+        step: step_override,
+        engine,
+        noise_seed,
+        distributed_worker,
+    } = options;
+    require(
+        distributed_worker.is_none()
+            || engine.is_distributed()
+            || engine == PhysicsEngine::GpuBatch
+            || (cfg!(feature = "distributed-physics") && engine == PhysicsEngine::MultiFidelity),
+        world_name,
+        "explicit physics worker requires a distributed, cubic multifidelity or resident GPU world",
+    )?;
+    require(
+        gpu_adapter.is_none() || engine == PhysicsEngine::GpuBatch,
+        world_name,
+        "GPU adapter requires the gpu-batch engine",
+    )?;
+    #[cfg(not(feature = "gpu-batch"))]
+    require(
+        engine != PhysicsEngine::GpuBatch,
+        world_name,
+        "gpu-batch engine requires the gpu-batch Cargo feature",
+    )?;
     let mut sdf = sdformat::load_str(xml, source, resolver)?;
     sdf.validate_non_frame_poses()?;
     let world_index = sdf
@@ -539,10 +853,40 @@ fn load_world_configured(
         .position(|world| world.name == world_name)
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     let world = &sdf.worlds[world_index];
+    if named_imu_streams {
+        local_replay::validate(world)?;
+    }
+    require(
+        engine == PhysicsEngine::GpuBatch
+            || !world.plugins.iter().any(|p| {
+                p.name == "gz::sim::systems::GpuBatch" || p.filename == "gz-sim-gpu-batch-system"
+            }),
+        world_name,
+        "GpuBatch plugin requires the gpu-batch engine",
+    )?;
     let magnetic_consumer = magnetometer::preflight(&sdf, world, engine)?;
     let air_speed_consumer = air_speed::preflight(&sdf, world, engine)?;
     logical_camera::preflight(&sdf, world, engine)?;
-    producer_guard::validate(world, magnetic_consumer, air_speed_consumer)?;
+    producer_guard::validate_for_engine(
+        world,
+        magnetic_consumer,
+        air_speed_consumer,
+        engine == PhysicsEngine::MultiFidelity,
+    )?;
+    let contact_policy = contact_promotion_sdf::parse(world, engine)?;
+    let primary_contact_plan = primary_contact::sdf::parse(&sdf, world, engine)?;
+    if named_imu_streams {
+        require(
+            primary_contact_plan
+                .as_ref()
+                .is_none_or(primary_contact::sdf::Plan::incoming_faces_only),
+            world_name,
+            "local-cpu-v1 supports incoming-face and screw-stop contact refinement",
+        )?;
+    }
+    let sole_plan = damped_sole::parse(&sdf, world, engine)?;
+    let joint_postures = joint_posture::parse(&sdf, world, engine)?;
+    let force_schedule = scheduled_link_force::parse(world, engine)?;
     let wrench_plan = apply_link_wrench::parse(world)?;
     if let Some(plan) = &wrench_plan {
         plan.validate(world, engine)?;
@@ -568,24 +912,150 @@ fn load_world_configured(
                 &profile_name,
                 "unrepresentable physics step",
             )?;
-            Duration::from_nanos(nanoseconds as u64)
+            // Preserve a step authored as an exact integral nanosecond. Its
+            // correctly rounded seconds can multiply back to 59.99999999999999
+            // for 60 ns. Keep truncation for representable fractional inputs.
+            let integral = nanoseconds.round();
+            let clock_ns = if profile.max_step_size == integral / 1_000_000_000.0 {
+                integral
+            } else {
+                nanoseconds
+            };
+            Duration::from_nanos(clock_ns as u64)
         }
     };
-    let mut sim = Simulation::new(step)?;
+    #[cfg(feature = "gpu-batch")]
+    let gpu_plan = if engine == PhysicsEngine::GpuBatch {
+        let plan = gpu_scene::LoadedPlan::load(&sdf, world, step, gpu_adapter)?;
+        require(
+            distributed_worker.is_none() || plan.uses_processes(),
+            world_name,
+            "explicit GPU worker requires resident_block workers",
+        )?;
+        Some(plan)
+    } else {
+        None
+    };
+    let mut sim = match clock {
+        Some((info, paused)) => Simulation::from_committed_clock(step, info, paused)?,
+        None => Simulation::new(step)?,
+    };
     sim.world_mut().insert_resource(WorldPhysics {
         profiles: world.physics.clone(),
         step_override,
     });
     let mut backend = match engine {
-        PhysicsEngine::Rapier => Some(RapierBackend::new(world.gravity)?.into()),
-        PhysicsEngine::Tpe => None,
+        PhysicsEngine::Rapier => Some(
+            if runtime.rapier_per_point_friction {
+                RapierBackend::new_per_point_coulomb(world.gravity)?
+            } else {
+                RapierBackend::new(world.gravity)?
+            }
+            .into(),
+        ),
+        #[cfg(not(feature = "distributed-physics"))]
+        PhysicsEngine::Distributed
+        | PhysicsEngine::DistributedPool(_)
+        | PhysicsEngine::DistributedAdaptive(_)
+        | PhysicsEngine::DistributedIslands(_) => {
+            return Err(LoadError::Unsupported {
+                entity: world_name.to_owned(),
+                feature: "distributed physics requires the distributed-physics Cargo feature",
+            });
+        }
+        #[cfg(feature = "distributed-physics")]
+        PhysicsEngine::Distributed
+        | PhysicsEngine::DistributedPool(_)
+        | PhysicsEngine::DistributedAdaptive(_)
+        | PhysicsEngine::DistributedIslands(_) => {
+            let width = match engine {
+                PhysicsEngine::Distributed => 2,
+                PhysicsEngine::DistributedPool(n @ 3..=8)
+                | PhysicsEngine::DistributedAdaptive(n @ 2..=8)
+                | PhysicsEngine::DistributedIslands(n @ 2..=8) => n,
+                PhysicsEngine::DistributedAdaptive(_) | PhysicsEngine::DistributedIslands(_) => {
+                    return Err(LoadError::Unsupported {
+                        entity: world_name.into(),
+                        feature: "adaptive distributed worker count must be 2 through 8",
+                    });
+                }
+                _ => {
+                    return Err(LoadError::Unsupported {
+                        entity: world_name.into(),
+                        feature: "worker pool width must be 3 through 8",
+                    });
+                }
+            };
+            let backend = distributed::new_backend(&sdf, world, step, distributed_worker)?
+                .with_worker_count(width)?;
+            use gz_physics_distributed::physics::{NativeFrictionModel, NativeSolverProfile};
+            let capacity = if runtime.distributed_native_64 {
+                NativeSolverProfile::Extended64
+            } else {
+                NativeSolverProfile::Standard32
+            };
+            let profile = if runtime.rapier_per_point_friction {
+                capacity.with_friction(NativeFrictionModel::PerPoint)
+            } else {
+                capacity
+            };
+            let backend = backend.with_native_solver_profile(profile)?;
+            let backend = if runtime.distributed_canonical_reference {
+                backend.with_canonical_reference()?
+            } else if runtime.distributed_contact_placement {
+                backend.with_contact_placement()?
+            } else {
+                backend
+            };
+            let backend = match engine {
+                PhysicsEngine::DistributedAdaptive(_) => backend.with_adaptive_contacts()?,
+                PhysicsEngine::DistributedIslands(_) => backend.with_island_refinement()?,
+                _ => backend,
+            };
+            let mut backend = backend;
+            backend.set_packed_handoffs(runtime.distributed_packed_handoffs);
+            backend.set_local_helper_limit(runtime.distributed_local_helper_limit);
+            backend.set_periodic_placement(runtime.distributed_periodic_placement)?;
+            Some(backend.into())
+        }
+        PhysicsEngine::Tpe | PhysicsEngine::GpuBatch => None,
+        PhysicsEngine::MultiFidelity => Some(
+            if runtime.rapier_per_point_friction {
+                MultiFidelityBackend::new_per_point_coulomb(world.gravity)?
+            } else {
+                MultiFidelityBackend::new(world.gravity)?
+            }
+            .into(),
+        ),
     };
+    if runtime.rapier_axial_cap_impact
+        && let Some(native) = backend.as_mut()
+    {
+        let native: &mut PhysicsBackend = native;
+        if let Some(r) = native.downcast_mut::<RapierBackend>() {
+            r.set_axial_cap_impact(true);
+        }
+        if let Some(r) = native.downcast_mut::<MultiFidelityBackend>() {
+            r.set_axial_cap_impact(true);
+        }
+    }
+    #[cfg(feature = "gpu-batch")]
+    let gpu_tool_scene = matches!(
+        gpu_plan,
+        Some(gpu_scene::LoadedPlan::Tool(_) | gpu_scene::LoadedPlan::Gripper(_))
+    );
+    #[cfg(not(feature = "gpu-batch"))]
+    let gpu_tool_scene = false;
     let mut context = SceneContext {
+        gpu_tool_scene,
+        sole_observers: sole_plan.is_some(),
         world: world_name,
+        engine,
         spherical_coordinates: world.spherical_coordinates.clone(),
         links: BTreeMap::new(),
         visuals: Vec::new(),
         cameras: Vec::new(),
+        named_imu_streams,
         noise_seed,
         field_world: world.magnetic_field,
         wind_world: world.wind_linear_velocity,
@@ -608,9 +1078,45 @@ fn load_world_configured(
         is_static: false,
         topic: format!("/world/{world_name}"),
     };
+    let dense_local_fleet = engine == PhysicsEngine::MultiFidelity
+        && distributed_worker.is_none()
+        && world.models.len() >= PARALLEL_POSE_ROWS;
     for model in &world.models {
         build_model(&sdf, model, &mut context, &parent, &mut sim, &mut backend)?;
     }
+    if articulation::moving_contact_profile(world)
+        && let Some(native) = backend
+            .as_mut()
+            .and_then(|b| b.downcast_mut::<MultiFidelityBackend>())
+    {
+        if world.models.len() == 2 {
+            for body in sim
+                .world()
+                .iter_entities()
+                .filter_map(|e| e.get::<BodyHandle>())
+            {
+                native.configure_moving_body(body.id())?;
+            }
+        } else {
+            #[cfg(feature = "distributed-physics")]
+            match native.configure_pair_revolute() {
+                Ok(()) | Err(PhysicsError::Unsupported { .. }) => (),
+                Err(error) => return Err(error.into()),
+            }
+        }
+    }
+    #[cfg(feature = "distributed-physics")]
+    grasp_fleet_sdf::install_observer(&sim, backend.as_mut(), world)?;
+    continuous_collision::install(&sim, world, &context.links, backend.as_mut())?;
+    mounted_guide::install(
+        &sim,
+        world,
+        backend
+            .as_mut()
+            .filter(|_| distributed_worker.is_none() && engine == PhysicsEngine::MultiFidelity),
+    )?;
+    free_rotation::install(&sim, world, &context.links, backend.as_mut())?;
+    deformable::install(&mut sim, world, &context.links, backend.as_ref())?;
     let parent = Some(world_entity);
     for light in &world.lights {
         let pose = sdf.resolve_pose(&light.pose, world_name, world_name, world_name)?;
@@ -633,6 +1139,31 @@ fn load_world_configured(
         ));
     }
     sim.world_mut().insert_resource(Gravity(world.gravity));
+    #[cfg(feature = "gpu-batch")]
+    if let Some(plan) = gpu_plan {
+        gpu_scene::install_loaded(&mut sim, plan, &context.links, distributed_worker)?;
+        if gpu_tool_scene {
+            for model in &world.models {
+                if let Some(plan) = joint_state_publisher::parse(model)? {
+                    let member = context.links[&model.links[0].scoped_name];
+                    let entity =
+                        gz_sim_core::entity_by_id(sim.world(), member).expect("loaded GPU link");
+                    let model_entity = sim
+                        .world()
+                        .get::<ChildOf>(entity)
+                        .expect("loaded GPU model")
+                        .parent();
+                    let engine = if gpu_scene::parallel_gripper::registered(sim.world()) {
+                        "gpu-gripper"
+                    } else {
+                        "gpu-planar"
+                    };
+                    plan.validate(model, &sim, Some(engine), (true, model.is_static))?;
+                    joint_state_publisher::build(&sdf, &mut sim, model, model_entity, None, &plan)?;
+                }
+            }
+        }
+    }
     let mut visuals = context.visuals.into_iter();
     retain_visual_geometry(
         &mut sdf.worlds[world_index].models,
@@ -650,25 +1181,110 @@ fn load_world_configured(
     inputs::install(&mut sim);
     match backend {
         Some(backend) => {
-            gz_physics::install(&mut sim, backend)?;
+            #[cfg(feature = "distributed-physics")]
+            let mut backend = backend;
+            #[cfg(feature = "distributed-physics")]
+            if clock.is_none()
+                && let Some(engine) = backend.downcast_mut::<gz_physics_distributed::SceneBackend>()
+            {
+                // A recovery load first verifies the public SDF hierarchy against its manifest.
+                // Its trusted native images then start each authoritative process directly.
+                engine.initialize()?;
+            }
+            if let Some(plan) = sole_plan {
+                if distributed_worker.is_some()
+                    || deformable::installed(sim.world())
+                    || primary_contact_plan.is_some()
+                {
+                    return Err(damped_sole::invalid(
+                        world_name,
+                        "requires exclusive local PhysicsStep ownership",
+                    ));
+                }
+                damped_sole::install(&mut sim, backend, &context.links, plan)?;
+            } else if let Some(plan) = primary_contact_plan {
+                if distributed_worker.is_some() || deformable::installed(sim.world()) {
+                    return Err(primary_contact::invalid(
+                        world_name,
+                        "requires the local rigid PhysicsStep owner; remove managed workers or deformable coupling",
+                    ));
+                }
+                primary_contact::install(&mut sim, backend, plan)?;
+            } else if deformable::exchange::enabled(sim.world()) {
+                if distributed_worker.is_some() {
+                    return Err(LoadError::Deformable {
+                        world: world_name.into(),
+                        reason: "rigid_exchanges requires local material ownership".into(),
+                    });
+                }
+                gz_physics::install_with_step(&mut sim, backend, deformable::exchange::step)?;
+            } else if deformable::automatic_impact(sim.world()) {
+                #[cfg(feature = "distributed-physics")]
+                if let Some(exe) =
+                    distributed_worker.filter(|_| engine == PhysicsEngine::MultiFidelity)
+                {
+                    let owner = match managed_material {
+                        Some(pool) => pool,
+                        None => {
+                            deformable::managed_impact::transient(xml, source, world_name, exe)?
+                        }
+                    };
+                    deformable::managed_impact::install(&mut sim, backend, owner, world_name)?;
+                } else {
+                    gz_physics::install_with_step(
+                        &mut sim,
+                        backend,
+                        deformable::articulated_impact::automatic::advance,
+                    )?;
+                }
+                #[cfg(not(feature = "distributed-physics"))]
+                if distributed_worker.is_some() && engine == PhysicsEngine::MultiFidelity {
+                    return Err(LoadError::Deformable {
+                        world: world_name.into(),
+                        reason: "managed automatic impact requires distributed-physics".into(),
+                    });
+                } else {
+                    gz_physics::install_with_step(
+                        &mut sim,
+                        backend,
+                        deformable::articulated_impact::automatic::advance,
+                    )?;
+                }
+            } else {
+                #[cfg(feature = "distributed-physics")]
+                if let Some(exe) =
+                    distributed_worker.filter(|_| engine == PhysicsEngine::MultiFidelity)
+                {
+                    trajectory_workers::install(&mut sim, backend, exe, world_name)?;
+                } else {
+                    gz_physics::install(&mut sim, backend)?;
+                }
+                #[cfg(not(feature = "distributed-physics"))]
+                gz_physics::install(&mut sim, backend)?;
+            }
             sim.add_systems(Phase::PhysicsCommit, sync_bodies.before(sync_models));
             sim.add_systems(
                 Phase::Reset,
                 sync_bodies.after(PhysicsReset).before(sync_models),
             );
         }
-        None => tpe::install(&mut sim)?,
+        None if engine == PhysicsEngine::Tpe => tpe::install(&mut sim)?,
+        None => {}
     }
-    sim.add_systems(
-        Phase::PhysicsCommit,
-        (sync_models, sync_local_poses, sync_attached_poses).chain(),
-    );
-    sim.add_systems(
-        Phase::Reset,
-        (sync_models, sync_local_poses, sync_attached_poses)
-            .chain()
-            .after(PhysicsReset),
-    );
+    if dense_local_fleet {
+        flat_publication::install(&mut sim);
+    } else {
+        sim.add_systems(
+            Phase::PhysicsCommit,
+            (sync_models, sync_local_poses, sync_attached_poses).chain(),
+        );
+        sim.add_systems(
+            Phase::Reset,
+            (sync_models, sync_local_poses, sync_attached_poses)
+                .chain()
+                .after(PhysicsReset),
+        );
+    }
     imu_lifecycle::install(&mut sim);
     lidar::install(&mut sim);
     altimeter::install(&mut sim);
@@ -687,7 +1303,19 @@ fn load_world_configured(
         apply_link_wrench::build(plan, &mut sim, world_entity)?;
     }
     initial::capture(&mut sim);
+    contact_promotion_sdf::install(&mut sim, contact_policy)?;
+    #[cfg(feature = "distributed-physics")]
+    distributed_hinge::remember_robot_program(&mut sim, xml, &sdf.worlds[world_index]);
+    joint_posture::install(&mut sim, joint_postures, &sdf, &sdf.worlds[world_index])?;
+    scheduled_link_force::install(&mut sim, force_schedule)?;
     apply_link_wrench::install(&mut sim);
+    #[cfg(feature = "distributed-physics")]
+    if sim
+        .world()
+        .contains_resource::<trajectory_workers::TrajectoryProcessPool>()
+    {
+        trajectory_workers::checkpoint::bind(&mut sim, xml, world_name, step_override, noise_seed);
+    }
     Ok(sim)
 }
 
@@ -740,6 +1368,71 @@ fn retain_visual_geometry(
     }
 }
 
+/// An explicitly authored isotropic ODE friction law. Other friction models
+/// and collision filtering need separate native mappings.
+fn local_isotropic_friction(surface: &sdformat::Surface) -> Option<IsotropicFriction> {
+    let law = &surface.friction;
+    let ode = &law.ode;
+    (ode.source.is_some()
+        && ode.mu == ode.mu2
+        && ode.fdir1 == [0.; 3]
+        && ode.slip1 == 0.
+        && ode.slip2 == 0.
+        && law.bullet.is_none()
+        && law.torsional.is_none()
+        && surface.contact.source.is_none())
+    .then(|| IsotropicFriction::new(ode.mu).ok())
+    .flatten()
+}
+
+/// The SDF surface is immutable construction data, including when a server
+/// clones a previously loaded model after simulation has started.
+fn spawn_surface_link(
+    backend: &mut PhysicsBackend,
+    spec: BodySpec,
+    rotation: RotationSpec,
+    inertia: Inertia,
+    prescribed: bool,
+    friction: Option<f64>,
+) -> Result<BodyId, PhysicsError> {
+    #[cfg(feature = "distributed-physics")]
+    if let Some(distributed) = backend.downcast_mut::<gz_physics_distributed::SceneBackend>() {
+        use gz_physics_distributed::physics::Tier;
+        return distributed.spawn_primitive_link(
+            spec,
+            rotation,
+            Some(inertia),
+            if prescribed {
+                Tier::Prescribed
+            } else {
+                Tier::Dynamic
+            },
+            friction.unwrap_or(sdformat::OdeFriction::default().mu),
+        );
+    }
+    if let Some(mu) = friction
+        && let Some(native) = backend.downcast_mut::<MultiFidelityBackend>()
+    {
+        let motion = if prescribed {
+            MaterialLinkMotion::Prescribed
+        } else {
+            MaterialLinkMotion::Ordinary
+        };
+        return native.spawn_material_link(
+            spec,
+            rotation,
+            Some(inertia),
+            motion,
+            IsotropicFriction::new(mu)?,
+        );
+    }
+    if prescribed {
+        backend.spawn_kinematic_link(spec, rotation, Some(inertia))
+    } else {
+        backend.spawn_link(spec, rotation, Some(inertia))
+    }
+}
+
 fn build_model(
     sdf: &Sdf,
     model: &Model,
@@ -748,15 +1441,40 @@ fn build_model(
     sim: &mut Simulation,
     backend: &mut Option<PhysicsBackend>,
 ) -> Result<(), LoadError> {
-    if backend.is_none() {
+    if context.engine == PhysicsEngine::Tpe {
         require(
             model.models.is_empty(),
             &model.scoped_name,
             "TPE nested models",
         )?;
     }
+    let materials = contact_material::parse(model, context.engine)?;
+    let mut pad_stiffness = Vec::new();
     let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
-    let controller_plan = joint_controller::parse(model)?;
+    let prescribed = prescribed_motion::parse(model, context.engine, top_level)?;
+    // The DampedSole loader has admitted at most one moving tree. All other
+    // registered panels and static observers are jointless.
+    let coated_tree = context.sole_observers && !model.joints.is_empty();
+    let initial_velocity =
+        prescribed_motion::initial_velocity(model, context.engine, top_level, coated_tree)?;
+    let motion = initial_velocity
+        .or_else(|| prescribed.as_ref().map(|p| p.twist))
+        .unwrap_or_default();
+    let assembly_center = if initial_velocity.is_some() && !model.joints.is_empty() {
+        Some(prescribed_motion::assembly_center(
+            sdf,
+            model,
+            context.world,
+        )?)
+    } else {
+        None
+    };
+    let gpu_arm = context.gpu_tool_scene && !model.joints.is_empty();
+    let controller_plan = if gpu_arm {
+        None
+    } else {
+        joint_controller::parse(model)?
+    };
     if let Some(plan) = &controller_plan {
         plan.validate(
             model,
@@ -783,7 +1501,11 @@ fn build_model(
             (top_level, parent.is_static || model.is_static),
         )?;
     }
-    let joint_state_plan = joint_state_publisher::parse(model)?;
+    let joint_state_plan = if gpu_arm {
+        None
+    } else {
+        joint_state_publisher::parse(model)?
+    };
     if let Some(plan) = &joint_state_plan {
         plan.validate(
             model,
@@ -824,16 +1546,33 @@ fn build_model(
         &model.scoped_name,
         "conflicting joint actuator ownership",
     )?;
-    joints::validate_model(
-        sdf,
-        model,
-        context.world,
-        top_level,
-        backend.as_ref().map(|backend| backend.engine()),
-        parent.is_static || model.is_static,
-        &actuated,
-    )?;
+    // GPU tool admission validates the complete joint graph and both axes before scene construction.
+    let reduced_plan = if gpu_arm {
+        None
+    } else {
+        joints::validate_model(
+            sdf,
+            model,
+            context.world,
+            top_level,
+            backend.as_ref().map(|backend| backend.engine()),
+            parent.is_static || model.is_static,
+            &actuated,
+            coated_tree,
+        )?
+    };
     let force_configurations = joint_forces::parse(model)?;
+    if reduced_plan.as_ref().is_some_and(|p| p.scalar_robot) {
+        require(
+            force_configurations.iter().all(|config| {
+                model.joints.iter().any(|j| {
+                    j.name == config.joint_name() && j.kind == sdformat::JointKind::Prismatic
+                })
+            }),
+            &model.scoped_name,
+            "ReducedScalarJoints ApplyJointForce requires a prismatic slider",
+        )?;
+    }
     require(
         force_configurations
             .iter()
@@ -862,7 +1601,7 @@ fn build_model(
         local,
         pose,
     )?;
-    if backend.is_none() {
+    if context.engine == PhysicsEngine::Tpe {
         tpe::add_model(sim, model_entity, pose, is_static)?;
     }
     let parent = ParentModel {
@@ -870,6 +1609,7 @@ fn build_model(
         is_static,
         topic: model_topic.clone(),
     };
+    let observer = context.sole_observers && top_level && damped_sole::observer_model(model);
     for link in &model.links {
         let name = &link.scoped_name;
         require(link.plugins.is_empty(), name, "link plugins")?;
@@ -879,7 +1619,11 @@ fn build_model(
             name,
             "disabled link gravity",
         )?;
-        require(!link.properties.kinematic, name, "kinematic links")?;
+        require(
+            !link.properties.kinematic || prescribed.is_some(),
+            name,
+            "kinematic links",
+        )?;
         require(!link.properties.self_collide, name, "link self collision")?;
         require(
             link.visuals.iter().all(|visual| visual.plugins.is_empty()),
@@ -887,7 +1631,10 @@ fn build_model(
             "visual plugins",
         )?;
         require(
-            link.collisions.len() == 1,
+            observer
+                || (gpu_arm && link.collisions.is_empty())
+                || link.collisions.len() == 1
+                || (context.engine == PhysicsEngine::MultiFidelity && !link.collisions.is_empty()),
             name,
             "collision count (expected one)",
         )?;
@@ -899,9 +1646,23 @@ fn build_model(
         let mut solids = Vec::with_capacity(link.collisions.len());
         let mut plane = None;
         let mut mesh_collision = None;
+        let mut local_friction = None;
         for collision in &link.collisions {
+            if context.engine == PhysicsEngine::MultiFidelity || context.gpu_tool_scene {
+                let material = local_isotropic_friction(&collision.surface);
+                if !solids.is_empty() {
+                    require(
+                        local_friction == material,
+                        name,
+                        "mixed materials on one compound collider",
+                    )?;
+                }
+                local_friction = material;
+            }
             require(
-                collision.surface.source.is_none(),
+                context.engine.is_distributed()
+                    || collision.surface.source.is_none()
+                    || local_friction.is_some(),
                 name,
                 "collision surface parameters",
             )?;
@@ -915,6 +1676,17 @@ fn build_model(
             let local = sdf.resolve_pose(&collision.pose, &model.scoped_name, name, name)?;
             require(
                 identity(local)
+                    || (gpu_arm && matches!(collision.geometry, Geometry::Sphere { .. }))
+                    || (context.engine == PhysicsEngine::MultiFidelity
+                        && matches!(
+                            collision.geometry,
+                            Geometry::Sphere { .. }
+                                | Geometry::Box { .. }
+                                | Geometry::Cylinder { .. }
+                                | Geometry::Capsule { .. }
+                        ))
+                    || (context.engine.is_distributed()
+                        && matches!(&collision.geometry, Geometry::Plane { .. }))
                     || (matches!(&collision.geometry, Geometry::Mesh(_))
                         && backend.as_ref().is_some_and(|b| b.engine() == "rapier")),
                 name,
@@ -943,6 +1715,11 @@ fn build_model(
                     half_extents: size.map(|v| v * 0.5),
                 },
                 Geometry::Plane { normal, size } => {
+                    require(
+                        link.collisions.len() == 1,
+                        name,
+                        "plane in compound collision",
+                    )?;
                     plane = Some((normal, size));
                     continue;
                 }
@@ -960,18 +1737,68 @@ fn build_model(
             });
         }
         let pose = sdf.pose_of(name, context.world)?;
-        let inertial_pose =
-            sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?;
+        let inertial_pose = if context.engine.is_distributed() {
+            // Distributed admission already resolved and checked the inertial
+            // frame. Canonicalize link-frame roundoff for the strict native API.
+            Transform::default()
+        } else {
+            sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?
+        };
+        // A GPU tool plan validates its free payload inertia before this shared link builder.
+        let free_mass_offset = (context.engine == PhysicsEngine::MultiFidelity
+            || context.gpu_tool_scene)
+            && top_level
+            && !is_static
+            && model.links.len() == 1
+            && model.joints.is_empty()
+            && model.models.is_empty()
+            && prescribed.is_none()
+            && plane.is_none()
+            && mesh_collision.is_none();
         require(
-            centered(inertial_pose.translation),
+            centered(inertial_pose.translation)
+                || gpu_arm
+                || ((reduced_plan.is_some() || free_mass_offset)
+                    && inertial_pose.translation.into_iter().all(f64::is_finite)),
             name,
             "offset center of mass",
         )?;
+        let mut velocity = motion;
+        if let Some(center) = assembly_center {
+            let link_com = DVec3::from(pose.translation)
+                + DQuat::from_array(pose.rotation) * DVec3::from(inertial_pose.translation);
+            let linear = DVec3::from(motion.linear_at_com)
+                + DVec3::from(motion.angular).cross(link_com - center);
+            require(
+                linear.is_finite(),
+                name,
+                "unrepresentable initial assembly twist",
+            )?;
+            velocity.linear_at_com = linear.to_array();
+        }
+        // The directive supplies world COM velocity; ECS observations use the link origin.
+        let origin_velocity = if (prescribed.is_some() || initial_velocity.is_some())
+            && inertial_pose.translation != [0.0; 3]
+        {
+            let linear = DVec3::from_array(velocity.linear_at_com)
+                - LinkCenterOfMass(inertial_pose.translation)
+                    .velocity_shift(pose.rotation, velocity.angular);
+            require(
+                linear.is_finite(),
+                name,
+                "unrepresentable prescribed link velocity",
+            )?;
+            linear
+        } else {
+            DVec3::from_array(velocity.linear_at_com)
+        };
         let (id, tpe_link) = match plane {
+            _ if observer => (None, None),
+            _ if context.engine == PhysicsEngine::GpuBatch => (None, None),
             Some((normal, size)) => {
                 require(is_static, name, "dynamic plane collision geometry")?;
                 require(
-                    normal == [0.0, 0.0, 1.0],
+                    context.engine.is_distributed() || normal == [0.0, 0.0, 1.0],
                     name,
                     "plane normal (expected local +Z)",
                 )?;
@@ -986,11 +1813,41 @@ fn build_model(
                     entity: name.clone(),
                     feature: "TPE plane collision",
                 })?;
-                let id = backend.spawn_static_plane(PlaneSpec {
+                let plane = PlaneSpec {
                     position: pose.translation,
                     orientation: pose.rotation,
                     size,
-                })?;
+                };
+                #[cfg(feature = "distributed-physics")]
+                let distributed = if let Some(d) =
+                    backend.downcast_mut::<gz_physics_distributed::SceneBackend>()
+                {
+                    let collision = &link.collisions[0];
+                    let frame =
+                        sdf.resolve_pose(&collision.pose, &model.scoped_name, name, context.world)?;
+                    let n = DVec3::from_array(normal)
+                        .try_normalize()
+                        .ok_or(PhysicsError::InvalidValue)?;
+                    let n = (DQuat::from_array(frame.rotation) * n).normalize();
+                    let ground = gz_physics_distributed::physics::GroundPlane::oriented(
+                        frame.translation,
+                        n.to_array(),
+                        collision.surface.friction.ode.mu,
+                    )?;
+                    Some(d.spawn_ground_geometry(plane, ground))
+                } else {
+                    None
+                };
+                #[cfg(not(feature = "distributed-physics"))]
+                let distributed: Option<Result<BodyId, PhysicsError>> = None;
+                let id = match distributed {
+                    Some(id) => id?,
+                    None if let Some(mu) = local_friction => backend
+                        .downcast_mut::<MultiFidelityBackend>()
+                        .expect("local material backend")
+                        .spawn_material_plane(plane, mu)?,
+                    None => backend.spawn_static_plane(plane)?,
+                };
                 (Some(id), None)
             }
             None if mesh_collision.is_some() => {
@@ -1032,20 +1889,105 @@ fn build_model(
                 let spec = BodySpec {
                     shape: solids[0].shape,
                     position: pose.translation,
-                    velocity: [0.0; 3],
+                    velocity: velocity.linear_at_com,
                     mass: (!is_static).then_some(link.inertial.mass),
                 };
                 if let Some(backend) = backend {
                     let rotation = RotationSpec {
                         orientation: pose.rotation,
-                        ..Default::default()
+                        angular_velocity: velocity.angular,
                     };
                     let inertia = Inertia {
                         center: inertial_pose.translation,
                         orientation: inertial_pose.rotation,
                         tensor: link.inertial.inertia,
                     };
-                    let id = backend.spawn_link(spec, rotation, Some(inertia))?;
+                    if prescribed.is_some() {
+                        backend.validate_kinematic_velocity(
+                            spec.velocity,
+                            rotation.angular_velocity,
+                            sim.step_duration(),
+                        )?;
+                    }
+                    let compound = solids.len() > 1
+                        || solids.first().is_some_and(|part| {
+                            !identity(Transform {
+                                translation: part.position,
+                                rotation: part.orientation,
+                            })
+                        });
+                    let id = if compound {
+                        let native =
+                            backend
+                                .downcast_mut::<MultiFidelityBackend>()
+                                .ok_or_else(|| LoadError::Unsupported {
+                                    entity: name.clone(),
+                                    feature: "compound collision on this backend",
+                                })?;
+                        let motion = if prescribed.is_some() {
+                            MaterialLinkMotion::Prescribed
+                        } else if reduced_plan.is_some() {
+                            MaterialLinkMotion::Articulation
+                        } else {
+                            MaterialLinkMotion::Ordinary
+                        };
+                        native.spawn_compound_link(
+                            &solids,
+                            spec,
+                            rotation,
+                            inertia,
+                            motion,
+                            local_friction,
+                        )?
+                    } else if reduced_plan.is_some() && prescribed.is_none() {
+                        let native = backend
+                            .downcast_mut::<MultiFidelityBackend>()
+                            .expect("selected reduced model uses the multi-fidelity engine");
+                        if let Some(mu) = local_friction {
+                            native.spawn_material_link(
+                                spec,
+                                rotation,
+                                Some(inertia),
+                                MaterialLinkMotion::Articulation,
+                                mu,
+                            )?
+                        } else {
+                            native.spawn_articulation_link(spec, rotation, Some(inertia))?
+                        }
+                    } else {
+                        spawn_surface_link(
+                            backend,
+                            spec,
+                            rotation,
+                            inertia,
+                            prescribed.is_some(),
+                            link.collisions[0]
+                                .surface
+                                .source
+                                .as_ref()
+                                .map(|_| link.collisions[0].surface.friction.ode.mu),
+                        )?
+                    };
+                    if let Some(path) = prescribed.as_ref().and_then(|p| p.path.as_ref()) {
+                        backend
+                            .downcast_mut::<MultiFidelityBackend>()
+                            .expect("validated trajectory backend")
+                            .set_initial_translation_path(id, path.clone())
+                            .map_err(|e| LoadError::TranslationPath {
+                                entity: name.clone(),
+                                reason: e.to_string(),
+                            })?;
+                    }
+                    if !model.allow_auto_disable
+                        && model.joints.is_empty()
+                        && backend.is_dynamic(id) == Some(true)
+                    {
+                        if let Some(native) = backend.downcast_mut::<MultiFidelityBackend>() {
+                            native.keep_body_awake(id)?;
+                        } else if let Some(native) = backend.downcast_mut::<RapierBackend>() {
+                            native.keep_body_awake(id)?;
+                        }
+                    }
                     if !model.joints.is_empty() || (top_level && model.links.len() > 1) {
                         let group = sim
                             .world()
@@ -1060,15 +2002,31 @@ fn build_model(
                 }
             }
         };
+        if let Some(material) = materials.get(&link.name) {
+            let body = id.ok_or_else(|| LoadError::Unsupported {
+                entity: name.clone(),
+                feature: "contact material requires a physical link",
+            })?;
+            if let Some(value) = material.restitution {
+                backend
+                    .as_mut()
+                    .and_then(|b| b.downcast_mut::<MultiFidelityBackend>())
+                    .expect("validated ContactMaterial engine")
+                    .set_initial_restitution(body, value)?;
+            }
+            if let Some(stiffness) = material.normal_stiffness {
+                pad_stiffness.push((body, stiffness));
+            }
+        }
         let local = sdf.pose_of(name, &model.scoped_name)?;
         let link_entity = spawn_node(sim, Some(model_entity), name, EntityKind::Link, local, pose)?;
         sim.world_mut()
             .entity_mut(link_entity)
             .insert(LinkProperties(link.properties));
-        sim.world_mut().entity_mut(link_entity).insert((Velocity {
-            linear: [0.0; 3],
-            angular: [0.0; 3],
-        },));
+        sim.world_mut().entity_mut(link_entity).insert(Velocity {
+            linear: origin_velocity.to_array(),
+            angular: velocity.angular,
+        });
         if let Some(id) = id {
             sim.world_mut()
                 .entity_mut(link_entity)
@@ -1312,13 +2270,16 @@ fn build_model(
                 .get::<EntityId>(sensor_entity)
                 .expect("spawned scene nodes own public identities")
                 .get();
-            let noise =
-                noise::ImuNoise::new(config, context.noise_seed, identity).map_err(|_| {
-                    LoadError::Unsupported {
-                        entity: name.clone(),
-                        feature: "unrepresentable IMU noise",
-                    }
-                })?;
+            let noise = noise::ImuNoise::new(
+                config,
+                context.noise_seed,
+                identity,
+                context.named_imu_streams.then_some(name.as_str()),
+            )
+            .map_err(|_| LoadError::Unsupported {
+                entity: name.clone(),
+                feature: "unrepresentable IMU noise",
+            })?;
             sim.world_mut().entity_mut(sensor_entity).insert((
                 AttachedPose,
                 ImuPublication {
@@ -1341,7 +2302,8 @@ fn build_model(
                         reference_frame,
                         DQuat::from_array(pose.rotation) * DQuat::from_array(local.rotation),
                     ),
-                    previous_velocity: DVec3::ZERO,
+                    initial_velocity: origin_velocity,
+                    previous_velocity: origin_velocity,
                     schedule,
                     sdf_rate_hz: sensor.update_rate,
                     rate_hz: sensor.update_rate,
@@ -1352,6 +2314,11 @@ fn build_model(
         }
     }
     if let Some(backend) = backend {
+        let construction = match &reduced_plan {
+            Some(plan) => joints::JointConstruction::Reduced(plan),
+            None if controller_plan.is_some() => joints::JointConstruction::Controller,
+            None => joints::JointConstruction::Impulse,
+        };
         joints::build(
             sdf,
             model,
@@ -1359,8 +2326,38 @@ fn build_model(
             model_entity,
             sim,
             backend,
-            controller_plan.is_some(),
+            construction,
         )?;
+        for (pad, stiffness) in pad_stiffness {
+            // A pad is bound to its own reduced slider after the graph exists.
+            backend
+                .downcast_mut::<MultiFidelityBackend>()
+                .expect("validated ContactMaterial engine")
+                .set_initial_pad_stiffness(pad, stiffness)?;
+        }
+        if let Some(root_index) = reduced_plan.as_ref().and_then(|plan| plan.switchable_root) {
+            let root = context.links[&model.links[root_index].scoped_name];
+            let plan = reduced_plan.as_ref().expect("constructed switchable root");
+            if plan.exact_revolute_locks || plan.additional_pgs_iterations.is_some() {
+                let entity = gz_sim_core::entity_by_id(sim.world(), root)
+                    .expect("constructed switchable root");
+                let body = sim
+                    .world()
+                    .get::<BodyHandle>(entity)
+                    .expect("constructed root body")
+                    .id();
+                let local = backend
+                    .downcast_mut::<MultiFidelityBackend>()
+                    .expect("validated switchable articulation engine");
+                if let Some(iterations) = plan.additional_pgs_iterations {
+                    local.set_robot_root_iterations(body, iterations)?;
+                }
+                if plan.exact_revolute_locks {
+                    local.enable_exact_revolute_locks(body)?;
+                }
+            }
+            articulation::bind(sim, model_entity, root);
+        }
         if let Some(plan) = &ground_truth_plan {
             odometry_publisher::build(
                 sdf,
@@ -1376,7 +2373,7 @@ fn build_model(
             pose_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
         }
         if let Some(plan) = &joint_state_plan {
-            joint_state_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
+            joint_state_publisher::build(sdf, sim, model, model_entity, Some(backend), plan)?;
         }
         joint_forces::install(sim, model, model_entity, backend, &force_configurations)?;
         if let Some(plan) = &drive_plan {
@@ -1389,10 +2386,10 @@ fn build_model(
     for child in &model.models {
         build_model(sdf, child, context, &parent, sim, backend)?;
     }
-    if backend.is_none() {
+    if context.engine == PhysicsEngine::Tpe {
         tpe::add_bounds(sim, model_entity, is_static)?;
     }
-    if !is_static && backend.is_some() {
+    if !is_static && context.engine != PhysicsEngine::Tpe {
         let (canonical, _) = model.canonical_link_and_relative_name();
         let canonical = canonical.ok_or_else(|| LoadError::Unsupported {
             entity: model.scoped_name.clone(),
@@ -1445,19 +2442,76 @@ fn spawn_node(
     Ok(entity)
 }
 
+// These queries have only archetypal filters. Counting their matching tables
+// avoids starting a task pool or dispatching small scenes on worker threads.
+const PARALLEL_POSE_ROWS: usize = 8192;
+
+fn parallel_pose_updates(rows: usize) -> bool {
+    rows >= PARALLEL_POSE_ROWS
+        && bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::new).thread_num() > 1
+}
+
+fn pose_batch_rows(rows: usize) -> usize {
+    rows.div_ceil(bevy_tasks::ComputeTaskPool::get().thread_num())
+        .max(2048)
+}
+
 fn sync_models(
     identities: EntityLookup,
-    links: Query<&WorldPose, Without<ModelAnchor>>,
+    links: Query<(&EntityId, &WorldPose), Without<ModelAnchor>>,
     mut models: Query<(&ModelAnchor, &mut WorldPose)>,
 ) {
+    if parallel_pose_updates(models.count())
+        && let (Ok(link_tables), Ok(model_chunks)) =
+            (links.contiguous_iter(), models.contiguous_iter_mut())
+    {
+        let tables: Vec<_> = link_tables.collect();
+        // Fetch whole Bevy tables before splitting their disjoint rows. This keeps
+        // each pose slice paired with the entity rows that produced it.
+        let tables = &tables;
+        let identities = &identities;
+        let links = &links;
+        bevy_tasks::ComputeTaskPool::get().scope(|scope| {
+            for (anchors, poses) in model_chunks {
+                let batch_rows = pose_batch_rows(anchors.len());
+                let (poses, _) = bevy_ecs::change_detection::ContiguousMut::split(poses);
+                for (anchors, poses) in anchors.chunks(batch_rows).zip(poses.chunks_mut(batch_rows))
+                {
+                    scope.spawn(async move {
+                        let mut resolve = identities.reader();
+                        for (anchors, poses) in anchors.chunks(64).zip(poses.chunks_mut(64)) {
+                            // Both tables often retain construction order. Seek once per
+                            // small block; swap-removes and restored IDs can break a run.
+                            let source = tables.iter().find_map(|(ids, values)| {
+                                let start = ids.partition_point(|id| id.get() < anchors[0].link);
+                                (ids.get(start)?.get() == anchors[0].link)
+                                    .then(|| (&ids[start..], &values[start..]))
+                            });
+                            for (i, (anchor, pose)) in
+                                anchors.iter().zip(poses.iter_mut()).enumerate()
+                            {
+                                let adjacent = source.and_then(|(ids, values)| {
+                                    (ids.get(i)?.get() == anchor.link).then(|| &values[i])
+                                });
+                                let link = adjacent.unwrap_or_else(|| {
+                                    let entity = resolve(anchor.link)
+                                        .expect("scene owns canonical link identity");
+                                    links.get(entity).expect("scene owns canonical link pose").1
+                                });
+                                *pose = link.compose(anchor.link_to_model);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        return;
+    }
+    let mut resolve = identities.reader();
     for (anchor, mut pose) in &mut models {
-        let entity = identities
-            .get(anchor.link)
-            .expect("scene owns canonical link identity");
-        *pose = links
-            .get(entity)
-            .expect("scene owns canonical link pose")
-            .compose(anchor.link_to_model);
+        let entity = resolve(anchor.link).expect("scene owns canonical link identity");
+        let (_, link) = links.get(entity).expect("scene owns canonical link pose");
+        *pose = link.compose(anchor.link_to_model);
     }
 }
 
@@ -1467,28 +2521,120 @@ type PoseUpdateFilter = (
     Without<tpe::TpeLink>,
 );
 
+// Use the parent entities from the same Bevy table as their poses. A restored,
+// moved or out-of-order parent always falls back to the current ECS relation.
+fn publish_parent_tables<'w, S: Sync + 'w, T: Send + 'w>(
+    parents: Vec<(&[Entity], &[WorldPose])>,
+    nodes: impl Iterator<
+        Item = (
+            &'w [ChildOf],
+            &'w [S],
+            bevy_ecs::change_detection::ContiguousMut<'w, T>,
+        ),
+    >,
+    lookup: impl Fn(Entity) -> WorldPose + Sync,
+    compose: impl Fn(WorldPose, &S) -> T + Sync,
+) {
+    let parents = &parents;
+    let lookup = &lookup;
+    let compose = &compose;
+    bevy_tasks::ComputeTaskPool::get().scope(|scope| {
+        for (children, sources, targets) in nodes {
+            let size = pose_batch_rows(children.len());
+            let (targets, _) = bevy_ecs::change_detection::ContiguousMut::split(targets);
+            for ((children, sources), targets) in children
+                .chunks(size)
+                .zip(sources.chunks(size))
+                .zip(targets.chunks_mut(size))
+            {
+                scope.spawn(async move {
+                    publish_parented(children, sources, targets, parents, lookup, compose);
+                });
+            }
+        }
+    });
+}
+
+fn publish_parented<S, T>(
+    children: &[ChildOf],
+    sources: &[S],
+    targets: &mut [T],
+    parents: &[(&[Entity], &[WorldPose])],
+    lookup: impl Fn(Entity) -> WorldPose,
+    compose: impl Fn(WorldPose, &S) -> T,
+) {
+    for ((children, sources), targets) in children
+        .chunks(64)
+        .zip(sources.chunks(64))
+        .zip(targets.chunks_mut(64))
+    {
+        let first = children[0].parent();
+        let run = parents.iter().find_map(|(ids, poses)| {
+            let start = ids.partition_point(|entity| entity.index_u32() < first.index_u32());
+            (ids.get(start) == Some(&first)).then(|| (&ids[start..], &poses[start..]))
+        });
+        for (i, ((child, source), target)) in children.iter().zip(sources).zip(targets).enumerate()
+        {
+            let id = child.parent();
+            let pose = run
+                .and_then(|(ids, poses)| {
+                    if id == first {
+                        Some(poses[0])
+                    } else {
+                        (ids.get(i) == Some(&id)).then(|| poses[i])
+                    }
+                })
+                .unwrap_or_else(|| lookup(id));
+            *target = compose(pose, source);
+        }
+    }
+}
+
+fn local_from_world(parent: WorldPose, world: &WorldPose) -> LocalPose {
+    LocalPose(
+        if parent.rotation == [0., 0., 0., 1.] && world.rotation == [0., 0., 0., 1.] {
+            WorldPose {
+                translation: (DVec3::from_array(world.translation)
+                    - DVec3::from_array(parent.translation))
+                .to_array(),
+                rotation: [0., 0., 0., 1.],
+            }
+        } else {
+            parent.inverse().compose(*world)
+        },
+    )
+}
+
 fn sync_local_poses(
-    parents: Query<&WorldPose>,
+    parents: Query<(Entity, &WorldPose)>,
     mut nodes: Query<(&ChildOf, &WorldPose, &mut LocalPose), PoseUpdateFilter>,
 ) {
-    for (parent, world, mut local) in &mut nodes {
-        local.0 = parents
-            .get(parent.parent())
-            .expect("scene owns hierarchy")
-            .inverse()
-            .compose(*world);
+    let lookup = |id| *parents.get(id).expect("scene owns hierarchy").1;
+    if parallel_pose_updates(nodes.count())
+        && let (Ok(parents), Ok(nodes)) = (parents.contiguous_iter(), nodes.contiguous_iter_mut())
+    {
+        publish_parent_tables(parents.collect(), nodes, lookup, local_from_world);
+    } else {
+        for (child, world, mut local) in &mut nodes {
+            *local = local_from_world(lookup(child.parent()), world);
+        }
     }
 }
 
 fn sync_attached_poses(
-    parents: Query<&WorldPose, Without<AttachedPose>>,
+    parents: Query<(Entity, &WorldPose), Without<AttachedPose>>,
     mut nodes: Query<(&ChildOf, &LocalPose, &mut WorldPose), With<AttachedPose>>,
 ) {
-    for (parent, local, mut world) in &mut nodes {
-        *world = parents
-            .get(parent.parent())
-            .expect("attached poses have link parents")
-            .compose(local.0);
+    let lookup = |id| *parents.get(id).expect("attached poses have link parents").1;
+    let compose = |parent: WorldPose, local: &LocalPose| parent.compose(local.0);
+    if parallel_pose_updates(nodes.count())
+        && let (Ok(parents), Ok(nodes)) = (parents.contiguous_iter(), nodes.contiguous_iter_mut())
+    {
+        publish_parent_tables(parents.collect(), nodes, lookup, compose);
+    } else {
+        for (child, local, mut world) in &mut nodes {
+            *world = compose(lookup(child.parent()), local);
+        }
     }
 }
 
@@ -1501,8 +2647,10 @@ fn sync_bodies(
         &mut Velocity,
     )>,
 ) {
-    for (body, center, mut pose, mut velocity) in &mut bodies {
-        let state = backend.state(body.0).expect("scene owns body lifecycle");
+    let publish = |state: gz_physics::BodyState,
+                   center: Option<&LinkCenterOfMass>,
+                   pose: &mut WorldPose,
+                   velocity: &mut Velocity| {
         pose.translation = state.position;
         pose.rotation = state.orientation;
         velocity.linear = center.map_or(state.velocity, |center| {
@@ -1511,7 +2659,55 @@ fn sync_bodies(
             .to_array()
         });
         velocity.angular = state.angular_velocity;
+    };
+    if parallel_pose_updates(bodies.count())
+        && let Ok(tables) = bodies.contiguous_iter_mut()
+    {
+        let backend = &*backend;
+        bevy_tasks::ComputeTaskPool::get().scope(|scope| {
+            for (handles, centers, poses, velocities) in tables {
+                let batch_rows = pose_batch_rows(handles.len());
+                let (poses, _) = bevy_ecs::change_detection::ContiguousMut::split(poses);
+                let (velocities, _) = bevy_ecs::change_detection::ContiguousMut::split(velocities);
+                for (batch, ((handles, poses), velocities)) in handles
+                    .chunks(batch_rows)
+                    .zip(poses.chunks_mut(batch_rows))
+                    .zip(velocities.chunks_mut(batch_rows))
+                    .enumerate()
+                {
+                    let start = batch * batch_rows;
+                    let centers = centers.map(|all| &all[start..start + handles.len()]);
+                    scope.spawn(async move {
+                        // Each task owns contiguous ECS writes and a scoped native cursor.
+                        // A missing/repeated/out-of-order ID has the scalar read semantics.
+                        backend.read_states(&mut |states| {
+                            for (i, ((handle, pose), velocity)) in handles
+                                .iter()
+                                .zip(poses.iter_mut())
+                                .zip(velocities.iter_mut())
+                                .enumerate()
+                            {
+                                let state =
+                                    states.state(handle.0).expect("scene owns body lifecycle");
+                                publish(state, centers.map(|s| &s[i]), pose, velocity);
+                            }
+                        });
+                    });
+                }
+            }
+        });
+        return;
     }
+    backend.read_states(&mut |states| {
+        for (body, center, mut pose, mut velocity) in &mut bodies {
+            publish(
+                states.state(body.0).expect("scene owns body lifecycle"),
+                center,
+                &mut pose,
+                &mut velocity,
+            );
+        }
+    });
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -1577,7 +2773,7 @@ fn sample_imus(
         });
         if let Ok(reading) = &mut reading
             && let Some(noise) = &mut sensor.noise
-            && let Err(source) = noise.apply(reading, time.sim_time)
+            && let Err(source) = noise.apply(reading, time.sim_time, time.iteration)
         {
             fault.report(SensorNoiseFault { entity, source });
             return;
@@ -1592,7 +2788,7 @@ fn sample_imus(
 
 fn reset_imus(mut sensors: Query<(Entity, &mut Imu)>, mut commands: Commands) {
     for (entity, mut sensor) in &mut sensors {
-        sensor.previous_velocity = DVec3::ZERO;
+        sensor.previous_velocity = sensor.initial_velocity;
         sensor.schedule.reset();
         if let Some(noise) = &mut sensor.noise {
             noise.reset();
@@ -1604,3 +2800,7 @@ fn reset_imus(mut sensors: Query<(Entity, &mut Imu)>, mut commands: Commands) {
 #[cfg(test)]
 #[path = "../tests/private/observations.rs"]
 mod observation_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/canonical_publication.rs"]
+mod canonical_publication_tests;

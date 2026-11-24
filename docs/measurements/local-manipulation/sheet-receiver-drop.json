@@ -1,0 +1,356 @@
+{
+  "base": "d3ac489236e8cb497ddc203097da12663b95840c",
+  "cases": {
+    "qual-drop-early-16": {
+      "actuator_ms": 1,
+      "exchanges_per_ms": 16,
+      "matched_complete_rows_before_drop": 3119,
+      "measured_command_ticks": 4600,
+      "measurement": {
+        "airborne_after_opening_s": 0.0,
+        "final_deck_descent_m": 0.05000000000000726,
+        "final_deck_lateral_clearance_m": -0.15400088717451593,
+        "final_grip_n": 1.6165394187153137,
+        "final_jaw_up_n": 0.08242136761866106,
+        "final_material_gap_m": 0.04696336291073343,
+        "final_table_n": 0.0,
+        "first_opening_tick": 3112,
+        "first_pad_free_tick": null,
+        "fully_open_tick": null,
+        "max_downward_adjustment_m": 0.004,
+        "max_loose_gap_m": null,
+        "min_raised_clearance_m": 0.14961128876271257,
+        "opening_ms_at_end": 9,
+        "peak_loose_table_interval_ns": null,
+        "preceding_20ms_table_force_range_n": [
+          0.07322055082873263,
+          0.11909388406252389
+        ],
+        "receiver_drop": {
+          "first_paused_tick": 3121,
+          "first_returning_table_load_tick": null,
+          "first_tick": 3120,
+          "opening_before_ms": 8,
+          "preceding_grip_n": [
+            0.781854997809936,
+            0.7798527638538812
+          ]
+        },
+        "search_exhausted_tick": 4301
+      },
+      "mode": "DropEarly",
+      "public_ms": 0.0625,
+      "recording_sha256": "36428589fb66b2de93c435cf8bb68e82c60814abf639ba8ffa8a9feb9c8a55c7",
+      "reset_checked": true,
+      "trajectory_sha256": "2113cdf97ba765c8319b60aab855c238a5fc2b82f992bbd325fca55aee2ff6b2",
+      "weight_n": 0.082404,
+      "world_sha256": "a7f6e3f2a57fb163154734c2a6798a34cf8dc0cc8c4a6e24d71e466f6cef8129"
+    },
+    "qual-drop-early-64": {
+      "actuator_ms": 1,
+      "exchanges_per_ms": 64,
+      "measured_command_ticks": 4600,
+      "measurement": {
+        "airborne_after_opening_s": 0.0,
+        "final_deck_descent_m": 0.050000000000028355,
+        "final_deck_lateral_clearance_m": -0.15399672293585104,
+        "final_grip_n": 1.6165407110394097,
+        "final_jaw_up_n": 0.08242050867504598,
+        "final_material_gap_m": 0.04696487084086716,
+        "final_table_n": 0.0,
+        "first_opening_tick": 3110,
+        "first_pad_free_tick": null,
+        "fully_open_tick": null,
+        "max_downward_adjustment_m": 0.004,
+        "max_loose_gap_m": null,
+        "min_raised_clearance_m": 0.1496140222888419,
+        "opening_ms_at_end": 9,
+        "peak_loose_table_interval_ns": null,
+        "preceding_20ms_table_force_range_n": [
+          0.0787426189875806,
+          0.11938492996627208
+        ],
+        "receiver_drop": {
+          "first_paused_tick": 3119,
+          "first_returning_table_load_tick": null,
+          "first_tick": 3118,
+          "opening_before_ms": 8,
+          "preceding_grip_n": [
+            0.785214934704374,
+            0.7804636077661312
+          ]
+        },
+        "search_exhausted_tick": 4299
+      },
+      "mode": "DropEarly",
+      "public_ms": 0.015625,
+      "recording_sha256": "6bfd3a4f4491b6c3549198cfb0ad5a907f59759d0a946816d627c443a7d4aded",
+      "reset_checked": false,
+      "trajectory_sha256": "b1ad2a8a582664a5f489ed17bd29dcafbe38e2813dfd39f04cbf6d39494c70e6",
+      "weight_n": 0.082404,
+      "world_sha256": "83bb9d97b824ab65e2c4807c19b813a8a6159644fcbd34370a4fd0925199c32b"
+    },
+    "qual-drop-late-16": {
+      "actuator_ms": 1,
+      "exchanges_per_ms": 16,
+      "flight": {
+        "ballistic_time_s": 0.10096375546923045,
+        "compared_ticks": 100,
+        "max_error_all_sampled_before_impact_m": 3.0759311266573275e-05,
+        "observed_flight_end_s": 0.101,
+        "predicted_max_gap_m": 0.0127420998980632
+      },
+      "full_drop_net_vertical_impulse_ns": -2.652003987192545e-12,
+      "last_unloaded_tick": 3292,
+      "matched_complete_rows_before_drop": 3151,
+      "measured_command_ticks": 4600,
+      "measurement": {
+        "airborne_after_opening_s": 0.1373125,
+        "final_deck_descent_m": 0.05000000000000726,
+        "final_deck_lateral_clearance_m": -0.15400103716748004,
+        "final_grip_n": 0.0,
+        "final_jaw_up_n": 0.0,
+        "final_material_gap_m": -4.343747583845925e-15,
+        "final_table_n": 0.08240400000000286,
+        "first_opening_tick": 3112,
+        "first_pad_free_tick": 3137,
+        "fully_open_tick": 3624,
+        "max_downward_adjustment_m": 0.0013706626275153007,
+        "max_loose_gap_m": 0.012726390843939964,
+        "min_raised_clearance_m": 0.14961128876271257,
+        "opening_ms_at_end": 350,
+        "peak_loose_table_interval_ns": 0.0042862534591513735,
+        "preceding_20ms_table_force_range_n": [
+          0.07322055082873263,
+          0.11909388406252389
+        ],
+        "receiver_drop": {
+          "first_paused_tick": 3153,
+          "first_returning_table_load_tick": 3252,
+          "first_tick": 3152,
+          "opening_before_ms": 40,
+          "preceding_grip_n": [
+            0.0,
+            0.0
+          ]
+        },
+        "search_exhausted_tick": null
+      },
+      "mode": "DropLate",
+      "postimpact_max_skin_gap_m": 0.0012614786381107551,
+      "public_ms": 0.0625,
+      "recording_sha256": "0b234acafbe7942889a457aabbd2aad6cc329b8ed219684c07b24001e52c1ad7",
+      "reset_checked": true,
+      "trajectory_sha256": "9357023ff22930ff7f961b1f7f49faa9983d74e821d2f48a751f71bc37169788",
+      "weight_n": 0.082404,
+      "world_sha256": "a7f6e3f2a57fb163154734c2a6798a34cf8dc0cc8c4a6e24d71e466f6cef8129"
+    },
+    "qual-drop-late-64": {
+      "actuator_ms": 1,
+      "exchanges_per_ms": 64,
+      "flight": {
+        "ballistic_time_s": 0.10096375546923045,
+        "compared_ticks": 100,
+        "max_error_all_sampled_before_impact_m": 9.85258564581426e-06,
+        "observed_flight_end_s": 0.101,
+        "predicted_max_gap_m": 0.0127420998980632
+      },
+      "full_drop_net_vertical_impulse_ns": 1.7654325250284546e-11,
+      "last_unloaded_tick": 3544,
+      "measured_command_ticks": 4600,
+      "measurement": {
+        "airborne_after_opening_s": 0.236234375,
+        "final_deck_descent_m": 0.050000000000028355,
+        "final_deck_lateral_clearance_m": -0.15587406272577348,
+        "final_grip_n": 0.0,
+        "final_jaw_up_n": 0.0,
+        "final_material_gap_m": -7.91033905045424e-16,
+        "final_table_n": 0.08240399999999655,
+        "first_opening_tick": 3110,
+        "first_pad_free_tick": 3135,
+        "fully_open_tick": 3877,
+        "max_downward_adjustment_m": 0.001569326450031197,
+        "max_loose_gap_m": 0.01273704408270622,
+        "min_raised_clearance_m": 0.1496140222888419,
+        "opening_ms_at_end": 350,
+        "peak_loose_table_interval_ns": 0.0042898017404211656,
+        "preceding_20ms_table_force_range_n": [
+          0.0787426189875806,
+          0.11938492996627208
+        ],
+        "receiver_drop": {
+          "first_paused_tick": 3151,
+          "first_returning_table_load_tick": 3250,
+          "first_tick": 3150,
+          "opening_before_ms": 40,
+          "preceding_grip_n": [
+            0.0,
+            0.0
+          ]
+        },
+        "search_exhausted_tick": null
+      },
+      "mode": "DropLate",
+      "postimpact_max_skin_gap_m": 0.006040471392143365,
+      "public_ms": 0.015625,
+      "recording_sha256": "c60347249ef250e6943a1727e9b030fb9dcf1a8ccb3393ecd2bce473625af4d5",
+      "reset_checked": false,
+      "trajectory_sha256": "49af4a31f13246321ba1441a4141283ddf847b4bc20ed33a86bda46baadd7886",
+      "weight_n": 0.082404,
+      "world_sha256": "83bb9d97b824ab65e2c4807c19b813a8a6159644fcbd34370a4fd0925199c32b"
+    },
+    "qual-finite-16": {
+      "actuator_ms": 1,
+      "exchanges_per_ms": 16,
+      "measured_command_ticks": 4300,
+      "measurement": {
+        "airborne_after_opening_s": 0.0,
+        "final_deck_descent_m": 0.0,
+        "final_deck_lateral_clearance_m": -0.153997832066393,
+        "final_grip_n": 0.0,
+        "final_jaw_up_n": 0.0,
+        "final_material_gap_m": -4.232725281383409e-15,
+        "final_table_n": 0.08240400000000107,
+        "first_opening_tick": 3112,
+        "first_pad_free_tick": 3137,
+        "fully_open_tick": 3461,
+        "max_downward_adjustment_m": 0.0011234639662119931,
+        "max_loose_gap_m": 3.490263633665336e-14,
+        "min_raised_clearance_m": 0.14961128876271257,
+        "opening_ms_at_end": 350,
+        "peak_loose_table_interval_ns": 5.224837183803576e-06,
+        "preceding_20ms_table_force_range_n": [
+          0.07322055082873263,
+          0.11909388406252389
+        ],
+        "receiver_drop": null,
+        "search_exhausted_tick": null
+      },
+      "mode": "Finite",
+      "public_ms": 0.0625,
+      "recording_sha256": "cff356801df604ca94abd0494be454d1ee3739d3edfbe697d9780fa45665fd3d",
+      "reset_checked": false,
+      "trajectory_sha256": "a0e42df2dc9c613e68ca658c124b0aeca0aa470549a1e4517321229130ffab2d",
+      "weight_n": 0.082404,
+      "world_sha256": "a7f6e3f2a57fb163154734c2a6798a34cf8dc0cc8c4a6e24d71e466f6cef8129"
+    }
+  },
+  "coverage": {
+    "executables": {
+      "run-drop-early": {
+        "build_id": "e104baf127e928e882c6d2a78529bbf400f2ce3a",
+        "passed": 0,
+        "sha256": "136d6cd506b9d77fce304aa368507873cbc493d450e90a9b04a1d668ac1dbe90"
+      },
+      "run-drop-late": {
+        "build_id": "e104baf127e928e882c6d2a78529bbf400f2ce3a",
+        "passed": 0,
+        "sha256": "136d6cd506b9d77fce304aa368507873cbc493d450e90a9b04a1d668ac1dbe90"
+      },
+      "run-timed": {
+        "build_id": "e104baf127e928e882c6d2a78529bbf400f2ce3a",
+        "passed": 0,
+        "sha256": "136d6cd506b9d77fce304aa368507873cbc493d450e90a9b04a1d668ac1dbe90"
+      },
+      "scenario": {
+        "build_id": "b1a1eb0ffcd10a9061b4c9b2eda6c268d29e1c9d",
+        "passed": 7,
+        "sha256": "b7f735a3d8d0f1b5701b4ba105ccf7ba15992324909347aabdc9d3a2469ead1b"
+      }
+    },
+    "files": {
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown.rs": {
+        "lines": [
+          86,
+          87
+        ],
+        "regions": [
+          168,
+          173
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown/tests.rs": {
+        "lines": [
+          43,
+          43
+        ],
+        "regions": [
+          126,
+          131
+        ]
+      }
+    },
+    "totals": {
+      "gz-sim-cli": {
+        "including_tests": {
+          "lines": [
+            129,
+            130
+          ],
+          "regions": [
+            294,
+            304
+          ]
+        },
+        "production": {
+          "lines": [
+            86,
+            87
+          ],
+          "regions": [
+            168,
+            173
+          ]
+        }
+      }
+    }
+  },
+  "deck_speed_m_s": 0.5,
+  "deck_travel_m": 0.05,
+  "gravity_m_s2": 9.81,
+  "release_executable_sha256": "cd26b7ff7d02376e472165ea5668ef1896327583ac7673f06cdc297cf35099fe",
+  "source": "f07995e675065d98ebde7a10a48c68d38dfc0ddb",
+  "tests_source": "97e2563c73da9cccd8c9e8e483ef105313f6ca61",
+  "viewer": {
+    "early": {
+      "body_poses_and_shapes_checked": 4625,
+      "captured_ms": {
+        "before_descent": 3100.0,
+        "deck_stopped": 3225.0,
+        "descending": 3150.0,
+        "final": 4600.0,
+        "grasp": 1000.0,
+        "raised": 1800.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 185,
+      "independent_particle_positions_checked": 2220,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 185,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10028%2F"
+    },
+    "late": {
+      "body_poses_and_shapes_checked": 4625,
+      "captured_ms": {
+        "before_descent": 3150.0,
+        "deck_stopped": 3275.0,
+        "descending": 3200.0,
+        "final": 4600.0,
+        "grasp": 1000.0,
+        "raised": 1800.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 185,
+      "independent_particle_positions_checked": 2220,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 185,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10029%2F"
+    }
+  }
+}

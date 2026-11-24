@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="ten_ms" type="ignored"><max_step_size>0.01</max_step_size></physics>
+    <model name="top">
+      <pose>0 0 0.82 0.24 -0.35 0.11</pose>
+      <link name="body">
+        <inertial><pose>0 0 0 0.25 -0.36 0.18</pose><mass>1.4</mass>
+          <inertia><ixx>0.045</ixx><iyy>0.067</iyy><izz>0.09</izz></inertia></inertial>
+        <collision name="box"><geometry><box><size>0.60 0.36 0.22</size></box></geometry></collision>
+        <visual name="box"><geometry><box><size>0.60 0.36 0.22</size></box></geometry>
+          <material><diffuse>0.18 0.66 0.75 1</diffuse></material></visual>
+      </link>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>0 0 0</linear_velocity><angular_velocity>7 -4 11</angular_velocity>
+      </plugin>
+    </model>
+    <plugin name="gz::sim::systems::FreeRotation" filename="gz-sim-free-rotation-system">
+      <link>default::top::body</link>
+    </plugin>
+  </world>
+</sdf>

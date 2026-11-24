@@ -31,16 +31,17 @@ macro_rules! ids {
 }
 ids!(BodyId, JointId);
 
-/// Angle from construction pose, in radians, and world-axis angular velocity in rad/s.
+/// Displacement from the construction pose and rate along a scalar joint axis.
+/// A revolute uses radians and rad/s. A prismatic uses metres and m/s.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JointState {
     pub position: f64,
     pub velocity: f64,
 }
 
-/// Persistent revolute velocity target, positive in the joint's increasing-angle direction.
-/// `target_velocity` is finite rad/s; `max_force` is finite, nonnegative Nm.
-/// This limits actuator torque; the target is not a hard physical speed cap.
+/// Persistent scalar velocity target, positive along the joint axis.
+/// Hinges use rad/s and N·m. Sliders use m/s and N.
+/// This limits actuator effort; the target is not a hard physical speed cap.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JointVelocityMotor {
     pub target_velocity: f64,
@@ -84,6 +85,14 @@ pub enum PhysicsError {
         engine: &'static str,
         capability: &'static str,
     },
+    /// The assembly and target are valid, but a physical or pending-command
+    /// guard prevents a fidelity change at this boundary. Retrying is safe.
+    #[error("fidelity transition deferred: {reason}")]
+    TransitionDeferred { reason: &'static str },
+    /// The solver disabled non-finite objects after integration. The attempted
+    /// step may have changed solver internals; a scheduled simulation is terminal.
+    #[error("{engine} disabled non-finite physics objects during integration")]
+    NonFiniteStep { engine: &'static str },
     /// A native engine reported a failure; the message is the engine's diagnostic.
     #[error("{engine} failed: {message}")]
     Native {
@@ -100,7 +109,9 @@ pub struct InitialPhysicsState {
     data: Arc<dyn Any + Send + Sync>,
 }
 
-/// A fully constructed reset state, ready to commit without further fallible work.
+/// A validated reset state bound to its backend. In-process engines stage the
+/// replacement solver here. A durable backend may still report process or
+/// publication errors while committing under its exclusive ownership lease.
 pub struct PreparedPhysicsReset {
     owner: Arc<()>,
     data: Box<dyn Any + Send + Sync>,
@@ -149,6 +160,17 @@ impl PreparedPhysicsReset {
     }
 }
 
+/// Scoped access to body states in a single committed backend observation.
+pub trait BodyStateLookup {
+    fn state(&mut self, id: BodyId) -> Option<BodyState>;
+}
+
+impl<F: FnMut(BodyId) -> Option<BodyState>> BodyStateLookup for F {
+    fn state(&mut self, id: BodyId) -> Option<BodyState> {
+        self(id)
+    }
+}
+
 /// A dynamic engine stepped by the simulator's Bevy schedule.
 ///
 /// Positions and velocities use world axes, SI units and Gazebo's Z-up convention;
@@ -166,6 +188,36 @@ pub trait DynamicBackend: Send + Sync + 'static {
         rotation: RotationSpec,
         inertia: Option<Inertia>,
     ) -> Result<BodyId, PhysicsError>;
+
+    /// Checks a prescribed world twist for a given step duration, without
+    /// changing the body, solver, or pending inputs. Zero dt checks the twist
+    /// alone. Implemented by engines that support velocity-prescribed boundaries.
+    fn validate_kinematic_velocity(
+        &self,
+        _linear: [f64; 3],
+        _angular: [f64; 3],
+        _dt: Duration,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "kinematic link",
+        })
+    }
+
+    /// Creates a velocity-prescribed primitive boundary. The world-space linear
+    /// velocity is at the center of mass. Its mass, if supplied, is nominal:
+    /// dynamic contacts cannot accelerate it. Refusal allocates no identifier.
+    fn spawn_kinematic_link(
+        &mut self,
+        _spec: BodySpec,
+        _rotation: RotationSpec,
+        _inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "kinematic link",
+        })
+    }
 
     /// Admit a static triangle surface or a closed convex dynamic mesh.
     /// Unsupported engines refuse without allocating bodies or decoding assets.
@@ -193,7 +245,20 @@ pub trait DynamicBackend: Send + Sync + 'static {
     /// Whether a registered body has dynamic mass rather than a fixed solver body.
     fn is_dynamic(&self, id: BodyId) -> Option<bool>;
 
+    /// Whether a registered body's motion is prescribed by a velocity command.
+    /// Fixed and force-driven dynamic bodies return false. Missing IDs return None.
+    fn is_kinematic(&self, id: BodyId) -> Option<bool> {
+        self.is_dynamic(id).map(|_| false)
+    }
+
     fn state(&self, id: BodyId) -> Option<BodyState>;
+
+    /// Invoke `visit` once with a reader for many public body states. Arbitrary
+    /// order, repeated IDs and removed IDs have the same meaning as `state`.
+    /// Engines may accelerate dense reads without publishing private handles.
+    fn read_states(&self, visit: &mut dyn FnMut(&mut dyn BodyStateLookup)) {
+        visit(&mut |id| self.state(id));
+    }
 
     /// Closest solid collision along a world-space ray, in metres, or no hit.
     ///
@@ -215,6 +280,20 @@ pub trait DynamicBackend: Send + Sync + 'static {
         Err(PhysicsError::Unsupported {
             engine: self.engine(),
             capability: "ray queries",
+        })
+    }
+
+    /// IDs whose collision shapes' world-axis-aligned bounds intersect the closed box,
+    /// sorted and unique. This is a discrete geometry observation with no contact impulses.
+    /// A zero-width interval is valid. Standalone scenery has no body ID.
+    fn bodies_overlapping_aabb(
+        &self,
+        _min: [f64; 3],
+        _max: [f64; 3],
+    ) -> Result<Vec<BodyId>, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "body AABB overlap",
         })
     }
 
@@ -439,7 +518,9 @@ pub trait DynamicBackend: Send + Sync + 'static {
     /// Whether a registered body participates in a solver constraint.
     fn is_jointed(&self, id: BodyId) -> Option<bool>;
 
-    /// Advances by `dt`. A zero step changes nothing.
+    /// Advances by `dt`. A zero step changes nothing. A solver that detects
+    /// non-finite state after integration can report [`PhysicsError::NonFiniteStep`];
+    /// its internal state may have advanced and must not be published.
     fn step(&mut self, dt: Duration) -> Result<(), PhysicsError>;
 
     /// Restores remaining bodies and joints to their construction state.
@@ -449,13 +530,15 @@ pub trait DynamicBackend: Send + Sync + 'static {
 
     fn owns_initial_state(&self, initial: &InitialPhysicsState) -> bool;
 
-    /// Builds an independent engine state before any scene or backend mutation.
+    /// Prepares a reset before any scene or backend mutation. Local engines
+    /// build their replacement solver during this preflight.
     fn prepare_initial(
         &self,
         initial: &InitialPhysicsState,
     ) -> Result<PreparedPhysicsReset, PhysicsError>;
 
     /// Restores initial IDs and retires runtime bodies; later IDs remain monotonic.
+    /// Callers must propagate a durable commit failure before rebuilding the ECS.
     fn apply_initial(&mut self, prepared: PreparedPhysicsReset) -> Result<(), PhysicsError>;
 
     fn as_any(&self) -> &dyn Any;
@@ -515,20 +598,31 @@ pub fn install(
     sim: &mut Simulation,
     backend: impl Into<PhysicsBackend>,
 ) -> Result<(), PhysicsError> {
+    install_with_step(
+        sim,
+        backend,
+        |time: Res<UpdateInfo>, fault: Res<StepFault>, mut backend: ResMut<PhysicsBackend>| {
+            if let Err(error) = backend.step(time.dt) {
+                fault.report(error);
+            }
+        },
+    )
+}
+
+/// Install a coupled engine which owns all native subintervals of a physical
+/// tick, with the standard single-owner and epoch-aware native reset behavior.
+pub fn install_with_step<M>(
+    sim: &mut Simulation,
+    backend: impl Into<PhysicsBackend>,
+    step: impl IntoScheduleConfigs<bevy_ecs::system::ScheduleSystem, M>,
+) -> Result<(), PhysicsError> {
     if sim.world().contains_resource::<PhysicsBackend>()
         || !sim.register_extension::<crate::PhysicsInstallation>()
     {
         return Err(PhysicsError::AlreadyInstalled);
     }
     sim.world_mut().insert_resource(backend.into());
-    sim.add_systems(
-        Phase::PhysicsStep,
-        |time: Res<UpdateInfo>, fault: Res<StepFault>, mut backend: ResMut<PhysicsBackend>| {
-            if let Err(error) = backend.step(time.dt) {
-                fault.report(error);
-            }
-        },
-    );
+    sim.add_systems(Phase::PhysicsStep, step);
     sim.add_systems(
         Phase::Reset,
         (|time: Res<UpdateInfo>,

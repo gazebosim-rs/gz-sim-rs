@@ -204,6 +204,9 @@ name = "arrayvec"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "ash"
@@ -1313,6 +1316,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bincode"
+version = "1.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1552,6 +1564,8 @@ version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af491d569909a7e4dee0ad7db7f5341fef5c614d5b8ec8cf765732aba3cff681"
 dependencies = [
+ "serde",
+ "termcolor",
  "unicode-width",
 ]
 
@@ -2426,6 +2440,7 @@ dependencies = [
  "glam 0.33.12",
  "nalgebra",
  "num-traits",
+ "serde",
  "simba",
 ]
 
@@ -2568,8 +2583,80 @@ name = "gz-physics"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "glam 0.33.12",
  "gz-sim-core",
+ "serde",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "gz-physics-distributed"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "bevy_tasks",
+ "bincode",
+ "clap",
+ "fastrand",
+ "glam 0.33.12",
+ "gz-assets",
+ "gz-physics",
+ "gz-physics-multifidelity",
+ "gz-physics-xpbd",
+ "gz-sim-cli",
+ "gz-sim-core",
+ "gz-sim-proto",
+ "gz-sim-scene",
+ "gz-sim-server",
+ "lz4_flex",
+ "plotters",
+ "rapier3d-f64",
+ "rustix",
+ "same-file",
+ "sdformat",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.18",
+ "uuid",
+ "zenoh",
+]
+
+[[package]]
+name = "gz-physics-gpu"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "bevy_tasks",
+ "bincode",
+ "bytemuck",
+ "glam 0.33.12",
+ "gz-physics-rapier",
+ "gz-physics-xpbd",
+ "gz-sim-cli",
+ "gz-sim-core",
+ "naga",
+ "plotters",
+ "pollster",
+ "rapier3d-f64",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.18",
+ "wgpu",
+]
+
+[[package]]
+name = "gz-physics-multifidelity"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "gz-physics",
+ "gz-physics-rapier",
+ "gz-sim-core",
 ]
 
 [[package]]
@@ -2577,10 +2664,13 @@ name = "gz-physics-rapier"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "bincode",
  "gz-physics",
  "gz-sim-core",
  "rapier3d-f64",
+ "serde",
  "serde_json",
+ "sha2",
  "thiserror 2.0.18",
 ]
 
@@ -2596,6 +2686,19 @@ dependencies = [
  "parry3d-f64",
  "serde",
  "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "gz-physics-xpbd"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "glam 0.33.12",
+ "gz-physics",
+ "parry3d-f64",
+ "serde",
+ "sha2",
  "thiserror 2.0.18",
 ]
 
@@ -2703,13 +2806,18 @@ name = "gz-sim-cli"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "bevy_tasks",
  "bytes",
  "clap",
+ "glam 0.33.12",
  "gltf",
  "gz-assets",
  "gz-camera-output",
  "gz-fuel-tools",
  "gz-physics",
+ "gz-physics-gpu",
+ "gz-physics-multifidelity",
+ "gz-physics-xpbd",
  "gz-sim-core",
  "gz-sim-proto",
  "gz-sim-scene",
@@ -2717,6 +2825,10 @@ dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
+ "parry3d-f64",
+ "plotters",
+ "rapier3d-f64",
+ "roxmltree",
  "rustix",
  "sdformat",
  "serde",
@@ -2758,20 +2870,29 @@ name = "gz-sim-scene"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "bevy_tasks",
  "glam 0.33.12",
  "gz-assets",
  "gz-fuel-tools",
  "gz-physics",
+ "gz-physics-distributed",
+ "gz-physics-gpu",
+ "gz-physics-multifidelity",
  "gz-physics-rapier",
  "gz-physics-tpe",
+ "gz-physics-xpbd",
  "gz-sensors",
  "gz-sim-core",
  "parry3d-f64",
  "petgraph",
  "quick-xml 0.38.3",
+ "rapier3d-f64",
  "roxmltree",
+ "rustix",
  "sdformat",
+ "serde",
  "serde_json",
+ "sha2",
  "tempfile",
  "thiserror 2.0.18",
 ]
@@ -2864,6 +2985,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
 dependencies = [
  "foldhash 0.2.0",
+ "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -3800,6 +3923,7 @@ dependencies = [
  "num-complex",
  "num-rational",
  "num-traits",
+ "serde",
  "simba",
  "typenum",
 ]
@@ -3935,6 +4059,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495"
 dependencies = [
  "num-traits",
+ "serde",
 ]
 
 [[package]]
@@ -4232,6 +4357,8 @@ dependencies = [
  "num-traits",
  "ordered-float",
  "rstar",
+ "serde",
+ "serde_arrays",
  "simba",
  "slab",
  "smallvec",
@@ -4381,6 +4508,34 @@ name = "pkg-config"
 version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548"
+
+[[package]]
+name = "plotters"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5aeb6f403d7a4911efb1e33402027fc44f29b5bf6def3effcc22d7bb75f2b747"
+dependencies = [
+ "num-traits",
+ "plotters-backend",
+ "plotters-svg",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "plotters-backend"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df42e13c12958a16b3f7f4386b9ab1f3e7933914ecea48da7139435263a4172a"
+
+[[package]]
+name = "plotters-svg"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51bae2ac328883f7acdfea3d66a7c35751187f870bc81f94563733a154d7a670"
+dependencies = [
+ "plotters-backend",
+]
 
 [[package]]
 name = "pnet_base"
@@ -4717,8 +4872,6 @@ checksum = "ca45419789ae5a7899559e9512e58ca889e41f04f1f2445e9f4b290ceccd1d08"
 [[package]]
 name = "rapier3d-f64"
 version = "0.36.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4588855e9c5451702147b5c6ddff4d93887f1e59c9504b6ac3571818f6ec3d2"
 dependencies = [
  "approx",
  "arrayvec",
@@ -5150,6 +5303,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_arrays"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94a16b99c5ea4fe3daccd14853ad260ec00ea043b2708d1fd1da3106dcd8d9df"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "serde_bytes"
+version = "0.11.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5d440709e79d88e51ac01c4b72fc6cb7314017bb7da9eeff678aa94c10e3ea8"
+dependencies = [
+ "serde",
+ "serde_core",
+]
+
+[[package]]
 name = "serde_core"
 version = "1.0.229"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5442,6 +5614,7 @@ dependencies = [
  "hashbrown 0.16.1",
  "num-traits",
  "robust",
+ "serde",
  "smallvec",
 ]
 
@@ -5617,6 +5790,15 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "termcolor"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
+dependencies = [
+ "winapi-util",
 ]
 
 [[package]]
@@ -6421,12 +6603,17 @@ dependencies = [
  "cfg_aliases",
  "document-features",
  "hashbrown 0.17.1",
+ "js-sys",
  "log",
+ "naga",
  "portable-atomic",
  "profiling",
  "raw-window-handle",
  "smallvec",
  "static_assertions",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
  "wgpu-core",
  "wgpu-hal",
  "wgpu-types",

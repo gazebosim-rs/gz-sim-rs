@@ -287,6 +287,7 @@ fn competing_controls_never_acknowledge_an_uncommitted_requested_state() {
         assert!(
             commands
                 .send(Queued::Control(Pending {
+                    admission: Admission::Boundary,
                     trace: None,
                     control: Control::decode(
                         &json!({"version":1,"kind":"control",
@@ -345,4 +346,98 @@ fn competing_controls_never_acknowledge_an_uncommitted_requested_state() {
     drop(bridge);
     server.shutdown();
     assert!(!server.apply_local_control(WorldControl::default()));
+}
+
+#[test]
+fn admitted_recovery_pause_survives_disconnect_and_owns_one_boundary() {
+    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+    let mut server = Server::with_zenoh_config(
+        simulation(), "default", gz_sim_server::ServerOptions {
+            partition: format!("gzweb-pause-{}", listener.local_addr().unwrap().port()),
+            ..Default::default()
+        }, zenoh::Config::default(), std::num::NonZeroUsize::new(8).unwrap(),
+    ).unwrap();
+    let mut bridge = Bridge::with_listener(server.simulation(), "default", listener).unwrap();
+    let (sender, commands) = mpsc::sync_channel(8);
+    bridge.commands = commands;
+    let send = |action, admission, alive| {
+        let (reply, receiver) = mpsc::sync_channel(1);
+        assert!(sender.send(Queued::Control(Pending {
+            admission, trace: None, control: Control {
+                version: 1, kind: "control".into(), request_id: 1, action,
+            }, alive: Arc::new(AtomicBool::new(alive)), reply,
+        })).is_ok());
+        receiver
+    };
+    drop(send(Action::Pause, Admission::RecoveryPause, false));
+    let replacement = send(Action::Resume, Admission::AppliedResume, true);
+    let controls = bridge.controls(&mut server);
+    assert_eq!(controls.len(), 1);
+    assert!(server.simulation().is_paused());
+    assert!(matches!(replacement.try_recv(), Err(mpsc::TryRecvError::Empty)));
+    bridge.publish(server.simulation(), "default", controls).unwrap();
+    let mut controls = bridge.controls(&mut server);
+    assert_eq!(controls.len(), 1);
+    bridge.publish_applied_resume(server.simulation(), "default", &mut controls).unwrap();
+    let ack: Value = serde_json::from_str(&replacement.try_recv().unwrap()).unwrap();
+    assert!(controls.is_empty());
+    assert_eq!(ack["ok"], true);
+    assert_eq!(ack["paused"], false);
+    assert_eq!(ack["nanoseconds"], 0);
+    assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+}
+
+#[test]
+fn paused_uncredited_viewer_gets_one_scene_until_visible_state_changes() {
+    use tungstenite::{Message, WebSocket, stream::MaybeTlsStream};
+    let mut sim = simulation();
+    sim.set_paused(true);
+    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+    let address = listener.local_addr().unwrap();
+    let mut bridge = Bridge::with_listener(&sim, "default", listener).unwrap();
+    let (mut client, _) = tungstenite::connect(format!("ws://{address}/")).unwrap();
+    let MaybeTlsStream::Plain(stream) = client.get_mut() else {
+        unreachable!()
+    };
+    stream
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(3);
+    while bridge.connected.load(Ordering::Acquire) == 0 {
+        assert!(Instant::now() < deadline);
+        thread::sleep(Duration::from_millis(2));
+    }
+    let read_scene = |ws: &mut WebSocket<_>| -> Value {
+        serde_json::from_str(ws.read().unwrap().to_text().unwrap()).unwrap()
+    };
+    bridge.publish(&sim, "default", vec![]).unwrap();
+    let initial = read_scene(&mut client);
+    for _ in 0..100 {
+        bridge.published = Instant::now() - Duration::from_millis(40);
+        bridge.publish(&sim, "default", vec![]).unwrap();
+    }
+    client.send(Message::Ping(vec![1].into())).unwrap();
+    assert_eq!(client.read().unwrap(), Message::Pong(vec![1].into()));
+    bridge.last_network_publication = Instant::now() - Duration::from_secs(2);
+    bridge.published = Instant::now() - Duration::from_millis(40);
+    bridge.publish(&sim, "default", vec![]).unwrap();
+    let heartbeat = read_scene(&mut client);
+    assert_eq!(initial["visuals"], heartbeat["visuals"]);
+    assert_eq!(initial["nanoseconds"], heartbeat["nanoseconds"]);
+    let visual = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<EntityKind>() == Some(&EntityKind::Visual))
+        .unwrap()
+        .id();
+    sim.world_mut()
+        .get_mut::<WorldPose>(visual)
+        .unwrap()
+        .translation[0] += 0.25;
+    bridge.published = Instant::now() - Duration::from_millis(40);
+    bridge.publish(&sim, "default", vec![]).unwrap();
+    let changed = read_scene(&mut client);
+    assert_eq!(changed["nanoseconds"], initial["nanoseconds"]);
+    assert_ne!(changed["visuals"], initial["visuals"]);
+    assert!(changed["sequence"].as_u64() > initial["sequence"].as_u64());
 }

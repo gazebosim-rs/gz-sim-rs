@@ -1,0 +1,241 @@
+{
+  "source": "18b8986",
+  "journal": "examples/replay/refined_contact.json",
+  "trials": {
+    "sorter": {
+      "world_sha256": "4e05fd0534a3b1f5c4814601c38cc3d0ccd5a31c628d5d762dc84924dbe6bbbf",
+      "trace_sha256": "a895913bfa82ad88c3e39925240f0c48f960dca65acf92cffcd06cceccd6de2f",
+      "records_including_header": 20,
+      "verified_bevy_threads": [
+        1,
+        8
+      ],
+      "first_selected": {
+        "native_steps": 100,
+        "speed_stop_floor": 1,
+        "solver_iterations": 4,
+        "pgs_iterations": null,
+        "relaxation_iterations": null,
+        "requested_pairs": [
+          {
+            "foot_link": 11,
+            "support_link": 3,
+            "normal_impulse_ns": 0.040000081590802455,
+            "normal_on_foot_ns": [
+              -0.0,
+              -0.0,
+              0.040000081590802455
+            ],
+            "tangent_on_foot_ns": null,
+            "first_positive_end_ns": 10000000,
+            "last_native_normal_ns": 9.486769009248163e-23,
+            "active_at_end": true
+          }
+        ]
+      },
+      "ordinary_first_tick_impulse_ns": 0.0
+    },
+    "touching": {
+      "world_sha256": "33b29ed2b68193203fdb6e637dc9ac3156f39d9445a580f8dc3a26739be1765e",
+      "trace_sha256": "9c91a78a6e202cdbf5f79d2927d462a7874a7c3fb6349719191fb1893c6e88df",
+      "records_including_header": 20,
+      "verified_bevy_threads": [
+        1,
+        8
+      ],
+      "first_selected": {
+        "native_steps": 4,
+        "speed_stop_floor": 1,
+        "solver_iterations": 8,
+        "pgs_iterations": 16,
+        "relaxation_iterations": null,
+        "requested_pairs": [
+          {
+            "foot_link": 16,
+            "support_link": 45,
+            "normal_impulse_ns": 0.04529081261692293,
+            "normal_on_foot_ns": [
+              0.04529081261692293,
+              0.0,
+              0.0
+            ],
+            "tangent_on_foot_ns": null,
+            "first_positive_end_ns": 250000,
+            "last_native_normal_ns": 0.0,
+            "active_at_end": true
+          }
+        ]
+      },
+      "ordinary_first_tick_impulse_ns": 0.047433855353485196
+    },
+    "gap": {
+      "world_sha256": "e304ae9e4be20fc55a519020f6b10c054abfaccb2fb1a59825a8c16f95d19b5d",
+      "trace_sha256": "18b65b7eea5f2f6b6c48183b1ba52477bb350ff0a7e9b823da515740bdbe5190",
+      "records_including_header": 20,
+      "verified_bevy_threads": [
+        1,
+        8
+      ],
+      "first_selected": {
+        "native_steps": 500,
+        "speed_stop_floor": 1,
+        "solver_iterations": 4,
+        "pgs_iterations": null,
+        "relaxation_iterations": null,
+        "requested_pairs": [
+          {
+            "foot_link": 16,
+            "support_link": 45,
+            "normal_impulse_ns": 0.04182749222959122,
+            "normal_on_foot_ns": [
+              0.04182749220887446,
+              5.29299084843637e-07,
+              -6.284712515446229e-07
+            ],
+            "tangent_on_foot_ns": null,
+            "first_positive_end_ns": 494000,
+            "last_native_normal_ns": 0.0,
+            "active_at_end": true
+          }
+        ]
+      },
+      "ordinary_first_tick_impulse_ns": 0.036711085033055084
+    }
+  },
+  "browser": [
+    {
+      "body_poses_and_shapes_checked": 100,
+      "captured_ms": {
+        "coast": 4.0,
+        "impact": 1.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "frames": 5,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 5,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10071%2F"
+    },
+    {
+      "body_poses_and_shapes_checked": 100,
+      "captured_ms": {
+        "coast": 4.0,
+        "impact": 1.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "frames": 5,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 5,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10072%2F"
+    }
+  ],
+  "runtime_coverage": [
+    {
+      "crates/gz-sim-cli/src/bin/local_replay/observation.rs": {
+        "lines": {
+          "hit": 32,
+          "total": 32,
+          "missing": []
+        },
+        "regions": {
+          "hit": 44,
+          "total": 44,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-scene/src/lib.rs": {
+        "lines": {
+          "hit": 8,
+          "total": 8,
+          "missing": []
+        },
+        "regions": {
+          "hit": 8,
+          "total": 8,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-scene/src/local_replay.rs": {
+        "lines": {
+          "hit": 3,
+          "total": 3,
+          "missing": []
+        },
+        "regions": {
+          "hit": 7,
+          "total": 7,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-scene/src/primary_contact/sdf.rs": {
+        "lines": {
+          "hit": 3,
+          "total": 3,
+          "missing": []
+        },
+        "regions": {
+          "hit": 6,
+          "total": 6,
+          "missing": []
+        }
+      }
+    },
+    {
+      "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs": {
+        "lines": {
+          "hit": 2,
+          "total": 2,
+          "missing": []
+        },
+        "regions": {
+          "hit": 5,
+          "total": 5,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-cli/src/bin/local_replay/observation.rs": {
+        "lines": {
+          "hit": 5,
+          "total": 5,
+          "missing": []
+        },
+        "regions": {
+          "hit": 9,
+          "total": 9,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-scene/src/primary_contact.rs": {
+        "lines": {
+          "hit": 3,
+          "total": 3,
+          "missing": []
+        },
+        "regions": {
+          "hit": 5,
+          "total": 5,
+          "missing": []
+        }
+      }
+    }
+  ]
+}
