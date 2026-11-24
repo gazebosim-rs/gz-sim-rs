@@ -402,6 +402,40 @@ impl PreparedBoundary {
         Ok(())
     }
 
+    fn has_planar_surface(&self) -> bool {
+        matches!(self.shape, Shape::Plane(_) | Shape::StaticCuboid(_, _))
+    }
+
+    /// Both projected endpoints must lie on the same flat face. Leave rounding
+    /// around a cuboid's edge or corner to the normal swept-contact solver.
+    fn on_friction_face(
+        &self,
+        endpoints: [DVec3; 2],
+        normal: DVec3,
+        radius: f64,
+        tolerance: f64,
+    ) -> bool {
+        if let Shape::StaticCuboid(half, orientation) = self.shape {
+            let inverse = orientation.conjugate();
+            let direction = inverse * normal;
+            let axis = direction.abs().max_position();
+            let mut face_normal = DVec3::ZERO;
+            face_normal[axis] = direction[axis].signum();
+            if (direction - face_normal).length() > 64. * f64::EPSILON {
+                return false;
+            }
+            let face = direction[axis].signum() * (half[axis] + radius);
+            return endpoints.into_iter().all(|point| {
+                let local = inverse * point;
+                (local[axis] - face).abs() <= tolerance
+                    && (0..3).all(|i| i == axis || local[i].abs() < half[i] - tolerance)
+            });
+        }
+        endpoints
+            .into_iter()
+            .all(|p| (p.dot(normal) - radius).abs() <= tolerance)
+    }
+
     pub(super) fn fixed_box(&self) -> Option<(DVec3, DQuat)> {
         if let Shape::StaticCuboid(half, q) = self.shape {
             Some((half, q))
@@ -518,8 +552,7 @@ impl Contact {
                 .max(c1.abs())
                 .max_element()
                 .max(time.radius);
-        let gap = |relative: DVec3| (relative.dot(normal) - time.radius).abs();
-        if gap(start - c0) > tolerance || gap(*end - c1) > tolerance {
+        if !plane.on_friction_face([start - c0, *end - c1], normal, time.radius, tolerance) {
             return Ok(());
         }
         let incoming_relative = incoming - (c1 - c0) / time.h;
@@ -564,9 +597,7 @@ impl Contacts {
     pub(super) fn begin_plane_friction(&mut self, p: &[Particle], boundaries: &[PreparedBoundary]) {
         self.incoming_on_plane.clear();
         if self.static_plane_friction.is_some()
-            && boundaries
-                .iter()
-                .any(|b| matches!(b.shape, Shape::Plane(_)))
+            && boundaries.iter().any(PreparedBoundary::has_planar_surface)
         {
             self.incoming_on_plane
                 .extend(p.iter().map(|p| DVec3::from(p.velocity)));
@@ -822,7 +853,7 @@ fn project_points<const SPATIAL: bool>(
                     contacts.record(i, j, &hit, normal_impulse, remaining);
                 }
                 if let Some(coefficient) = contacts.static_plane_friction
-                    && matches!(boundary.shape, Shape::Plane(_))
+                    && boundary.has_planar_surface()
                     && let Some(&incoming) = contacts.incoming_on_plane.get(i)
                     && let Some(&row) = contacts.index.get(&(i, j))
                 {

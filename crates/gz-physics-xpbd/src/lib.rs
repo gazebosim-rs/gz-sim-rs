@@ -416,8 +416,8 @@ impl SoftBody {
             _ => Ok(self.config.substeps),
         }
     }
-    /// Specify the static Coulomb coefficient on prescribed planes. A sustained
-    /// contact may stick up to this limit. Sliding uses the configured friction.
+    /// Set the static Coulomb coefficient for particles supported by a prescribed
+    /// plane or a flat face of a fixed cuboid. Sliding uses the configured friction.
     pub fn with_static_plane_friction(mut self, coefficient: f64) -> Result<Self, XpbdError> {
         if !coefficient.is_finite() || coefficient < self.config.friction {
             return Err(XpbdError::InvalidConfig);

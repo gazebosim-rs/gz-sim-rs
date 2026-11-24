@@ -158,3 +158,42 @@ fn a_static_plane_row_rejects_an_unrepresentable_force_before_moving_the_node() 
     assert_eq!(p.velocity, [0.; 3]);
     assert_eq!(reaction.linear, [0.; 3]);
 }
+
+#[test]
+fn finite_face_friction_refuses_rounded_edges_stale_normals_and_airborne_endpoints() {
+    let orientation = DQuat::from_rotation_y(0.36);
+    let half = DVec3::new(0.5, 0.2, 0.05);
+    let b = PreparedBoundary::new(Boundary::StaticCuboid {
+        center: [2., -1., 0.],
+        half_extents: half.to_array(),
+        orientation: orientation.to_array(),
+    })
+    .unwrap();
+    for axis in 0..3 {
+        for sign in [-1., 1.] {
+            let mut n = DVec3::ZERO;
+            n[axis] = sign;
+            let radius = 0.01;
+            let p = n * (half[axis] + radius);
+            let tangent = (axis + 1) % 3;
+            let mut edge = p;
+            edge[tangent] = half[tangent];
+            let interior = orientation * p;
+            let normal = orientation * n;
+            let matches = |start, end, row_normal| {
+                b.on_friction_face([start, end], row_normal, radius, 1e-12)
+            };
+            assert!(matches(interior, interior, normal));
+            assert!(!matches(interior, orientation * edge, normal));
+            assert!(!matches(orientation * edge, interior, normal));
+            assert!(!matches(interior + 1e-6 * normal, interior, normal));
+            let mut wrong = n;
+            wrong[tangent] = 0.0001;
+            assert!(!matches(
+                interior,
+                interior,
+                orientation * wrong.normalize()
+            ));
+        }
+    }
+}

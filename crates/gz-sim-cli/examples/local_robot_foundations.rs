@@ -99,6 +99,9 @@ enum Study {
     /// Compare static holding and downhill sliding of two material strips.
     MaterialIncline {
         output: PathBuf,
+        /// Collide with the inclined board's actual finite box.
+        #[arg(long)]
+        finite_board: bool,
         /// Material subdivisions per ten-millisecond public step.
         #[arg(long, default_value_t = 1)]
         substeps: u32,
@@ -300,9 +303,13 @@ fn main() -> Result<()> {
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),
         Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
-        Study::MaterialIncline { output, substeps } => {
-            write_new(&output, |out| material_incline::run(out, substeps))
-        }
+        Study::MaterialIncline {
+            output,
+            substeps,
+            finite_board,
+        } => write_new(&output, |out| {
+            material_incline::run(out, substeps, finite_board)
+        }),
         Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
         Study::SheetJaws {
             output,
