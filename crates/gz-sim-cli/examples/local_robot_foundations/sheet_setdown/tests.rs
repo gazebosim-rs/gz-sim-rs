@@ -88,3 +88,31 @@ fn the_original_sheet_recording_keeps_its_camera_and_committed_coordinates() {
     assert_eq!(particles[1]["time_ns"], 1_000_000);
     assert_eq!(particles[1]["positions"].as_array().unwrap().len(), 12);
 }
+
+#[test]
+fn the_same_receiver_can_drop_before_or_after_the_fingers_unload() -> Result<()> {
+    let d = tempfile::tempdir()?;
+    let mut cases = Vec::new();
+    for mode in [Mode::Finite, Mode::DropEarly, Mode::DropLate] {
+        let path = d.path().join(format!("{mode:?}"));
+        fs::create_dir(&path)?;
+        run(&path, mode, 16, false, false)?;
+        let trace: Vec<Value> = serde_json::from_slice(&fs::read(path.join("ticks.json"))?)?;
+        cases.push(trace);
+    }
+    let [control, early, late]: [_; 3] = cases.try_into().unwrap();
+    for trial in [&early, &late] {
+        let start = trial
+            .iter()
+            .position(|r| r["deck_descent_m"].as_f64().unwrap() > 1e-6)
+            .unwrap();
+        assert_eq!(trial[..start], control[..start]);
+        assert_eq!(trial[start]["table_n"], 0.0);
+        assert_eq!(trial[start + 1]["opening_ms"], trial[start]["opening_ms"]);
+    }
+    assert!(early.last().unwrap()["search_exhausted"].as_bool().unwrap());
+    assert!(early.last().unwrap()["jaws_up_n"].as_f64().unwrap() > 0.08);
+    assert!(late.last().unwrap()["table_n"].as_f64().unwrap() > 0.08);
+    assert_eq!(late.last().unwrap()["jaws_up_n"], 0.0);
+    Ok(())
+}

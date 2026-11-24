@@ -8,6 +8,8 @@ use serde::Serialize;
 
 const WEIGHT: f64 = arm_sheet::COUNT as f64 * arm_sheet::NODE_MASS * 9.81;
 const END: usize = 4300;
+const DROP_SPEED_M_S: f64 = 0.5;
+const DROP_DURATION_MS: usize = 100;
 
 #[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 pub(crate) enum Mode {
@@ -15,6 +17,8 @@ pub(crate) enum Mode {
     Timed,
     Missing,
     Finite,
+    DropEarly,
+    DropLate,
 }
 #[derive(Debug, Serialize, PartialEq)]
 struct Reading {
@@ -31,6 +35,7 @@ struct Reading {
     unsupported_pad_free_observations: usize,
     max_observed_table_impulse_ns: f64,
     deck_lateral_clearance_m: f64,
+    deck_descent_m: f64,
 }
 fn drive(
     c: &Controller,
@@ -78,14 +83,35 @@ fn episode(
     let controller = Controller::with_jaw_damping(&r.sim, 1.5)?;
     let mut guard = SupportedSetdown::new(WEIGHT).unwrap();
     let bench = entity_id(&r.sim, "default::source::body")?;
-    let deck_half_y = arm_cable::half_size(&r.sdf, "source", "body")?.y;
+    let deck_half = arm_cable::half_size(&r.sdf, "source", "body")?;
+    let initial_deck_z = state(&r.sim, bench)?.position[2];
+    // Trigger from the previous public jaw command. The controller only sees table load.
+    let drop_opening_ms = match mode {
+        Mode::DropEarly => Some(8),
+        Mode::DropLate => Some(40),
+        _ => None,
+    };
+    let mut drop_start = None;
     let mut last_table_ns = 0.;
     let mut cmd = SetdownCommand::default();
-    let mut rows = Vec::with_capacity(END);
+    let end = if drop_opening_ms.is_some() { 4600 } else { END };
+    let mut rows = Vec::with_capacity(end);
     if let Some(f) = frames {
         arm_sheet::capture(r, f)?;
     }
-    for tick in 1..=END {
+    for tick in 1..=end {
+        if drop_start.is_none() && drop_opening_ms == Some(cmd.opening_ms) {
+            drop_start = Some(tick);
+            gz_sim_scene::queue_link_world_velocity(
+                &mut r.sim,
+                bench,
+                [0., 0., -DROP_SPEED_M_S],
+                [0.; 3],
+            )?;
+        }
+        if drop_start.is_some_and(|start| tick == start + DROP_DURATION_MS) {
+            gz_sim_scene::queue_link_world_velocity(&mut r.sim, bench, [0.; 3], [0.; 3])?;
+        }
         if mode == Mode::Missing && matches!(tick, 1501 | 1851) {
             let speed = if tick == 1501 { 0.75 } else { 0. };
             gz_sim_scene::queue_link_world_velocity(&mut r.sim, bench, [0., speed, 0.], [0.; 3])?;
@@ -143,7 +169,7 @@ fn episode(
             .iter()
             .map(|p| p.position[1] + arm_sheet::RADIUS)
             .fold(f64::NEG_INFINITY, f64::max);
-        let deck_y = state(&r.sim, bench)?.position[1];
+        let deck = state(&r.sim, bench)?.position;
         last_table_ns = js[2];
         rows.push(Reading {
             tick,
@@ -151,7 +177,7 @@ fn episode(
             table_n: js[2] / 0.001,
             jaws_up_n: (js[0] + js[1]) / 0.001,
             grip_n: grip.map(|v| v / 0.001),
-            min_height_above_table_m: low(2) - arm_sheet::BENCH,
+            min_height_above_table_m: low(2) - (deck[2] + deck_half.z),
             lift_offset_m: cmd.lift_offset_m,
             opening_ms: if mode == Mode::Timed {
                 // The command at the left endpoint of tick 2651 starts the 350 ms ramp.
@@ -163,7 +189,8 @@ fn episode(
             pad_free_observations: pad_free,
             unsupported_pad_free_observations: unsupported,
             max_observed_table_impulse_ns: peak,
-            deck_lateral_clearance_m: deck_y - deck_half_y - far_y,
+            deck_lateral_clearance_m: deck[1] - deck_half.y - far_y,
+            deck_descent_m: initial_deck_z - deck[2],
         });
         if let Some(f) = frames
             && tick % 25 == 0
@@ -174,6 +201,34 @@ fn episode(
     Ok(rows)
 }
 
+/// Measured at the first committed motion of the receiver and from subsequent feedback.
+#[derive(Serialize)]
+struct ReceiverDrop {
+    first_tick: usize,
+    opening_before_ms: u16,
+    first_paused_tick: usize,
+    first_returning_table_load_tick: Option<usize>,
+    preceding_grip_n: [f64; 2],
+}
+impl ReceiverDrop {
+    fn observe(rows: &[Reading]) -> Option<Self> {
+        let first = rows.iter().position(|r| r.deck_descent_m > 1e-6)?;
+        let before = &rows[first - 1];
+        let paused = rows[first..]
+            .windows(2)
+            .find(|r| r[1].opening_ms == r[0].opening_ms)?;
+        Some(Self {
+            first_tick: rows[first].tick,
+            opening_before_ms: before.opening_ms,
+            first_paused_tick: paused[1].tick,
+            first_returning_table_load_tick: rows[first + 1..]
+                .iter()
+                .find(|r| r.table_n > 1e-6)
+                .map(|r| r.tick),
+            preceding_grip_n: before.grip_n,
+        })
+    }
+}
 #[derive(Serialize)]
 struct ObservationWindow {
     first_opening_tick: Option<usize>,
@@ -181,6 +236,10 @@ struct ObservationWindow {
     search_exhausted_tick: Option<usize>,
     preceding_20ms_table_force_range_n: Option<[f64; 2]>,
     first_pad_free_tick: Option<usize>,
+    receiver_drop: Option<ReceiverDrop>,
+    opening_ms_at_end: u16,
+    final_deck_descent_m: f64,
+    final_material_gap_m: f64,
     airborne_after_opening_s: f64,
     max_loose_gap_m: Option<f64>,
     peak_loose_table_interval_ns: Option<f64>,
@@ -195,7 +254,8 @@ impl ObservationWindow {
     fn new(mode: Mode, rows: &[Reading], observed_s: f64) -> Result<Self> {
         let opening = rows.iter().find(|r| r.opening_ms > 0).map(|r| r.tick);
         let complete = rows.iter().find(|r| r.opening_ms == 350).map(|r| r.tick);
-        let late = &rows[END - 200..];
+        let end = rows.len();
+        let late = &rows[end - 200..];
         let mean = |f: fn(&Reading) -> f64| late.iter().map(f).sum::<f64>() / late.len() as f64;
         let preceding = opening.map(|tick| {
             let iter = rows[tick - 21..tick - 1].iter().map(|r| r.table_n);
@@ -216,6 +276,10 @@ impl ObservationWindow {
             search_exhausted_tick: rows.iter().find(|r| r.search_exhausted).map(|r| r.tick),
             preceding_20ms_table_force_range_n: preceding,
             first_pad_free_tick: first,
+            receiver_drop: ReceiverDrop::observe(rows),
+            opening_ms_at_end: rows[end - 1].opening_ms,
+            final_deck_descent_m: rows[end - 1].deck_descent_m,
+            final_material_gap_m: rows[end - 1].min_height_above_table_m,
             airborne_after_opening_s: released
                 .iter()
                 .map(|r| r.unsupported_pad_free_observations)
@@ -234,7 +298,7 @@ impl ObservationWindow {
             final_table_n: mean(|r| r.table_n),
             final_jaw_up_n: mean(|r| r.jaws_up_n),
             final_grip_n: mean(|r| r.grip_n.iter().sum()),
-            final_deck_lateral_clearance_m: rows[END - 1].deck_lateral_clearance_m,
+            final_deck_lateral_clearance_m: rows[end - 1].deck_lateral_clearance_m,
             max_downward_adjustment_m: -rows.iter().map(|r| r.lift_offset_m).fold(0., f64::min),
             min_raised_clearance_m: rows[1600..1900]
                 .iter()
@@ -254,6 +318,35 @@ impl ObservationWindow {
                     && (m.final_jaw_up_n - WEIGHT).abs() < 0.03 * WEIGHT
                     && m.final_deck_lateral_clearance_m > 0.03
             }
+            Mode::DropEarly => m.receiver_drop.as_ref().is_some_and(|d| {
+                d.opening_before_ms == 8
+                    && d.first_paused_tick == d.first_tick + 1
+                    && d.preceding_grip_n.iter().all(|f| *f > 0.5)
+                    && d.first_returning_table_load_tick.is_none()
+                    && m.opening_ms_at_end == 9
+                    && m.first_pad_free_tick.is_none()
+                    && m.search_exhausted_tick.is_some()
+                    && m.final_table_n.abs() < 1e-8
+                    && m.final_grip_n > 1.0
+                    && (m.final_jaw_up_n - WEIGHT).abs() < 0.03 * WEIGHT
+                    && (m.final_deck_descent_m - 0.05).abs() < 1e-7
+                    && m.final_material_gap_m > 0.045
+            }),
+            Mode::DropLate => m.receiver_drop.as_ref().is_some_and(|d| {
+                let flight_s = (2. * m.final_deck_descent_m / 9.81).sqrt();
+                let expected_gap = DROP_SPEED_M_S.powi(2) / (2. * 9.81);
+                supported
+                    && d.opening_before_ms == 40
+                    && d.first_paused_tick == d.first_tick + 1
+                    && d.preceding_grip_n.iter().all(|f| f.abs() < 1e-8)
+                    && (m.final_deck_descent_m - 0.05).abs() < 1e-7
+                    && d.first_returning_table_load_tick.is_some_and(|t| {
+                        ((t - d.first_tick + 1) as f64 * 0.001 - flight_s).abs() < 0.002
+                    })
+                    && m.max_loose_gap_m
+                        .is_some_and(|g| (g - expected_gap).abs() < 0.0002)
+                    && m.airborne_after_opening_s > 0.09
+            }),
             Mode::Timed => supported && m.airborne_after_opening_s > 0.005,
             Mode::Supported | Mode::Finite => {
                 supported
@@ -285,7 +378,10 @@ pub(super) fn run(
             "exchange count must divide 1 ms exactly and fit the public exchange clock".into(),
         );
     }
-    let deck = matches!(mode, Mode::Missing | Mode::Finite);
+    let deck = matches!(
+        mode,
+        Mode::Missing | Mode::Finite | Mode::DropEarly | Mode::DropLate
+    );
     if deck && public && exchanges > 1 {
         return Err(
             "prescribed finite bench requires --native-steps for multiple exchanges".into(),
@@ -311,17 +407,24 @@ pub(super) fn run(
             return Err("reset changed a measured controller tick".into());
         }
         r.costs_ns
-            .truncate(END * usize::try_from(1_000_000 / r.sim.step_duration().as_nanos())?);
+            .truncate(rows.len() * usize::try_from(1_000_000 / r.sim.step_duration().as_nanos())?);
     }
     let window = ObservationWindow::new(mode, &rows, r.sim.step_duration().as_secs_f64())?;
     let receipt = json!({"mode":mode,"actuator_ms":1,"exchanges_per_ms":exchanges,"public_ms":r.sim.step_duration().as_secs_f64()*1000.,"reset_checked":verify_reset,"weight_n":WEIGHT,"measurement":window});
     fs::write(out.join("world.sdf"), xml)?;
+    let rows_count = rows.len();
     write_json(&out.join("ticks.json"), &serde_json::to_value(rows)?)?;
     write_json(&out.join("comparison.json"), &receipt)?;
     let (camera, captures) = if mode == Mode::Missing {
         (
             "perspective",
             json!({"grasp":40,"deck_moving":64,"deck_clear":76,"search":112,"retained":172}),
+        )
+    } else if let Some(drop) = &window.receiver_drop {
+        let drop_tick = drop.first_tick;
+        (
+            "right",
+            json!({"grasp":40,"raised":72,"before_descent":(drop_tick-1)/25,"descending":(drop_tick+25).div_ceil(25),"deck_stopped":(drop_tick+100).div_ceil(25),"final":rows_count/25}),
         )
     } else {
         let release = window
