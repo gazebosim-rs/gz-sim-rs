@@ -144,12 +144,12 @@ fn a_static_plane_row_rejects_an_unrepresentable_force_before_moving_the_node() 
         radius: 0.1,
     };
     assert_eq!(
-        contacts.items[0].stick_on_plane(
+        contacts.items[0].project_plane_friction(
             &mut x,
             (&mut p, DVec3::ZERO),
             &boundary,
             time,
-            0.5,
+            [0.5, 0.3],
             &mut reaction
         ),
         Err(XpbdError::Numerical)
