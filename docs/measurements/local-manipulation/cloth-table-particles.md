@@ -22,6 +22,19 @@ The Rust solver probe records signed normal and tangential impulses, including u
 
 With the turntable and plane changes combined, 230 XPBD tests and nine focused CLI example tests passed. Exact scoped LLVM coverage reached 84/84 changed executable lines and 93/94 regions in XPBD, and 58/58 lines and 102/107 regions in the CLI example. Both combined targets passed strict Clippy. [Solver probe](../../../crates/gz-physics-xpbd/src/pad_loads.rs) · [Release coverage](replay-release-gate.md)
 
+## Watch the recorded physics
+
+The two close-ups show the first displayed load at opposite ends of the folded panel. The gripper and all measured particle positions are visible in each original recording. [Coarser touchdown in gz-web-rs](cloth-table-corner-1000.jpg) · [Finer touchdown in gz-web-rs](cloth-table-corner-2000.jpg)
+
+Both complete native recordings and the independent particle traces fit in a [217 KiB replay bundle](cloth-table-particles-replays.tar.xz). To replay the finer landing on another machine, run these commands from this checkout and connect the gz-web-rs frontend to the selected port.
+
+```sh
+mkdir -p target/cloth-corner-replays
+tar -xJf docs/measurements/local-manipulation/cloth-table-particles-replays.tar.xz -C target/cloth-corner-replays
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli --bin gz-sim-rs -- \
+  --server --replay --web-viewer 10014 target/cloth-corner-replays/table-corners-2000/replay
+```
+
 ## Reproduce
 
 From the simulator checkout, choose a fresh output directory for each rate. The 1 ms actuator clock stays fixed from time zero. Each clip spans 3.2 ms and emits a frame every 20 µs plus the final native endpoint.

@@ -96,7 +96,8 @@
         "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10013%2F",
         "reset_ms": 2689.0
       },
-      "replay_sha256": "6aa2a3b5f1df5478bd0d867e3aee5c156a0c411a2a350472873e77d1f68b5628"
+      "replay_sha256": "6aa2a3b5f1df5478bd0d867e3aee5c156a0c411a2a350472873e77d1f68b5628",
+      "close_up_ms": 2689.28
     },
     "2000": {
       "native_dt_ns": 500,
@@ -187,7 +188,8 @@
         "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10014%2F",
         "reset_ms": 2689.0
       },
-      "replay_sha256": "bc71e866e4ad8e9a722ed948490f1644446083272932f4f6ad9eca40ed2a7901"
+      "replay_sha256": "bc71e866e4ad8e9a722ed948490f1644446083272932f4f6ad9eca40ed2a7901",
+      "close_up_ms": 2689.16
     }
   },
   "coverage": {
@@ -289,5 +291,6 @@
         "missing": []
       }
     }
-  }
+  },
+  "archive_sha256": "0132adb11c3581bcce4173ee64a7365fc06ec1fc8ac5992780a4ee7183ce6ffb"
 }
