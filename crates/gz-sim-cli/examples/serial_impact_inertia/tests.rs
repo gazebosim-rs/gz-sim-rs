@@ -246,3 +246,17 @@ fn timing_compares_every_native_body_without_changing_the_actuator_clock() -> Re
     }
     Ok(())
 }
+
+#[test]
+fn failed_native_timing_never_returns_a_partial_latency_sample() -> Result<()> {
+    let mut reference = run(Args::try_parse_from(["study", "--ticks", "1"])?.trial)?;
+    // The native grid cannot represent more intervals than nanoseconds.
+    reference.trial.substeps = u32::MAX;
+    assert!(timing::measure(&reference, 1).is_err());
+    // Admission must also fail before timing when the SDF policy is invalid.
+    reference.trial.substeps = 0;
+    reference.trial.automatic = true;
+    assert!(timing::measure(&reference, 1).is_err());
+    assert!(run(reference.trial).is_err());
+    Ok(())
+}
