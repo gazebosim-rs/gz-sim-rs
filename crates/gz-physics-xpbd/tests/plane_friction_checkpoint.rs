@@ -80,3 +80,39 @@ fn restores_the_original_contact_equations_and_preserves_the_cold_seed() {
         assert_eq!(projected, trace(reopened.clone()));
     }
 }
+
+#[test]
+fn resumed_material_retains_its_trajectory_and_signed_moving_deck_reaction() {
+    let mut continuous = SoftBody::from_one_way_construction(&bincode::deserialize(SEED).unwrap())
+        .unwrap()
+        .with_static_plane_friction(0.45)
+        .unwrap();
+    let dt = Duration::from_millis(5);
+    let deck = |tick: u32| Boundary::TranslatingCuboid {
+        center: [0.25 * dt.as_secs_f64() * f64::from(tick), 0., -0.05],
+        half_extents: [2., 0.4, 0.05],
+        orientation: [0., 0., 0., 1.],
+        velocity: [0.25, 0., 0.],
+    };
+    let construction = bincode::serialize(&continuous.one_way_construction().unwrap()).unwrap();
+    for tick in 0..10 {
+        continuous.step(dt, &[deck(tick)]).unwrap();
+    }
+    let state = bincode::serialize(&continuous.one_way_state().unwrap()).unwrap();
+    let mut resumed =
+        SoftBody::from_one_way_construction(&bincode::deserialize(&construction).unwrap()).unwrap();
+    resumed
+        .install_one_way_state(bincode::deserialize(&state).unwrap())
+        .unwrap();
+    assert_eq!(resumed.one_way_identity(), continuous.one_way_identity());
+    for tick in 10..35 {
+        continuous.step(dt, &[deck(tick)]).unwrap();
+        resumed.step(dt, &[deck(tick)]).unwrap();
+        assert_eq!(resumed.particles(), continuous.particles());
+        assert_eq!(
+            resumed.last_boundary_impulses(),
+            continuous.last_boundary_impulses()
+        );
+        assert!(continuous.last_boundary_impulses()[0].linear[2] < 0.);
+    }
+}

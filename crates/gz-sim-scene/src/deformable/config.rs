@@ -327,19 +327,32 @@ fn rigid_surface(
                 })
         })
         .ok_or("missing loaded boundary collision pose")?;
-    let static_box = matches!(shape, ReceiverShape::Cuboid(_))
-        && node.attribute("coupling") == Some("one_way")
-        && fixed
-        && !prescribed;
-    if !static_box && !identity(collision_pose) {
-        return Err(format!("expected centered geometry on '{name}'"));
-    }
     let body = ecs
         .get::<BodyHandle>(entity)
         .ok_or("missing rigid body")?
         .id();
+    let one_way_box = if matches!(shape, ReceiverShape::Cuboid(_))
+        && node.attribute("coupling") == Some("one_way")
+        && prescribed_or_static
+    {
+        if fixed {
+            Some(BoxMotion::Fixed(collision_pose))
+        } else if physics
+            .state(body)
+            .is_some_and(|state| linear_box_motion(physics, body, state))
+        {
+            Some(BoxMotion::Translating(collision_pose))
+        } else {
+            return Err("one-way cuboid boundaries require a static SDF link or linearly translating PrescribedMotion".into());
+        }
+    } else {
+        None
+    };
+    if one_way_box.is_none() && !identity(collision_pose) {
+        return Err(format!("expected centered geometry on '{name}'"));
+    }
     let mobility = match attribute(node, "coupling")? {
-        "one_way" if static_box || matches!(shape, ReceiverShape::Sphere(_)) => None,
+        "one_way" if one_way_box.is_some() || matches!(shape, ReceiverShape::Sphere(_)) => None,
         "one_way" if matches!(shape, ReceiverShape::Capsule { .. }) => {
             if !prescribed_or_static
                 || ecs
@@ -358,9 +371,7 @@ fn rigid_surface(
             .map_err(|e| format!("{name}: {e}"))?;
             None
         }
-        "one_way" => {
-            return Err("one-way cuboid boundaries require a static SDF link".into());
-        }
+        "one_way" => return Err("one-way cuboid boundaries require a static SDF link or linearly translating PrescribedMotion".into()),
         "articulated_wrench" => {
             if !matches!(shape, ReceiverShape::Cuboid(_))
                 || prescribed_or_static
@@ -416,7 +427,7 @@ fn rigid_surface(
         body,
         shape,
         mobility,
-        static_box_pose: static_box.then_some(collision_pose),
+        one_way_box,
     })
 }
 
@@ -776,7 +787,7 @@ fn parse(
             match s {
                 Surface::Plane { .. }
                 | Surface::Rigid {
-                    static_box_pose: Some(_),
+                    one_way_box: Some(_),
                     ..
                 } => {}
                 Surface::Rigid {

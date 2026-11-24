@@ -140,6 +140,14 @@ pub enum Boundary {
         half_extents: [f64; 3],
         orientation: [f64; 4],
     },
+    /// One-way finite box translating at constant world velocity. The orientation
+    /// stays fixed. Reaction moments use its start-of-step collision center.
+    TranslatingCuboid {
+        center: [f64; 3],
+        half_extents: [f64; 3],
+        orientation: [f64; 4],
+        velocity: [f64; 3],
+    },
     /// COM-centered box. Its uncoupled orientation follows the shortest arc
     /// between the two world quaternions in the accompanying principal motion.
     Cuboid {

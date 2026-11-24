@@ -3,7 +3,7 @@
 use super::*;
 
 fn top_ridge() -> Ridge {
-    Ridge::all(DVec3::ZERO, DVec3::ONE, DQuat::IDENTITY)
+    Ridge::all(DVec3::ZERO, DVec3::ONE, DQuat::IDENTITY, DVec3::ZERO)
         .nth(3)
         .unwrap()
 }

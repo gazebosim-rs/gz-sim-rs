@@ -40,7 +40,7 @@ pub(super) fn admit(
                 s,
                 Surface::Plane { .. }
                     | Surface::Rigid {
-                        static_box_pose: Some(_),
+                        one_way_box: Some(BoxMotion::Fixed(_)),
                         ..
                     }
                     | Surface::Rigid {

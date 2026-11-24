@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Fixed box features meeting the interior or boundary of a moving cloth triangle.
+//! Fixed-orientation box features meeting the interior or boundary of a moving cloth triangle.
 mod edges;
 use super::{
     BoundaryImpulse, Particle, PreparedBoundary, XpbdError,
@@ -87,17 +87,33 @@ impl Faces {
         let mut boxes = surfaces
             .iter()
             .enumerate()
-            .filter_map(|(i, b)| b.fixed_box().map(|(half, q)| (i, b.origin, half, q)))
+            .filter_map(|(i, b)| b.one_way_box().map(|(half, q)| (i, b, half, q)))
             .peekable();
         if boxes.peek().is_none() {
             return Ok(());
         }
-        let all = Bounds::swept(
-            p.iter().zip(x.iter()).map(|(p, &x)| (p.position.into(), x)),
-            dt.radius,
-        );
         let mut queries = 0;
-        for (b, center, half, q) in boxes {
+        let mut stationary_bounds = None;
+        for (b, boundary, half, q) in boxes {
+            // Cast the material in a frame translating with the box. Store the
+            // end witness back in world space for position and angular reactions.
+            let center = boundary.origin + dt.t0 * boundary.velocity;
+            let offset = (dt.t1 - dt.t0) * boundary.velocity;
+            let bounds = || {
+                Bounds::swept(
+                    p.iter()
+                        .zip(x.iter())
+                        .map(|(p, &x)| (p.position.into(), x - offset)),
+                    dt.radius,
+                )
+            };
+            let moving_bounds;
+            let all = if offset == DVec3::ZERO {
+                stationary_bounds.get_or_insert_with(bounds)
+            } else {
+                moving_bounds = bounds();
+                &moving_bounds
+            };
             for corner_index in 0..8 {
                 let signs = DVec3::from_array(std::array::from_fn(|i| {
                     if corner_index & (1 << i) == 0 {
@@ -120,7 +136,7 @@ impl Faces {
                             continue;
                         }
                         let a = ids.map(|i| DVec3::from(p[i].position));
-                        let z = ids.map(|i| x[i]);
+                        let z = ids.map(|i| x[i] - offset);
                         if !Bounds::swept(a.into_iter().zip(z), dt.radius).contains(corner) {
                             continue;
                         }
@@ -165,7 +181,7 @@ impl Faces {
                             ids,
                             weights,
                             normal: n,
-                            witness: corner,
+                            witness: corner + offset,
                             other_wing: None,
                             lambda: 0.,
                         };
@@ -175,8 +191,8 @@ impl Faces {
                     }
                 }
             }
-            for ridge in edges::Ridge::all(center, half, q) {
-                if !ridge.overlaps(&all) {
+            for ridge in edges::Ridge::all(center, half, q, offset) {
+                if !ridge.overlaps(all) {
                     continue;
                 }
                 let edges = self.edges.get_or_init(|| edges::topology(p.len(), columns));
@@ -226,7 +242,9 @@ impl Faces {
             {
                 continue;
             }
-            let closing = (-row.blend(|i| p[i].velocity.into()).dot(n)).max(0.);
+            let closing = (surfaces[b].velocity - row.blend(|i| p[i].velocity.into()))
+                .dot(n)
+                .max(0.);
             let normal_j = closing / row.mass_inverse(p);
             for (&i, w) in row.ids.iter().zip(row.weights) {
                 p[i].velocity =
@@ -244,7 +262,7 @@ impl Faces {
                 &ring[..3]
             };
             let skin = Skin::new(patch, row.ids, row.weights, |i| x[i], -radius * n)?;
-            let relative = skin.velocity(p);
+            let relative = skin.velocity(p) - surfaces[b].velocity;
             let slip = relative - n * relative.dot(n);
             let mut tangent = DVec3::ZERO;
             if let Some(dir) = slip.try_normalize() {
