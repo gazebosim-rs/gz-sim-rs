@@ -220,11 +220,16 @@ mod tests {
             PhysicsEngine::MultiFidelity,
         )?;
         assert!(episode(&mut sim, |_, _| Err("interrupted".into())).is_err());
-        let sensor = named(&sim, "default::held::bearing");
-        sim.world_mut()
-            .entity_mut(sensor)
-            .remove::<BallJointSample>();
-        assert!(episode(&mut sim, |_, _| Ok(())).is_err());
+        for model in ["held", "free"] {
+            let sensor = named(&sim, &format!("default::{model}::bearing"));
+            let sample = sim
+                .world_mut()
+                .entity_mut(sensor)
+                .take::<BallJointSample>()
+                .unwrap();
+            assert!(episode(&mut sim, |_, _| Ok(())).is_err());
+            sim.world_mut().entity_mut(sensor).insert(sample);
+        }
         Ok(())
     }
     #[test]
