@@ -18,6 +18,7 @@ pub struct JointStatePublication {
 pub enum JointStateKind {
     Revolute,
     Prismatic,
+    Screw,
 }
 
 /// Native joint pose is construction pose relative to the child, not world pose.
@@ -231,9 +232,9 @@ impl Plan {
                 .iter()
                 .filter(|j| self.names.contains(&j.name))
                 .all(|j| {
-                    use sdformat::JointKind::{Prismatic, Revolute};
+                    use sdformat::JointKind::{Prismatic, Revolute, Screw};
                     let supported = match engine {
-                        Some("multifidelity") => matches!(j.kind, Revolute | Prismatic),
+                        Some("multifidelity") => matches!(j.kind, Revolute | Prismatic | Screw),
                         Some("gpu-gripper") => j.kind == Prismatic,
                         _ => j.kind == Revolute,
                     };
@@ -296,10 +297,10 @@ pub(super) fn build(
             .expect("plan checked joint name");
         let axis = joint.axis.as_ref().expect("validated scalar axis");
         metadata.push(JointStateJointPublication {
-            kind: if joint.kind == sdformat::JointKind::Prismatic {
-                JointStateKind::Prismatic
-            } else {
-                JointStateKind::Revolute
+            kind: match joint.kind {
+                sdformat::JointKind::Prismatic => JointStateKind::Prismatic,
+                sdformat::JointKind::Screw => JointStateKind::Screw,
+                _ => JointStateKind::Revolute,
             },
             id: node.get::<EntityId>().expect("loaded joint identity").get(),
             name: name.clone(),

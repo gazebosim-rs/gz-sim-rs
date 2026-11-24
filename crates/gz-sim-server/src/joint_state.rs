@@ -80,6 +80,7 @@ fn packet(
         let kind = match joint.kind {
             gz_sim_scene::JointStateKind::Revolute => gz_sim_proto::msgs::joint::Type::Revolute,
             gz_sim_scene::JointStateKind::Prismatic => gz_sim_proto::msgs::joint::Type::Prismatic,
+            gz_sim_scene::JointStateKind::Screw => gz_sim_proto::msgs::joint::Type::Screw,
         };
         joints.push(Joint {
             r#type: kind as i32,

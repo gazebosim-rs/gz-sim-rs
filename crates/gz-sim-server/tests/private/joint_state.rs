@@ -1284,13 +1284,15 @@ fn the_live_cpu_transfer_robot_reports_real_slider_positions_on_its_native_topic
     }
     let packet = receive(&subscriber);
     assert_eq!(packet.name, "gripper");
-    assert_eq!(packet.joint.len(), 3);
+    assert_eq!(packet.joint.len(), 4);
     assert_eq!(packet.header.unwrap().stamp.unwrap().nsec, 10_000_000);
     for (msg, (id, entity)) in packet.joint.iter().zip(&server.joint_states[0].joints) {
-        assert_eq!(
-            msg.r#type,
-            gz_sim_proto::msgs::joint::Type::Prismatic as i32
-        );
+        let kind = if msg.name == "spindle" {
+            gz_sim_proto::msgs::joint::Type::Screw
+        } else {
+            gz_sim_proto::msgs::joint::Type::Prismatic
+        };
+        assert_eq!(msg.r#type, kind as i32);
         assert_eq!(u64::from(msg.id), *id);
         let axis = msg.axis1.as_ref().unwrap();
         let reading = server

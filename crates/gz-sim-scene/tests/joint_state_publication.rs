@@ -127,7 +127,7 @@ fn unsupported_configuration_does_not_silently_degrade_to_a_publisher() {
 }
 
 #[test]
-fn the_local_transfer_robot_publishes_only_its_three_sliders_and_repeats_after_reset() {
+fn the_local_transfer_robot_publishes_its_sliders_and_spindle_and_repeats_after_reset() {
     use gz_sim_scene::{JointForceCommand, JointStateKind};
     use std::time::Duration;
     const TRANSFER: &str = include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf");
@@ -172,14 +172,30 @@ fn the_local_transfer_robot_publishes_only_its_three_sliders_and_repeats_after_r
             .iter()
             .map(|j| j.name.as_str())
             .collect::<Vec<_>>(),
-        ["travel", "close_left", "close_right"]
+        ["travel", "spindle", "close_left", "close_right"]
     );
-    assert!(
-        config
-            .joints
-            .iter()
-            .all(|j| j.kind == JointStateKind::Prismatic)
+    assert_eq!(
+        config.joints.iter().map(|j| j.kind).collect::<Vec<_>>(),
+        [
+            JointStateKind::Prismatic,
+            JointStateKind::Screw,
+            JointStateKind::Prismatic,
+            JointStateKind::Prismatic
+        ]
     );
+    let gap = |sim: &Simulation| {
+        let z = |name: &str| {
+            sim.world()
+                .iter_entities()
+                .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
+                .unwrap()
+                .get::<gz_sim_scene::WorldPose>()
+                .unwrap()
+                .translation[2]
+        };
+        z("default::gripper::nut") - z("default::gripper::carriage")
+    };
+    let initial_gap = gap(&sim);
     let model_id = sim.world().get::<EntityId>(model).unwrap().get();
     let mut passes = Vec::new();
     for pass in 0..2 {
@@ -197,7 +213,7 @@ fn the_local_transfer_robot_publishes_only_its_three_sliders_and_repeats_after_r
             let sample = sim.world().get::<JointStateSample>(model).unwrap();
             assert_eq!(sample.time, Duration::from_millis(tick));
             assert_eq!(sample.epoch, sim.epoch());
-            assert_eq!(sample.joints.len(), 3);
+            assert_eq!(sample.joints.len(), 4);
             for (reading, joint) in sample.joints.iter().zip(&config.joints) {
                 assert_eq!(reading.id, joint.id);
                 let entity = gz_sim_core::entity_by_id(sim.world(), joint.id).unwrap();
@@ -211,9 +227,12 @@ fn the_local_transfer_robot_publishes_only_its_three_sliders_and_repeats_after_r
                     (native.position, native.velocity)
                 );
             }
+            let screw_travel = 0.50 / std::f64::consts::TAU * sample.joints[1].position;
+            assert!((gap(&sim) - initial_gap - screw_travel).abs() < 2e-5);
             readings.push(sample.joints.clone());
         }
         assert!(readings[2][0].position > 1e-5);
+        assert!(readings[2][1].position > 0.001);
         passes.push(readings);
     }
     assert_eq!(passes[0], passes[1]);
