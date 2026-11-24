@@ -211,6 +211,8 @@ fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Res
     let root =
         env::var_os("GZ_GPU_COMMAND_REPLAY_AUDIT").ok_or("set GZ_GPU_COMMAND_REPLAY_AUDIT")?;
     let root = Path::new(&root);
+    let capture =
+        root.join(env::var_os("GZ_GPU_COMMAND_CAPTURE").unwrap_or_else(|| "qualified".into()));
     let sdf = include_str!("../../../examples/gpu_commanded_tool_world.sdf");
     let doc = roxmltree::Document::parse(sdf)?;
     let links = visual_bindings(sdf)?;
@@ -239,8 +241,15 @@ fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Res
         .normalize())
     };
     let axes = [axis("shoulder")?, axis("elbow")?];
-    let trace: Vec<Value> = serde_json::from_slice(&fs::read(root.join("qualified/trace.json"))?)?;
+    let mut trace: Vec<Value> = serde_json::from_slice(&fs::read(capture.join("trace.json"))?)?;
     assert_eq!(trace.len(), 600);
+    let terminal = capture.join("terminal.json");
+    if terminal.try_exists()? {
+        let state: Value = serde_json::from_slice(&fs::read(terminal)?)?;
+        assert_eq!(state["tick_ms"], 601);
+        assert_eq!(state["source"], "matched local hardware");
+        trace.push(state);
+    }
     let mut frames = vec![];
     let mut loaded = vec![];
     for tick in 0..=trace.len() {
@@ -281,14 +290,14 @@ fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Res
     }
     assert_eq!((loaded.first(), loaded.last()), (Some(&65), Some(&311)));
     let mut captures = vec![];
-    for line in fs::read_to_string(root.join("qualified/replay/frames.jsonl"))?.lines() {
+    for line in fs::read_to_string(capture.join("replay/frames.jsonl"))?.lines() {
         let row: Value = serde_json::from_str(line)?;
         if row["kind"] != "frame" {
             continue;
         }
         let scene: Value = serde_json::from_str(row["scene"].as_str().unwrap())?;
         let tick = (scene["nanoseconds"].as_u64().unwrap() / 1_000_000) as usize;
-        assert!(tick <= 600);
+        assert!(tick <= trace.len());
         for v in scene["visuals"].as_array().unwrap() {
             assert_eq!(v["shape"], links[v["name"].as_str().unwrap()].shape);
         }
