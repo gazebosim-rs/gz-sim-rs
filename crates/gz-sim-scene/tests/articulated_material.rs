@@ -399,3 +399,103 @@ fn distributed_cold_recipe_retains_the_ordinary_public_links_and_both_soft_const
         );
     }
 }
+
+#[test]
+fn the_two_loaded_pads_need_one_solver_batch_and_one_owner_of_the_approach() {
+    const TIME: &str = r#"time_ns="100000000""#;
+    const AUTO: &str = r#"detection="first_impact""#;
+    const END: &str = "</articulated_impact>";
+    let start = CLOTH.find("<articulated_impact ").unwrap();
+    let stop = start + CLOTH[start..].find(END).unwrap() + END.len();
+    let batch = &CLOTH[start..stop];
+    let left = r#"<sphere link="default::gripper::left_finger"/>"#;
+    let right = r#"<sphere link="default::gripper::right_finger"/>"#;
+    let alone_left = batch.replace(right, "");
+    let alone_right = batch.replace(left, "");
+    let detected = batch.replace(TIME, AUTO);
+    let persistent = r#"detection="persistent_contact" max_contact_step_ns="10000""#;
+    let refused = [
+        (
+            format!("{alone_left}{alone_right}"),
+            "collect all articulated impact spheres at one time into one batch",
+        ),
+        (
+            format!("{detected}{batch}"),
+            "automatically detected first impact owns the approach",
+        ),
+        (
+            format!("{batch}{detected}"),
+            "automatically detected first impact owns the approach",
+        ),
+        (
+            format!("{detected}{detected}"),
+            "automatically detected first impact owns the approach",
+        ),
+        (
+            batch.replace(TIME, &format!("{TIME} {AUTO}")),
+            "select time_ns",
+        ),
+        (batch.replace(TIME, ""), "select time_ns"),
+        (
+            batch.replace(left, "").replace(right, ""),
+            "at least one sphere",
+        ),
+        (
+            batch.replace("sphere link=", "box link="),
+            "native sphere links",
+        ),
+        (
+            batch.replace("0.55", "NaN"),
+            "normal restitution must be between zero and one",
+        ),
+        (
+            batch.replace("0.55", "1.01"),
+            "normal restitution must be between zero and one",
+        ),
+        (
+            batch.replace(TIME, persistent),
+            "persistent normal support requires zero restitution",
+        ),
+        (
+            batch
+                .replace(TIME, persistent)
+                .replace("0.55", "0")
+                .replace("10000", "0"),
+            "recurrent material substep",
+        ),
+        (
+            batch.replace(TIME, &format!(r#"{AUTO} max_contact_step_ns="10000""#)),
+            "max_contact_step_ns requires recurrent material contact",
+        ),
+        (
+            batch.replace(
+                TIME,
+                &format!(r#"{persistent} max_slip_transition_step_ns="10001""#),
+            ),
+            "slip transition step must fit",
+        ),
+    ];
+    for (event, reason) in refused {
+        let xml = CLOTH.replace(batch, &event);
+        let err = Gripper::new(&xml)
+            .err()
+            .expect("invalid contact ownership or clock was admitted");
+        assert!(err.to_string().contains(reason), "{err}: {event}");
+    }
+
+    let mut g = Gripper::new(CLOTH).unwrap();
+    g.sim.step_exact(99).unwrap();
+    assert!(sample(&g).latest_articulated_impact().is_none());
+    g.sim.step_exact(1).unwrap();
+    let impact = sample(&g).latest_articulated_impact().unwrap();
+    assert_eq!(impact.links, [g.ids[1].0, g.ids[2].0]);
+    assert_eq!(impact.time.as_nanos(), 100_000_000);
+    assert_eq!(impact.material.loads.len(), 2);
+    assert!(
+        impact
+            .material
+            .loads
+            .iter()
+            .all(|r| r.initial_normal_velocity < -0.7 && r.final_normal_velocity > 0.4)
+    );
+}
