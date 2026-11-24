@@ -157,6 +157,27 @@ fn offset_and_standalone_geometry_do_not_use_body_centered_bounds() {
         .set_position(offset);
     compare(&backend, [0., 3., 1.], [0., 0., -1.], 1., None);
     assert!(backend.translation_rays.get().unwrap().is_none());
+    let point = [0., 3., 0.];
+    assert_eq!(
+        backend.bodies_overlapping_aabb(point, point).unwrap(),
+        [ids[0]]
+    );
+    backend.world.insert_collider(
+        ColliderBuilder::ball(0.5).translation(Vector::new(0., 3.5, 0.)),
+        Some(h),
+    );
+    // The two touching colliders belong to one body.
+    assert_eq!(
+        backend.bodies_overlapping_aabb(point, point).unwrap(),
+        [ids[0]]
+    );
+    let only_second = [0., 4., 0.];
+    assert_eq!(
+        backend
+            .bodies_overlapping_aabb(only_second, only_second)
+            .unwrap(),
+        [ids[0]]
+    );
     backend
         .spawn(BodySpec {
             position: [0., 3., 0.198],
@@ -179,6 +200,12 @@ fn offset_and_standalone_geometry_do_not_use_body_centered_bounds() {
         Some(0.5)
     );
     assert!(backend.translation_rays.get().unwrap().is_none());
+    assert!(
+        backend
+            .bodies_overlapping_aabb(point, point)
+            .unwrap()
+            .is_empty()
+    );
 }
 
 #[test]
