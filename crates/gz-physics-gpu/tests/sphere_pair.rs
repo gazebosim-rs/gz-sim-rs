@@ -695,3 +695,91 @@ fn measured_rows_reconstruct_only_the_correct_full_worker_successor() -> Result<
     }
     Ok(())
 }
+
+/// Qualify the stock local process through a normal EOF while full and compact
+/// results are still warm. The parent independently advances the same Vulkan lanes.
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn stock_gpu_worker_flushes_the_last_contact_and_exits_on_input_eof() -> Result<(), Box<dyn Error>>
+{
+    use gz_physics_gpu::{
+        PairBlockBarrier, PairBlockReceipt, SpherePairBlockBatch, SpherePairBlockCheckpoint as Cut,
+    };
+    use std::{
+        io::{Cursor, Read, Write},
+        path::PathBuf,
+        process::{Command, Stdio},
+    };
+    let adapter = std::env::var("GZ_GPU_ADAPTER")?;
+    let mut direct = SpherePairBlockBatch::new(&adapter, vec![pair(); 3])?;
+    let mut cuts = vec![Cut::capture(&direct)?];
+    for _ in 0..3 {
+        direct.step_block(7)?;
+        cuts.push(Cut::capture(&direct)?);
+    }
+    let barriers = cuts[..3]
+        .iter()
+        .map(|cut| PairBlockBarrier::new(cut, 7, 1))
+        .collect::<Result<Vec<_>, _>>()?;
+    let input = [
+        barriers[0].continuation(0)?.to_bytes().to_vec(),
+        barriers[0].assignment(0)?.to_bytes()?,
+        b"GZGPFMT1".to_vec(),
+        barriers[1].continuation(0)?.to_bytes().to_vec(),
+        b"unknown job".to_vec(),
+        barriers[2].continuation(0)?.to_bytes().to_vec(),
+    ];
+    let program = std::env::var_os("GZ_GPU_QUALIFICATION_WORKER")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_gz_pair_worker")));
+    let mut child = Command::new(program)
+        .arg(&adapter)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    let mut writer = child.stdin.take().unwrap();
+    let feeding = std::thread::spawn(move || -> std::io::Result<()> {
+        for bytes in input {
+            writer.write_all(&(bytes.len() as u32).to_le_bytes())?;
+            writer.write_all(&bytes)?;
+        }
+        Ok(())
+    });
+    let output = child.wait_with_output()?;
+    feeding.join().unwrap()?;
+    assert!(output.status.success());
+    let mut stream = Cursor::new(output.stdout);
+    let mut frame = || -> std::io::Result<Vec<u8>> {
+        let mut len = [0; 4];
+        stream.read_exact(&mut len)?;
+        let mut frame = vec![0; u32::from_le_bytes(len) as usize];
+        stream.read_exact(&mut frame)?;
+        Ok(frame)
+    };
+    assert_eq!(frame()?, b"GZGPWK01");
+    assert_eq!(frame()?, [0]);
+    for (index, barrier) in barriers.into_iter().enumerate() {
+        if index == 1 {
+            assert_eq!(frame()?, b"GZGPROW1");
+        }
+        if index == 2 {
+            let rejection = frame()?;
+            assert_eq!(rejection[0], 2);
+        }
+        let reply = frame()?;
+        assert!(reply.len() > 26);
+        assert_eq!(&reply[..2], if index == 0 { &[1, 0] } else { &[3, 1] });
+        let receipt = if index == 0 {
+            PairBlockReceipt::from_bytes(&reply[26..])?
+        } else {
+            assert_eq!(u64::from_le_bytes(reply[2..10].try_into()?), 4);
+            barrier.observation_receipt(0, &reply[26..])?
+        };
+        assert_eq!(
+            barrier.commit([receipt])?.to_bytes()?,
+            cuts[index + 1].to_bytes()?
+        );
+    }
+    assert_eq!(stream.position(), stream.get_ref().len() as u64);
+    Ok(())
+}

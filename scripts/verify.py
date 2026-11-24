@@ -581,6 +581,22 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                 audit_objects.append(item["executable"])
     if not objects:
         raise ValueError(f"{name}: no instrumented test binaries")
+    if name == "renderer" and "gz-physics-gpu" in crates and env.get("GZ_GPU_ADAPTER"):
+        source = ROOT / "crates/gz-physics-gpu/tests/hardware_qualification.rs"
+        harnesses = {Path(a["executable"]) for a in artifacts
+                     if a["profile"]["test"] and Path(a["target"]["src_path"]) == source}
+        target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
+        if len(harnesses) != 1:
+            raise ValueError("missing or ambiguous renderer hardware qualification harness")
+        harness = harnesses.pop()
+        if harness.is_symlink() or not harness.is_file() or not harness.resolve().is_relative_to(target_root):
+            raise ValueError("renderer hardware qualification harness is outside the owned target")
+        (directory / "gpu-hardware-artifacts.json").write_text(json.dumps(artifacts))
+        result = profile_process.run([str(harness), "--ignored", "--exact", "selected_hardware_physics"],
+                                     cwd=ROOT, env=dict(env, GZ_GPU_PROFILE_EVIDENCE=str(directory)),
+                                     directory=directory, label="gpu-hardware-qualification")
+        if result.returncode or not (directory / "gpu-hardware.json").is_file():
+            raise ValueError(f"GPU hardware qualification failed: {result.stdout}{result.stderr}")
     if name == "headless" and "gz-physics-distributed" in crates:
         source = ROOT / HEADLESS_WORKER_TEST
         harnesses = {Path(a["executable"]) for a in artifacts
