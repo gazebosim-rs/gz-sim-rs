@@ -2203,3 +2203,7 @@ The gripper held an 8.4 g folded sheet with 16 rigid/material solves inside each
 ## 2026-11-23 — Reading range and public poses in the 100,000-deck fleet
 
 Indexing co-moving boxes cut a solid range reading from 16.28 to 0.60 ms with 1,000 loads. With every pose observed, complete-step p95 fell from 40.32 to 16.08 ms. Every measured trajectory, range, IMU and contact point matched through launch and landing. The sensor-free prescribed commit still took 3.09 ms at median against the 0.10 ms budget. A parent-block optimization increased p95, leaving combined pose publication as the next experiment. [Evidence, work boundaries and native gz-web-rs playback](measurements/local-manipulation/fleet-range-publication.md)
+
+## 2026-11-23 — Publishing aligned fleet models and links in one pass
+
+The sensor-free 100,000-deck fleet lowered p95 from 7.09 to 5.15 ms. With 1,000 loads, a real range query and every pose read, p95 fell from 31.35 to 22.31 ms. All native contact, pose and sensor fingerprints matched through launch, landing and reset, and a rotating 8,193-body SDF preserved its link and visual frames. The loaded native step alone still exceeds the full 100× time budget. [Measured boundaries, controls and gz-web-rs replay](measurements/local-manipulation/fleet-flat-hierarchy.md)
