@@ -895,9 +895,31 @@ impl SoftBody {
             // A spring's end displacement already fixes its force. A closing
             // shell edge may still need an internal endpoint impulse after the
             // pad response. Recheck the rigid support after each shell impulse.
-            if self.contacts.on_single_plane(boundaries)
-                || (surface.retry_plane && self.contacts.spring_pads_with_one_plane(boundaries))
-            {
+            let interval = collision::Interval {
+                t0: t1 - h,
+                t1,
+                h,
+                radius: self.config.particle_radius,
+            };
+            let plane = self.contacts.on_single_plane(boundaries)
+                || (surface.retry_plane && self.contacts.spring_pads_with_one_plane(boundaries));
+            let finite_face = !plane
+                && match surface.verify(&self.predicted, &self.scratch, gap) {
+                    Ok(()) => false,
+                    Err(XpbdError::UnresolvedSurface)
+                        if surface.retry_finite_face
+                            && self.contacts.on_box_face(
+                                &self.predicted,
+                                &self.scratch,
+                                boundaries,
+                                interval,
+                            ) =>
+                    {
+                        true
+                    }
+                    Err(error) => return Err(error),
+                };
+            if plane || finite_face {
                 surface.finish_supported(&mut self.predicted, &mut self.scratch, gap, |x, p| {
                     self.contacts.finish_plane_increment(
                         x,
@@ -905,16 +927,12 @@ impl SoftBody {
                         boundaries,
                         reactions,
                         self.config.friction,
-                        collision::Interval {
-                            t0: t1 - h,
-                            t1,
-                            h,
-                            radius: self.config.particle_radius,
-                        },
+                        interval,
                     )
                 })?;
-            } else {
-                surface.verify(&self.predicted, &self.scratch, gap)?;
+                if finite_face {
+                    surface.verify(&self.predicted, &self.scratch, gap)?;
+                }
             }
         }
         self.contacts.verify_pad_samples(

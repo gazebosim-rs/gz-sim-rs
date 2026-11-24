@@ -599,6 +599,27 @@ fn solve<M: Copy + Into<RigidMobility>>(
                     bodies, dt, boundaries, mobility, damping, count, maximum,
                 );
             }
+            // Preserve every already-resolved trajectory. Try the terminal
+            // contact solve on one fully bounded planar face only after the
+            // original subdivision schedule has exhausted its choices.
+            if matches!(result, Err(XpbdError::UnresolvedSurface))
+                && compliant_shell
+                && bodies.len() == 1
+                && single_finite_deck(boundaries, mobility)
+            {
+                bodies[0].surface.as_mut().unwrap().retry_finite_face = true;
+                let result = solve_at_resolution(
+                    bodies,
+                    dt,
+                    boundaries,
+                    mobility,
+                    damping,
+                    count.into(),
+                    None,
+                );
+                bodies[0].surface.as_mut().unwrap().retry_finite_face = false;
+                return result;
+            }
             if capsule_sweep && finite_material && !retry_material {
                 // The ordinary coupled sweep exhausted its grid. Reconstruct
                 // from the committed input with the same physical tolerances.
@@ -616,6 +637,25 @@ fn solve<M: Copy + Into<RigidMobility>>(
         steps = next;
         refinements += 1;
     }
+}
+
+/// Qualify the finite support without making assumptions about any other
+/// material-face or rigid contact that could act at the same endpoint.
+fn single_finite_deck<M: Copy + Into<RigidMobility>>(
+    boundaries: &[Boundary],
+    mobility: &[Option<M>],
+) -> bool {
+    let mut deck = false;
+    for (boundary, motion) in boundaries.iter().zip(mobility) {
+        match (boundary, motion.map(Into::into)) {
+            (Boundary::StaticCuboid { .. } | Boundary::TranslatingCuboid { .. }, None) if !deck => {
+                deck = true
+            }
+            (Boundary::Cuboid { .. }, Some(RigidMobility::PrescribedCuboid { .. })) => (),
+            _ => return false,
+        }
+    }
+    deck
 }
 
 fn solve_at_resolution<M: Copy + Into<RigidMobility>>(

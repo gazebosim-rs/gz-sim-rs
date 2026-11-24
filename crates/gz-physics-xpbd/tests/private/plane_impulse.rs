@@ -224,3 +224,67 @@ fn arrest_requires_a_straight_stop_and_enough_static_traction() {
     assert!((free.x - (target.x - 0.5 * 0.005 / 6.)).abs() < 1e-15);
     assert!(straight_slip_stop(-v, v, 1., 0.06, 0.001).is_none());
 }
+
+#[test]
+fn only_a_whole_shell_tucked_inside_one_fixed_orientation_face_qualifies() {
+    let q = DQuat::from_rotation_y(0.43);
+    let origin = DVec3::new(-2., 0.5, 1.);
+    let normal = q * DVec3::X;
+    let velocity = DVec3::new(0.2, 0.4, 0.);
+    let time = Interval {
+        t0: 0.1,
+        t1: 0.2,
+        h: 0.1,
+        radius: 0.01,
+    };
+    let deck = Boundary::TranslatingCuboid {
+        center: origin.to_array(),
+        half_extents: [0.25, 0.5, 1.],
+        orientation: q.to_array(),
+        velocity: velocity.to_array(),
+    };
+    let bounds = [
+        PreparedBoundary::new(deck).unwrap(),
+        PreparedBoundary::new(Boundary::Plane {
+            point: [0.; 3],
+            normal: [0., 0., 1.],
+            velocity: [0.; 3],
+        })
+        .unwrap(),
+    ];
+    let start = origin + velocity * time.t0 + q * DVec3::new(0.26, 0.1, 0.2);
+    let end = start + velocity * (time.t1 - time.t0);
+    let p = [Particle {
+        position: start.to_array(),
+        velocity: (velocity - normal).to_array(),
+        inverse_mass: 1.,
+    }];
+    let projection = |n| Projection {
+        normal: n,
+        depth: 0.,
+        initial_overlap: 0.,
+        event: None,
+    };
+    let mut contacts = Contacts::default();
+    assert!(!contacts.on_box_face(&[end], &p, &bounds, time));
+    contacts.record(0, 0, &projection(normal), 0., None);
+    assert!(contacts.on_box_face(&[end], &p, &bounds, time));
+    for offset in [-normal * 0.001, q * DVec3::Z, q * DVec3::Y] {
+        assert!(!contacts.on_box_face(&[end + offset], &p, &bounds, time));
+    }
+    let mut reactions = [BoundaryImpulse::default(); 2];
+    let mut current = p;
+    contacts
+        .finish_plane_increment(&[end], &mut current, &bounds, &mut reactions, 0.3, time)
+        .unwrap();
+    assert!(DVec3::from(current[0].velocity).distance(velocity) < 1e-13);
+    assert!(DVec3::from(reactions[0].linear).distance(-normal) < 1e-13);
+    assert!(DVec3::from(reactions[0].angular).distance((end - origin).cross(-normal)) < 1e-13);
+    contacts.record(0, 1, &projection(normal), 0., None);
+    assert!(!contacts.on_box_face(&[end], &p, &bounds, time));
+    for (boundary, n) in [(0, (normal + DVec3::Y).normalize()), (1, normal)] {
+        let mut contacts = Contacts::default();
+        contacts.record(0, boundary, &projection(n), 0., None);
+        assert!(!contacts.on_box_face(&[end], &p, &bounds, time));
+    }
+}

@@ -793,6 +793,45 @@ impl Contacts {
         })
     }
 
+    /// A terminal velocity correction is planar only while every swept skin stays
+    /// inside the same face of the same prescribed, non-rotating box.
+    pub(super) fn on_box_face(
+        &self,
+        x: &[DVec3],
+        p: &[Particle],
+        boundaries: &[PreparedBoundary],
+        time: Interval,
+    ) -> bool {
+        let Some(first) = self.items.first() else {
+            return false;
+        };
+        let b = &boundaries[first.boundary];
+        let Shape::FixedOrientationBox(half, q) = b.shape else {
+            return false;
+        };
+        let inverse = q.conjugate();
+        let normal = inverse * first.normal;
+        let axis = normal.abs().max_position();
+        let mut face = DVec3::ZERO;
+        face[axis] = normal[axis].signum();
+        let (before, after) = b.centers(time);
+        let epsilon = 128. * f64::EPSILON;
+        (normal - face).length() <= epsilon
+            && self.items.iter().all(|c| {
+                c.boundary == first.boundary && (c.normal - first.normal).length() <= epsilon
+            })
+            && x.iter().zip(p).all(|(&end, node)| {
+                let a = inverse * (DVec3::from(node.position) - before);
+                let z = inverse * (end - after);
+                let tolerance = time.radius * 1e-9
+                    + epsilon * before.abs().max(after.abs()).max(end.abs()).max_element();
+                let sign = face[axis];
+                (sign * a[axis]).min(sign * z[axis]) >= half[axis] + time.radius - tolerance
+                    && (0..3).all(|i| {
+                        i == axis || a[i].abs().max(z[i].abs()) + time.radius < half[i] - tolerance
+                    })
+            })
+    }
     pub(super) fn spring_pads_with_one_plane(&self, boundaries: &[PreparedBoundary]) -> bool {
         let mut plane = None;
         let mut pad = false;
@@ -823,15 +862,19 @@ impl Contacts {
             let b = &boundaries[c.boundary];
             // A spring pad uses a finite force through this endpoint. Only a
             // rigid support imposes an additional nonclosing velocity constraint.
-            if !matches!(b.shape, Shape::Plane(_)) {
-                continue;
-            }
             let point = x[c.particle];
             let center = b.origin + time.t1 * b.velocity;
-            let separation = (point - center).dot(c.normal) - time.radius;
             let tolerance = 1e-9 * time.radius
                 + 128. * f64::EPSILON * point.abs().max(center.abs()).max_element();
-            if separation > tolerance {
+            let local = point - center;
+            let touching = match b.shape {
+                Shape::Plane(_) => local.dot(c.normal) - time.radius <= tolerance,
+                Shape::FixedOrientationBox(..) => {
+                    b.on_friction_face([local; 2], c.normal, time.radius, tolerance)
+                }
+                _ => false,
+            };
+            if !touching {
                 continue;
             }
             let particle = &mut p[c.particle];
@@ -847,14 +890,13 @@ impl Contacts {
                 particle.velocity = (v + dv).to_array();
                 reactions[c.boundary]
                     .react(x[c.particle] - b.origin, dv / particle.inverse_mass)?;
-                if let Some(loads) = &mut self.plane_loads {
-                    loads.observe_plane(
-                        c.boundary,
-                        c.particle,
-                        -vn * c.normal / particle.inverse_mass,
-                        -tangential_loss / particle.inverse_mass,
-                    );
-                }
+                b.record_plane_impulse(
+                    &mut self.plane_loads,
+                    c.boundary,
+                    c.particle,
+                    -vn * c.normal / particle.inverse_mass,
+                    -tangential_loss / particle.inverse_mass,
+                );
             }
         }
         Ok(())

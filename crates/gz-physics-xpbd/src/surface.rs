@@ -122,6 +122,7 @@ pub(super) struct Surface {
     // Topology and broad-phase capacity failures retain their hard limits.
     pub(super) subdivide_on_budget: bool,
     pub(super) retry_plane: bool,
+    pub(super) retry_finite_face: bool,
     pub(super) row_order: RowOrder,
     pub(super) local_intervals: Option<u32>,
 }
@@ -224,6 +225,7 @@ impl Surface {
             loads: None,
             subdivide_on_budget: false,
             retry_plane: false,
+            retry_finite_face: false,
             row_order: RowOrder::Time,
             local_intervals: None,
         };
