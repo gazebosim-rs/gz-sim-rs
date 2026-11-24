@@ -110,6 +110,12 @@ enum Study {
     },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
+    /// Replay a dropped folded sheet from its exact incoming state on several contact clocks.
+    SheetRebound {
+        output: PathBuf,
+        #[arg(long, default_value_t = 16)]
+        incoming: usize,
+    },
     /// Place the folded sheet using measured table loads on a 1 ms actuator clock.
     SheetSetdown {
         output: PathBuf,
@@ -327,6 +333,9 @@ fn main() -> Result<()> {
             material_incline::run(out, substeps, finite_board)
         }),
         Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
+        Study::SheetRebound { output, incoming } => {
+            write_new(&output, |out| sheet_setdown::rebound::run(out, incoming))
+        }
         Study::SheetSetdown {
             output,
             mode,
