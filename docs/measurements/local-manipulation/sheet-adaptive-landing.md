@@ -41,6 +41,8 @@ When both the rigid and material solvers stepped every 1 µs from cold startup, 
 
 The continuously fine late-drop robot stopped after 3,345,183 committed steps at 3.345183 s on a material-contact refusal. That run has no complete trajectory for comparison. Refining only the material from the start while retaining 62.5 µs rigid steps also refused during pickup at 0.6275625 s. The rebound and cost comparisons above therefore use a continuous fine interval starting from the same falling state. [Source inputs, outcomes and executable identities](sheet-adaptive-landing.json)
 
+The subsequent finite-face contact correction completed the entire cold 1 µs robot run and confirmed the original first rebound and impulse. The selective trajectory in this report reproduced byte for byte. [Completed continuous-fine reference and independent restart](sheet-recontact.md)
+
 ## Validation
 
 Four scene policy tests and 16 folded-sheet robot tests passed on the integrated checkout. Strict release Clippy passed. LLVM coverage of changed production code reached 154/155 lines and 248/253 regions in the Bevy scene, and 212/216 lines and 395/415 regions in the CLI. The counts exclude test code and match each instrumented executable to its own raw profile by build ID. [Per-file coverage, build identities and controls](sheet-adaptive-landing.json)

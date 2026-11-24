@@ -3,9 +3,13 @@
 
 # Multi-fidelity physics worklog
 
-The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and places a folded sheet after sensing table support. Refining just the landing brought its rebound within 0.015 mm of continuous fine material steps from a matched incoming state. A separate fine run starting at pickup stopped on an unresolved contact. The loaded wrist now follows three-axis targets and recovers from a shove under a measured motor limit. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Cable](measurements/local-manipulation/serial-cable-weigh.md) · [Sheet landing and limitations](measurements/local-manipulation/sheet-adaptive-landing.md) · [Loaded wrist](measurements/local-manipulation/loaded-wrist-recovery.md)
+The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and places a folded sheet after sensing table support. Refining just the landing brought its rebound within 0.015 mm of continuous fine material steps from a matched incoming state. The 1 µs reference now completes the full transfer after resolving a second landing on the finite table. The loaded wrist now follows three-axis targets and recovers from a shove under a measured motor limit. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Cable](measurements/local-manipulation/serial-cable-weigh.md) · [Sheet landing and limitations](measurements/local-manipulation/sheet-adaptive-landing.md) · [Loaded wrist](measurements/local-manipulation/loaded-wrist-recovery.md)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
+
+## 2026-11-24 — The continuously fine robot completes the sheet transfer
+
+An independent segment-distance check showed that two cloth edges were touching and still closing after the table reacted. The bounded contact correction now lets the robot complete 4.6 million steps and leave all 82.404 mN of sheet weight on the receiver. An independent restart reproduced every particle position and velocity at the next actuator tick. Five earlier robot trajectories remained byte-identical. All 240 active material tests and the separate timing regression passed. Changed production coverage reached 99.02% of lines and 98.40% of regions. [Full robot recording, close-up and measurements](measurements/local-manipulation/sheet-recontact.md)
 
 ## 2026-11-24 — Refine the incoming strike on either serial gripper jaw
 
