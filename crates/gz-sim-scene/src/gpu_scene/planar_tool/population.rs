@@ -9,6 +9,9 @@ pub(super) trait Population {
     fn object(&self, index: usize) -> Option<&FreeSphere>;
     fn target(&mut self, index: usize, angles: [f64; 2]) -> Result<(), GpuError>;
     fn motor(&mut self, index: usize, axis: usize, speed: f64) -> Result<(), GpuError>;
+    fn impulse(&mut self, index: usize, _: [f64; 2]) -> Result<(), GpuError> {
+        Err(GpuError::InvalidObjectImpulse(index))
+    }
 }
 impl Population for PlanarToolBatch {
     fn identity(&self) -> (MixedBatchOwner, usize) {
@@ -28,6 +31,9 @@ impl Population for PlanarToolBatch {
     }
 }
 impl Population for PlanarObjectBatch {
+    fn impulse(&mut self, index: usize, j: [f64; 2]) -> Result<(), GpuError> {
+        self.set_center_impulse(index, j)
+    }
     fn identity(&self) -> (MixedBatchOwner, usize) {
         (self.owner(), self.lanes().len())
     }

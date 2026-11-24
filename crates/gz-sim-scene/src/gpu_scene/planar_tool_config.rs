@@ -14,6 +14,7 @@ pub(super) struct Arm {
     pub origin: [f64; 2],
     pub lane: PlanarToolLane,
     pub object: Option<(String, gz_physics_gpu::FreeSphere)>,
+    pub impulses: BTreeMap<u64, [f64; 2]>,
     pub commands: BTreeMap<u64, [f64; 2]>,
     pub controllers: [Option<joint_controller::Parameters>; 2],
 }
@@ -250,6 +251,7 @@ fn load_arm(
     }
     let mut driven = BTreeSet::new();
     let mut commands = BTreeMap::new();
+    let mut impulses = BTreeMap::new();
     for item in n.children().filter(Node::is_element) {
         match item.tag_name().name() {
             "drive" if config::shape(item, &["joint", "stiffness", "damping", "target"], false) => {
@@ -293,6 +295,21 @@ fn load_arm(
                     return Err(err("duplicate target tick"));
                 }
             }
+            "impulse"
+                if n.has_attribute("object") && config::shape(item, &["tick", "x", "z"], false) =>
+            {
+                let tick = attr(item, "tick")?
+                    .parse::<u64>()
+                    .ok()
+                    .filter(|&x| x > 0)
+                    .ok_or_else(|| err("invalid object impulse tick"))?;
+                if impulses
+                    .insert(tick, [num(item, "x")?, num(item, "z")?])
+                    .is_some()
+                {
+                    return Err(err("duplicate object impulse tick"));
+                }
+            }
             _ => return Err(err("unsupported planar-tool drive or target")),
         }
     }
@@ -332,6 +349,7 @@ fn load_arm(
         object: None,
         controllers,
         commands,
+        impulses,
     })
 }
 impl Plan {
@@ -402,19 +420,21 @@ impl Plan {
                         && !member.properties.kinematic
                         && member.properties.enable_gravity
                         && (ball.position[1] - arm.base[1]).abs() <= 1e-12
-                        && mu == 0.
-                        && arm.lane.friction == 0.
-                        && law(&member.collisions[0])? == 0.
-                        && law(m
-                            .links
-                            .iter()
-                            .find_map(|l| l.collisions.first())
-                            .expect("validated spherical tool"))?
-                            == 0.
                         && axis_unlimited
                         && models.insert(name),
                     name,
-                    "tool/object requires one coplanar dynamic solid sphere, gravity, frictionless contacts, unlimited hinges and one independent arm",
+                    "tool/object requires one coplanar dynamic solid sphere, gravity, unlimited hinges and one independent arm",
+                )?;
+                let object_mu = law(&member.collisions[0])?;
+                let tool_mu = law(m
+                    .links
+                    .iter()
+                    .find_map(|l| l.collisions.first())
+                    .expect("validated spherical tool"))?;
+                require(
+                    mu.max(tool_mu).max(object_mu) <= 1.,
+                    name,
+                    "free sphere Coulomb coefficients must be in [0,1]",
                 )?;
                 arm.object = Some((
                     link,
@@ -429,6 +449,11 @@ impl Plan {
                         normal_impulse: 0.,
                         tool_impulse: [0.; 2],
                         floor_impulse: 0.,
+                        surface: gz_physics_gpu::SphereSurfaceMotion {
+                            tool_mu: object_mu.min(tool_mu),
+                            floor_mu: object_mu.min(mu),
+                            ..Default::default()
+                        },
                     },
                 ));
             }

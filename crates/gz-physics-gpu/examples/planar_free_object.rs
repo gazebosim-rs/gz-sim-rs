@@ -10,6 +10,8 @@ mod reference;
 use gz_physics_gpu::{
     FreeSphere, PlanarArmLane, PlanarObjectBatch, PlanarObjectLane, PlanarToolLane,
 };
+#[path = "support/rolling_object.rs"]
+mod rolling;
 use native::Native;
 use rapier3d_f64::prelude::*;
 use serde_json::{Value, json};
@@ -56,6 +58,7 @@ fn fixture(mass: f64, x: f64) -> PlanarObjectLane {
             normal_impulse: 0.,
             tool_impulse: [0.; 2],
             floor_impulse: 0.,
+            surface: Default::default(),
         },
     }
 }
@@ -81,14 +84,16 @@ impl Oracle {
             ColliderBuilder::ball(l.tool.radius)
                 .translation(Vector::X * l.tool.arm.length[1])
                 .density(0.)
-                .friction(0.)
+                .friction(l.tool.friction.max(l.object.surface.tool_mu))
+                .friction_combine_rule(CoefficientCombineRule::Min)
                 .restitution(0.),
             Some(arm.links[1]),
         );
         world.insert_collider(
             ColliderBuilder::cuboid(10., 2., 0.03)
                 .translation(Vector::Z * (l.tool.ground_z - 0.03))
-                .friction(0.)
+                .friction(l.tool.friction.max(l.object.surface.floor_mu))
+                .friction_combine_rule(CoefficientCombineRule::Min)
                 .restitution(0.),
             None,
         );
@@ -98,12 +103,14 @@ impl Oracle {
             RigidBodyBuilder::dynamic()
                 .translation(Vector::new(x, 0., z))
                 .linvel(Vector::new(u, 0., v))
+                .angvel(-Vector::Y * l.object.surface.spin)
                 .can_sleep(false),
         );
         let ball_shape = world.insert_collider(
             ColliderBuilder::ball(l.object.radius)
                 .mass(l.object.mass)
-                .friction(0.)
+                .friction(l.object.surface.tool_mu.max(l.object.surface.floor_mu))
+                .friction_combine_rule(CoefficientCombineRule::Min)
                 .restitution(0.),
             Some(ball),
         );
@@ -261,6 +268,11 @@ fn run(adapter: &str, dir: &Path) -> Result<(), Box<dyn Error>> {
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
+    if let [adapter, dir, mode] = args.as_slice()
+        && mode == "--friction"
+    {
+        return rolling::run(adapter, Path::new(dir));
+    }
     if args.len() != 2 {
         return Err("expected adapter name and output directory".into());
     }

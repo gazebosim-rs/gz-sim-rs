@@ -120,7 +120,13 @@ fn dot<T: Scalar>(a: [T; 2], b: [T; 2]) -> T {
     a[0] * b[0] + a[1] * b[1]
 }
 /// Project velocities in contact coordinates. Try sticking, then solve on the sliding cone edge.
-fn impact<T: Scalar>([vn, vt]: [T; 2], [nn, nt, tt]: [T; 3], mu: T, z: T, one: T) -> [T; 2] {
+pub(super) fn impact<T: Scalar>(
+    [vn, vt]: [T; 2],
+    [nn, nt, tt]: [T; 3],
+    mu: T,
+    z: T,
+    one: T,
+) -> [T; 2] {
     let determinant = nn * tt - nt * nt;
     let regular = determinant.greater(z);
     let denom = regular.select(determinant, one);

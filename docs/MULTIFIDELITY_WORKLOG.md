@@ -7,6 +7,10 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — GPU rolling and table-supported retention
+
+The local GPU arm now pushes a free rigid sphere, transfers frictional impulse and spin, and holds it against the table. A 0.024 N·s sideways disturbance shifted the held sphere 0.295 mm from its undisturbed twin, compared with 22.688 mm with the tool raised. Both independent Rapier and GPU runs loaded the sphere at 30 ms. Their maximum held-sphere path difference was 0.801 mm. The rolling controls matched the analytical speed, spin and energy loss. A separate oblique strike differed by 39.95 mm, and a free lift between moving jaws remains open. [Measurements, replay and coverage](measurements/local-manipulation/gpu-rolling-sphere.md) · [First free-object impact](measurements/local-manipulation/gpu-free-object.md)
+
 ## 2026-11-23 — Design review and implementation roadmap
 
 The serial arm clears the barrier with loads up to 1.245 kg at the tested friction. It safely set down all eight diagonally weighted parcels that slipped, with no alarms in eight undisturbed controls. The folded-sheet arm now has measured timestep and individual jaw-force limits on light grippers. Recent qualification covers shelf placement at four physics rates, cable snag recovery, the loaded foot crossing a deck edge, and GPU-arm impact from a matched incoming state. The CPU fleet throughput and the full release coverage gate remain open. [Shelf placement](measurements/local-manipulation/serial-convergence.md) · [Loaded ankle](measurements/local-manipulation/compliant-ankle-edge.md) · [GPU impact](measurements/local-manipulation/native-landing-passes.md) · [Release coverage](measurements/local-manipulation/local-implementation-gate.md)

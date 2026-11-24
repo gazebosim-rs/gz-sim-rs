@@ -35,7 +35,11 @@ fn unsupported_objects_are_rejected_before_device_selection() {
             "<link name=\"body\"><gravity>false</gravity>",
             "coplanar",
         ),
-        ("<mu>0</mu><mu2>0", "<mu>0.2</mu><mu2>0.2", "frictionless"),
+        (
+            "<mu>0</mu><mu2>0",
+            "<mu>1.2</mu><mu2>1.2",
+            "Coulomb coefficients",
+        ),
     ] {
         let reason_seen = load(&SCENE.replace(old, new), Some("missing device"))
             .err()
@@ -161,4 +165,101 @@ fn ordinary_motor_commands_reach_the_free_body_and_validate_axis_mode() {
     }
     assert!(total > 0.01);
     assert!(observe_object(&sim, 7).unwrap().unwrap().position[0] > 0.52);
+}
+
+const OPPOSED: &str = include_str!("../../../../examples/gpu_planar_opposed_sphere.sdf");
+
+#[test]
+fn malformed_and_ambiguous_sphere_pulses_are_rejected_before_device_lookup() {
+    for (s, reason) in [
+        (
+            OPPOSED.replace("tick=\"201\"", "tick=\"0\""),
+            "invalid object impulse tick",
+        ),
+        (
+            OPPOSED.replace("tick=\"351\"", "tick=\"201\""),
+            "duplicate object impulse tick",
+        ),
+        (OPPOSED.replace("x=\"0.024\"", "x=\"NaN\""), "nonfinite"),
+        (
+            OPPOSED.replace(" object=\"ball\"", ""),
+            "unsupported planar-tool",
+        ),
+    ] {
+        assert!(
+            load(&s, Some("unavailable"))
+                .err()
+                .unwrap()
+                .to_string()
+                .contains(reason)
+        );
+    }
+}
+
+#[test]
+#[ignore = "requires GZ_GPU_ADAPTER with f64 Vulkan"]
+fn opposing_tool_and_table_hold_the_disturbed_sphere_until_the_tool_retracts() {
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(OPPOSED, Some(&adapter)).unwrap();
+    let mut trace = Vec::new();
+    for episode in 0..2 {
+        if episode == 1 {
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+        }
+        {
+            let mut b = sim
+                .world_mut()
+                .resource_mut::<gz_physics_gpu::PlanarObjectBatch>();
+            assert!(b.set_center_impulse(0, [f64::NAN, 0.]).is_err());
+            assert!(b.set_center_impulse(1, [0.; 2]).is_err());
+            assert!(b.set_center_impulse(0, [f64::MAX, 0.]).is_err());
+        }
+        let ball = sim
+            .world()
+            .iter_entities()
+            .find(|e| {
+                e.get::<Name>()
+                    .is_some_and(|n| n.0 == "default::ball::body")
+            })
+            .unwrap()
+            .id();
+        for tick in 1..=400 {
+            sim.step_exact(1).unwrap();
+            let b = observe_object(&sim, 7).unwrap().unwrap();
+            let pose = sim.world().get::<WorldPose>(ball).unwrap();
+            let velocity = sim.world().get::<Velocity>(ball).unwrap();
+            let (sy, cy) = (-0.5 * b.surface.angle).sin_cos();
+            for (a, v) in pose.rotation.into_iter().zip([0., sy, 0., cy]) {
+                assert!((a - v).abs() < 1e-12);
+            }
+            assert_eq!(velocity.angular, [0., -b.surface.spin, 0.]);
+            assert_eq!(b.surface.pending_center_impulse, [0.; 2]);
+            if (201..=300).contains(&tick) {
+                assert!(b.normal_impulse > 0.015 && b.floor_impulse > 0.015);
+            }
+            if tick >= 340 {
+                assert_eq!(b.normal_impulse, 0.);
+            }
+            if tick == 300 {
+                assert!((b.position[0] - 0.487332).abs() < 2e-6);
+            }
+            if tick == 400 {
+                assert!((b.position[0] - 0.510494).abs() < 2e-6);
+            }
+            let frame = (
+                b.position,
+                b.velocity,
+                b.surface.angle,
+                b.surface.spin,
+                b.normal_impulse,
+                b.surface.tool_tangent,
+                b.surface.floor_tangent,
+            );
+            if episode == 0 {
+                trace.push(frame);
+            } else {
+                assert_eq!(trace[tick - 1], frame);
+            }
+        }
+    }
 }

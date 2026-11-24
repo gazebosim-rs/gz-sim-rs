@@ -38,7 +38,7 @@ pub use sphere_plane::SpherePlaneLane;
 mod planar_arm;
 mod planar_object;
 mod planar_stops;
-pub use planar_object::{FreeSphere, PlanarObjectBatch, PlanarObjectLane};
+pub use planar_object::{FreeSphere, PlanarObjectBatch, PlanarObjectLane, SphereSurfaceMotion};
 mod planar_tool;
 pub use planar_arm::{PlanarArmBatch, PlanarArmLane};
 pub use planar_stops::PlanarJointStops;
@@ -169,6 +169,8 @@ pub enum GpuError {
     InvalidLane(usize),
     #[error("unknown arm lane or nonfinite servo target for lane {0}")]
     InvalidArmTarget(usize),
+    #[error("unknown free sphere or invalid center impulse in lane {0}")]
+    InvalidObjectImpulse(usize),
     #[error("Vulkan hardware adapter matching '{0}' was not found")]
     NoAdapter(String),
     #[error("more than one Vulkan hardware adapter matches '{0}'")]

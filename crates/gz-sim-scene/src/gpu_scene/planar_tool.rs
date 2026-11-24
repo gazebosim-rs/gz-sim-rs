@@ -21,6 +21,7 @@ struct Binding {
     joints: [u64; 2],
     base: [f64; 3],
     origin: [f64; 2],
+    impulses: BTreeMap<u64, [f64; 2]>,
     commands: BTreeMap<u64, [f64; 2]>,
     motors: [Option<Motor>; 2],
 }
@@ -237,6 +238,7 @@ pub(super) fn install(
             base: a.base,
             origin: a.origin,
             commands: a.commands,
+            impulses: a.impulses,
             motors: a.controllers.map(|c| {
                 c.map(|configuration| Motor {
                     target: configuration.initial_target,
@@ -347,6 +349,12 @@ fn prepare<B: Population + Resource<Mutability = Mutable>>(
                     }
                 }
             }
+            if let Some(j) = r.impulses.get(&info.iteration)
+                && let Err(e) = batch.impulse(i, *j)
+            {
+                fault.report(e);
+                return;
+            }
             if let Some(target) = r.commands.get(&info.iteration)
                 && let Err(e) = batch.target(i, *target)
             {
@@ -383,11 +391,13 @@ fn sync<B: Population + Resource<Mutability = Mutable>>(
             let [vx, vz] = ball.velocity;
             *pose = WorldPose {
                 translation: [r.base[0] + x, r.base[1], r.base[2] + z],
-                rotation,
+                rotation: (DQuat::from_rotation_y(-ball.surface.angle)
+                    * DQuat::from_array(rotation))
+                .to_array(),
             };
             *velocity = Velocity {
                 linear: [vx, 0., vz],
-                angular: [0.; 3],
+                angular: [0., -ball.surface.spin, 0.],
             };
         }
         let continuous = l.joint_angles();

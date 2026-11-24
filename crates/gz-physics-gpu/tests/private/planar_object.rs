@@ -61,6 +61,7 @@ fn rejects_nonphysical_and_unrepresentable_initial_states_before_device_lookup()
             normal_impulse: 0.,
             tool_impulse: [0.; 2],
             floor_impulse: 0.,
+            surface: Default::default(),
         },
     };
     assert!(initial.valid());
@@ -75,7 +76,7 @@ fn rejects_nonphysical_and_unrepresentable_initial_states_before_device_lookup()
         |l| l.object.floor_impulse = 1.,
         |l| l.object.velocity[0] = f64::NAN,
         |l| l.object.position[0] = f64::MAX,
-        |l| l.tool.friction = 0.3,
+        |l| l.tool.friction = 1.3,
         |l| l.tool.stops[0] = crate::PlanarJointStops::from_relative(0., -0.2, 0.2).unwrap(),
     ] {
         let mut lane = initial;
@@ -85,4 +86,37 @@ fn rejects_nonphysical_and_unrepresentable_initial_states_before_device_lookup()
             Err(GpuError::InvalidLane(0))
         ));
     }
+}
+
+#[test]
+fn coupled_sphere_floor_and_tool_recover_every_coulomb_mode() {
+    let floor = [2., 3.];
+    let pair = [[3.5, 0.15], [0.15, 2.5]];
+    let cross = [[0.2, 0.1], [-0.4, 0.3]];
+    let block = coupled::PairBlock { floor, pair, cross };
+    // Store a target impulse and a complementary outgoing contact speed.
+    let modes = [
+        ([0., 0.], [0.6, 0.2]),
+        ([0.8, 0.09], [0., 0.]),
+        ([0.8, 0.24], [0., -0.5]),
+        ([0.8, -0.24], [0., 0.5]),
+    ];
+    for (a, va) in modes {
+        for (b, vb) in modes {
+            let free = [
+                std::array::from_fn(|i| {
+                    va[i] - floor[i] * a[i] - cross[0][i] * b[0] - cross[1][i] * b[1]
+                }),
+                std::array::from_fn(|i| vb[i] - dot(pair[i], b) - dot(cross[i], a)),
+            ];
+            let [fa, fb] = block.solve([0.; 2], free, [0.3; 2], 0., 1.);
+            for (got, want) in fa.into_iter().chain(fb).zip(a.into_iter().chain(b)) {
+                assert!((got - want).abs() < 1e-12, "{fa:?} {fb:?} vs {a:?} {b:?}");
+            }
+        }
+    }
+    assert_eq!(
+        block.solve([1.; 2], [[-1.; 2]; 2], [0.3; 2], 0., 1.),
+        [[0.; 2]; 2]
+    );
 }
