@@ -1,0 +1,308 @@
+{
+  "incoming_angles_rad": [
+    0.3447792498446431,
+    -0.5004479749961324
+  ],
+  "incoming_rates_rad_s": [
+    -2.7371816473033457,
+    0.2431650870780966
+  ],
+  "public_tick_ms": 65,
+  "gpu_normal_impulse_ns": 0.3031895983290952,
+  "matched_native_iterations_at_512_steps": [
+    {
+      "contact_iterations": 1,
+      "first_internal_normal_impulse_ns": 0.3161467255108891,
+      "landing_offset_s": 0.00065234375,
+      "normal_impulse_ns": 0.3161467255108891,
+      "stabilization_iterations": 1,
+      "tangent_impulse_ns": -0.09484401765326651,
+      "tip_vertical_velocity_m_s": 0.05638119077595105
+    },
+    {
+      "contact_iterations": 2,
+      "first_internal_normal_impulse_ns": 0.3161467255108891,
+      "landing_offset_s": 0.00065234375,
+      "normal_impulse_ns": 0.3161467255108891,
+      "stabilization_iterations": 1,
+      "tangent_impulse_ns": -0.09484401765326651,
+      "tip_vertical_velocity_m_s": 0.05638119077595105
+    },
+    {
+      "contact_iterations": 4,
+      "first_internal_normal_impulse_ns": 0.3161467255108891,
+      "landing_offset_s": 0.00065234375,
+      "normal_impulse_ns": 0.3161467255108891,
+      "stabilization_iterations": 1,
+      "tangent_impulse_ns": -0.09484401765326651,
+      "tip_vertical_velocity_m_s": 0.05638119077595105
+    },
+    {
+      "contact_iterations": 8,
+      "first_internal_normal_impulse_ns": 0.3161467255108891,
+      "landing_offset_s": 0.00065234375,
+      "normal_impulse_ns": 0.3161467255108891,
+      "stabilization_iterations": 1,
+      "tangent_impulse_ns": -0.09484401765326651,
+      "tip_vertical_velocity_m_s": 0.05638119077595105
+    },
+    {
+      "contact_iterations": 16,
+      "first_internal_normal_impulse_ns": 0.3161467255108891,
+      "landing_offset_s": 0.00065234375,
+      "normal_impulse_ns": 0.3161467255108891,
+      "stabilization_iterations": 1,
+      "tangent_impulse_ns": -0.09484401765326651,
+      "tip_vertical_velocity_m_s": 0.05638119077595105
+    },
+    {
+      "contact_iterations": 1,
+      "first_internal_normal_impulse_ns": 0.29730298189978077,
+      "landing_offset_s": 0.00065234375,
+      "normal_impulse_ns": 0.30319976270107896,
+      "stabilization_iterations": 4,
+      "tangent_impulse_ns": -0.09095992881032354,
+      "tip_vertical_velocity_m_s": 1.2122695862482047e-05
+    },
+    {
+      "contact_iterations": 4,
+      "first_internal_normal_impulse_ns": 0.29730298189978077,
+      "landing_offset_s": 0.00065234375,
+      "normal_impulse_ns": 0.3031997627010786,
+      "stabilization_iterations": 4,
+      "tangent_impulse_ns": -0.09095992881032346,
+      "tip_vertical_velocity_m_s": 1.2122695862482047e-05
+    },
+    {
+      "contact_iterations": 8,
+      "first_internal_normal_impulse_ns": 0.2972944759470939,
+      "landing_offset_s": 0.00065234375,
+      "normal_impulse_ns": 0.30319976270424204,
+      "stabilization_iterations": 8,
+      "tangent_impulse_ns": -0.09095992881127228,
+      "tip_vertical_velocity_m_s": 1.2122672188530359e-05
+    }
+  ],
+  "continuous_from_rest": [
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.31711636759348216,
+      "lane_id": 0,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 66840,
+      "stabilization_passes": 1,
+      "steps_per_ms": 8,
+      "total_normal_ns": 4.091191953965927
+    },
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.302582923308841,
+      "lane_id": 1,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 64210,
+      "stabilization_passes": 2,
+      "steps_per_ms": 8,
+      "total_normal_ns": 4.091941987965567
+    },
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.3025829496936089,
+      "lane_id": 2,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 68870,
+      "stabilization_passes": 4,
+      "steps_per_ms": 8,
+      "total_normal_ns": 4.0919836421283025
+    },
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.3163788899653445,
+      "lane_id": 3,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 123430,
+      "stabilization_passes": 1,
+      "steps_per_ms": 16,
+      "total_normal_ns": 4.093258410659024
+    },
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.30286732293749635,
+      "lane_id": 4,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 124701,
+      "stabilization_passes": 2,
+      "steps_per_ms": 16,
+      "total_normal_ns": 4.093275068768647
+    },
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.3028673258446035,
+      "lane_id": 5,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 133000,
+      "stabilization_passes": 4,
+      "steps_per_ms": 16,
+      "total_normal_ns": 4.093329653972205
+    },
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.3161148329641564,
+      "lane_id": 6,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 245251,
+      "stabilization_passes": 1,
+      "steps_per_ms": 32,
+      "total_normal_ns": 4.092810086389088
+    },
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.3025908849375696,
+      "lane_id": 7,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 251861,
+      "stabilization_passes": 2,
+      "steps_per_ms": 32,
+      "total_normal_ns": 4.09284731716383
+    },
+    {
+      "first_loaded_tick": 65,
+      "first_tick_normal_ns": 0.3025908733019827,
+      "lane_id": 8,
+      "last_loaded_tick": 307,
+      "native_step_p95_ns": 261770,
+      "stabilization_passes": 4,
+      "steps_per_ms": 32,
+      "total_normal_ns": 4.092848089666308
+    }
+  ],
+  "continuous_gpu_and_native": {
+    "1": {
+      "first_loaded_public_tick_and_impulse_ns": [
+        [
+          65,
+          0.3031895983290952
+        ],
+        [
+          65,
+          0.3163788899653445
+        ]
+      ],
+      "last_loaded_public_tick": [
+        307,
+        307
+      ],
+      "total_normal_impulse_ns": [
+        4.117872190380404,
+        4.093258410659024
+      ],
+      "max_tip_error_m": 0.0008397012813006968,
+      "native_stabilization_passes": 1
+    },
+    "2": {
+      "first_loaded_public_tick_and_impulse_ns": [
+        [
+          65,
+          0.3031895983290952
+        ],
+        [
+          65,
+          0.30286732293749635
+        ]
+      ],
+      "last_loaded_public_tick": [
+        307,
+        307
+      ],
+      "total_normal_impulse_ns": [
+        4.117872190380404,
+        4.093275068768647
+      ],
+      "max_tip_error_m": 0.0008392820651983757,
+      "native_stabilization_passes": 2
+    },
+    "4": {
+      "first_loaded_public_tick_and_impulse_ns": [
+        [
+          65,
+          0.3031895983290952
+        ],
+        [
+          65,
+          0.3028673258446035
+        ]
+      ],
+      "last_loaded_public_tick": [
+        307,
+        307
+      ],
+      "total_normal_impulse_ns": [
+        4.117872190380404,
+        4.093329653972205
+      ],
+      "max_tip_error_m": 0.0008425546886904777,
+      "native_stabilization_passes": 4
+    },
+    "8": {
+      "first_loaded_public_tick_and_impulse_ns": [
+        [
+          65,
+          0.3031895983290952
+        ],
+        [
+          65,
+          0.30286732604406436
+        ]
+      ],
+      "last_loaded_public_tick": [
+        307,
+        307
+      ],
+      "total_normal_impulse_ns": [
+        4.117872190380404,
+        4.093329653233392
+      ],
+      "max_tip_error_m": 0.0008425546885049318,
+      "native_stabilization_passes": 8
+    }
+  },
+  "browser": {
+    "frames": 601,
+    "body_poses_and_shapes_checked": 32454,
+    "captured_ms": {
+      "approach": 64.0,
+      "end": 600.0,
+      "first_touch": 65.0,
+      "lift_off": 308.0,
+      "lower_stop": 211.0,
+      "start": 0.0,
+      "supported": 152.0,
+      "upper_stop": 510.0
+    }
+  },
+  "matched_study_coverage": {
+    "crates/gz-sim-scene/examples/gpu_sdf_tool.rs": {
+      "lines": {
+        "hit": 32,
+        "total": 32,
+        "missing": []
+      },
+      "regions": {
+        "hit": 65,
+        "total": 65,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-scene/examples/gpu_sdf_tool/landing.rs": {
+      "lines": {
+        "hit": 41,
+        "total": 41,
+        "missing": []
+      },
+      "regions": {
+        "hit": 65,
+        "total": 65,
+        "missing": []
+      }
+    }
+  }
+}

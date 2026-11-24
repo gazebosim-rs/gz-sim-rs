@@ -2099,3 +2099,11 @@ The serial screw and wrist lifted a free 22 g cable 186 mm, cleared the barrier 
 ## 2026-11-23 — Sliding a freely hinged foot off a deck edge
 
 The toe overhung the finite deck by 28.89 mm while its coated sole stayed loaded. The shank struck the deck at 32.375 ms, within 55 µs of an independent reference, and shortening the shank produced zero rigid impulse. The displayed trajectory stayed within 8.23 µm of the reference. Refining the native contact steps reduced the trajectory error to 2.06 µm, although the peak cumulative impulse error increased on the finest grid. Frictional shank strikes and inward sidewall crossings remain open. [Measurements, coverage and three native replays](measurements/local-manipulation/compliant-ankle-edge.md)
+
+## 2026-11-23 — Clearing a loaded shelf edge during serial transfer
+
+The 400 g parcel that jammed under 13.25 N of shelf reaction now clears the edge by 19.77 mm and settles at its measured 3.924 N weight. All 57 cold/reset trials reproduced every recorded pose. The 12 N overloads withheld release. The 8 N transfer succeeded with 0.5, 1 and 2 ms physics, although opening times differed by 4.85 seconds. Changed production coverage reached 99.30% of lines and 96.09% of regions. [Measured loads, timings and four native replays](measurements/local-manipulation/serial-pressure.md)
+
+## 2026-11-23 — Checking the native arm's rebound from a matched landing
+
+Four native stabilization passes reduced the unwanted upward velocity at the end of the landing tick from 56.38 to 0.0121 mm/s. The GPU and independent native impulses then agreed within 0.00335% from the same incoming state. A 600 ms continuous replay shows all nine native arms touching at 65 ms and unloading after 307 ms. The study keeps the ordinary runtime defaults. [Measurements and gz-web-rs comparison](measurements/local-manipulation/native-landing-passes.md)
