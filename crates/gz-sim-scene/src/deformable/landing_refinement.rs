@@ -187,3 +187,7 @@ fn approaching(body: &SoftBody, deck: Boundary, dt: f64) -> bool {
             && x.y.abs().max(end.y.abs()) + radius < half[1]
     })
 }
+
+#[cfg(test)]
+#[path = "../../tests/private/finite_landing.rs"]
+mod tests;

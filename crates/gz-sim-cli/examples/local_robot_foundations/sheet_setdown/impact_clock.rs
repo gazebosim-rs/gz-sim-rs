@@ -11,16 +11,19 @@ pub(crate) enum Clock {
     Adaptive,
     Fine,
     MatchedFine,
+    FineNative,
 }
 
 #[derive(Default, Serialize, PartialEq)]
 struct Events {
     requests_ns: Vec<u64>,
+    requests_with_measured_contact_ns: Vec<u64>,
     fast_landings_ns: Vec<u64>,
     guarded_landings_ns: Vec<u64>,
     refined_steps: usize,
     window_steps: usize,
     window_impulse_ns: f64,
+    first_ms_impulse_ns: f64,
     rebound_m: f64,
 }
 
@@ -39,7 +42,8 @@ fn measure(
     target_ns: u64,
     draw: bool,
 ) -> Result<Episode> {
-    let substeps = NATIVE.div_ceil(target_ns) as u32;
+    let native_ns = r.sim.step_duration().as_nanos() as u64;
+    let substeps = native_ns.div_ceil(target_ns) as u32;
     if clock == Clock::Fine {
         set_material_resolution(&mut r.sim, "sheet", substeps, 24)?;
     }
@@ -67,6 +71,13 @@ fn measure(
         if stats.triggered {
             events.requests_ns.push(time);
         }
+        if stats.refined
+            && table > 1e-12
+            && let Some(&onset) = events.requests_ns.last()
+            && events.requests_with_measured_contact_ns.last() != Some(&onset)
+        {
+            events.requests_with_measured_contact_ns.push(onset);
+        }
         if stats.refined {
             events.refined_steps += 1;
         }
@@ -79,7 +90,7 @@ fn measure(
             }
         }
         free_ns = if table <= 1e-12 && !held {
-            free_ns + NATIVE
+            free_ns + native_ns
         } else {
             0
         };
@@ -96,6 +107,9 @@ fn measure(
         if in_window {
             events.window_steps += 1;
             events.window_impulse_ns += table;
+            if elapsed.is_some_and(|t| t <= 1_500_000) {
+                events.first_ms_impulse_ns += table;
+            }
             hit |= table > 1e-12;
             if hit {
                 let gap = ps
@@ -153,7 +167,15 @@ pub(crate) fn run(
     {
         return Err("expected a supported finite receiver and a resolvable target".into());
     }
-    let mut xml = world(16, true, false)?;
+    let native_per_ms = if clock == Clock::FineNative {
+        if !MS.is_multiple_of(target_ns) {
+            return Err("native fine clock must exactly divide one millisecond".into());
+        }
+        MS / target_ns
+    } else {
+        16
+    };
+    let mut xml = world(native_per_ms as usize, true, false)?;
     if clock == Clock::Adaptive {
         xml = xml.replace(
             "filename=\"gz-sim-deformables-system\"",
@@ -161,17 +183,44 @@ pub(crate) fn run(
         );
     }
     let mut r = Recording::new(&xml, "sheet-impact-clock.sdf", "default")?;
-    let mut a = measure(&mut r, mode, clock, target_ns, true)?;
+    let mut a = measure(&mut r, mode, clock, target_ns, true).map_err(|error| {
+        format!(
+            "after {} native commits: {}",
+            r.costs_ns.len(),
+            gz_sim_cli::with_fault(&r.sim, error)
+        )
+    })?;
     if verify_reset {
         gz_sim_scene::reset_loaded_world(&mut r.sim, |_| ())?;
         let repeat = measure(&mut r, mode, clock, target_ns, false)?;
         if a.rows != repeat.rows || a.events != repeat.events {
             return Err("impact resolution changed across reset".into());
         }
-        r.costs_ns.truncate(a.rows.len() * 16);
+        r.costs_ns.truncate(a.rows.len() * native_per_ms as usize);
     }
     let physical = ObservationWindow::new(mode, &a.rows, r.sim.step_duration().as_secs_f64())?;
-    let receipt = json!({"mode":mode,"clock":clock,"target_ns":target_ns,"reset":verify_reset,"physical":physical,"events":a.events,"window_native_cost":costs(&mut a.window_costs),"other_native_cost":costs(&mut a.baseline_costs)});
+    if clock == Clock::Adaptive {
+        if a.events.requests_ns != a.events.requests_with_measured_contact_ns
+            || a.events.fast_landings_ns != a.events.guarded_landings_ns
+        {
+            return Err(format!(
+                "missed fast landing or unconfirmed refinement: {}",
+                serde_json::to_string(&a.events)?
+            )
+            .into());
+        }
+        if mode != Mode::DropLate && !a.events.requests_ns.is_empty() {
+            return Err(
+                "secure or supported sheet incorrectly requested landing refinement".into(),
+            );
+        }
+    }
+    let mut actuator_costs = r
+        .costs_ns
+        .chunks_exact(native_per_ms as usize)
+        .map(|steps| steps.iter().sum())
+        .collect::<Vec<_>>();
+    let receipt = json!({"mode":mode,"clock":clock,"target_ns":target_ns,"reset":verify_reset,"physical":physical,"events":a.events,"native_commits_per_ms":native_per_ms,"actuator_cost":costs(&mut actuator_costs),"window_native_cost":costs(&mut a.window_costs),"other_native_cost":costs(&mut a.baseline_costs)});
     write_json(&out.join("comparison.json"), &receipt)?;
     write_json(&out.join("ticks.json"), &serde_json::to_value(&a.rows)?)?;
     fs::write(out.join("world.sdf"), xml)?;
@@ -186,4 +235,30 @@ pub(crate) fn run(
     )?;
     println!("{receipt}");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn operator_rejects_clock_or_receiver_settings_before_creating_a_recording() {
+        let d = tempfile::tempdir().unwrap();
+        for (mode, clock, ns) in [
+            (Mode::Timed, Clock::Adaptive, 1000),
+            (Mode::Finite, Clock::Adaptive, 0),
+            (Mode::Finite, Clock::Adaptive, NATIVE + 1),
+            (Mode::Finite, Clock::Adaptive, 1),
+            (Mode::DropEarly, Clock::FineNative, 1001),
+        ] {
+            assert!(run(d.path(), mode, clock, ns, false).is_err());
+            assert_eq!(d.path().read_dir().unwrap().count(), 0);
+        }
+        assert_eq!(costs(&mut []), Value::Null);
+        let mut samples = [4, 8, 2, 6];
+        assert_eq!(
+            costs(&mut samples),
+            json!({"n":4,"total_ns":20,"p50_ns":4,"p95_ns":8,"p99_ns":8})
+        );
+    }
 }
