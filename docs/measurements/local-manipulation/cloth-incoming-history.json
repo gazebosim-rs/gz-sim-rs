@@ -1,0 +1,2860 @@
+{
+  "source": "744ee0b",
+  "simulated_rates_exchanges_per_ms": [
+    1000,
+    2000
+  ],
+  "native_intervals_reproduced": [
+    32000,
+    64000
+  ],
+  "events": {
+    "1000": {
+      "last_positive_jaw_end_ns": 2676368000,
+      "first_floor_end_ns": 2689276000,
+      "free_flight_common_sample": [
+        2676400000,
+        2689200000
+      ],
+      "center_velocity_departure_from_gravity_m_s": [
+        -1.6649279611230527e-17,
+        1.461131834013668e-19,
+        1.1046719095020308e-14
+      ],
+      "first_floor_normal_impulse_ns": 9.140455629599154e-05,
+      "sum_200us_from_own_first_contact_ns": [
+        -2.0243193966987783e-06,
+        -1.0758252957206115e-05,
+        0.0015119747565911273
+      ]
+    },
+    "2000": {
+      "last_positive_jaw_end_ns": 2676368500,
+      "first_floor_end_ns": 2689148500,
+      "free_flight_common_sample": [
+        2676400000,
+        2689000000
+      ],
+      "center_velocity_departure_from_gravity_m_s": [
+        2.12334219217708e-17,
+        -5.136407792150077e-18,
+        1.1171619185290638e-14
+      ],
+      "first_floor_normal_impulse_ns": 9.054694676630947e-05,
+      "sum_200us_from_own_first_contact_ns": [
+        6.156612618706872e-06,
+        6.96197336683453e-05,
+        0.0007386429057538693
+      ]
+    }
+  },
+  "matched_sample_every_ns": 200000,
+  "sample_count": 160,
+  "first_above_100um_ns": 2691400000,
+  "max_distance_time_ns": 2702000000,
+  "common_floor_impulse_window_start_ns": 2689100000,
+  "common_floor_impulse_windows_ns": {
+    "1000": {
+      "200000": [
+        2.081307477072238e-08,
+        -7.667304841151755e-07,
+        0.0005652603908351771
+      ],
+      "500000": [
+        -2.2437066158357595e-06,
+        -1.402717717906777e-05,
+        0.0016318054654940453
+      ],
+      "1000000": [
+        -2.2437066158357595e-06,
+        -1.402717717906777e-05,
+        0.0016318054654940453
+      ],
+      "2000000": [
+        -2.2437066158357595e-06,
+        -1.402717717906777e-05,
+        0.0016318054654940453
+      ],
+      "5000000": [
+        -2.2437066158357595e-06,
+        -1.402717717906777e-05,
+        0.0016318054654940453
+      ],
+      "10000000": [
+        -2.2437066158357595e-06,
+        -1.402717717906777e-05,
+        0.0016318054654940453
+      ]
+    },
+    "2000": {
+      "200000": [
+        1.833441361623425e-06,
+        3.8881134422317836e-05,
+        0.0006075885362111637
+      ],
+      "500000": [
+        2.7253220076237136e-05,
+        0.00024878632468695877,
+        0.0014121347744405226
+      ],
+      "1000000": [
+        2.4471691848189022e-05,
+        0.0002812898796334774,
+        0.0014664368642790396
+      ],
+      "2000000": [
+        2.4471691848189022e-05,
+        0.0002812898796334774,
+        0.0014664368642790396
+      ],
+      "5000000": [
+        2.4471691848189022e-05,
+        0.0002812898796334774,
+        0.0014664368642790396
+      ],
+      "10000000": [
+        1.4360555806190198e-06,
+        0.00013619536591930026,
+        0.0017017455134849889
+      ]
+    }
+  },
+  "history": [
+    {
+      "t_ns": 2672000000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.336233039435274e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.0003048780553255735,
+      "centroid_position_delta_m": [
+        2.9258846646433117e-08,
+        -7.681917181964156e-06,
+        -1.5086505216384734e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -2.0555323580597737e-05,
+        -6.64237303256646e-05,
+        -1.6019020898630954e-06
+      ]
+    },
+    {
+      "t_ns": 2672200000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3388938460024776e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.00034102743270679166,
+      "centroid_position_delta_m": [
+        2.5147213233063976e-08,
+        -7.694951114594743e-06,
+        -2.070869320932219e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -2.0707399217435206e-05,
+        -5.785677961268416e-05,
+        -4.674847975607279e-06
+      ]
+    },
+    {
+      "t_ns": 2672400000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.34108876477292e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.00035959694372788274,
+      "centroid_position_delta_m": [
+        2.093680099661081e-08,
+        -7.703332904494565e-06,
+        -2.246555892704283e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -2.1418107198958644e-05,
+        -2.4577363688739137e-05,
+        5.802898362506808e-06
+      ]
+    },
+    {
+      "t_ns": 2672600000,
+      "worst_node": 9,
+      "max_node_distance_m": 2.3429931270093662e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.00038540753673206146,
+      "centroid_position_delta_m": [
+        1.6610305029566657e-08,
+        -7.705505521893467e-06,
+        -3.392362340111828e-10
+      ],
+      "centroid_velocity_delta_m_s": [
+        -2.167457035112178e-05,
+        -1.923909588331676e-06,
+        8.563896079397592e-06
+      ]
+    },
+    {
+      "t_ns": 2672800000,
+      "worst_node": 9,
+      "max_node_distance_m": 2.3450181777173518e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.000361702853790951,
+      "centroid_position_delta_m": [
+        1.2355583880093354e-08,
+        -7.706502686352737e-06,
+        1.4392034786148145e-10
+      ],
+      "centroid_velocity_delta_m_s": [
+        -2.0659841984942075e-05,
+        -1.3864335921864438e-05,
+        -1.957287533952923e-06
+      ]
+    },
+    {
+      "t_ns": 2673000000,
+      "worst_node": 9,
+      "max_node_distance_m": 2.3472529239694083e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.0003300058683970463,
+      "centroid_position_delta_m": [
+        8.405186685545019e-09,
+        -7.712562236000681e-06,
+        -8.474769497279766e-12
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.881108174309021e-05,
+        -4.7405309688570785e-05,
+        7.318187451512474e-07
+      ]
+    },
+    {
+      "t_ns": 2673200000,
+      "worst_node": 9,
+      "max_node_distance_m": 2.349864048290974e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.0003026425484471556,
+      "centroid_position_delta_m": [
+        4.806218363110719e-09,
+        -7.724494049287227e-06,
+        -6.088246573554557e-10
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.733688278192228e-05,
+        -6.676936934180558e-05,
+        -9.028817284137692e-06
+      ]
+    },
+    {
+      "t_ns": 2673400000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3525001410314542e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.00021975055749512228,
+      "centroid_position_delta_m": [
+        1.3898158133610987e-09,
+        -7.736856970067639e-06,
+        -2.9025087056044896e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.7039711375083545e-05,
+        -5.13618658956835e-05,
+        -9.406878694996952e-06
+      ]
+    },
+    {
+      "t_ns": 2673600000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.355002951449176e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.00014664553722497717,
+      "centroid_position_delta_m": [
+        -2.0667164600067047e-09,
+        -7.743749885857445e-06,
+        -3.5315434720091985e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.756190815349892e-05,
+        -1.7580658245847346e-05,
+        1.1735535011741674e-06
+      ]
+    },
+    {
+      "t_ns": 2673800000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3568865711456198e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00013463817280223196,
+      "centroid_position_delta_m": [
+        -5.602553448946779e-09,
+        -7.745102397510989e-06,
+        -3.5457253152089882e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.762274649075962e-05,
+        -1.43656861606459e-06,
+        -1.3721632589506019e-06
+      ]
+    },
+    {
+      "t_ns": 2674000000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3585087355606268e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00016778272111168816,
+      "centroid_position_delta_m": [
+        -9.031930462792085e-09,
+        -7.74672974656754e-06,
+        -3.0812930679191552e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.6483426284583995e-05,
+        -1.9923989972216137e-05,
+        7.874145833002393e-06
+      ]
+    },
+    {
+      "t_ns": 2674200000,
+      "worst_node": 9,
+      "max_node_distance_m": 2.3604824406006487e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00024015716446817507,
+      "centroid_position_delta_m": [
+        -1.2146775002497279e-08,
+        -7.75411371499139e-06,
+        -1.2505952824241422e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.464799401112711e-05,
+        -5.322558233479287e-05,
+        5.956231605649747e-06
+      ]
+    },
+    {
+      "t_ns": 2674400000,
+      "worst_node": 9,
+      "max_node_distance_m": 2.3625655114822035e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00030240822159890356,
+      "centroid_position_delta_m": [
+        -1.4922868977566377e-08,
+        -7.766599181586332e-06,
+        -1.3489346676702023e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.328639388345452e-05,
+        -6.588646314360684e-05,
+        -4.492727856433673e-06
+      ]
+    },
+    {
+      "t_ns": 2674600000,
+      "worst_node": 9,
+      "max_node_distance_m": 2.3647980893026867e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0003248994616931762,
+      "centroid_position_delta_m": [
+        -1.753606882852014e-08,
+        -7.778092498815726e-06,
+        -1.9436615997237006e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.3005731519109491e-05,
+        -4.437693472314012e-05,
+        -1.5484424395891222e-06
+      ]
+    },
+    {
+      "t_ns": 2674800000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.366906341601894e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00036087486507626536,
+      "centroid_position_delta_m": [
+        -2.0153135442864862e-08,
+        -7.783559578504876e-06,
+        -2.9521843557718994e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.3136898305222067e-05,
+        -1.167306421088415e-05,
+        -9.812947972653296e-06
+      ]
+    },
+    {
+      "t_ns": 2675000000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3690514387652602e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.000370722607651839,
+      "centroid_position_delta_m": [
+        -2.2742905554188713e-08,
+        -7.784381909952009e-06,
+        -4.893562980760417e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.2588857827570273e-05,
+        -2.4542132790162695e-06,
+        -5.424367578408343e-06
+      ]
+    },
+    {
+      "t_ns": 2675200000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3709273868468176e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00034348620262665883,
+      "centroid_position_delta_m": [
+        -2.511694872457208e-08,
+        -7.786839309242139e-06,
+        -4.711313064213278e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.1022329809389093e-05,
+        -2.6284996302484694e-05,
+        4.356552090830239e-06
+      ]
+    },
+    {
+      "t_ns": 2675400000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3727921576176474e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032487504868939846,
+      "centroid_position_delta_m": [
+        -2.713432993110369e-08,
+        -7.795296017918315e-06,
+        -5.5351707245465676e-09
+      ],
+      "centroid_velocity_delta_m_s": [
+        -9.250720201751036e-06,
+        -5.497635664795318e-05,
+        -2.4218087220097197e-05
+      ]
+    },
+    {
+      "t_ns": 2675600000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3749360506017903e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.000307704058729142,
+      "centroid_position_delta_m": [
+        -2.892487965348393e-08,
+        -7.80707399340046e-06,
+        -1.4489426931422559e-08
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.884798279178564e-06,
+        -5.9759811080878995e-05,
+        -6.0043658388710034e-05
+      ]
+    },
+    {
+      "t_ns": 2675800000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3770625269204998e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003890251700359418,
+      "centroid_position_delta_m": [
+        -3.0809356038608016e-08,
+        -7.818644769339482e-06,
+        -2.8685178369199555e-08
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.0171327602043376e-05,
+        -5.514085672520098e-05,
+        -7.481985451005397e-05
+      ]
+    },
+    {
+      "t_ns": 2676000000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.378376699242127e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003908286079985299,
+      "centroid_position_delta_m": [
+        -3.2964145043242375e-08,
+        -7.82864096140506e-06,
+        -4.424204920009759e-08
+      ],
+      "centroid_velocity_delta_m_s": [
+        -1.1115514689498835e-05,
+        -4.353024385474238e-05,
+        -7.67543417669684e-05
+      ]
+    },
+    {
+      "t_ns": 2676200000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.379524495677577e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0003021726727845641,
+      "centroid_position_delta_m": [
+        -3.508773681326627e-08,
+        -7.836290140509296e-06,
+        -5.966002096282248e-08
+      ],
+      "centroid_velocity_delta_m_s": [
+        -9.779895507840471e-06,
+        -3.5382094004082365e-05,
+        -7.502761804987557e-05
+      ]
+    },
+    {
+      "t_ns": 2676400000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.381908608315278e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00031972406081524587,
+      "centroid_position_delta_m": [
+        -3.6840959671824436e-08,
+        -7.843393511200204e-06,
+        -7.50330855642245e-08
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537484266e-06,
+        -3.56765112701679e-05,
+        -7.486793874822522e-05
+      ]
+    },
+    {
+      "t_ns": 2676600000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.385270884514964e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0003104890226609308,
+      "centroid_position_delta_m": [
+        -3.845240191073055e-08,
+        -7.85052881345689e-06,
+        -9.049717323433848e-08
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537484608e-06,
+        -3.567651127016693e-05,
+        -7.486793874806736e-05
+      ]
+    },
+    {
+      "t_ns": 2676800000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3888625822873164e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00036961600560763227,
+      "centroid_position_delta_m": [
+        -4.006384402473658e-08,
+        -7.857664115642536e-06,
+        -1.059612608952006e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537487037e-06,
+        -3.567651127016696e-05,
+        -7.486793874798663e-05
+      ]
+    },
+    {
+      "t_ns": 2677000000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3929467465209327e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00033307725726127796,
+      "centroid_position_delta_m": [
+        -4.167528614336854e-08,
+        -7.864799417955918e-06,
+        -1.214253486763369e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053748988e-06,
+        -3.567651127016815e-05,
+        -7.48679387483025e-05
+      ]
+    },
+    {
+      "t_ns": 2677200000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3963118899715154e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00031914278990629024,
+      "centroid_position_delta_m": [
+        -4.3286728363770934e-08,
+        -7.871934720213793e-06,
+        -1.3688943673965484e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537490966e-06,
+        -3.567651127016916e-05,
+        -7.48679387486532e-05
+      ]
+    },
+    {
+      "t_ns": 2677400000,
+      "worst_node": 11,
+      "max_node_distance_m": 2.3985040350151268e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003692202044306762,
+      "centroid_position_delta_m": [
+        -4.489817064431042e-08,
+        -7.87907002248945e-06,
+        -1.5235352451385223e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537493475e-06,
+        -3.567651127016995e-05,
+        -7.486793874898077e-05
+      ]
+    },
+    {
+      "t_ns": 2677600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4024833939766878e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003317171196601219,
+      "centroid_position_delta_m": [
+        -4.650961283695724e-08,
+        -7.886205324750929e-06,
+        -1.678176122834237e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537497361e-06,
+        -3.5676511270165936e-05,
+        -7.486793874926974e-05
+      ]
+    },
+    {
+      "t_ns": 2677800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4075659506135364e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00032147204570279507,
+      "centroid_position_delta_m": [
+        -4.812105425707388e-08,
+        -7.893340627024783e-06,
+        -1.8328170009462852e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537497364e-06,
+        -3.567651127016742e-05,
+        -7.486793874926136e-05
+      ]
+    },
+    {
+      "t_ns": 2678000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.411645139822604e-05,
+      "worst_velocity_node": 0,
+      "max_node_speed_difference_m_s": 0.0003148736459209321,
+      "centroid_position_delta_m": [
+        -4.973249646822442e-08,
+        -7.90047592931218e-06,
+        -1.9874578786188701e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537494945e-06,
+        -3.567651127016715e-05,
+        -7.486793874930241e-05
+      ]
+    },
+    {
+      "t_ns": 2678200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4155871864703146e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00031552285089136756,
+      "centroid_position_delta_m": [
+        -5.134393837868956e-08,
+        -7.907611231607058e-06,
+        -2.1420987567309183e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053749839e-06,
+        -3.5676511270169256e-05,
+        -7.486793874934376e-05
+      ]
+    },
+    {
+      "t_ns": 2678400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4195664493063944e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00031986254749543887,
+      "centroid_position_delta_m": [
+        -5.295538065460311e-08,
+        -7.914746533895985e-06,
+        -2.2967396307490193e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053750072e-06,
+        -3.5676511270169886e-05,
+        -7.486793874925703e-05
+      ]
+    },
+    {
+      "t_ns": 2678600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4225479480927408e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00033934457767461967,
+      "centroid_position_delta_m": [
+        -5.456682268534241e-08,
+        -7.921881836125746e-06,
+        -2.451380509300531e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537499274e-06,
+        -3.567651127016783e-05,
+        -7.486793874929114e-05
+      ]
+    },
+    {
+      "t_ns": 2678800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.425018000253549e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003450537075767388,
+      "centroid_position_delta_m": [
+        -5.617826475771507e-08,
+        -7.92901713846514e-06,
+        -2.606021387088764e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537498532e-06,
+        -3.567651127016787e-05,
+        -7.486793874931167e-05
+      ]
+    },
+    {
+      "t_ns": 2679000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4283355985073516e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032596785330861434,
+      "centroid_position_delta_m": [
+        -5.778970678382844e-08,
+        -7.936152440811384e-06,
+        -2.760662262240217e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537493448e-06,
+        -3.567651127016764e-05,
+        -7.486793874936833e-05
+      ]
+    },
+    {
+      "t_ns": 2679200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.432933467443045e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00035437011657754694,
+      "centroid_position_delta_m": [
+        -5.9401148606400923e-08,
+        -7.943287743167121e-06,
+        -2.9153031406298213e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537497232e-06,
+        -3.567651127016971e-05,
+        -7.48679387493293e-05
+      ]
+    },
+    {
+      "t_ns": 2679400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.438232877426249e-05,
+      "worst_velocity_node": 0,
+      "max_node_speed_difference_m_s": 0.0003006260586914534,
+      "centroid_position_delta_m": [
+        -6.10125906325143e-08,
+        -7.950423045555028e-06,
+        -3.0699440205691114e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053750227e-06,
+        -3.567651127016981e-05,
+        -7.486793874940736e-05
+      ]
+    },
+    {
+      "t_ns": 2679600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4424814689134156e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00033369662456922926,
+      "centroid_position_delta_m": [
+        -6.262403246433863e-08,
+        -7.95755834774455e-06,
+        -3.22458489733964e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537504302e-06,
+        -3.567651127017058e-05,
+        -7.486793874927321e-05
+      ]
+    },
+    {
+      "t_ns": 2679800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4464660021167926e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0003064490958648394,
+      "centroid_position_delta_m": [
+        -6.42354743933075e-08,
+        -7.96469365014011e-06,
+        -3.3792257729074276e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537503346e-06,
+        -3.567651127017028e-05,
+        -7.48679387493293e-05
+      ]
+    },
+    {
+      "t_ns": 2680000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.451255229026741e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00033715660219196087,
+      "centroid_position_delta_m": [
+        -6.584691706242503e-08,
+        -7.971828952421847e-06,
+        -3.5338666495391785e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537507878e-06,
+        -3.56765112701699e-05,
+        -7.486793874924257e-05
+      ]
+    },
+    {
+      "t_ns": 2680200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4552110361049226e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032336521955897077,
+      "centroid_position_delta_m": [
+        -6.745835988419824e-08,
+        -7.978964254802912e-06,
+        -3.688507528599542e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537507095e-06,
+        -3.5676511270169114e-05,
+        -7.486793874917838e-05
+      ]
+    },
+    {
+      "t_ns": 2680400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4577625209155947e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.000315685354740708,
+      "centroid_position_delta_m": [
+        -6.906980268746772e-08,
+        -7.986099556981212e-06,
+        -3.8431484058557935e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537507168e-06,
+        -3.56765112701698e-05,
+        -7.486793874912287e-05
+      ]
+    },
+    {
+      "t_ns": 2680600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4605403508042808e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003499878354938028,
+      "centroid_position_delta_m": [
+        -7.068124484773304e-08,
+        -7.99323485912871e-06,
+        -3.9977892840372303e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537504117e-06,
+        -3.567651127016984e-05,
+        -7.486793874905233e-05
+      ]
+    },
+    {
+      "t_ns": 2680800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4649058606984016e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003414711650831987,
+      "centroid_position_delta_m": [
+        -7.22926868090834e-08,
+        -8.000370161497152e-06,
+        -4.1524301600676106e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537501835e-06,
+        -3.5676511270170015e-05,
+        -7.4867938749183e-05
+      ]
+    },
+    {
+      "t_ns": 2681000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.46948937527871e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0002987644588256263,
+      "centroid_position_delta_m": [
+        -7.390412919601926e-08,
+        -8.007505463587203e-06,
+        -4.3070710388966776e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537500654e-06,
+        -3.567651127016959e-05,
+        -7.486793874913386e-05
+      ]
+    },
+    {
+      "t_ns": 2681200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4737468348976088e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00030602467017609627,
+      "centroid_position_delta_m": [
+        -7.551557115736962e-08,
+        -8.01464076593543e-06,
+        -4.461711915805984e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537500649e-06,
+        -3.567651127016868e-05,
+        -7.486793874921828e-05
+      ]
+    },
+    {
+      "t_ns": 2681400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4782340149220965e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0003095765840296242,
+      "centroid_position_delta_m": [
+        -7.71270134379091e-08,
+        -8.021776068338889e-06,
+        -4.616352792576513e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537501123e-06,
+        -3.567651127016742e-05,
+        -7.486793874914831e-05
+      ]
+    },
+    {
+      "t_ns": 2681600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.482915255489013e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032764754862988206,
+      "centroid_position_delta_m": [
+        -7.873845579708938e-08,
+        -8.02891137046381e-06,
+        -4.770993670457265e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537504254e-06,
+        -3.56765112701668e-05,
+        -7.486793874917665e-05
+      ]
+    },
+    {
+      "t_ns": 2681800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4875660314595233e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032726301113846314,
+      "centroid_position_delta_m": [
+        -8.034989907220365e-08,
+        -8.036046672669687e-06,
+        -4.925634546903979e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537498633e-06,
+        -3.567651127016648e-05,
+        -7.486793874910957e-05
+      ]
+    },
+    {
+      "t_ns": 2682000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.491046258054786e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00031179344584681914,
+      "centroid_position_delta_m": [
+        -8.196134187084721e-08,
+        -8.043181974954432e-06,
+        -5.08027542614938e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537494545e-06,
+        -3.567651127016528e-05,
+        -7.486793874904886e-05
+      ]
+    },
+    {
+      "t_ns": 2682200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4939687819762293e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032951342744746395,
+      "centroid_position_delta_m": [
+        -8.357278365641226e-08,
+        -8.0503172770802e-06,
+        -5.234916304724021e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053749733e-06,
+        -3.567651127016508e-05,
+        -7.486793874904539e-05
+      ]
+    },
+    {
+      "t_ns": 2682400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.4973281080685257e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003241485521922983,
+      "centroid_position_delta_m": [
+        -8.518422569640342e-08,
+        -8.057452579475394e-06,
+        -5.389557181633328e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053749391e-06,
+        -3.56765112701643e-05,
+        -7.48679387491356e-05
+      ]
+    },
+    {
+      "t_ns": 2682600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.501682544062651e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003288674579320668,
+      "centroid_position_delta_m": [
+        -8.679566741720546e-08,
+        -8.06458788190347e-06,
+        -5.544198058426986e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053749581e-06,
+        -3.567651127016543e-05,
+        -7.486793874885225e-05
+      ]
+    },
+    {
+      "t_ns": 2682800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5062798072138172e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0002966670082281938,
+      "centroid_position_delta_m": [
+        -8.840710911025192e-08,
+        -8.071723184251534e-06,
+        -5.698838935313163e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537501933e-06,
+        -3.567651127016583e-05,
+        -7.486793874878865e-05
+      ]
+    },
+    {
+      "t_ns": 2683000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5101397968552507e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00030984179294309177,
+      "centroid_position_delta_m": [
+        -9.001855108548007e-08,
+        -8.078858486564505e-06,
+        -5.853479813725896e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053750514e-06,
+        -3.567651127016494e-05,
+        -7.48679387490396e-05
+      ]
+    },
+    {
+      "t_ns": 2683200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5150208394113406e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003346880086198305,
+      "centroid_position_delta_m": [
+        -9.162999332901212e-08,
+        -8.085993788907028e-06,
+        -6.008120690357647e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053750991e-06,
+        -3.567651127016562e-05,
+        -7.486793874877246e-05
+      ]
+    },
+    {
+      "t_ns": 2683400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5202448497042422e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032504762762956076,
+      "centroid_position_delta_m": [
+        -9.324143550778115e-08,
+        -8.093129091085647e-06,
+        -6.162761567382602e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537513395e-06,
+        -3.567651127016709e-05,
+        -7.486793874868572e-05
+      ]
+    },
+    {
+      "t_ns": 2683600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5242788281851754e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00029608067908563234,
+      "centroid_position_delta_m": [
+        -9.485287747838338e-08,
+        -8.100264393065496e-06,
+        -6.317402444245649e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537512243e-06,
+        -3.5676511270167216e-05,
+        -7.486793874899565e-05
+      ]
+    },
+    {
+      "t_ns": 2683800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5275521294688878e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00030361428727556126,
+      "centroid_position_delta_m": [
+        -9.646431938884852e-08,
+        -8.107399695285782e-06,
+        -6.472043322380827e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537515288e-06,
+        -3.567651127016739e-05,
+        -7.486793874875973e-05
+      ]
+    },
+    {
+      "t_ns": 2684000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.530948582431397e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003403446152734223,
+      "centroid_position_delta_m": [
+        -9.807576142883967e-08,
+        -8.114534997568828e-06,
+        -6.6266841988738e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537516714e-06,
+        -3.567651127016743e-05,
+        -7.486793874869613e-05
+      ]
+    },
+    {
+      "t_ns": 2684200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5349582921890395e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00031988314288596014,
+      "centroid_position_delta_m": [
+        -9.968720354747163e-08,
+        -8.121670299902847e-06,
+        -6.781325075181736e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537516189e-06,
+        -3.567651127016776e-05,
+        -7.486793874886728e-05
+      ]
+    },
+    {
+      "t_ns": 2684400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5389093308133884e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00029292987999982327,
+      "centroid_position_delta_m": [
+        -1.01298645115618e-07,
+        -8.12880560225395e-06,
+        -6.935965951350894e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537519079e-06,
+        -3.567651127016815e-05,
+        -7.486793874878402e-05
+      ]
+    },
+    {
+      "t_ns": 2684600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.543283063728264e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.000312098640328078,
+      "centroid_position_delta_m": [
+        -1.0291008736377598e-07,
+        -8.135940904618134e-06,
+        -7.09060683024935e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537517764e-06,
+        -3.567651127016817e-05,
+        -7.486793874867416e-05
+      ]
+    },
+    {
+      "t_ns": 2684800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.54787134180754e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00030892614749479324,
+      "centroid_position_delta_m": [
+        -1.0452152935750784e-07,
+        -8.143076206950667e-06,
+        -7.245247707320565e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053751595e-06,
+        -3.567651127016756e-05,
+        -7.48679387489147e-05
+      ]
+    },
+    {
+      "t_ns": 2685000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5527220503112234e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032174375763167803,
+      "centroid_position_delta_m": [
+        -1.0613297138824714e-07,
+        -8.150211509344735e-06,
+        -7.399888584646205e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053751546e-06,
+        -3.567651127016726e-05,
+        -7.486793874884994e-05
+      ]
+    },
+    {
+      "t_ns": 2685200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5577687201164587e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003180816408621264,
+      "centroid_position_delta_m": [
+        -1.0774441344674202e-07,
+        -8.157346811357725e-06,
+        -7.554529462596345e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537517686e-06,
+        -3.5676511270166315e-05,
+        -7.486793874863136e-05
+      ]
+    },
+    {
+      "t_ns": 2685400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.56150536458418e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00029187987010546613,
+      "centroid_position_delta_m": [
+        -1.0935585547748132e-07,
+        -8.164482113546795e-06,
+        -7.709170339667559e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053751961e-06,
+        -3.567651127016707e-05,
+        -7.486793874826592e-05
+      ]
+    },
+    {
+      "t_ns": 2685600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.564952024791874e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00030820492748336335,
+      "centroid_position_delta_m": [
+        -1.1096729758686141e-07,
+        -8.171617415773406e-06,
+        -7.863811217085718e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537524253e-06,
+        -3.567651127016669e-05,
+        -7.486793874806122e-05
+      ]
+    },
+    {
+      "t_ns": 2685800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5687743329920823e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00033448835669921154,
+      "centroid_position_delta_m": [
+        -1.1257873984889717e-07,
+        -8.178752717934707e-06,
+        -8.018452093370524e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537525362e-06,
+        -3.567651127016682e-05,
+        -7.486793874799992e-05
+      ]
+    },
+    {
+      "t_ns": 2686000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5728432162240027e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003239039162278635,
+      "centroid_position_delta_m": [
+        -1.1419018217107002e-07,
+        -8.18588802025494e-06,
+        -8.173092973217296e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053752384e-06,
+        -3.567651127016727e-05,
+        -7.486793874802537e-05
+      ]
+    },
+    {
+      "t_ns": 2686200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5769091500305593e-05,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.00029038685193514245,
+      "centroid_position_delta_m": [
+        -1.158016241833056e-07,
+        -8.193023322593696e-06,
+        -8.327733851283085e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537522489e-06,
+        -3.567651127016726e-05,
+        -7.486793874868225e-05
+      ]
+    },
+    {
+      "t_ns": 2686400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.581100720817843e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003082725404883367,
+      "centroid_position_delta_m": [
+        -1.1741306620479304e-07,
+        -8.200158625051533e-06,
+        -8.482374727822317e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537519218e-06,
+        -3.5676511270166376e-05,
+        -7.486793874878633e-05
+      ]
+    },
+    {
+      "t_ns": 2686600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5862933957978972e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003347162352631692,
+      "centroid_position_delta_m": [
+        -1.1902450826328792e-07,
+        -8.20729392727632e-06,
+        -8.637015604037734e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537518605e-06,
+        -3.56765112701651e-05,
+        -7.486793874899797e-05
+      ]
+    },
+    {
+      "t_ns": 2686800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.591146073821312e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0003058715538212692,
+      "centroid_position_delta_m": [
+        -1.2063595037266803e-07,
+        -8.214429229493055e-06,
+        -8.791656481432764e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537517729e-06,
+        -3.5676511270164086e-05,
+        -7.486793874906736e-05
+      ]
+    },
+    {
+      "t_ns": 2687000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5954663313433656e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0002939198615162414,
+      "centroid_position_delta_m": [
+        -1.222473923849036e-07,
+        -8.22156453167647e-06,
+        -8.946297357116199e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537518549e-06,
+        -3.5676511270164546e-05,
+        -7.486793874913213e-05
+      ]
+    },
+    {
+      "t_ns": 2687200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.5994468779002255e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003030790711080274,
+      "centroid_position_delta_m": [
+        -1.2385883466081715e-07,
+        -8.228699833926542e-06,
+        -9.100938235482673e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537521474e-06,
+        -3.567651127016482e-05,
+        -7.486793874848449e-05
+      ]
+    },
+    {
+      "t_ns": 2687400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.6032046762068624e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003192010689702071,
+      "centroid_position_delta_m": [
+        -1.2547027662679344e-07,
+        -8.235835135911103e-06,
+        -9.255579111605572e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537522301e-06,
+        -3.567651127016554e-05,
+        -7.486793874843824e-05
+      ]
+    },
+    {
+      "t_ns": 2687600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.6072929045794797e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003238339310818941,
+      "centroid_position_delta_m": [
+        -1.2708171860202158e-07,
+        -8.242970438096365e-06,
+        -9.410219989648231e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537523361e-06,
+        -3.567651127016532e-05,
+        -7.486793874831796e-05
+      ]
+    },
+    {
+      "t_ns": 2687800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.611178386594997e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00031525073600826485,
+      "centroid_position_delta_m": [
+        -1.2869316043847187e-07,
+        -8.250105740486075e-06,
+        -9.564860866603797e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053751828e-06,
+        -3.56765112701653e-05,
+        -7.486793874839197e-05
+      ]
+    },
+    {
+      "t_ns": 2688000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.615481221833742e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00031166980294440784,
+      "centroid_position_delta_m": [
+        -1.3030460233968513e-07,
+        -8.25724104285926e-06,
+        -9.719501743975696e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537517625e-06,
+        -3.5676511270165285e-05,
+        -7.486793874877246e-05
+      ]
+    },
+    {
+      "t_ns": 2688200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.620035082473862e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0002999011718220163,
+      "centroid_position_delta_m": [
+        -1.3191604432416515e-07,
+        -8.264376345203532e-06,
+        -9.87414262303606e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537517078e-06,
+        -3.5676511270164716e-05,
+        -7.486793874889504e-05
+      ]
+    },
+    {
+      "t_ns": 2688400000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.6249925208456258e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.00032498713863675935,
+      "centroid_position_delta_m": [
+        -1.3352748656307126e-07,
+        -8.271511647509888e-06,
+        -1.0028783503808019e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537515362e-06,
+        -3.56765112701647e-05,
+        -7.486793874904539e-05
+      ]
+    },
+    {
+      "t_ns": 2688600000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.6299245775526514e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.00029975648934531306,
+      "centroid_position_delta_m": [
+        -1.3513892849666606e-07,
+        -8.278646949779951e-06,
+        -1.0183424381873807e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.057210537516938e-06,
+        -3.567651127016349e-05,
+        -7.486793874901185e-05
+      ]
+    },
+    {
+      "t_ns": 2688800000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.6338729844231245e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0002984760007884362,
+      "centroid_position_delta_m": [
+        -1.36750370550535e-07,
+        -8.285782251946268e-06,
+        -1.033806525906067e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053751958e-06,
+        -3.567651127016338e-05,
+        -7.486793874882565e-05
+      ]
+    },
+    {
+      "t_ns": 2689000000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.63806021087777e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.0003216392347743739,
+      "centroid_position_delta_m": [
+        -1.3836181264141137e-07,
+        -8.292917554100227e-06,
+        -1.0492706135923717e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        -8.05721053752321e-06,
+        -3.567651127016299e-05,
+        -7.486793874854115e-05
+      ]
+    },
+    {
+      "t_ns": 2689200000,
+      "worst_node": 2,
+      "max_node_distance_m": 2.6422368874900913e-05,
+      "worst_velocity_node": 0,
+      "max_node_speed_difference_m_s": 0.12983833238711703,
+      "centroid_position_delta_m": [
+        -1.3292339107184858e-07,
+        -8.3085313959341e-06,
+        -2.25574980345968e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.00013341726682850294,
+        -0.0005276295717050554,
+        -0.026104132700672734
+      ]
+    },
+    {
+      "t_ns": 2689400000,
+      "worst_node": 2,
+      "max_node_distance_m": 1.743102788481543e-05,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.1375556012709035,
+      "centroid_position_delta_m": [
+        -2.1209429717598352e-07,
+        -9.438181946735727e-06,
+        -4.720249723174734e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0018405286709798152,
+        -0.014890983514670086,
+        0.021668670432851558
+      ]
+    },
+    {
+      "t_ns": 2689600000,
+      "worst_node": 5,
+      "max_node_distance_m": 2.143573667440893e-05,
+      "worst_velocity_node": 3,
+      "max_node_speed_difference_m_s": 0.12298126848873465,
+      "centroid_position_delta_m": [
+        -8.747798980468513e-07,
+        -1.4409050156266593e-05,
+        2.0885041766445047e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003519596102450969,
+        -0.03132299816198773,
+        0.02607640480571868
+      ]
+    },
+    {
+      "t_ns": 2689800000,
+      "worst_node": 3,
+      "max_node_distance_m": 3.3368067970461585e-05,
+      "worst_velocity_node": 3,
+      "max_node_speed_difference_m_s": 0.11012889474341551,
+      "centroid_position_delta_m": [
+        -1.5231491481646857e-06,
+        -2.1344739467060726e-05,
+        6.16663674756629e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588109,
+        -0.035192468988954055,
+        0.01961187030113338
+      ]
+    },
+    {
+      "t_ns": 2690000000,
+      "worst_node": 8,
+      "max_node_distance_m": 4.108355631423274e-05,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.1656672258962976,
+      "centroid_position_delta_m": [
+        -2.1608415057318884e-06,
+        -2.838323326477597e-05,
+        1.0088520307677262e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588096,
+        -0.03519246898895396,
+        0.019611870301133243
+      ]
+    },
+    {
+      "t_ns": 2690200000,
+      "worst_node": 8,
+      "max_node_distance_m": 4.942280757747323e-05,
+      "worst_velocity_node": 5,
+      "max_node_speed_difference_m_s": 0.15049637025208823,
+      "centroid_position_delta_m": [
+        -2.7985338633916093e-06,
+        -3.542172706256765e-05,
+        1.4010403867913135e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880855,
+        -0.03519246898895397,
+        0.019611870301132994
+      ]
+    },
+    {
+      "t_ns": 2690400000,
+      "worst_node": 5,
+      "max_node_distance_m": 5.590040270212332e-05,
+      "worst_velocity_node": 5,
+      "max_node_speed_difference_m_s": 0.1683457473204073,
+      "centroid_position_delta_m": [
+        -3.436226220935682e-06,
+        -4.246022086034308e-05,
+        1.793228742841037e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588055,
+        -0.03519246898895415,
+        0.019611870301133007
+      ]
+    },
+    {
+      "t_ns": 2690600000,
+      "worst_node": 8,
+      "max_node_distance_m": 7.380899566845213e-05,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.179332726350169,
+      "centroid_position_delta_m": [
+        -4.073918578452e-06,
+        -4.949871465812814e-05,
+        2.185417098837794e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588094,
+        -0.035192468988954194,
+        0.01961187030113289
+      ]
+    },
+    {
+      "t_ns": 2690800000,
+      "worst_node": 8,
+      "max_node_distance_m": 8.104533062310604e-05,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.1004208475002893,
+      "centroid_position_delta_m": [
+        -4.711610936130224e-06,
+        -5.6537208455897784e-05,
+        2.5776054548523608e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588108,
+        -0.03519246898895408,
+        0.01961187030113278
+      ]
+    },
+    {
+      "t_ns": 2691000000,
+      "worst_node": 8,
+      "max_node_distance_m": 9.432662491824689e-05,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.11365409290405476,
+      "centroid_position_delta_m": [
+        -5.349303293586405e-06,
+        -6.35757022536404e-05,
+        2.9697938108928328e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895881658,
+        -0.03519246898895408,
+        0.019611870301132806
+      ]
+    },
+    {
+      "t_ns": 2691200000,
+      "worst_node": 11,
+      "max_node_distance_m": 9.502016027732555e-05,
+      "worst_velocity_node": 6,
+      "max_node_speed_difference_m_s": 0.10027903391408557,
+      "centroid_position_delta_m": [
+        -5.986995651620826e-06,
+        -7.061419605140316e-05,
+        3.3619821669356176e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895881566,
+        -0.03519246898895397,
+        0.01961187030113266
+      ]
+    },
+    {
+      "t_ns": 2691400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0001142466170725745,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.11392382783900647,
+      "centroid_position_delta_m": [
+        -6.624688009382318e-06,
+        -7.76526898491224e-05,
+        3.75417052294047e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588142,
+        -0.035192468988953875,
+        0.019611870301132747
+      ]
+    },
+    {
+      "t_ns": 2691600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00012501267865157163,
+      "worst_velocity_node": 5,
+      "max_node_speed_difference_m_s": 0.10121438019101262,
+      "centroid_position_delta_m": [
+        -7.262380367199321e-06,
+        -8.469118364695846e-05,
+        4.146358878932832e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588107,
+        -0.03519246898895379,
+        0.01961187030113271
+      ]
+    },
+    {
+      "t_ns": 2691800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0001335977266573123,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.1324572161456575,
+      "centroid_position_delta_m": [
+        -7.900072725196735e-06,
+        -9.172967744471266e-05,
+        4.538547234958964e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880994,
+        -0.035192468988953875,
+        0.01961187030113248
+      ]
+    },
+    {
+      "t_ns": 2692000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0001436088335629896,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.1331133207208922,
+      "centroid_position_delta_m": [
+        -8.537765083388438e-06,
+        -9.876817124253419e-05,
+        4.9307355910121566e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588076,
+        -0.035192468988954055,
+        0.019611870301132477
+      ]
+    },
+    {
+      "t_ns": 2692200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00014920597149314227,
+      "worst_velocity_node": 5,
+      "max_node_speed_difference_m_s": 0.09897545421750789,
+      "centroid_position_delta_m": [
+        -9.175457441348844e-06,
+        -0.00010580666504040414,
+        5.32292394701007e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588077,
+        -0.035192468988954,
+        0.019611870301132355
+      ]
+    },
+    {
+      "t_ns": 2692400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00016821522797356316,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.12202117233046089,
+      "centroid_position_delta_m": [
+        -9.813149798892917e-06,
+        -0.00011284515883809819,
+        5.715112303073209e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588098,
+        -0.03519246898895382,
+        0.019611870301132664
+      ]
+    },
+    {
+      "t_ns": 2692600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00017475056765043254,
+      "worst_velocity_node": 6,
+      "max_node_speed_difference_m_s": 0.09243229598615661,
+      "centroid_position_delta_m": [
+        -1.0450842156968973e-05,
+        -0.00011988365263590288,
+        6.107300659073898e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588058,
+        -0.03519246898895367,
+        0.01961187030113259
+      ]
+    },
+    {
+      "t_ns": 2692800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00018798298689414193,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.10194196305476119,
+      "centroid_position_delta_m": [
+        -1.108853451501727e-05,
+        -0.00012692214643362596,
+        6.499489015080138e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880803,
+        -0.03519246898895363,
+        0.01961187030113273
+      ]
+    },
+    {
+      "t_ns": 2693000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00019123932857736302,
+      "worst_velocity_node": 6,
+      "max_node_speed_difference_m_s": 0.07982037531659035,
+      "centroid_position_delta_m": [
+        -1.1726226872593726e-05,
+        -0.0001339606402312994,
+        6.891677371097711e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880634,
+        -0.03519246898895356,
+        0.019611870301132785
+      ]
+    },
+    {
+      "t_ns": 2693200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00020668822131732914,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.11112079870690802,
+      "centroid_position_delta_m": [
+        -1.2363919230466239e-05,
+        -0.00014099913402917477,
+        7.28386572712685e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588064,
+        -0.03519246898895385,
+        0.019611870301132917
+      ]
+    },
+    {
+      "t_ns": 2693400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00022030149095999144,
+      "worst_velocity_node": 5,
+      "max_node_speed_difference_m_s": 0.08902090930834507,
+      "centroid_position_delta_m": [
+        -1.3001611588704201e-05,
+        -0.00014803762782690825,
+        7.676054083112042e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588046,
+        -0.035192468988954055,
+        0.019611870301132758
+      ]
+    },
+    {
+      "t_ns": 2693600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0002285866583716238,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.11620666216588399,
+      "centroid_position_delta_m": [
+        -1.3639303946405557e-05,
+        -0.0001550761216248921,
+        8.068242439144419e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880703,
+        -0.035192468988954055,
+        0.019611870301132633
+      ]
+    },
+    {
+      "t_ns": 2693800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00023572755137710427,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.09333246517041456,
+      "centroid_position_delta_m": [
+        -1.4276996304042148e-05,
+        -0.00016211461542266602,
+        8.46043079514025e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880686,
+        -0.03519246898895397,
+        0.019611870301132615
+      ]
+    },
+    {
+      "t_ns": 2694000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0002458482212282185,
+      "worst_velocity_node": 6,
+      "max_node_speed_difference_m_s": 0.09316298491637663,
+      "centroid_position_delta_m": [
+        -1.491468866205344e-05,
+        -0.00016915310922045572,
+        8.852619151191131e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880773,
+        -0.035192468988954166,
+        0.019611870301132605
+      ]
+    },
+    {
+      "t_ns": 2694200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0002619617724290176,
+      "worst_velocity_node": 3,
+      "max_node_speed_difference_m_s": 0.0905863849361127,
+      "centroid_position_delta_m": [
+        -1.5552381020277523e-05,
+        -0.00017619160301820063,
+        9.244807507215874e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880795,
+        -0.035192468988954013,
+        0.01961187030113254
+      ]
+    },
+    {
+      "t_ns": 2694400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00026969147542208307,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.08551538950846549,
+      "centroid_position_delta_m": [
+        -1.6190073377960374e-05,
+        -0.00018323009681580143,
+        9.636995863229747e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003188461789588077,
+        -0.03519246898895389,
+        0.019611870301132494
+      ]
+    },
+    {
+      "t_ns": 2694600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0002814423551430704,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.09944928300815634,
+      "centroid_position_delta_m": [
+        -1.6827765735846767e-05,
+        -0.00019026859061364927,
+        0.00010029184219243388
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895881102,
+        -0.035192468988954013,
+        0.019611870301132428
+      ]
+    },
+    {
+      "t_ns": 2694800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00028605889949603463,
+      "worst_velocity_node": 5,
+      "max_node_speed_difference_m_s": 0.07401908402918468,
+      "centroid_position_delta_m": [
+        -1.746545809367302e-05,
+        -0.00019730708441133561,
+        0.00010421372575256105
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895881133,
+        -0.035192468988954,
+        0.01961187030113205
+      ]
+    },
+    {
+      "t_ns": 2695000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003023046426840466,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.10241124682322596,
+      "centroid_position_delta_m": [
+        -1.8103150451910983e-05,
+        -0.00020434557820921378,
+        0.0001081356093127923
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895881137,
+        -0.03519246898895426,
+        0.019611870301131862
+      ]
+    },
+    {
+      "t_ns": 2695200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003129645708471766,
+      "worst_velocity_node": 6,
+      "max_node_speed_difference_m_s": 0.0700751032934305,
+      "centroid_position_delta_m": [
+        -1.8740842809889895e-05,
+        -0.0002113840720070979,
+        0.00011205749287316231
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0031884617895880877,
+        -0.035192468988954284,
+        0.019611870301131738
+      ]
+    },
+    {
+      "t_ns": 2695400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003239621726779481,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.11460070704504664,
+      "centroid_position_delta_m": [
+        -1.938124385510165e-05,
+        -0.00021839819441289772,
+        0.00011594261455070282
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0035198060478449974,
+        -0.03221271650166542,
+        0.01532884375488436
+      ]
+    },
+    {
+      "t_ns": 2695600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032568937458553977,
+      "worst_velocity_node": 0,
+      "max_node_speed_difference_m_s": 0.08011583423991606,
+      "centroid_position_delta_m": [
+        -2.0083070024938993e-05,
+        -0.0002240947401428377,
+        0.00011793928086207643
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.003233552950654909,
+        -0.024801604395164285,
+        0.004707543370087057
+      ]
+    },
+    {
+      "t_ns": 2695800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032736724537182796,
+      "worst_velocity_node": 3,
+      "max_node_speed_difference_m_s": 0.0702662638474557,
+      "centroid_position_delta_m": [
+        -2.0586866443711438e-05,
+        -0.00022835667626500784,
+        0.00011784153991121575
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.001349828469223824,
+        -0.01834179551231972,
+        -0.006045524120023492
+      ]
+    },
+    {
+      "t_ns": 2696000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00033182755508820005,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.06496649658213846,
+      "centroid_position_delta_m": [
+        -2.0709898158744838e-05,
+        -0.00023195165437141157,
+        0.00011623045206641859
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386869834,
+        -0.017919312594409313,
+        -0.008401064128148646
+      ]
+    },
+    {
+      "t_ns": 2696200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032873819736065096,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.07226839572832501,
+      "centroid_position_delta_m": [
+        -2.0799122987052998e-05,
+        -0.00023553551689016746,
+        0.00011454974874091038
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386869899,
+        -0.017919312594409344,
+        -0.00840106412814884
+      ]
+    },
+    {
+      "t_ns": 2696400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003260968394525164,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.09441036503799599,
+      "centroid_position_delta_m": [
+        -2.0888347814519242e-05,
+        -0.00023911937940895975,
+        0.00011286904541515004
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868698524,
+        -0.017919312594409223,
+        -0.008401064128149031
+      ]
+    },
+    {
+      "t_ns": 2696600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032385030009734426,
+      "worst_velocity_node": 6,
+      "max_node_speed_difference_m_s": 0.05846561298433167,
+      "centroid_position_delta_m": [
+        -2.097757264253597e-05,
+        -0.00024270324192794562,
+        0.00011118834208955393
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868697483,
+        -0.01791931259440914,
+        -0.008401064128149149
+      ]
+    },
+    {
+      "t_ns": 2696800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032799572000532194,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.0670392071265982,
+      "centroid_position_delta_m": [
+        -2.1066797470020715e-05,
+        -0.00024628710444685,
+        0.0001095076387643117
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386869974,
+        -0.017919312594409157,
+        -0.008401064128149484
+      ]
+    },
+    {
+      "t_ns": 2697000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032738498375285783,
+      "worst_velocity_node": 0,
+      "max_node_speed_difference_m_s": 0.05442269165975679,
+      "centroid_position_delta_m": [
+        -2.1156022297685873e-05,
+        -0.0002498709669659453,
+        0.00010782693543875028
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386870089,
+        -0.017919312594409136,
+        -0.008401064128149713
+      ]
+    },
+    {
+      "t_ns": 2697200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003250734404112972,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.09556304914885544,
+      "centroid_position_delta_m": [
+        -2.1245247125536066e-05,
+        -0.0002534548294847898,
+        0.00010614623211326057
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868701673,
+        -0.017919312594409115,
+        -0.008401064128149885
+      ]
+    },
+    {
+      "t_ns": 2697400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003214400376798813,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.05786547672210366,
+      "centroid_position_delta_m": [
+        -2.1334471953270612e-05,
+        -0.00025703869200375217,
+        0.00010446552878749331
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386870261,
+        -0.017919312594409174,
+        -0.008401064128150152
+      ]
+    },
+    {
+      "t_ns": 2697600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003213229273503377,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.061644003258542204,
+      "centroid_position_delta_m": [
+        -2.1423696781236456e-05,
+        -0.00026062255452257696,
+        0.00010278482546179774
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.000446124138686976,
+        -0.017919312594409233,
+        -0.008401064128150148
+      ]
+    },
+    {
+      "t_ns": 2697800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003262003931659931,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.04949035538527797,
+      "centroid_position_delta_m": [
+        -2.1512921608628683e-05,
+        -0.00026420641704132894,
+        0.00010110412213620625
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386869696,
+        -0.017919312594409268,
+        -0.008401064128150256
+      ]
+    },
+    {
+      "t_ns": 2698000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003249111411100397,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.0766618560285501,
+      "centroid_position_delta_m": [
+        -2.160214643629384e-05,
+        -0.00026779027956023554,
+        9.942341881047599e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868695965,
+        -0.01791931259440926,
+        -0.008401064128150238
+      ]
+    },
+    {
+      "t_ns": 2698200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003220962314724328,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.08131976910093335,
+      "centroid_position_delta_m": [
+        -2.169137126425506e-05,
+        -0.0002713741420789571,
+        9.774271548467171e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868694685,
+        -0.01791931259440915,
+        -0.008401064128150296
+      ]
+    },
+    {
+      "t_ns": 2698400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032030147531481365,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.06010984651486307,
+      "centroid_position_delta_m": [
+        -2.1780596092285665e-05,
+        -0.00027495800459790605,
+        9.606201215946418e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868697813,
+        -0.01791931259440903,
+        -0.008401064128150079
+      ]
+    },
+    {
+      "t_ns": 2698600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032618151675435007,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.0653431513967889,
+      "centroid_position_delta_m": [
+        -2.1869820919710275e-05,
+        -0.0002785418671168414,
+        9.438130883387963e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868698784,
+        -0.017919312594409043,
+        -0.008401064128150006
+      ]
+    },
+    {
+      "t_ns": 2698800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032738593155470476,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.05682192609389884,
+      "centroid_position_delta_m": [
+        -2.1959045747250532e-05,
+        -0.0002821257296358514,
+        9.27006055080291e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386869829,
+        -0.017919312594409053,
+        -0.008401064128150061
+      ]
+    },
+    {
+      "t_ns": 2699000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032369478535449175,
+      "worst_velocity_node": 0,
+      "max_node_speed_difference_m_s": 0.07915891917788392,
+      "centroid_position_delta_m": [
+        -2.204827057473528e-05,
+        -0.00028570959215486766,
+        9.101990218213923e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.000446124138686991,
+        -0.017919312594409067,
+        -0.008401064128149905
+      ]
+    },
+    {
+      "t_ns": 2699200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003215319247884096,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.06889200313192129,
+      "centroid_position_delta_m": [
+        -2.2137495402090496e-05,
+        -0.00028929345467370774,
+        8.93391988566819e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386870027,
+        -0.017919312594409008,
+        -0.008401064128149796
+      ]
+    },
+    {
+      "t_ns": 2699400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003241251493137912,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.06195810410701838,
+      "centroid_position_delta_m": [
+        -2.222672022959375e-05,
+        -0.00029287731719265954,
+        8.765849553123382e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868704736,
+        -0.017919312594409056,
+        -0.008401064128149711
+      ]
+    },
+    {
+      "t_ns": 2699600000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003286171430466744,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.05383557495532545,
+      "centroid_position_delta_m": [
+        -2.231594505733292e-05,
+        -0.0002964611797114176,
+        8.597779220599853e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868708455,
+        -0.017919312594408886,
+        -0.008401064128149604
+      ]
+    },
+    {
+      "t_ns": 2699800000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00032881689925153755,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.07370822223672646,
+      "centroid_position_delta_m": [
+        -2.2405169884988824e-05,
+        -0.0003000450422302767,
+        8.429708888046024e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868709024,
+        -0.017919312594408952,
+        -0.00840106412814959
+      ]
+    },
+    {
+      "t_ns": 2700000000,
+      "worst_node": 6,
+      "max_node_distance_m": 0.0003283049302547338,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.06863547268572377,
+      "centroid_position_delta_m": [
+        -2.24943947126031e-05,
+        -0.0003036289047491992,
+        8.261638555465134e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.00044612413868708975,
+        -0.017919312594408623,
+        -0.008401064128149685
+      ]
+    },
+    {
+      "t_ns": 2700200000,
+      "worst_node": 6,
+      "max_node_distance_m": 0.0003307195544576033,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.057939458960216926,
+      "centroid_position_delta_m": [
+        -2.2583619540360773e-05,
+        -0.0003072127672680668,
+        8.09356822289604e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0004461241386870994,
+        -0.017919312594408546,
+        -0.008401064128149715
+      ]
+    },
+    {
+      "t_ns": 2700400000,
+      "worst_node": 6,
+      "max_node_distance_m": 0.00033623761712522253,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.056692055405417455,
+      "centroid_position_delta_m": [
+        -2.27183241235616e-05,
+        -0.0003108210879655872,
+        7.845756116975587e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        -0.0007099748990504288,
+        -0.01856820158717704,
+        -0.01945842554009061
+      ]
+    },
+    {
+      "t_ns": 2700600000,
+      "worst_node": 6,
+      "max_node_distance_m": 0.00033933450005354214,
+      "worst_velocity_node": 6,
+      "max_node_speed_difference_m_s": 0.0899315710953504,
+      "centroid_position_delta_m": [
+        -2.2335883853294436e-05,
+        -0.0003140651353109683,
+        7.182987640930172e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.0034031860935367676,
+        -0.01601772724230818,
+        -0.03918281998849415
+      ]
+    },
+    {
+      "t_ns": 2700800000,
+      "worst_node": 6,
+      "max_node_distance_m": 0.0003379561438770693,
+      "worst_velocity_node": 0,
+      "max_node_speed_difference_m_s": 0.07964543297535587,
+      "centroid_position_delta_m": [
+        -2.1588061530607623e-05,
+        -0.00031720029235864626,
+        6.385233098446981e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.0037759449882939374,
+        -0.015631834817014793,
+        -0.03996760072795997
+      ]
+    },
+    {
+      "t_ns": 2701000000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00033826812252306013,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.07645385316198378,
+      "centroid_position_delta_m": [
+        -2.081660919304081e-05,
+        -0.00032022224561152846,
+        5.496476439233409e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.004181421620350001,
+        -0.014978784804196415,
+        -0.048880139291589735
+      ]
+    },
+    {
+      "t_ns": 2701200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.00034218391219437556,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.07521932451382826,
+      "centroid_position_delta_m": [
+        -1.9910858472268107e-05,
+        -0.0003232333398461574,
+        4.481995964811247e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.0046896977728828415,
+        -0.014595986461845628,
+        -0.05188709286943808
+      ]
+    },
+    {
+      "t_ns": 2701400000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003469367060011739,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.07928464183423715,
+      "centroid_position_delta_m": [
+        -1.8800090218346055e-05,
+        -0.00032601269333414214,
+        3.3812506935427623e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.006424245042911106,
+        -0.0118797647326351,
+        -0.05936124281518351
+      ]
+    },
+    {
+      "t_ns": 2701600000,
+      "worst_node": 6,
+      "max_node_distance_m": 0.00034430071798305026,
+      "worst_velocity_node": 9,
+      "max_node_speed_difference_m_s": 0.08871682940675846,
+      "centroid_position_delta_m": [
+        -1.7503903554719202e-05,
+        -0.0003279626463619943,
+        2.115895012226356e-05
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.006954138016012203,
+        -0.008269559956700834,
+        -0.06649175604833833
+      ]
+    },
+    {
+      "t_ns": 2701800000,
+      "worst_node": 6,
+      "max_node_distance_m": 0.00034374941526042687,
+      "worst_velocity_node": 11,
+      "max_node_speed_difference_m_s": 0.09777900701531769,
+      "centroid_position_delta_m": [
+        -1.6036247085002286e-05,
+        -0.0003293599749176275,
+        7.674812257494243e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.007843609935170729,
+        -0.005820108825328636,
+        -0.06402859985114477
+      ]
+    },
+    {
+      "t_ns": 2702000000,
+      "worst_node": 6,
+      "max_node_distance_m": 0.00034992527532075963,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.08926451633816157,
+      "centroid_position_delta_m": [
+        -1.4304440955875686e-05,
+        -0.00032995173769351975,
+        -2.5008813552968023e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.009833028223590078,
+        -0.00021668293116248574,
+        -0.03790158867006999
+      ]
+    },
+    {
+      "t_ns": 2702200000,
+      "worst_node": 8,
+      "max_node_distance_m": 0.0003427240622853695,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.092405748162005,
+      "centroid_position_delta_m": [
+        -1.2047565679596898e-05,
+        -0.0003293971653012411,
+        -7.846169312215878e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.012088952623095157,
+        0.00586796165318827,
+        -0.016919870037770353
+      ]
+    },
+    {
+      "t_ns": 2702400000,
+      "worst_node": 9,
+      "max_node_distance_m": 0.0003472416512305969,
+      "worst_velocity_node": 8,
+      "max_node_speed_difference_m_s": 0.06709306750352545,
+      "centroid_position_delta_m": [
+        -9.400524425282978e-06,
+        -0.0003274725241493067,
+        -9.055525768975522e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.013792640732633353,
+        0.012782898593634169,
+        0.003815074073765207
+      ]
+    },
+    {
+      "t_ns": 2702600000,
+      "worst_node": 9,
+      "max_node_distance_m": 0.00034273260442254906,
+      "worst_velocity_node": 0,
+      "max_node_speed_difference_m_s": 0.0553905641119012,
+      "centroid_position_delta_m": [
+        -6.739777047034175e-06,
+        -0.0003248010891864137,
+        -7.457492069757691e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.012878333307769432,
+        0.013103771478875667,
+        0.009860043341362068
+      ]
+    },
+    {
+      "t_ns": 2702800000,
+      "worst_node": 9,
+      "max_node_distance_m": 0.0003371724252657401,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.06357550002478038,
+      "centroid_position_delta_m": [
+        -4.1685702684424175e-06,
+        -0.0003222190403611799,
+        -5.42952367587705e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.012732231808992515,
+        0.011823770224097115,
+        0.011700508984880753
+      ]
+    },
+    {
+      "t_ns": 2703000000,
+      "worst_node": 11,
+      "max_node_distance_m": 0.0003305651025218828,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.04654117300672742,
+      "centroid_position_delta_m": [
+        -1.6389697129332026e-06,
+        -0.00032001761078509326,
+        -2.8539862948322634e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.012586659776191028,
+        0.010417157943439248,
+        0.01372069096948844
+      ]
+    },
+    {
+      "t_ns": 2703200000,
+      "worst_node": 9,
+      "max_node_distance_m": 0.00032893196901586855,
+      "worst_velocity_node": 5,
+      "max_node_speed_difference_m_s": 0.0624477621194523,
+      "centroid_position_delta_m": [
+        8.744587732488022e-07,
+        -0.0003179285520108047,
+        -1.2533752336701953e-07
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.012032969068612601,
+        0.011208914926610703,
+        0.011580562113516208
+      ]
+    },
+    {
+      "t_ns": 2703400000,
+      "worst_node": 9,
+      "max_node_distance_m": 0.00033370439231953096,
+      "worst_velocity_node": 7,
+      "max_node_speed_difference_m_s": 0.036378980904944375,
+      "centroid_position_delta_m": [
+        3.327027440061525e-06,
+        -0.00031582728890307396,
+        1.8896648831950857e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.012470361832764452,
+        0.009812951205404727,
+        0.008188647143850777
+      ]
+    },
+    {
+      "t_ns": 2703600000,
+      "worst_node": 9,
+      "max_node_distance_m": 0.0003313647854849592,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.043761465001441804,
+      "centroid_position_delta_m": [
+        5.824749389926609e-06,
+        -0.0003139790192973675,
+        3.3448981206265125e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.012478241281102661,
+        0.009060751716571924,
+        0.007013531611450058
+      ]
+    },
+    {
+      "t_ns": 2703800000,
+      "worst_node": 9,
+      "max_node_distance_m": 0.000326982676990768,
+      "worst_velocity_node": 2,
+      "max_node_speed_difference_m_s": 0.053248255530253016,
+      "centroid_position_delta_m": [
+        8.307980739294396e-06,
+        -0.0003121817377408073,
+        4.673674644614656e-06
+      ],
+      "centroid_velocity_delta_m_s": [
+        0.012397681694436743,
+        0.00905348192198408,
+        0.005859515826713315
+      ]
+    }
+  ],
+  "native_views": {
+    "1000": {
+      "frames": 161,
+      "renderer": "WebGPU",
+      "independent_particle_positions_checked": 1932,
+      "reset_ms": 2672.0,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10010%2F"
+    },
+    "2000": {
+      "frames": 161,
+      "renderer": "WebGPU",
+      "independent_particle_positions_checked": 1932,
+      "reset_ms": 2672.0,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10011%2F"
+    }
+  }
+}
