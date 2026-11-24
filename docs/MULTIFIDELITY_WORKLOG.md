@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Measure the load from the finger into the serial wrist
+
+At a 50 µm gap, both sliding fingers took almost all of the parcel's initial impulse along their slides. The left finger transferred 10.39 mN·s downward into the palm and the right transferred 10.58 mN·s upward. The corresponding vertical impulses at the wrist were −5.05 and +9.16 mN·s. Matched unloaded runs separated the effect of each strike from the commanded motion. The six-body study now reports all three components of transferred impulse, angular impulse about the incoming wrist, and the change in palm rotation relative to the nut. Four native recordings show the measured impulses at each stage. The ordinary hinged-finger control located an independent error in how separate constrained bodies share the initial impact. [Serial loads and gz-web-rs recordings](measurements/local-manipulation/wrist-impact-loads.md) · [Hinged-finger oracle and ordinary controls](measurements/local-manipulation/hinged-jaw-oracle.md)
+
 ## 2026-11-24 — Check the jaw contact solver against a hand calculation
 
 A free 200 g parcel hit a free 80 g jaw from either side. The 25 ns window located first contact within 8.33 ns of the exact time and reproduced the analytic impulse within 1.77 × 10⁻¹³ N·s. The original 64-call solve also got the impulse right, while its first loaded timestamp trailed the exact contact by 11.46 µs. All eight release and solver combinations preserved momentum, and both native replays followed the calculated trajectory through 320 ms. The next independent check is the attached jaw, where the wrist and finger constraints share the impact. [Measurements, Rust regression and both replays](measurements/local-manipulation/free-jaw-impact.md)

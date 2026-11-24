@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+The gripper's load-path recordings show how a parcel's first strike moves through the sliding finger into the palm and wrist. Three gauges follow the measured impulses through the first millisecond. [Signed measurements, native recordings and reproduction](measurements/local-manipulation/wrist-impact-loads.md)
+
 The 50 µm jaw-strike recordings show individual hits inside a single 1 ms controller step. A separate 18 s recording follows the same gripper carrying its free 200 g parcel to a shelf. [Jaw impact, full pickup and replay instructions](measurements/local-manipulation/early-jaw.md) · [Watch the carry](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10090%2F)
 
 The shelf-transfer robot grips a 200 g parcel, carries it past an obstacle and hands its weight to a shelf. The loaded wrist recording compares two motors responding to the same shove. The sheet recording shows a gripper losing its receiving table mid-release. Each link opens a measured run in gz-web-rs. Press **Play** to advance it. [Shelf-transfer instructions and native view](measurements/local-manipulation/serial-transfer.md) · [Loaded wrist](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10042%2F) · [Sheet landing](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10039%2F)
