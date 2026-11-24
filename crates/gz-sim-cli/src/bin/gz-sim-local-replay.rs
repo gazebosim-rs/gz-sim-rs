@@ -84,6 +84,10 @@ enum Command {
         joint: String,
         value: f64,
     },
+    SetJointForce {
+        joint: String,
+        force: f64,
+    },
     JointEffort {
         joint: String,
         effort: f64,
@@ -437,6 +441,10 @@ fn run(args: Args) -> Result<()> {
             Command::Target { joint, value } => {
                 let id = entity_id(&sim, joint)?;
                 gz_sim_scene::set_joint_controller_command(&mut sim, id, *value)?;
+            }
+            Command::SetJointForce { joint, force } => {
+                let id = entity_id(&sim, joint)?;
+                gz_sim_scene::set_joint_force(&mut sim, id, *force)?;
             }
             Command::JointEffort { joint, effort } => {
                 let id = entity_id(&sim, joint)?;

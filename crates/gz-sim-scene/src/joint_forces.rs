@@ -63,6 +63,11 @@ fn joint_text(xml: &str, child: roxmltree::Node<'_, '_>) -> Result<String, ()> {
     })
 }
 
+pub(super) fn is_plugin(plugin: &sdformat::Plugin) -> bool {
+    plugin.name == "gz::sim::systems::ApplyJointForce"
+        && plugin.filename == "gz-sim-apply-joint-force-system"
+}
+
 pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadError> {
     if model.plugins.is_empty() {
         return Ok(Vec::new());
@@ -87,12 +92,7 @@ pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadE
         {
             continue;
         }
-        require(
-            plugin.name == "gz::sim::systems::ApplyJointForce"
-                && plugin.filename == "gz-sim-apply-joint-force-system",
-            &model.scoped_name,
-            "model plugins",
-        )?;
+        require(is_plugin(plugin), &model.scoped_name, "model plugins")?;
         let invalid = || LoadError::Unsupported {
             entity: model.scoped_name.clone(),
             feature: "ApplyJointForce configuration",

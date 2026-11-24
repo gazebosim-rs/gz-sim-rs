@@ -119,6 +119,8 @@ pub(super) struct State {
     scalar_joints: Vec<Encoder<f64>>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     universal_joints: Vec<Encoder<[f64; 2]>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    held_joint_forces: Vec<(u64, f64)>,
     /// Aggregate physical checks for qualification and fault isolation.
     pub(crate) held_targets: usize,
     pub(crate) pending_wrenches: usize,
@@ -155,6 +157,7 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
     let mut wrists = Vec::new();
     let mut scalar_joints = Vec::new();
     let mut universal_joints = Vec::new();
+    let mut held_joint_forces = Vec::new();
     let mut held_targets = 0;
     let mut link_loads = Vec::new();
     let mut imu_samples = 0;
@@ -234,6 +237,10 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
                 velocity: j.state.velocity,
                 pending_effort: pending,
             });
+        }
+        if let Some(force) = e.get::<gz_sim_scene::JointForceCommand>() {
+            held_joint_forces.push((id, force.torque()));
+            inputs.item((id, "held_joint_force", bits(force.torque())));
         }
         if let Some(target) = gz_sim_scene::held_joint_controller_target(sim, id) {
             held_targets += 1;
@@ -343,6 +350,7 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         scalar_joints,
         universal_joints,
         held_targets,
+        held_joint_forces,
         pending_wrenches: link_loads.len(),
         link_loads,
         imu_samples,

@@ -89,6 +89,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                         || contact_material::is_plugin(p)
                         || crate::articulation::is_plugin(p)
                         || joints::is_scalar_tree_plugin(p)
+                        || joint_forces::is_plugin(p)
                         || crate::joint_state_publisher::is_plugin(p)
                         || matches!(
                             p.filename.as_str(),
@@ -114,6 +115,6 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     require(
         admitted,
         &world.name,
-        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, incoming-face and screw-stop refinement, mounted slider stabilization, native joint controllers and IMUs",
+        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, incoming-face and screw-stop refinement, mounted slider stabilization, native joint controllers, held joint forces and IMUs",
     )
 }
