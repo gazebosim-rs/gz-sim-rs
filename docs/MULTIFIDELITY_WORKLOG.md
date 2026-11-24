@@ -3,13 +3,15 @@
 
 # Multi-fidelity physics worklog
 
-The Rust/Bevy serial robot lifts a free 200 g parcel, carries it 46 cm and places it on a fixed shelf after measuring that the shelf supports its weight. The same robot holds the load when the commanded destination misses the shelf. The folded-sheet trials now continue from grasp loss through impact and measured rest on two mesh resolutions. [Rigid parcel transfer](measurements/local-manipulation/serial-transfer.md) · [Cloth landing and rest](measurements/local-manipulation/fold-rest.md)
+The Rust/Bevy arm now handles both rigid parcels and a loose 22 g cable. It can recover a cable snag using only its own jaw forces, or return the load to the pickup table when it reaches its lift limit. The folded-sheet rig measures the force on each finger and the load transferred through the fold. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Tactile cable recovery](measurements/local-manipulation/serial-cable-tactile.md) · [Folded-sheet forces](measurements/local-manipulation/fold-force-balance.md)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
 ## 2026-11-23 — Design review and implementation roadmap
 
-The serial arm clears the barrier with loads up to 1.245 kg at the tested friction. It safely set down all eight diagonally weighted parcels that slipped, with no alarms in eight undisturbed controls. The folded-sheet arm now has measured timestep and individual jaw-force limits on light grippers. Current local work covers low-friction set-down, a freely moving load-bearing ankle and release qualification across the shared scene and CLI. [Payload limits](measurements/local-manipulation/serial-payload.md) · [Slip recovery](measurements/local-manipulation/serial-receiver.md) · [Light gripper](measurements/local-manipulation/sheet-jaw-convergence.md) The [approved technical design](../../physics_tdd.md) defines five acceptance milestones. The table records the evidence for each, and the phases below give the proposed implementation order.
+The serial arm clears the barrier with loads up to 1.245 kg at the tested friction. It safely set down all eight diagonally weighted parcels that slipped, with no alarms in eight undisturbed controls. The folded-sheet arm now has measured timestep and individual jaw-force limits on light grippers. Recent qualification covers shelf placement at four physics rates, cable snag recovery, the loaded foot crossing a deck edge, and GPU-arm impact from a matched incoming state. The CPU fleet throughput and the full release coverage gate remain open. [Shelf placement](measurements/local-manipulation/serial-convergence.md) · [Loaded ankle](measurements/local-manipulation/compliant-ankle-edge.md) · [GPU impact](measurements/local-manipulation/native-landing-passes.md) · [Release coverage](measurements/local-manipulation/local-implementation-gate.md)
+
+The [approved technical design](../../physics_tdd.md) defines five acceptance milestones. The table records the evidence for each, and the phases below give the proposed implementation order.
 
 | TDD milestone | What works today | What is still open |
 |---|---|---|
@@ -2127,3 +2129,7 @@ A 0.447 N contact triggered braking on the next 1 ms tick. The robot reversed 10
 ## 2026-11-23 — Feeling a cable snag at the gripper
 
 The gripper sensed a snag 120 ms after the cable touched the barrier and carried it to the shelf after a second lift. A light 153 ms rub and a twice-as-fast clear run caused no retreat. A taller barrier forced a return to the pickup table, while a jaw drive failure stopped the carriage within 3.71 mm and the cable fell onto that table. The 700 mm stress case reached the rigid robot during braking and remains outside the cable-only recovery envelope. All 86,037 measured ticks repeated after reset. Twenty-eight Rust tests passed, with 456/464 changed production lines and 854/895 regions covered. [Measured forces and six native replays](measurements/local-manipulation/serial-cable-tactile.md)
+
+## 2026-11-23 — Measuring forces across the folded sheet
+
+A force balance on each cloth panel explains the stiff-grip asymmetry. At 64 native exchanges per millisecond, bending transferred 72.53 mN between the panels, while self-contact friction transferred 1.80 mN. Sampling all native endpoints avoided a large error from observing the elastic force only on the actuator clock. The measured forces balance independently on both panels, although the extreme pad's force split still varies with the physics rate. [Five comparisons and three force replays](measurements/local-manipulation/fold-force-balance.md)

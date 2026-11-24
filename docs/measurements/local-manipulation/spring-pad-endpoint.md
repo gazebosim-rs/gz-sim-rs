@@ -21,3 +21,5 @@ Each full 3.4 s run used two 2.8125 g jaws, pad compliance 0.000015625 m/N, 1.5 
 ![The two spring jaws holding the folded sheet](spring-pad-endpoint.jpg)
 
 Use the [gripper study commands](sheet-jaw-convergence.md) with `--pad-compliance 0.000015625`, `--jaw-mass-scale 0.015625`, `--tune-damping`, `--substeps 1` and the desired `--exchanges-per-ms`.
+
+Signed per-particle forces subsequently localized the unequal jaw loads to the bending of the fold. [Panel force balance and instrumented replays](fold-force-balance.md)

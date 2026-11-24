@@ -1,0 +1,392 @@
+{
+  "hold_s": [
+    1.65,
+    1.95
+  ],
+  "panel_weight_n": 0.041202,
+  "trials": {
+    "c0.000015625-e64": {
+      "native_exchanges_per_ms": 64,
+      "pad_compliance_m_per_n": 1.5625e-05,
+      "jaw_up_n": [
+        0.11366012896949065,
+        -0.03131557833338335
+      ],
+      "bench_up_n": 0.0,
+      "mean_lift_m": [
+        0.1486494046408409,
+        0.14860053150985045
+      ],
+      "max_balance_error_n": 5.161073391574122e-16,
+      "hold_balance": {
+        "applied_bending_up_n": [
+          -0.0725336697048053,
+          0.07253366970480407
+        ],
+        "applied_distance_up_n": [
+          0.0017656149286705719,
+          -0.0017656149286705623
+        ],
+        "elastic_bending_up_n": [
+          -0.09603187933803886,
+          0.09603187933803899
+        ],
+        "elastic_distance_up_n": [
+          0.0020491685411429712,
+          -0.0020491685411429734
+        ],
+        "elastic_samples": 300,
+        "momentum_change_per_second_n": [
+          -4.4044169206125674e-05,
+          -1.5405194687226842e-05
+        ],
+        "native_elastic_bending_up_n": [
+          -0.07253379672214628,
+          0.07253379672214703
+        ],
+        "native_elastic_distance_up_n": [
+          0.0017658216486244915,
+          -0.0017658216486244956
+        ],
+        "native_elastic_samples": 19200,
+        "normal_up_n": [
+          6.974826907663268e-05,
+          -6.974826907663273e-05
+        ],
+        "tangent_up_n": [
+          -0.0018038666316391434,
+          0.0018038666316391478
+        ]
+      },
+      "positions_sha256": "8c20179febb4ea9444ec0d8bfbbbc7cd11a0a69f40010c6c7fd809b7a12afe45"
+    },
+    "c0.000015625-e125": {
+      "native_exchanges_per_ms": 125,
+      "pad_compliance_m_per_n": 1.5625e-05,
+      "jaw_up_n": [
+        0.042891426832575276,
+        0.03952241847250945
+      ],
+      "bench_up_n": 0.0,
+      "mean_lift_m": [
+        0.1494825592184212,
+        0.1495216524986405
+      ],
+      "max_balance_error_n": 2.8628951287542823e-16,
+      "hold_balance": {
+        "applied_bending_up_n": [
+          0.00014240541633341096,
+          -0.00014240541633342272
+        ],
+        "applied_distance_up_n": [
+          -0.001830461852392858,
+          0.0018304618523928794
+        ],
+        "elastic_bending_up_n": [
+          -0.0034559306222842613,
+          0.0034559306222842604
+        ],
+        "elastic_distance_up_n": [
+          -0.001828195282654689,
+          0.001828195282654689
+        ],
+        "elastic_samples": 300,
+        "momentum_change_per_second_n": [
+          1.3703965160604808e-06,
+          8.474908568895028e-06
+        ],
+        "native_elastic_bending_up_n": [
+          0.00014227491284900514,
+          -0.00014227491284900752
+        ],
+        "native_elastic_distance_up_n": [
+          -0.001830414962630544,
+          0.0018304149626304754
+        ],
+        "native_elastic_samples": 37500,
+        "normal_up_n": [
+          0.0,
+          0.0
+        ],
+        "tangent_up_n": [
+          0.0,
+          0.0
+        ]
+      },
+      "positions_sha256": "de6469f81e5a32a78c7fca5411fe8866d791da90cc40f67281567ddcd2e95a11"
+    },
+    "c0.000015625-e250": {
+      "native_exchanges_per_ms": 250,
+      "pad_compliance_m_per_n": 1.5625e-05,
+      "jaw_up_n": [
+        0.07395579607509546,
+        0.008330243249215333
+      ],
+      "bench_up_n": 0.0,
+      "mean_lift_m": [
+        0.1486876357908053,
+        0.14867787979763603
+      ],
+      "max_balance_error_n": 3.40954478192379e-16,
+      "hold_balance": {
+        "applied_bending_up_n": [
+          -0.03366289724702577,
+          0.03366289724702566
+        ],
+        "applied_distance_up_n": [
+          0.0003221702501057957,
+          -0.0003221702501057775
+        ],
+        "elastic_bending_up_n": [
+          -0.0724492294517958,
+          0.072449229451796
+        ],
+        "elastic_distance_up_n": [
+          0.0002716353046199594,
+          -0.00027163530461995973
+        ],
+        "elastic_samples": 300,
+        "momentum_change_per_second_n": [
+          -2.2491206667456154e-05,
+          -9.54694690211551e-05
+        ],
+        "native_elastic_bending_up_n": [
+          -0.03366461184864016,
+          0.033664611848641175
+        ],
+        "native_elastic_distance_up_n": [
+          0.00032219079187869747,
+          -0.00032219079187869367
+        ],
+        "native_elastic_samples": 75000,
+        "normal_up_n": [
+          2.50740299283135e-05,
+          -2.5074029928313504e-05
+        ],
+        "tangent_up_n": [
+          0.0005393656852283934,
+          -0.0005393656852283906
+        ]
+      },
+      "positions_sha256": "d9d8a66fb913130f94c9984b078a599f7f8b2a65ce0ca4dd08b2ec5aca250cfa"
+    },
+    "c0.0000625-e32": {
+      "native_exchanges_per_ms": 32,
+      "pad_compliance_m_per_n": 6.25e-05,
+      "jaw_up_n": [
+        0.04120640422654699,
+        0.04120368037341656
+      ],
+      "bench_up_n": 0.0,
+      "mean_lift_m": [
+        0.1496199665993875,
+        0.1496199670294214
+      ],
+      "max_balance_error_n": 2.161066498548945e-15,
+      "hold_balance": {
+        "applied_bending_up_n": [
+          -8.380806238726327e-07,
+          8.380806238859159e-07
+        ],
+        "applied_distance_up_n": [
+          -5.238459314555004e-07,
+          5.23845931457647e-07
+        ],
+        "elastic_bending_up_n": [
+          -1.9694992231785103e-07,
+          1.9694992231735493e-07
+        ],
+        "elastic_distance_up_n": [
+          -1.58325909048029e-08,
+          1.583259090460893e-08
+        ],
+        "elastic_samples": 300,
+        "momentum_change_per_second_n": [
+          3.042299993821954e-06,
+          3.042299973148633e-06
+        ],
+        "native_elastic_bending_up_n": [
+          -1.9695553740438522e-07,
+          1.969555374043168e-07
+        ],
+        "native_elastic_distance_up_n": [
+          -1.58325916697281e-08,
+          1.5832591669720767e-08
+        ],
+        "native_elastic_samples": 9600,
+        "normal_up_n": [
+          0.0,
+          0.0
+        ],
+        "tangent_up_n": [
+          0.0,
+          0.0
+        ]
+      },
+      "positions_sha256": "8d4c9ce2be2c84bfedbe3bfea34ed032cac213f838e92413f9902edce8592d50"
+    },
+    "c0-e64": {
+      "native_exchanges_per_ms": 64,
+      "pad_compliance_m_per_n": 0.0,
+      "jaw_up_n": [
+        0.04120653171457965,
+        0.041203561828851584
+      ],
+      "bench_up_n": 0.0,
+      "mean_lift_m": [
+        0.14874788174389927,
+        0.1487479153430714
+      ],
+      "max_balance_error_n": 2.1442003785032172e-16,
+      "hold_balance": {
+        "applied_bending_up_n": [
+          -8.141419641519206e-08,
+          8.141419642037582e-08
+        ],
+        "applied_distance_up_n": [
+          -1.4037001199780667e-06,
+          1.4037001199772858e-06
+        ],
+        "elastic_bending_up_n": [
+          2.0074797671125358e-08,
+          -2.0074797670473983e-08
+        ],
+        "elastic_distance_up_n": [
+          -1.240450724189609e-06,
+          1.2404507241895302e-06
+        ],
+        "elastic_samples": 300,
+        "momentum_change_per_second_n": [
+          3.0466002634686777e-06,
+          3.0469431680650626e-06
+        ],
+        "normal_up_n": [
+          0.0,
+          0.0
+        ],
+        "tangent_up_n": [
+          0.0,
+          0.0
+        ]
+      },
+      "positions_sha256": "7539b8abf688512112a6ad57e5dacd8410c233c13733a2f3294e314a7248a21e"
+    }
+  },
+  "coverage": {
+    "nodal": {
+      "lines": [
+        101,
+        102
+      ],
+      "regions": [
+        196,
+        203
+      ]
+    },
+    "elastic": {
+      "lines": [
+        51,
+        52
+      ],
+      "regions": [
+        96,
+        100
+      ]
+    },
+    "constraint": {
+      "lines": [
+        57,
+        60
+      ],
+      "regions": [
+        88,
+        92
+      ]
+    },
+    "gauge": {
+      "lines": [
+        113,
+        113
+      ],
+      "regions": [
+        233,
+        235
+      ]
+    },
+    "cadence": {
+      "lines": [
+        12,
+        12
+      ],
+      "regions": [
+        27,
+        29
+      ]
+    }
+  },
+  "views": {
+    "c0.000015625-e64": {
+      "frames": 137,
+      "body_poses_and_shapes_checked": 4658,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "positions": 822,
+      "hold_mean_errors_n": {
+        "jaw": [
+          -4.163336342344337e-16,
+          -1.8041124150158794e-16
+        ],
+        "bending": [
+          9.43689570931383e-16,
+          2.914335439641036e-16
+        ],
+        "self_friction": [
+          -2.168404344971009e-18,
+          -1.951563910473908e-18
+        ]
+      }
+    },
+    "c0.000015625-e125": {
+      "frames": 137,
+      "body_poses_and_shapes_checked": 4658,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "positions": 822,
+      "hold_mean_errors_n": {
+        "jaw": [
+          2.1510571102112408e-16,
+          -6.938893903907228e-18
+        ],
+        "bending": [
+          4.119968255444917e-18,
+          8.402566836762659e-19
+        ],
+        "self_friction": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "c0.0000625-e32": {
+      "frames": 137,
+      "body_poses_and_shapes_checked": 4658,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "positions": 822,
+      "hold_mean_errors_n": {
+        "jaw": [
+          2.1718737919229625e-15,
+          1.2698175844150228e-15
+        ],
+        "bending": [
+          -2.4352197233561135e-21,
+          -7.30565917006834e-21
+        ],
+        "self_friction": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  }
+}
