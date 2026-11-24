@@ -72,6 +72,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                 })
                 && model.plugins.iter().all(|p| {
                     prescribed_motion::is_initial_velocity(p)
+                        || contact_material::is_plugin(p)
                         || crate::articulation::is_plugin(p)
                         || crate::joint_state_publisher::is_plugin(p)
                         || matches!(
@@ -98,6 +99,6 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     require(
         admitted,
         &world.name,
-        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, initial twists, incoming-face and screw-stop refinement, native joint controllers and IMUs",
+        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, incoming-face and screw-stop refinement, native joint controllers and IMUs",
     )
 }

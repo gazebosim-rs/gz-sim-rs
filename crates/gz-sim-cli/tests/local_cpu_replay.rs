@@ -985,3 +985,40 @@ fn a_refined_impact_replays_its_full_impulse_and_drops_stale_step_receipts() {
     let bad = run(&unsupported, &journal, &[]);
     assert!(!bad.status.success());
 }
+
+#[test]
+fn a_rebounding_parcel_replays_the_normal_impulse_after_separation_and_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let raw = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let material = r#"<plugin name="gz::sim::systems::ContactMaterial" filename="gz-sim-contact-material-system"><restitution link="body">0.8</restitution></plugin>"#;
+    let model = r#"<model name="parcel">"#;
+    let xml = raw.replace(model, &format!("{model}{material}"));
+    let world = file(dir, "bounce.sdf", &xml);
+    let journal = file(
+        dir,
+        "impact.json",
+        include_str!("../../../examples/replay/refined_contact.json"),
+    );
+    let rows = success(run(&world, &journal, &["--threads", "1"]));
+    assert_eq!(rows, success(run(&world, &journal, &["--threads", "8"])));
+    let impact = record(&rows, 1, 1);
+    let hit = &impact["refinement"]["requested_pairs"][0];
+    // Independent momentum from the measured outgoing flight of a free 10 g parcel.
+    assert!((hit["normal_on_foot_ns"][2].as_f64().unwrap() - 0.01 * (4.0 + 3.1625)).abs() < 1e-12);
+    assert_eq!(hit["active_at_end"], false);
+    assert_eq!(hit["last_native_normal_ns"], 0.0);
+    shared(
+        impact,
+        record(&rows, 5, 1),
+        &["refinement", "pair_reactions_ns", "physics"],
+    );
+    for invalid in [
+        xml.replace(">0.8</restitution>", ">1.1</restitution>"),
+        xml.replace("restitution link=\"body\"", "restitution link=\"missing\""),
+    ] {
+        let bad = run(&file(dir, "invalid.sdf", &invalid), &journal, &[]);
+        assert!(!bad.status.success());
+        assert!(String::from_utf8_lossy(&bad.stderr).contains("ContactMaterial"));
+    }
+}
