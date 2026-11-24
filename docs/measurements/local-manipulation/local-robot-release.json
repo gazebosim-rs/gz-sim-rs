@@ -1,0 +1,299 @@
+{
+  "candidate": "522a03fa7fd46ec5925b2cc596d645b4919fbc5f",
+  "tree": "ffdaebcdc3f6d7836ace9f3b9189e13827ac8dea",
+  "comparison": "438b0afb6128951c2b7148a2d969231304fd356d",
+  "rust_tests": {
+    "passed": 3960,
+    "failed": 0,
+    "ignored": 151,
+    "harnesses": 814
+  },
+  "worker_cases": 49,
+  "gripper_frames": 1021,
+  "checkpoint_campaign": {
+    "controller_sigkills": 16,
+    "cut_max_bytes": 9791,
+    "cut_min_bytes": 7329,
+    "epochs": 2,
+    "reopened_immutable_cuts": 16,
+    "repeated_discarded_successors": 8,
+    "seed": 5,
+    "ticks_per_epoch": 120,
+    "verified_complete_native_and_public_states": 257
+  },
+  "coverage": {
+    "gz-assets": {
+      "lines": {
+        "covered": 1038,
+        "count": 1071,
+        "percent": 96.91877,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 1833,
+        "count": 1907,
+        "percent": 96.11956,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        70,
+        70
+      ],
+      "absent_sources": []
+    },
+    "gz-physics": {
+      "lines": {
+        "covered": 16227,
+        "count": 16814,
+        "percent": 96.50886,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 27724,
+        "count": 28638,
+        "percent": 96.80844,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        3,
+        3
+      ],
+      "absent_sources": []
+    },
+    "gz-physics-distributed": {
+      "lines": {
+        "covered": 31760,
+        "count": 35689,
+        "percent": 88.99101,
+        "additional_to_95_percent": 2145
+      },
+      "regions": {
+        "covered": 49506,
+        "count": 58366,
+        "percent": 84.81993,
+        "additional_to_95_percent": 5942
+      },
+      "changed_lines": [
+        55,
+        55
+      ],
+      "absent_sources": [
+        "crates/gz-physics-distributed/src/barrier_trace.rs",
+        "crates/gz-physics-distributed/src/barrier_trace_sched.rs",
+        "crates/gz-physics-distributed/src/floating_tree/automatic/rotor.rs",
+        "crates/gz-physics-distributed/src/multi_sphere/timing.rs",
+        "crates/gz-physics-distributed/src/physics/partition/trace.rs"
+      ]
+    },
+    "gz-physics-multifidelity": {
+      "lines": {
+        "covered": 1919,
+        "count": 1996,
+        "percent": 96.14228,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 1983,
+        "count": 2053,
+        "percent": 96.59036,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        92,
+        92
+      ],
+      "absent_sources": []
+    },
+    "gz-physics-rapier": {
+      "lines": {
+        "covered": 29329,
+        "count": 30586,
+        "percent": 95.89028,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 48394,
+        "count": 50791,
+        "percent": 95.28066,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        1712,
+        1747
+      ],
+      "absent_sources": []
+    },
+    "gz-physics-tpe": {
+      "lines": {
+        "covered": 220,
+        "count": 221,
+        "percent": 99.54751,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 310,
+        "count": 312,
+        "percent": 99.35897,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        0,
+        0
+      ],
+      "absent_sources": []
+    },
+    "gz-physics-xpbd": {
+      "lines": {
+        "covered": 11610,
+        "count": 12054,
+        "percent": 96.31658,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 20243,
+        "count": 21006,
+        "percent": 96.3677,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        1853,
+        1880
+      ],
+      "absent_sources": []
+    },
+    "gz-sensors": {
+      "lines": {
+        "covered": 549,
+        "count": 554,
+        "percent": 99.09747,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 738,
+        "count": 745,
+        "percent": 99.0604,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        0,
+        0
+      ],
+      "absent_sources": []
+    },
+    "gz-sim-cli": {
+      "lines": {
+        "covered": 7965,
+        "count": 8470,
+        "percent": 94.03778,
+        "additional_to_95_percent": 82
+      },
+      "regions": {
+        "covered": 13673,
+        "count": 14723,
+        "percent": 92.8683,
+        "additional_to_95_percent": 314
+      },
+      "changed_lines": [
+        620,
+        624
+      ],
+      "absent_sources": []
+    },
+    "gz-sim-core": {
+      "lines": {
+        "covered": 406,
+        "count": 417,
+        "percent": 97.36211,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 590,
+        "count": 610,
+        "percent": 96.72131,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        0,
+        0
+      ],
+      "absent_sources": []
+    },
+    "gz-sim-proto": {
+      "lines": {
+        "covered": 189,
+        "count": 190,
+        "percent": 99.47368,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 329,
+        "count": 340,
+        "percent": 96.76471,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        0,
+        0
+      ],
+      "absent_sources": []
+    },
+    "gz-sim-scene": {
+      "lines": {
+        "covered": 29119,
+        "count": 30950,
+        "percent": 94.08401,
+        "additional_to_95_percent": 284
+      },
+      "regions": {
+        "covered": 44534,
+        "count": 48129,
+        "percent": 92.53049,
+        "additional_to_95_percent": 1189
+      },
+      "changed_lines": [
+        2390,
+        2432
+      ],
+      "absent_sources": [
+        "crates/gz-sim-scene/src/gpu_scene/automatic/policy.rs",
+        "crates/gz-sim-scene/src/gpu_scene/automatic.rs",
+        "crates/gz-sim-scene/src/gpu_scene/config.rs",
+        "crates/gz-sim-scene/src/gpu_scene/parallel_gripper/carry.rs",
+        "crates/gz-sim-scene/src/gpu_scene/parallel_gripper/configuration.rs",
+        "crates/gz-sim-scene/src/gpu_scene/parallel_gripper.rs",
+        "crates/gz-sim-scene/src/gpu_scene/planar_tool/population.rs",
+        "crates/gz-sim-scene/src/gpu_scene/planar_tool.rs",
+        "crates/gz-sim-scene/src/gpu_scene/planar_tool_config.rs",
+        "crates/gz-sim-scene/src/gpu_scene/resident.rs",
+        "crates/gz-sim-scene/src/gpu_scene.rs"
+      ]
+    },
+    "gz-sim-server": {
+      "lines": {
+        "covered": 12437,
+        "count": 12830,
+        "percent": 96.93687,
+        "additional_to_95_percent": 0
+      },
+      "regions": {
+        "covered": 18430,
+        "count": 19327,
+        "percent": 95.35882,
+        "additional_to_95_percent": 0
+      },
+      "changed_lines": [
+        45,
+        45
+      ],
+      "absent_sources": [
+        "crates/gz-sim-server/src/gpu_control/placement.rs",
+        "crates/gz-sim-server/src/gpu_control.rs"
+      ]
+    }
+  },
+  "physical_renderer_tests": {
+    "device": "NVIDIA GeForce RTX 5090",
+    "suites": 14,
+    "passed": 77
+  }
+}
