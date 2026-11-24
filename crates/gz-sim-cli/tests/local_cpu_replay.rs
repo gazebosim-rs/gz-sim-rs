@@ -918,3 +918,52 @@ fn changing_the_display_interval_keeps_every_solve_and_paused_lifecycle_event() 
     }
     assert!(!refused.exists());
 }
+
+#[test]
+fn a_refined_impact_replays_its_full_impulse_and_drops_stale_step_receipts() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let raw = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let xml = file(dir, "sorter.sdf", raw);
+    let journal = file(
+        dir,
+        "commands.json",
+        include_str!("../../../examples/replay/refined_contact.json"),
+    );
+    let rows = success(run(&xml, &journal, &[]));
+    let eight = success(run(&xml, &journal, &["--threads", "8"]));
+    assert_eq!(rows, eight);
+    let first = record(&rows, 1, 1);
+    let hit = &first["refinement"]["requested_pairs"][0];
+    assert_eq!(first["refinement"]["native_steps"], 100);
+    assert_eq!(hit["first_positive_end_ns"], 10_000_000);
+    let j = hit["normal_impulse_ns"].as_f64().unwrap();
+    assert!((j - 0.04).abs() < 1e-6);
+    assert!(hit["last_native_normal_ns"].as_f64().unwrap() < 1e-6);
+    assert_eq!(first["delivered_normal_ns"], hit["normal_impulse_ns"]);
+    assert!(
+        first["pair_reactions_ns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|p| p[2] == hit["normal_impulse_ns"])
+    );
+    let paused = record(&rows, 2, 1);
+    let repeated = record(&rows, 5, 1);
+    for other in [paused, repeated] {
+        shared(
+            first,
+            other,
+            &["refinement", "pair_reactions_ns", "contacts", "physics"],
+        );
+    }
+    assert!(record(&rows, 3, 2).get("refinement").is_none());
+    assert!(record(&rows, 4, 0).get("refinement").is_none());
+    let unsupported = file(
+        dir,
+        "other.sdf",
+        &raw.replace("<incoming_face>+z</incoming_face>", ""),
+    );
+    let bad = run(&unsupported, &journal, &[]);
+    assert!(!bad.status.success());
+}

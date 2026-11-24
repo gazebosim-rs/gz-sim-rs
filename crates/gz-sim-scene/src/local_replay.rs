@@ -53,7 +53,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
             Box { .. } | Sphere { .. } | Cylinder { .. } | Capsule { .. }
         )
     };
-    let admitted = world.plugins.is_empty()
+    let admitted = world.plugins.iter().all(primary_contact::sdf::is_plugin)
         && world.joints.is_empty()
         && world.extensions.is_empty()
         && world.models.iter().all(|model| {
@@ -71,7 +71,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                     )
                 })
                 && model.plugins.iter().all(|p| {
-                    crate::articulation::is_plugin(p)
+                    prescribed_motion::is_initial_velocity(p)
+                        || crate::articulation::is_plugin(p)
                         || crate::joint_state_publisher::is_plugin(p)
                         || matches!(
                             p.filename.as_str(),
@@ -97,6 +98,6 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     require(
         admitted,
         &world.name,
-        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, native joint controllers and IMUs",
+        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, initial twists, incoming-face and screw-stop refinement, native joint controllers and IMUs",
     )
 }

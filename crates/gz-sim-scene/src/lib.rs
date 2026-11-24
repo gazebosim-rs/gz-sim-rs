@@ -883,6 +883,15 @@ fn load_world_with_automatic_owner(
     )?;
     let contact_policy = contact_promotion_sdf::parse(world, engine)?;
     let primary_contact_plan = primary_contact::sdf::parse(&sdf, world, engine)?;
+    if named_imu_streams {
+        require(
+            primary_contact_plan
+                .as_ref()
+                .is_none_or(primary_contact::sdf::Plan::incoming_faces_only),
+            world_name,
+            "local-cpu-v1 supports incoming-face and screw-stop contact refinement",
+        )?;
+    }
     let sole_plan = damped_sole::parse(&sdf, world, engine)?;
     let joint_postures = joint_posture::parse(&sdf, world, engine)?;
     let force_schedule = scheduled_link_force::parse(world, engine)?;

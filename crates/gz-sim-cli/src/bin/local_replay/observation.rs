@@ -52,6 +52,54 @@ struct LinkLoad {
 }
 
 #[derive(Serialize)]
+struct RefinedContact {
+    foot_link: u64,
+    support_link: u64,
+    normal_impulse_ns: f64,
+    normal_on_foot_ns: [f64; 3],
+    tangent_on_foot_ns: Option<[f64; 3]>,
+    first_positive_end_ns: Option<u128>,
+    last_native_normal_ns: f64,
+    active_at_end: bool,
+}
+
+#[derive(Serialize)]
+struct RefinedStep {
+    native_steps: u32,
+    speed_stop_floor: u32,
+    solver_iterations: usize,
+    pgs_iterations: Option<usize>,
+    relaxation_iterations: Option<usize>,
+    requested_pairs: Vec<RefinedContact>,
+}
+
+impl From<&gz_sim_scene::primary_contact::Refinement> for RefinedStep {
+    fn from(r: &gz_sim_scene::primary_contact::Refinement) -> Self {
+        Self {
+            native_steps: r.interval.native_steps,
+            speed_stop_floor: r.speed_stop_floor,
+            solver_iterations: r.solver.temporal,
+            pgs_iterations: r.solver.pgs,
+            relaxation_iterations: r.solver.relaxation,
+            requested_pairs: r
+                .requested_pairs
+                .iter()
+                .map(|p| RefinedContact {
+                    foot_link: p.foot_link,
+                    support_link: p.support_link,
+                    normal_impulse_ns: p.normal_impulse,
+                    normal_on_foot_ns: p.normal_impulse_on_foot,
+                    tangent_on_foot_ns: p.tangent_impulse_on_foot,
+                    first_positive_end_ns: p.first_positive_end.map(|t| t.as_nanos()),
+                    last_native_normal_ns: p.last_native_normal_impulse,
+                    active_at_end: p.active_at_end,
+                })
+                .collect(),
+        }
+    }
+}
+
+#[derive(Serialize)]
 pub(super) struct State {
     command: usize,
     epoch: u64,
@@ -79,6 +127,8 @@ pub(super) struct State {
     imu_samples: usize,
     /// Native body IDs in ascending pair order, with summed normal impulse in N·s.
     pair_reactions_ns: Vec<(u64, u64, f64)>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    refinement: Option<RefinedStep>,
     contact_points: usize,
     delivered_normal_ns: f64,
     stored_normal_ns: f64,
@@ -257,7 +307,20 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         ));
     }
     let clock = sim.committed_update_info()?;
+    // Manifold points and warm starts above describe the final native solve. An
+    // interval can have delivered its entire impulse and separated before then.
+    let refinement = gz_sim_scene::primary_contact::last_refinement(sim)
+        .filter(|r| r.iteration == clock.iteration && r.sim_time == clock.sim_time);
+    if let Some(r) = refinement {
+        reactions.clear();
+        delivered_normal_ns = 0.;
+        for pair in &r.interval.pairs {
+            reactions.insert((pair.a.raw(), pair.b.raw()), pair.normal_impulse);
+            delivered_normal_ns += pair.normal_impulse;
+        }
+    }
     Ok(State {
+        refinement: refinement.map(RefinedStep::from),
         command,
         epoch: clock.epoch,
         step: clock.iteration,

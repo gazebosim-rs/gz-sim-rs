@@ -1,0 +1,10 @@
+{
+  "seed": "local-contact",
+  "commands": [
+    {"op":"step","count":1},
+    {"op":"paused_tick"},
+    {"op":"step","count":3},
+    {"op":"reset"},
+    {"op":"step","count":4}
+  ]
+}

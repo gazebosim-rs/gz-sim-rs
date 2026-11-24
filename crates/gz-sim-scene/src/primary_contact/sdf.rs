@@ -77,6 +77,11 @@ pub(crate) struct Plan {
     pub(super) iterations: ContactSolverIterations,
     pub(super) pairs: Vec<NamedPair>,
 }
+impl Plan {
+    pub(crate) fn incoming_faces_only(&self) -> bool {
+        self.pairs.iter().all(|p| p.incoming_face.is_some())
+    }
+}
 fn children<'a, 'i>(n: roxmltree::Node<'a, 'i>) -> impl Iterator<Item = roxmltree::Node<'a, 'i>> {
     n.children().filter(|n| {
         !(n.is_comment() || n.is_text() && n.text().unwrap_or_default().trim().is_empty())
