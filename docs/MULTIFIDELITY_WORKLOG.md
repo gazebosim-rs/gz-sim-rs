@@ -3,7 +3,7 @@
 
 # Multi-fidelity physics worklog
 
-The Rust/Bevy arm now handles both rigid parcels and a loose 22 g cable. It can recover a cable snag using only its own jaw forces, or return the load to the pickup table when it reaches its lift limit. The folded-sheet rig measures the force on each finger and the load transferred through the fold. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Tactile cable recovery](measurements/local-manipulation/serial-cable-tactile.md) · [Folded-sheet forces](measurements/local-manipulation/fold-force-balance.md)
+The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain pressure on a folded sheet. The latest fingertip measurements isolate an outstanding error when the jaws open. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Weighing a cable](measurements/local-manipulation/serial-cable-weigh.md) · [Folded sheet](measurements/local-manipulation/viscous-gripper-pads.md)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
@@ -2153,3 +2153,7 @@ Forcing 1,000 nearly co-moving payloads to sleep stopped their horizontal motion
 ## 2026-11-23 — Weighing the cable before the robot carries it
 
 The gripper measured 11, 22 and 33 g cables to within 0.02 g during real pickup. A 35 mm sideways probe identified external assistance that made the 22 g cable appear to weigh just 14.35 g. The 33 g cable returned to its source with 2.21 mm rigid clearance. Fast light delivery and a 123 ms rub completed without a false stop. Six refusal cases withheld transport and the post-pickup jaw failure stopped the rail. Reset reproduced 173,525 measured ticks. Twenty-seven release tests passed with 571/580 changed production lines and 1029/1080 regions covered. [Measurements, physical limits and three native replays](measurements/local-manipulation/serial-cable-weigh.md)
+
+## 2026-11-23 — Keeping pressure on a folded sheet with damped pads
+
+Adding physical damping eliminated all 182 simultaneous pressure losses in the 300 ms hold at 250 exchanges per millisecond. Both jaws carried half the sheet's weight. The finest independent comparison still differed by 0.211 mm during release. The first recorded mismatch above 0.1 mm occurred at 2.700 s. Changed production coverage reached 99.25% of lines and 96.59% of regions. [Full measurements and two pressure replays](measurements/local-manipulation/viscous-gripper-pads.md)
