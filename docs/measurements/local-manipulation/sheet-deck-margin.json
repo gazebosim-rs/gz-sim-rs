@@ -597,6 +597,222 @@
   },
   "horizon_ms": 4300,
   "implementation": "45b61cb2d8c0bbd4f21dce31996992df220aaf33",
+  "integrated_compliant_pad_correction": {
+    "comparisons": {
+      "pad-fix-130-1000": {
+        "native_stream_sha256": "296fa1b95f88093a8f728b733257f72ff042697a0eab6a397c8f7c5fb8fd3371",
+        "outcome": "Held",
+        "public_rows_sha256": "85425e3f6d0c735b04f46c9e14e59d71b520c372f71fe9d772b40d0b4e196d17",
+        "rows": 4300,
+        "world_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534",
+        "wrench_and_trajectory_sha256": "1e1766671c219c18d184edd9cd78343bfcd95947e9fba0e2e7bfdaa34270f89f"
+      },
+      "pad-fix-130-16": {
+        "native_stream_sha256": "458d800d69501a1fad828b4316f81edce3930690482e55ea0291d03910be4171",
+        "outcome": "Held",
+        "public_rows_sha256": "482a7209ee36d5e652646efd0ee4c3f1d78e649e49d31374e9e43c2bd4a8ceec",
+        "rows": 4300,
+        "world_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3",
+        "wrench_and_trajectory_sha256": "577ebb4b8c5d13c6077db0fe79064a154ca09d044ad7b28b8935ad7dfc92bade"
+      },
+      "pad-fix-130-250": {
+        "native_stream_sha256": "6fcbe1d5b3ae45681635695d8717788467d30f4b6fc90176ced7d9eb953d0c00",
+        "outcome": "Held",
+        "public_rows_sha256": "d48eb881029f35c9fc06808f6ed24a9edbe429d31092b8cc303dfa74d42b9da8",
+        "rows": 4300,
+        "world_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20",
+        "wrench_and_trajectory_sha256": "63a349ebca449a944eea355404ab2251f0101334b3c810423ca1c75452e4180c"
+      },
+      "pad-fix-130-64": {
+        "native_stream_sha256": "f0bf0d4d18e818d760984f7e8e860317c01ecf18dcd37eedba73dac6b5f50e34",
+        "outcome": "Held",
+        "public_rows_sha256": "92d4ecb74bb9e0f32f4af7c136cc1862e01df8507b66b154ab8d441c86392a57",
+        "rows": 4300,
+        "world_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08",
+        "wrench_and_trajectory_sha256": "87fbdfc280937d587648eb097a443613c899d3b7a378f990fb79d9edfcbc3833"
+      },
+      "pad-fix-165-16": {
+        "native_stream_sha256": "64fe9b5c7153e8159d3627e80f7152074358253bbee29e652c5c464bbb3ddd54",
+        "outcome": "Held",
+        "public_rows_sha256": "bc786c1694cde6383d18f42b4947c1ee63027ca0214d260f3a831f08ad0a795e",
+        "rows": 4300,
+        "world_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3",
+        "wrench_and_trajectory_sha256": "59519320e7650288ca404786b6675fa8c2aa4ba7d190c5a05655e0a6e15ccdc3"
+      },
+      "pad-fix-80-1000": {
+        "native_stream_sha256": "1178f623d203eb3e00f0380fa42128a3cdaa1567d1c9a25e4a6bb374418c555b",
+        "outcome": "Resting",
+        "public_rows_sha256": "01b2582a73d54b14d82cd5fc5340ae13aeeeaf2c094bbffee65c6d70d8ab52d1",
+        "rows": 4300,
+        "world_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534",
+        "wrench_and_trajectory_sha256": "15076d8273feaf612dda30b701f0077e2862c51f1bcf4e9e189fc36032f5258d"
+      },
+      "pad-fix-80-16": {
+        "native_stream_sha256": "6c39d18d8d1d938a71f45f7f33c0173def51e65f2d2a988b6a58103d9ce0a8a2",
+        "outcome": "Resting",
+        "public_rows_sha256": "de6b6c929849c071bccb6d9e9dcbc5415e3d12d54f8466e48237c31f79a1e52c",
+        "rows": 4300,
+        "world_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3",
+        "wrench_and_trajectory_sha256": "ba43edfaf456c582ac4639abaa1d347ee5f28ec2da357a9ffa5b3eaa07b49317"
+      },
+      "pad-fix-80-250": {
+        "native_stream_sha256": "a763ee6669d0c6113a416ad10fa69f260cab3f944263c3fbdb04b2eb288763e7",
+        "outcome": "Resting",
+        "public_rows_sha256": "e45c311db6dcb67ea97b287b2243e03f35c5fb877e148f5754d7661c01d8769c",
+        "rows": 4300,
+        "world_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20",
+        "wrench_and_trajectory_sha256": "10b484242129895fae4e7551c8c668327d842829fe4754c05b8606d1f435568b"
+      },
+      "pad-fix-80-64": {
+        "native_stream_sha256": "88b10164e51f20b5d4e6502cdea25ceb57c696e55014c49c582ee239b62c58e9",
+        "outcome": "Resting",
+        "public_rows_sha256": "3cab4bdca8c59c37fba5204e862665eaaa9c8f6f1389cbc1112b376c71b3bb60",
+        "rows": 4300,
+        "world_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08",
+        "wrench_and_trajectory_sha256": "b5b7377c7956bb991f24b74618f8d22274c8b68f0f7f459019c0605cc82991fb"
+      },
+      "pad-fix-95-1000": {
+        "native_stream_sha256": "1091affb8485e4a1e731bb6b2602df84cc5a07e6525fc8242e72f5ac30543bb4",
+        "outcome": "Held",
+        "public_rows_sha256": "3ce2072bc750c1907e6872309fd9d7eec380aadefa5da51ebe95b026f86e5350",
+        "rows": 4300,
+        "world_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534",
+        "wrench_and_trajectory_sha256": "181862478186746a5f3b55389ae7bc2ad287539639c252ebdee75c1a26ab4b2a"
+      },
+      "pad-fix-95-16": {
+        "native_stream_sha256": "a8a4a457f83734e0ba2b3bcef1b3e1c72dd76cd99d7a980a02efcd954fc500ed",
+        "outcome": "Held",
+        "public_rows_sha256": "cc85b0aeb8cdff84a33c6c6aed325109e3f4739dc8f026b0ee1a5aee645258de",
+        "rows": 4300,
+        "world_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3",
+        "wrench_and_trajectory_sha256": "e1ea4df9a251a449618e790255956b4bb41ba556250302c79b38690b534138f2"
+      },
+      "pad-fix-95-250": {
+        "native_stream_sha256": "cebb3d20bd88d8d0a686130ce07adf50e81ce53a276209beda821b801f698357",
+        "outcome": "Held",
+        "public_rows_sha256": "57de20bda174732e6e649912c0bf2681a733392c352c3445ac9bee67856338ed",
+        "rows": 4300,
+        "world_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20",
+        "wrench_and_trajectory_sha256": "dc4a2ad97cd5051349036682dc65776d4cf327b8c7d98914629638a0c686bbed"
+      },
+      "pad-fix-95-64": {
+        "native_stream_sha256": "1583e3319b99d109a3185edc9fbeaba9766f38c9e47e048dcf7ff94089f2a7dd",
+        "outcome": "Held",
+        "public_rows_sha256": "e47832ebea599116aa3e140fcafdb3a21c444f5f8b0411cbea56d6d7c1f75461",
+        "rows": 4300,
+        "world_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08",
+        "wrench_and_trajectory_sha256": "7ef3c1468d950ffe1507abc9656beade7052c5224b565dc865a22882d780f4d5"
+      },
+      "pad-fix-pressure-130-1000": {
+        "native_stream_sha256": "d9a455b8dfe45fd97694d221d1929119f642f689630e4a7909855ef65bd714f9",
+        "outcome": "Fell",
+        "public_rows_sha256": "ff3706e038e94e79e37523aae3eacf5f05fcc64c5d25a7984965b62376d46a66",
+        "rows": 4300,
+        "world_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534",
+        "wrench_and_trajectory_sha256": "8d054ccf8379e2ed4eaa960629395fd2be40aa0908ced9bcaf3e1f214378ce4e"
+      },
+      "pad-fix-pressure-130-16": {
+        "native_stream_sha256": "458d800d69501a1fad828b4316f81edce3930690482e55ea0291d03910be4171",
+        "outcome": "Held",
+        "public_rows_sha256": "482a7209ee36d5e652646efd0ee4c3f1d78e649e49d31374e9e43c2bd4a8ceec",
+        "rows": 4300,
+        "world_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3",
+        "wrench_and_trajectory_sha256": "88cb8ed03e4cd5be8e66809b79e715afd232958acf5260b4997709aa201e78e9"
+      },
+      "pad-fix-pressure-130-250": {
+        "native_stream_sha256": "35345fb6b5d5e22d5aa68e6edf707b16e3bdad4441a978400dd63a3bac23871e",
+        "outcome": "Fell",
+        "public_rows_sha256": "e59e8289b1d676547773e386a825a1965f1262da30f838fcddffcb33576cd9d5",
+        "rows": 4300,
+        "world_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20",
+        "wrench_and_trajectory_sha256": "5ad4c31da989bcfc9184c075be722c920606d16f7baeb5c7e6ab00b4ed1da6af"
+      },
+      "pad-fix-pressure-130-64": {
+        "native_stream_sha256": "f0bf0d4d18e818d760984f7e8e860317c01ecf18dcd37eedba73dac6b5f50e34",
+        "outcome": "Held",
+        "public_rows_sha256": "92d4ecb74bb9e0f32f4af7c136cc1862e01df8507b66b154ab8d441c86392a57",
+        "rows": 4300,
+        "world_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08",
+        "wrench_and_trajectory_sha256": "626c841f38642887b625166c1f2acc9304b5de3de2be84da39ca0263c79811a5"
+      },
+      "pad-fix-pressure-165-16": {
+        "native_stream_sha256": "64fe9b5c7153e8159d3627e80f7152074358253bbee29e652c5c464bbb3ddd54",
+        "outcome": "Held",
+        "public_rows_sha256": "bc786c1694cde6383d18f42b4947c1ee63027ca0214d260f3a831f08ad0a795e",
+        "rows": 4300,
+        "world_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3",
+        "wrench_and_trajectory_sha256": "9353a94a8fdb827b73bbc0f2fb8f2e833dcd9c08e31722ec33a52a08a51b363b"
+      },
+      "pad-fix-pressure-80-1000": {
+        "native_stream_sha256": "1178f623d203eb3e00f0380fa42128a3cdaa1567d1c9a25e4a6bb374418c555b",
+        "outcome": "Resting",
+        "public_rows_sha256": "01b2582a73d54b14d82cd5fc5340ae13aeeeaf2c094bbffee65c6d70d8ab52d1",
+        "rows": 4300,
+        "world_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534",
+        "wrench_and_trajectory_sha256": "d44d82f5233e9ab3fc6adbe5eeece557863b199e6e3bb9939f4a677ec65d42c1"
+      },
+      "pad-fix-pressure-80-16": {
+        "native_stream_sha256": "6c39d18d8d1d938a71f45f7f33c0173def51e65f2d2a988b6a58103d9ce0a8a2",
+        "outcome": "Resting",
+        "public_rows_sha256": "de6b6c929849c071bccb6d9e9dcbc5415e3d12d54f8466e48237c31f79a1e52c",
+        "rows": 4300,
+        "world_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3",
+        "wrench_and_trajectory_sha256": "9a4fc9f4b70fdc561ae01a29b471d83639f0a340c7b899832961b14bae4a8c42"
+      },
+      "pad-fix-pressure-80-250": {
+        "native_stream_sha256": "a763ee6669d0c6113a416ad10fa69f260cab3f944263c3fbdb04b2eb288763e7",
+        "outcome": "Resting",
+        "public_rows_sha256": "e45c311db6dcb67ea97b287b2243e03f35c5fb877e148f5754d7661c01d8769c",
+        "rows": 4300,
+        "world_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20",
+        "wrench_and_trajectory_sha256": "dc860ce01c3be58ae40580054585387f6a956808e472c2277060f56811ad3b4e"
+      },
+      "pad-fix-pressure-80-64": {
+        "native_stream_sha256": "88b10164e51f20b5d4e6502cdea25ceb57c696e55014c49c582ee239b62c58e9",
+        "outcome": "Resting",
+        "public_rows_sha256": "3cab4bdca8c59c37fba5204e862665eaaa9c8f6f1389cbc1112b376c71b3bb60",
+        "rows": 4300,
+        "world_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08",
+        "wrench_and_trajectory_sha256": "f913ddef71018d9436ef2a6a308d51ee875b4ab8c9c4b863bb07160e0b983d86"
+      },
+      "pad-fix-pressure-95-1000": {
+        "native_stream_sha256": "7f1773ac1efbb140385e3d581efb542db4afd067a4d5c0a1c803050f50862d8b",
+        "outcome": "Fell",
+        "public_rows_sha256": "a26679a4f70a65de111bde061118f751c8384a0224d12c22800051448d935e06",
+        "rows": 4300,
+        "world_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534",
+        "wrench_and_trajectory_sha256": "045f7c445894d6a8b0055636ac61413843604e4e74c017251de56a009dfa15de"
+      },
+      "pad-fix-pressure-95-16": {
+        "native_stream_sha256": "ab0cb118ecd58daa4e194c7eebc14484cb97242531d660c5bbd966998eb14ed0",
+        "outcome": "Fell",
+        "public_rows_sha256": "5832de4d2c375e8a3a729a55a4cc27a3bfae68b52ffaf7e7d3367a34376db006",
+        "rows": 4300,
+        "world_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3",
+        "wrench_and_trajectory_sha256": "658d9db0b0b80a3e3367ced4cc303c0285bae2305842496d51a74b1e9fbfb16c"
+      },
+      "pad-fix-pressure-95-250": {
+        "native_stream_sha256": "c783e4ca8a2cd724da36b74f32ca99dcbe0213806fa907e5a9d8d247a9e407b7",
+        "outcome": "Fell",
+        "public_rows_sha256": "c7b10d09997673cce96bcc1f7f10edf8c940ce2dee58e1174d5036629c7b26f4",
+        "rows": 4300,
+        "world_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20",
+        "wrench_and_trajectory_sha256": "d75f0394e41ee376f777548a5ff268669c4c069eed20cc9e4343729398b2da70"
+      },
+      "pad-fix-pressure-95-64": {
+        "native_stream_sha256": "4f16f0919da51f353049ca08b0473dff6f10a2fde25caa7a0fe0aad8e137a6f1",
+        "outcome": "Fell",
+        "public_rows_sha256": "7e48ce0209008a1a26a7017d085f1000a7c07aa03cea9d82dee296c296eb4ae5",
+        "rows": 4300,
+        "world_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08",
+        "wrench_and_trajectory_sha256": "b73e84c71f03724ca8337455d4e0994ccab2366bdfa59cc8a6afa5edb13c4cf2"
+      }
+    },
+    "executable_sha256": "6d6331cf11c1df39b5d36c52823acf32d0c1a201b97f2f548413f6bddeba2798",
+    "identical_public_samples": 111800,
+    "integrated_source": "9abd440802fe87dbbcefc7df2fa9b1b0ca9512c6",
+    "withdrawal_run": "withdrawn deck clearance 0.04111767460979179 m, final upward jaw load 0.08240391468725874 N, deck load 0 N"
+  },
   "late_full_withdrawal": {
     "clearance_m": 0.04111767460979179,
     "deck_up_n": 0.0,

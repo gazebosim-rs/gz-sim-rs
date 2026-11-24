@@ -9,7 +9,7 @@ Each new development phase includes visual output from the measured simulation a
 
 ## 2026-11-24 — The gripper keeps hold when the receiver loads at its edge
 
-An opt-in 2 mm release margin projects the measured table force and torque onto the finite deck. It preserved the successful overhang placement and kept both fingers on the sheet where pressure alone let it fall, including the finer contact controls. After a subsequent 100 mm deck withdrawal, the jaws still carried all 82.4 mN of sheet weight. A placement only about 1 mm inside the edge showed the cost of the conservative setting. [Measured comparison, regression and three native recordings](measurements/local-manipulation/sheet-deck-margin.md)
+An opt-in 2 mm release margin projects the measured table force and torque onto the finite deck. It preserved the successful overhang placement and kept both fingers on the sheet where pressure alone let it fall, including the finer contact controls. After a subsequent 100 mm deck withdrawal, the jaws still carried all 82.4 mN of sheet weight. A placement only about 1 mm inside the edge showed the cost of the conservative setting. After the compliant-pad correction, the combined build replayed all 111,800 pressure-only and guarded samples exactly. [Measured comparison, regression and three native recordings](measurements/local-manipulation/sheet-deck-margin.md)
 
 ## 2026-11-24 — Measure short impacts in the robot’s support sensor and input replay
 
