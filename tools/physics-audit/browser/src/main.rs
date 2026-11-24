@@ -733,6 +733,9 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
     }
     chrome.capture(&output.join("initial.jpg"))?;
     for name in marks.remove(&0).into_iter().flatten() {
+        if name == "initial" {
+            continue;
+        }
         fs::copy(
             output.join("initial.jpg"),
             output.join(format!("{name}.jpg")),

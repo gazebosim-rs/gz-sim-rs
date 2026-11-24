@@ -1,0 +1,199 @@
+{
+  "physics_commit": "fd4c5b7",
+  "public_step_s": 0.001,
+  "free_angular_momentum_residual_n_m_s": 3.76056612415973e-14,
+  "final_relative_velocity_rad_s": [
+    1.1967207870747054,
+    -0.9011856402046685,
+    -1.7984906245522811
+  ],
+  "viewer": {
+    "frames": 121,
+    "body_poses_and_shapes_checked": 363,
+    "reset_ms": 0.0,
+    "captured_ms": {
+      "at_rest": 0.0,
+      "coast": 2400.0,
+      "first_rotation": 400.0,
+      "initial": 0.0,
+      "release": 1200.0,
+      "second_rotation": 800.0
+    }
+  },
+  "changed_coverage": {
+    "crates/gz-physics-multifidelity/src/lib.rs": {
+      "lines": {
+        "hit": 5,
+        "total": 5,
+        "missing": []
+      },
+      "regions": {
+        "hit": 7,
+        "total": 7,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-rapier/src/joints.rs": {
+      "lines": {
+        "hit": 12,
+        "total": 12,
+        "missing": []
+      },
+      "regions": {
+        "hit": 28,
+        "total": 28,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-rapier/src/joints/parked_robot.rs": {
+      "lines": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      },
+      "regions": {
+        "hit": 3,
+        "total": 3,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-rapier/src/joints/robot.rs": {
+      "lines": {
+        "hit": 35,
+        "total": 35,
+        "missing": []
+      },
+      "regions": {
+        "hit": 42,
+        "total": 42,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-rapier/src/joints/universal.rs": {
+      "lines": {
+        "hit": 7,
+        "total": 7,
+        "missing": []
+      },
+      "regions": {
+        "hit": 21,
+        "total": 21,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/examples/ball_wrist.rs": {
+      "lines": {
+        "hit": 60,
+        "total": 63,
+        "missing": [
+          27,
+          36,
+          71
+        ]
+      },
+      "regions": {
+        "hit": 113,
+        "total": 124,
+        "missing": [
+          [
+            19,
+            75,
+            19,
+            76
+          ],
+          [
+            27,
+            6,
+            27,
+            7
+          ],
+          [
+            36,
+            16,
+            36,
+            59
+          ],
+          [
+            41,
+            35,
+            41,
+            36
+          ],
+          [
+            43,
+            76,
+            43,
+            77
+          ],
+          [
+            54,
+            63,
+            54,
+            64
+          ],
+          [
+            56,
+            26,
+            56,
+            27
+          ],
+          [
+            62,
+            78,
+            62,
+            79
+          ],
+          [
+            63,
+            63,
+            63,
+            64
+          ],
+          [
+            71,
+            14,
+            71,
+            15
+          ],
+          [
+            77,
+            42,
+            77,
+            43
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-scene/src/inputs.rs": {
+      "lines": {
+        "hit": 13,
+        "total": 13,
+        "missing": []
+      },
+      "regions": {
+        "hit": 15,
+        "total": 16,
+        "missing": [
+          [
+            510,
+            43,
+            510,
+            44
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-scene/src/lib.rs": {
+      "lines": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      },
+      "regions": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      }
+    }
+  }
+}
