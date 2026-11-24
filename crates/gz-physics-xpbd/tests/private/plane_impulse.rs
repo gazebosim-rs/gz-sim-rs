@@ -149,7 +149,7 @@ fn a_static_plane_row_rejects_an_unrepresentable_force_before_moving_the_node() 
             (&mut p, DVec3::ZERO),
             &boundary,
             time,
-            [0.5, 0.3],
+            (0.5, Some(0.3)),
             &mut reaction
         ),
         Err(XpbdError::Numerical)

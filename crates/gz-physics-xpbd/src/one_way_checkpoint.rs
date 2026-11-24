@@ -20,6 +20,11 @@ enum ConstructionTopology {
         bend_damping: Option<f64>,
         coefficient: f64,
     },
+    ProjectedPlaneFriction {
+        material: MaterialTopology,
+        bend_damping: Option<f64>,
+        coefficient: f64,
+    },
 }
 #[derive(Clone, Serialize, Deserialize)]
 pub struct OneWayConstruction {
@@ -103,7 +108,11 @@ impl SoftBody {
                 h.update(self.bending_damping.to_le_bytes());
             }
             if let Some(coefficient) = self.contacts.static_plane_friction {
-                h.update(b"static-plane-friction");
+                if self.contacts.legacy_plane_friction {
+                    h.update(b"static-plane-friction");
+                } else {
+                    h.update(b"projected-plane-and-cuboid-face-friction-01");
+                }
                 h.update(coefficient.to_le_bytes());
             }
             h.finalize().into()
@@ -125,10 +134,20 @@ impl SoftBody {
             bending: self.bending.clone(),
             config: self.config,
             topology: if let Some(coefficient) = self.contacts.static_plane_friction {
-                ConstructionTopology::PlaneFriction {
-                    material: self.topology,
-                    bend_damping: (self.bending_damping > 0.).then_some(self.bending_damping),
-                    coefficient,
+                let material = self.topology;
+                let bend_damping = (self.bending_damping > 0.).then_some(self.bending_damping);
+                if self.contacts.legacy_plane_friction {
+                    ConstructionTopology::PlaneFriction {
+                        material,
+                        bend_damping,
+                        coefficient,
+                    }
+                } else {
+                    ConstructionTopology::ProjectedPlaneFriction {
+                        material,
+                        bend_damping,
+                        coefficient,
+                    }
                 }
             } else {
                 match self.topology {
@@ -169,6 +188,11 @@ impl SoftBody {
                 coefficient,
             } => (MaterialTopology::Cloth(columns), Some(coefficient), None),
             ConstructionTopology::PlaneFriction {
+                material,
+                bend_damping,
+                coefficient,
+            }
+            | ConstructionTopology::ProjectedPlaneFriction {
                 material,
                 bend_damping,
                 coefficient,
@@ -215,6 +239,8 @@ impl SoftBody {
             body = body
                 .with_static_plane_friction(coefficient)
                 .map_err(|_| XpbdError::MaterialCheckpoint)?;
+            body.contacts.legacy_plane_friction =
+                matches!(seed.topology, ConstructionTopology::PlaneFriction { .. });
         }
         if seed.conserve_momentum {
             body = body.with_angular_momentum_conservation();
