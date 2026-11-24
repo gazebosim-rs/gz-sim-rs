@@ -499,3 +499,134 @@ fn early_parallel_jaw_loading_matches_the_fine_impulse_on_both_sides() -> Result
     }
     Ok(())
 }
+
+#[test]
+fn released_jaw_retains_the_measured_pulse_and_resets_to_the_same_schedule() -> Result<()> {
+    let base = Args::try_parse_from([
+        "study",
+        "--automatic",
+        "--substeps",
+        "64",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "8",
+        "--divisor",
+        "1.75",
+        "--guide-hz",
+        "100000",
+        "--gap-um",
+        "35",
+        "--early-face-step-ns",
+        "25",
+        "--early-face-max-steps",
+        "4096",
+        "--ticks",
+        "1",
+    ])?
+    .trial;
+    let mut staged = base.clone();
+    staged.early_face_tail_step_ns = Some(125);
+    staged.early_face_guard_ns = Some(2000);
+    let original = run(base.clone())?;
+    let fast = run(staged.clone())?;
+    assert_eq!(original.samples[0].native_steps, 2560);
+    assert_eq!(fast.samples[0].native_steps, 2118);
+    assert_eq!(
+        fast.samples[0].impact.left_ns,
+        original.samples[0].impact.left_ns
+    );
+    let observed = serde_json::to_value(strike::audit(staged.clone())?)?;
+    let control = serde_json::to_value(strike::audit(base)?)?;
+    assert_eq!(observed["pulses"], control["pulses"]);
+    let (mut sim, _, _) = load_robot(&staged, &fixture(&staged))?;
+    sim.step_exact(1)?;
+    let first = gz_sim_scene::primary_contact::last_refinement(&sim)
+        .unwrap()
+        .clone();
+    assert_eq!(first.realized_face_schedule().unwrap().len(), 3);
+    sim.reset()?;
+    assert!(gz_sim_scene::primary_contact::last_refinement(&sim).is_none());
+    let observed = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let sink = observed.clone();
+    let epoch = sim.epoch();
+    gz_sim_scene::primary_contact::set_refined_observer(&mut sim, move |clock, cut| {
+        assert_eq!(clock.epoch, epoch);
+        sink.lock().unwrap().push(cut.elapsed);
+    })?;
+    sim.step_exact(1)?;
+    let second = gz_sim_scene::primary_contact::last_refinement(&sim).unwrap();
+    assert_eq!(
+        first.realized_face_schedule(),
+        second.realized_face_schedule()
+    );
+    assert_eq!(first.interval, second.interval);
+    let rows = observed.lock().unwrap();
+    assert_eq!(rows.len(), first.interval.native_steps as usize);
+    assert_eq!(rows.last(), Some(&Duration::from_millis(1)));
+    assert!(rows.windows(2).all(|pair| pair[0] < pair[1]));
+    Ok(())
+}
+
+/// Reproduce the rejected 125 ns approach on a matched independently initialized
+/// robot. Even fine steps throughout the predicted 4 µs contact window cannot
+/// restore the incoming state of the vibrating mounted guide.
+#[test]
+fn coarse_preflight_splits_the_fifty_micron_right_jaw_reaction() -> Result<()> {
+    let trial = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--gap-um",
+        "50",
+        "--guide-hz",
+        "100000",
+        "--right",
+        "--impact-pulses",
+        "--ticks",
+        "1",
+    ])?
+    .trial;
+    let run_schedule = |parts: &[(u32, u32)]| -> Result<Run> {
+        let mut start = 0;
+        let mut schedule = vec![];
+        for &(end, step) in parts {
+            let duration = end - start;
+            let iterations = if end == 1_000_000 {
+                ContactSolverIterations {
+                    temporal: 8,
+                    pgs: Some(8),
+                    relaxation: None,
+                }
+            } else {
+                4.into()
+            };
+            schedule.push(ContactSegment {
+                duration: Duration::from_nanos(duration.into()),
+                native_steps: duration.div_ceil(step),
+                iterations,
+            });
+            start = end;
+        }
+        let mut trial = trial.clone();
+        trial.first_native_steps = Some(schedule.iter().map(|s| s.native_steps).sum());
+        run_with_first_solver(trial, None, Some(schedule))
+    };
+    let fine = run_schedule(&[(93_750, 25), (1_000_000, 15_625)])?;
+    let staged = run_schedule(&[
+        (64_500, 125),
+        (68_500, 25),
+        (93_750, 125),
+        (1_000_000, 15_625),
+    ])?;
+    assert_eq!(fine.incoming, staged.incoming);
+    let a = fine.samples[0].impact.pulses.as_ref().unwrap();
+    let b = staged.samples[0].impact.pulses.as_ref().unwrap();
+    assert_eq!(a.len() + 1, b.len());
+    assert!(
+        a.iter()
+            .chain(b)
+            .all(|p| p.jaw == "right" && p.normal_impulse_ns > 0.)
+    );
+    Ok(())
+}

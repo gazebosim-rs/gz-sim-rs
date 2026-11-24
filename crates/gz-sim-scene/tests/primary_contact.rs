@@ -1053,3 +1053,33 @@ fn early_face_fields_require_positive_budgets_and_named_incoming_pairs() {
         );
     }
 }
+
+#[test]
+fn release_tail_authoring_requires_a_complete_positive_coarser_window() {
+    let raw = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let fine = "<early_face_step_ns>25</early_face_step_ns><early_face_max_steps>4000</early_face_max_steps>";
+    let tail = "<early_face_tail_step_ns>125</early_face_tail_step_ns>";
+    let guard = "<early_face_guard_ns>2000</early_face_guard_ns>";
+    for tags in [
+        format!("{fine}{tail}"),
+        format!("{fine}{guard}"),
+        format!("{tail}{guard}"),
+        format!("{fine}{tail}{tail}{guard}"),
+        format!("{fine}{guard}{guard}{tail}"),
+        format!("{fine}{guard}{}", tail.replace("125", "25")),
+        format!("{fine}{guard}{}", tail.replace("125", "0")),
+        format!("{fine}{tail}{}", guard.replace("2000", "x")),
+    ] {
+        let xml = raw.replacen("<pair>", &format!("{tags}<pair>"), 1);
+        assert!(
+            load_world_with_sdf_step(
+                &xml,
+                "tail.sdf",
+                "default",
+                &NoResources,
+                PhysicsEngine::MultiFidelity
+            )
+            .is_err()
+        );
+    }
+}
