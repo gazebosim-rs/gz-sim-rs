@@ -23,6 +23,8 @@ mod pulses;
 #[cfg(test)]
 #[path = "serial_impact_inertia/spindle_tests.rs"]
 mod spindle_tests;
+#[path = "serial_impact_inertia/strike.rs"]
+mod strike;
 #[cfg(test)]
 #[path = "serial_impact_inertia/tests.rs"]
 mod tests;
@@ -47,6 +49,9 @@ struct Args {
     /// Compare the selected public trajectory with independently initialized 250 ns and 125 ns native steps.
     #[arg(long)]
     compare: bool,
+    /// Inspect native jaw-load transitions in the first controller tick and optionally replay those instants.
+    #[arg(long, conflicts_with_all = ["compare", "timing_runs", "impact_pulses"])]
+    audit_first_strike: bool,
     /// Write the exact authored study world for the ordinary simulator CLI.
     #[arg(long)]
     write_world: Option<PathBuf>,
@@ -301,7 +306,7 @@ impl Impact {
     }
 }
 
-#[derive(Serialize, PartialEq, Debug)]
+#[derive(Clone, Serialize, PartialEq, Debug)]
 struct State {
     xyz: [f64; 3],
     q: [f64; 4],
@@ -556,6 +561,10 @@ fn main() -> Result<()> {
     let args = Args::parse();
     if let Some(path) = args.write_world {
         std::fs::write(path, fixture(&args.trial))?;
+    }
+    if args.audit_first_strike {
+        serde_json::to_writer(std::io::stdout().lock(), &strike::audit(args.trial)?)?;
+        return Ok(());
     }
     let report = run(args.trial)?;
     let output = std::io::stdout().lock();
