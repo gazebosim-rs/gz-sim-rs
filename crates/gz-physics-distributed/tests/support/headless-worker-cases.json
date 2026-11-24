@@ -5,6 +5,9 @@
     "floating_tree::adaptive::crash_tests::adaptive_grasp_controller_kills_preserve_one_join_and_upcoming_impact",
     "floating_tree::adaptive::crash_tests::native_warm_member_controller_kills_preserve_contact_and_graph",
     "floating_tree::adaptive::crash_tests::verified_warm_replay_controller_kills_preserve_history_and_first_cross_contact",
+    "floating_tree::automatic::crash_tests::rotating_membrane_keeps_the_three_weighted_impulses_and_elastic_tail_exactly_once",
+    "floating_tree::automatic::crash_tests::verified_automatic_subintervals_survive_partial_head_impulse_tail_transfer_and_reset",
+    "floating_tree::automatic::pool::admission_tests::rehashed_but_physically_inconsistent_event_heads_cannot_resume",
     "floating_tree::cluster::crash_tests::coupled_cross_contacts_and_paged_graphs_recover_after_controller_sigkill",
     "floating_tree::crash_tests::floating_tree_controller_kill_preserves_multijoint_tree_and_guarded_continuation",
     "floating_tree::crash_tests::grasp_controller_kills_restore_an_externally_loaded_part_and_capped_motors",
@@ -12,9 +15,13 @@
     "floating_tree::crash_tests::motorized_tree_controller_kills_preserve_persistent_set_clear_and_actuation",
     "floating_tree::crash_tests::payload_controller_kills_restore_two_simultaneous_warm_contacts_and_exact_release",
     "floating_tree::crash_tests::stopped_tree_controller_kills_retain_loaded_stop_and_continue_through_release",
+    "floating_tree::material::crash_tests::altered_portable_impulses_and_wrong_cold_material_are_rejected_before_resume",
+    "floating_tree::material::crash_tests::native_loss_between_private_step_and_signed_response_retries_both_solvers",
+    "floating_tree::material::crash_tests::recovered_material_controller_applies_both_physical_impulses_exactly_once",
     "floating_tree::placement::crash_tests::controller_kills_at_split_and_rejoin_publish_one_physical_interval",
     "floating_tree::placement::fleet::crash_tests::fleet_controller_deaths_retain_both_grasps_and_one_clock",
     "floating_tree::placement::fleet::crash_tests::fleet_rejected_crossing_controller_death_preserves_all_committed_bodies",
+    "grounded_robot::crash_tests::published_high_dof_pressure_holds_through_partial_pages_source_fence_and_rename",
     "moving::crash_tests::moving_controller_sigkill_rolls_back_partial_steps_and_publishes_whole_transitions",
     "moving::crash_tests::moving_controller_sigkill_with_continuous_drive",
     "multi_sphere::crash_tests::cold_inspection_reconstructs_native_samples_and_rejects_checksummed_inconsistency",
@@ -55,5 +62,8 @@
   ],
   "gz-sim-cli/src/lib.rs": [
     "live::capsule::tests::running_writer_capture_exact_input_noclobber_and_pinned_offline_read"
+  ],
+  "gz-sim-cli/tests/native.rs": [
+    "warm_physics_cli::authored_worlds_resume_from_offline_and_operator_selected_warm_cuts"
   ]
 }

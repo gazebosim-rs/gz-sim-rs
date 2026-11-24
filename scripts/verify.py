@@ -506,6 +506,11 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
     env["RUSTC_WORKSPACE_WRAPPER"] = str(wrapper)
     env["LLVM_PROFILE_FILE"] = str(raw_dir / "%p-%m.profraw")
     env["GZ_ZENOH_PEER_EVIDENCE_DIR"] = str(directory / "native-peers")
+    if name == "headless" and "gz-physics-distributed" in crates:
+        for variable, folder in (("GZ_DISTRIBUTED_MATERIAL_WITNESS", "articulated"),
+                                 ("GZ_AUTOMATIC_WITNESS", "automatic"),
+                                 ("GZ_ROTOR_CLOTH_WITNESS", "rotor"), ("GZ_ROBOT_WITNESS", "grounded")):
+            env[variable] = str(directory / "worker-inputs" / folder)
     for key in ("GZ_RENDER_CLI_PATH", "GZ_RENDER_WORKER_PATH", "GZ_RENDER_EXECUTABLES_JSON"):
         env.pop(key, None)
     prepared_executables = None
@@ -1043,6 +1048,9 @@ def retain_profile_evidence(candidate, output, hashes, missing):
             if "crates/gz-physics-distributed/tests/support/loaded_grippers.rs" in data["inputs"]:
                 required.append("worker-grippers.json")
             required.extend(sorted(path.name for path in base.glob("worker-*.std*") if path.is_file()))
+            required.extend(str(path.relative_to(base)) for path in sorted((base / "worker-inputs").rglob("*.gz*")))
+            if (base / "worker-returned-humanoid.gzgroundedrobot").is_file():
+                required.append("worker-returned-humanoid.gzgroundedrobot")
         # Partial child transcripts survive an interrupted profile even when
         # no final test-output/evidence file was produced.
         for diagnostic in ("tests.stdout", "tests.stderr", "renderer-build.stdout", "renderer-build.stderr"):

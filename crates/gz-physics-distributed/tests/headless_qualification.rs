@@ -117,6 +117,83 @@ fn loaded_grippers_match_local_scene() -> Result<()> {
     loaded_grippers::run(Inputs::load()?)
 }
 
+// These are the cuts actually reopened by the rigid/material, off-grid and loaded-foot cases.
+fn initial_witnesses(directory: &Path) -> Result<BTreeMap<String, String>> {
+    let root = directory.join("worker-inputs");
+    let mut files = Vec::new();
+    for (scenario, suffix) in [
+        ("articulated", "gzmaterialtree"),
+        ("automatic", "gzautmaterial"),
+    ] {
+        for material in ["cloth", "cable"] {
+            for state in ["prior", "accepted"] {
+                files.push(format!("{scenario}/{material}/{state}.{suffix}"));
+            }
+        }
+    }
+    files.extend(
+        [
+            "rotor/prior.gzrotmaterial",
+            "rotor/accepted.gzrotmaterial",
+            "grounded/push.gzgroundedrobot",
+        ]
+        .map(str::to_owned),
+    );
+    files
+        .into_iter()
+        .map(|file| Ok((file.clone(), sha256(&root.join(file))?)))
+        .collect()
+}
+
+fn run_cases(
+    suite: &Path,
+    worker: &Path,
+    directory: &Path,
+    label: &str,
+    cases: &[impl AsRef<str>],
+    witness: Option<(&str, &Path)>,
+) -> Result<u128> {
+    let stdout = directory.join(format!("{label}.stdout"));
+    let stderr = directory.join(format!("{label}.stderr"));
+    let pattern = directory.join("raw").join(format!("{label}-%p-%m.profraw"));
+    let mut command = Command::new(suite);
+    for name in [
+        "GZ_MULTI_TEST_WORKER",
+        "GZ_FLOATING_TREE_TEST_WORKER",
+        "GZ_HINGE_TEST_WORKER",
+        "GZ_MOVING_TEST_WORKER",
+    ] {
+        command.env(name, worker);
+    }
+    let inputs = directory.join("worker-inputs");
+    command
+        .env("GZ_MATERIAL_WITNESSES", inputs.join("articulated"))
+        .env("GZ_AUTOMATIC_WITNESS", inputs.join("automatic"))
+        .env("GZ_ROTOR_CLOTH_WITNESS", inputs.join("rotor"))
+        .env(
+            "GZ_ROBOT_LOADED_CUT",
+            inputs.join("grounded/push.gzgroundedrobot"),
+        );
+    if let Some((key, path)) = witness {
+        command.env(key, path);
+    }
+    let start = Instant::now();
+    let status = command
+        .args(["--ignored", "--exact", "--test-threads=1"])
+        .args(cases.iter().map(AsRef::as_ref))
+        .env("LLVM_PROFILE_FILE", pattern)
+        .stdout(File::create_new(&stdout)?)
+        .stderr(File::create_new(&stderr)?)
+        .status()?;
+    if !status.success() || !all_parents_passed(&fs::read_to_string(&stdout)?, cases.len()) {
+        return Err(format!(
+            "{label} failed the physical worker qualification; see {stdout:?} and {stderr:?}"
+        )
+        .into());
+    }
+    Ok(start.elapsed().as_millis())
+}
+
 #[test]
 #[ignore = "requires the headless qualification's Cargo artifact list and coverage directory"]
 fn real_worker_fixtures() -> Result<()> {
@@ -128,8 +205,8 @@ fn real_worker_fixtures() -> Result<()> {
         artifacts,
     } = Inputs::load()?;
     let suites: BTreeMap<String, Vec<String>> = serde_json::from_str(CASES)?;
-    let mut receipt = json!({"worker_sha256": sha256(&worker)?, "suites": {}});
-    for (source, cases) in suites {
+    let mut receipt = json!({"worker_sha256": sha256(&worker)?, "input_sha256": initial_witnesses(&directory)?, "suites": {}});
+    for (source, mut cases) in suites {
         if cases.is_empty() || cases.iter().collect::<BTreeSet<_>>().len() != cases.len() {
             return Err(format!("invalid headless test selection for {source}").into());
         }
@@ -146,35 +223,40 @@ fn real_worker_fixtures() -> Result<()> {
                 .and_then(|n| n.to_str())
                 .ok_or("invalid suite filename")?
         );
-        let stdout = directory.join(format!("{label}.stdout"));
-        let stderr = directory.join(format!("{label}.stderr"));
-        let pattern = directory.join("raw").join(format!("{label}-%p-%m.profraw"));
-        let mut command = Command::new(&suite);
-        for name in [
-            "GZ_MULTI_TEST_WORKER",
-            "GZ_FLOATING_TREE_TEST_WORKER",
-            "GZ_HINGE_TEST_WORKER",
-            "GZ_MOVING_TEST_WORKER",
-        ] {
-            command.env(name, &worker);
-        }
-        let start = Instant::now();
         let digest = sha256(&suite)?;
-        let status = command
-            .args(["--ignored", "--exact", "--test-threads=1"])
-            .args(&cases)
-            .env("LLVM_PROFILE_FILE", pattern)
-            .stdout(File::create_new(&stdout)?)
-            .stderr(File::create_new(&stderr)?)
-            .status()?;
-        if !status.success() || !all_parents_passed(&fs::read_to_string(&stdout)?, cases.len()) {
-            return Err(format!(
-                "{label} failed the physical worker qualification; see {stdout:?} and {stderr:?}"
-            )
-            .into());
+        let humanoid = source == "gz-sim-cli/examples/humanoid_stand.rs";
+        let returned = directory.join("worker-returned-humanoid.gzgroundedrobot");
+        let mut elapsed = run_cases(
+            &suite,
+            &worker,
+            &directory,
+            &label,
+            &cases,
+            humanoid.then_some(("GZ_ROBOT_RETURN_WITNESS", returned.as_path())),
+        )?;
+        let mut cut_hash = None;
+        if humanoid {
+            let following = [
+                "return_tests::failed_robot_publication_fences_the_live_scene_until_disk_reopen",
+                "return_tests::same_ledger_rejoins_only_the_last_checkpoint_and_preserves_two_ownership_cycles",
+            ];
+            let extra = run_cases(
+                &suite,
+                &worker,
+                &directory,
+                "worker-returned-humanoid",
+                &following,
+                Some(("GZ_ROBOT_RETURN_SOURCE", &returned)),
+            )?;
+            cases.extend(following.map(str::to_owned));
+            elapsed += extra;
+            cut_hash = Some(sha256(&returned)?);
         }
-        receipt["suites"][source] =
-            json!({"sha256": digest, "cases": cases, "milliseconds": start.elapsed().as_millis()});
+        let mut row = json!({"sha256":digest, "cases":cases, "milliseconds":elapsed});
+        if let Some(hash) = cut_hash {
+            row["returned_checkpoint_sha256"] = Value::from(hash);
+        }
+        receipt["suites"][source] = row;
         fs::write(
             directory.join("headless-workers.json"),
             serde_json::to_vec_pretty(&receipt)?,

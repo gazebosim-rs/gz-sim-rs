@@ -259,3 +259,7 @@ fn listen_line(process: &mut Process) -> String {
     process.0.as_mut().unwrap().stderr = Some(err);
     line.unwrap()
 }
+
+#[cfg(all(unix, feature = "distributed-physics"))]
+#[path = "private/warm_physics_cli.rs"]
+mod warm_physics_cli;
