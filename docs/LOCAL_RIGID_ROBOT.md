@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+The two-finger experiment shows a 200 g parcel holding, slipping as the motors weaken, and falling when the jaws open. A second view shows a sphere rolling along inclined jaws while both travel stops carry its weight. [Grasp and release](measurements/local-manipulation/two-finger-view.md) · [Double-stop loads and groove replay](measurements/local-manipulation/two-finger-load.md)
+
 The powered finger can brace at the end of its travel, release under a strike from the opposite side, and reverse under a held motor force. Compare the first collision in slow motion or follow the full 40 mm stroke on the same mechanism. [Impact close-ups](measurements/local-manipulation/powered-slider-view.md) · [Full stroke, forces and commands](measurements/local-manipulation/powered-slider-cycle.md)
 
 A separate passive wrist and sliding finger now share a strike on their first physics step. Both reflected strikes can be compared with the hand calculation through 200 ms. [Corrected wrist, timing and native replays](measurements/local-manipulation/reduced-wrist-slider.md)
