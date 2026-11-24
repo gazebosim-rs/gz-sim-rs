@@ -372,6 +372,13 @@ impl PreparedBoundary {
         }
         Ok(())
     }
+    /// Prescribed moving cuboids may report signed per-particle pad loads at
+    /// zero compliance as well as through the compliant contact projection.
+    fn prescribed_pad(&self) -> bool {
+        matches!(self.shape, Shape::Oriented(OrientedShape::Cuboid(_)))
+            && self.receiver.as_ref().is_some_and(|r| r.inverse_mass == 0.)
+    }
+
     pub(super) fn fixed_box(&self) -> Option<(DVec3, DQuat)> {
         if let Shape::StaticCuboid(half, q) = self.shape {
             Some((half, q))
@@ -687,7 +694,13 @@ fn project_points<const SPATIAL: bool>(
                     }
                     // With x1 = x0 + h*v1, a positional correction contributes
                     // x0 cross (m*dx/h) to discrete orbital angular momentum.
-                    reactions[j].react(start - boundary.origin, dx / time.h / p.inverse_mass)?;
+                    let applied = dx / time.h / p.inverse_mass;
+                    reactions[j].react(start - boundary.origin, applied)?;
+                    if let Some(loads) = &mut contacts.pad_loads
+                        && boundary.prescribed_pad()
+                    {
+                        loads.react(j, i, applied, DVec3::ZERO)?;
+                    }
                     contacts.record(i, j, &hit, normal_impulse, remaining);
                 }
             }
@@ -710,7 +723,7 @@ fn project_points<const SPATIAL: bool>(
 }
 
 pub(super) fn finish_contacts(
-    contacts: &Contacts,
+    contacts: &mut Contacts,
     x: &[DVec3],
     particles: &mut [Particle],
     boundaries: &mut [PreparedBoundary],
@@ -725,7 +738,13 @@ pub(super) fn finish_contacts(
         }
         let p = &mut particles[c.particle];
         if b.receiver.is_some() {
-            finish_receiver(c, x[c.particle], p, b, &mut reactions[c.boundary], mu, h)?;
+            let [normal, tangent] = finish_receiver(c, x[c.particle], p, b, mu, h)?;
+            reactions[c.boundary].react(x[c.particle] - b.origin, normal + tangent)?;
+            if let Some(loads) = &mut contacts.pad_loads
+                && b.prescribed_pad()
+            {
+                loads.react(c.boundary, c.particle, normal, tangent)?;
+            }
             continue;
         }
         let v = DVec3::from(p.velocity);
@@ -761,16 +780,15 @@ fn finish_receiver(
     x: DVec3,
     p: &mut Particle,
     b: &mut PreparedBoundary,
-    reaction: &mut BoundaryImpulse,
     mu: f64,
     h: f64,
-) -> Result<(), XpbdError> {
+) -> Result<[DVec3; 2], XpbdError> {
     let r = b.receiver.as_mut().expect("finite receiver");
     let arm = x - (b.origin + b.velocity * r.end_time + r.end_offset);
     if let Some(impulse) = c.remaining {
         p.velocity = (DVec3::from(p.velocity) + p.inverse_mass * impulse).to_array();
         r.apply_velocity_impulse(arm, -impulse);
-        return reaction.react(x - b.origin, impulse);
+        return Ok([impulse, DVec3::ZERO]);
     }
     let inverse_mass = p.inverse_mass + r.inverse_mass;
     let relative = |v: DVec3, r: &super::coupled::Receiver| {
@@ -805,7 +823,7 @@ fn finish_receiver(
         r.apply_velocity_impulse(arm, -friction);
     }
     p.velocity = (v + p.inverse_mass * friction).to_array();
-    reaction.react(x - b.origin, j + friction)
+    Ok([j, friction])
 }
 
 /// A hash lookup per neighbour cell with no dependence on hash iteration order.

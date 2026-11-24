@@ -784,7 +784,7 @@ impl SoftBody {
             )?;
         }
         collision::finish_contacts(
-            &self.contacts,
+            &mut self.contacts,
             &self.predicted,
             &mut self.scratch,
             boundaries,

@@ -127,3 +127,63 @@ fn restoring_one_way_reactions_clears_old_articulated_pad_readings() {
     );
     assert!(observed.last_pad_loads().is_empty());
 }
+
+#[test]
+fn hard_pad_reports_each_particles_momentum_change_and_clears_after_release() {
+    for substeps in [1, 2, 4] {
+        let velocity = DVec3::new(-0.3, 0., 0.8);
+        let mut body = SoftBody::new(
+            MASSES
+                .iter()
+                .enumerate()
+                .map(|(i, mass)| Particle {
+                    position: [0., 0., i as f64 * 0.04],
+                    velocity: velocity.to_array(),
+                    inverse_mass: 1. / mass,
+                })
+                .collect(),
+            vec![],
+            SolverConfig {
+                substeps,
+                iterations: 12,
+                gravity: [0.; 3],
+                friction: MU,
+                particle_radius: 0.01,
+                self_contact: false,
+            },
+        )
+        .unwrap();
+        let mut observed = body.clone().with_pad_loads();
+        let rigid = RigidMobility::PrescribedCuboid {
+            normal_compliance: 0.,
+            start_orientation: DQuat::IDENTITY.to_array(),
+            end_orientation: DQuat::IDENTITY.to_array(),
+            start_angular_velocity: [0.; 3],
+        };
+        let wall = pad(-0.03999);
+        for b in [&mut body, &mut observed] {
+            step_coupled_rigid(&mut [b], DT, &[wall], &[Some(rigid)]).unwrap();
+        }
+        assert_eq!(body.particles(), observed.particles());
+        assert_eq!(
+            body.last_boundary_impulses(),
+            observed.last_boundary_impulses()
+        );
+        let readings = observed.last_pad_loads();
+        assert_eq!(readings.len(), 2);
+        let mut total = DVec3::ZERO;
+        for (i, row) in readings.iter().enumerate() {
+            assert_eq!((row.boundary, row.particle), (0, i));
+            let n = DVec3::from(row.normal);
+            let t = DVec3::from(row.tangent);
+            assert!(n.x < 0. && n.y.abs() + n.z.abs() < 1e-12);
+            assert!(t.z > 0. && t.x.abs() + t.y.abs() < 1e-12);
+            let measured = MASSES[i] * (velocity - DVec3::from(observed.particles()[i].velocity));
+            assert!(measured.distance(n + t) < 1e-13);
+            total += n + t;
+        }
+        assert!(total.distance(DVec3::from(observed.last_boundary_impulses()[0].linear)) < 1e-13);
+        step_coupled_rigid(&mut [&mut observed], DT, &[pad(-2.)], &[Some(rigid)]).unwrap();
+        assert!(observed.last_pad_loads().is_empty());
+    }
+}

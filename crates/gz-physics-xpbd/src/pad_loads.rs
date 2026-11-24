@@ -4,7 +4,7 @@ use crate::{SoftBody, XpbdError};
 use glam::DVec3;
 use std::collections::BTreeMap;
 
-/// Signed world impulses (N·s) on a compliant cuboid from one material particle.
+/// Signed world impulses (N·s) on a prescribed cuboid from one material particle.
 /// Each vector sums the impulses actually applied across all iterations and
 /// substeps of the last committed interval, including unloading corrections.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -82,7 +82,7 @@ impl PadLoads {
 }
 
 impl SoftBody {
-    /// Enable per-particle readings for cuboids with positive normal compliance.
+    /// Enable per-particle impulse readings for prescribed rigid and compliant cuboid pads.
     pub fn with_pad_loads(mut self) -> Self {
         self.contacts.pad_loads.get_or_insert_with(Default::default);
         self
