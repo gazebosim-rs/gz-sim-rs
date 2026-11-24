@@ -7,6 +7,11 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — Cloth on a moving finite deck
+
+A deck moving at 0.4 m/s carried one 100 g sheet while a second slid off and fell. The sliding sheet lost its last measured support after 230 ms. While fully supported, it tracked the analytical solution within 0.037 mm. Reset reproduced both trajectories and the signed deck loads. A rotating or accelerating deck remains outside this straight-line qualification. [Measurements, coverage and native gz-web-rs replay](measurements/local-manipulation/cloth-conveyor.md)
+
+
 ## 2026-11-23 — GPU pickup with an off-center payload mass
 
 The local four-slider gripper resolves the free sphere's authored mass center and central inertia independently of its geometric center. Shifting the mass center of an 80 g sphere 6 mm to the right shifted settled left/right support from 0.392/0.392 N to 0.285/0.499 N. Independent 3D Rapier measured 0.280/0.505 N. The successful pickup paths agreed within 1.08 mm. At friction 0.12 both spheres slipped back to the table, with a 17.80 mm right-pad slide on the device and 16.64 mm in Rapier. [Measured loads, limits, coverage and two native visual replays](measurements/local-manipulation/gpu-eccentric-payload.md)

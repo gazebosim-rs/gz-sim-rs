@@ -1,0 +1,328 @@
+{
+  "base": "2516e526c16c0f78224690d87258e9233c815c56",
+  "source": "b780885c9501749678fc667e3bc39910a45d8ec4",
+  "recording_binary_sha256": "274c6ff8e29b68950fb4b173b164ebdb58dbb77c2854de690e71c499f480e880",
+  "archive_sha256": "0d5b7b8608268f14516ba41ab9158778e0c362b1c2f944d18472185e55ffbe78",
+  "physics": {
+    "co_moving_force_n": [
+      2.465190328815662e-29,
+      -3.697785493223493e-29,
+      -0.9809999999999997
+    ],
+    "end_velocity_m_s": [
+      1.4331480547128597,
+      3.516280706341809e-07,
+      -2.5347970574281966
+    ],
+    "last_loaded_tick": 115,
+    "max_support_force_error_n": 1.3877788207494742e-12,
+    "max_support_moment_error_nm": 6.638770071638374e-16,
+    "max_supported_trajectory_error_m": 3.678749999541653e-05,
+    "max_transformed_position_error_m": 2.1429590330825283e-13,
+    "max_transformed_velocity_error_m_s": 1.4754803872755567e-12,
+    "sliding_force_n": [
+      0.09810000000000002,
+      4.949639957075196e-29,
+      -0.9809999999999997
+    ],
+    "ticks": 240
+  },
+  "native_view": {
+    "body_poses_and_shapes_checked": 144,
+    "captured_ms": {
+      "edge": 230.0,
+      "free": 480.0,
+      "sliding": 94.0,
+      "start": 0.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      24.0,
+      60.0,
+      94.0,
+      128.0,
+      162.0,
+      196.0,
+      230.0,
+      264.0,
+      298.0,
+      332.0,
+      366.0,
+      400.0,
+      434.0,
+      468.0,
+      480.0
+    ],
+    "frames": 16,
+    "independent_visual_poses_checked": 144,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 16,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10008%2F"
+  },
+  "coverage": {
+    "totals": {
+      "gz-physics-xpbd": {
+        "production": {
+          "lines": [
+            66,
+            67
+          ],
+          "regions": [
+            123,
+            125
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            167,
+            169
+          ],
+          "regions": [
+            360,
+            363
+          ]
+        }
+      },
+      "gz-sim-scene": {
+        "production": {
+          "lines": [
+            61,
+            61
+          ],
+          "regions": [
+            94,
+            95
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            283,
+            283
+          ],
+          "regions": [
+            529,
+            531
+          ]
+        }
+      }
+    },
+    "files": {
+      "crates/gz-physics-xpbd/src/collision.rs": {
+        "lines": [
+          31,
+          32
+        ],
+        "regions": [
+          44,
+          46
+        ]
+      },
+      "crates/gz-physics-xpbd/src/collision/spatial.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          2,
+          2
+        ]
+      },
+      "crates/gz-physics-xpbd/src/coupled.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          1,
+          1
+        ]
+      },
+      "crates/gz-physics-xpbd/src/lib.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-xpbd/src/static_box_faces.rs": {
+        "lines": [
+          24,
+          24
+        ],
+        "regions": [
+          66,
+          66
+        ]
+      },
+      "crates/gz-physics-xpbd/src/static_box_faces/edges.rs": {
+        "lines": [
+          9,
+          9
+        ],
+        "regions": [
+          10,
+          10
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/box_edge_cloth.rs": {
+        "lines": [
+          31,
+          31
+        ],
+        "regions": [
+          70,
+          70
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/box_face_interior.rs": {
+        "lines": [
+          37,
+          38
+        ],
+        "regions": [
+          91,
+          92
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/plane_friction_checkpoint.rs": {
+        "lines": [
+          32,
+          32
+        ],
+        "regions": [
+          75,
+          75
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/private/static_box_edges.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          1,
+          1
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable.rs": {
+        "lines": [
+          39,
+          39
+        ],
+        "regions": [
+          58,
+          59
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/config.rs": {
+        "lines": [
+          17,
+          17
+        ],
+        "regions": [
+          30,
+          30
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/exchange.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-sim-scene/src/inputs.rs": {
+        "lines": [
+          5,
+          5
+        ],
+        "regions": [
+          6,
+          6
+        ]
+      },
+      "crates/gz-sim-scene/tests/cloth_conveyor.rs": {
+        "lines": [
+          222,
+          222
+        ],
+        "regions": [
+          435,
+          436
+        ]
+      }
+    },
+    "executables": {
+      "gz-physics-xpbd-__lib": {
+        "build_id": "e3561a45425f1f943b57ac1d343551e7bd7f26d8",
+        "sha256": "a378a7709245978ec4ca66dbc10b1c7990435c999724d1b5e52d257416018067",
+        "passed": 68
+      },
+      "gz-physics-xpbd-box_edge_cloth": {
+        "build_id": "f0f329d8839713a8cc17fd6f9a0a08a8d1ae1cab",
+        "sha256": "d9a0527cfaac8ff2b75297acf4038ec0ee751fe83edd2547953dbe2a92e9767e",
+        "passed": 4
+      },
+      "gz-physics-xpbd-box_face_interior": {
+        "build_id": "870524b034a61f7186884474a044e1bf4ce76c5c",
+        "sha256": "79054c310c7f29da21852da1edbf9e5cf8aacf28967568b1d47a0f346c6f551e",
+        "passed": 5
+      },
+      "gz-physics-xpbd-finite_surface_pad": {
+        "build_id": "1735131a3f2b1b99b0be2d13ddf80a2646dae515",
+        "sha256": "d3d1ba2553dac72c05cc960f3a883b014e99e1f63ea6bc1cddb6d6d6ef71a1e3",
+        "passed": 10
+      },
+      "gz-physics-xpbd-plane_friction_checkpoint": {
+        "build_id": "c3a7ace015b0edcd4d7d3ea9c5c77da545a4423f",
+        "sha256": "896e9b33cd575bb83bb16583216f652bd79a1443bf1cdba13216e2f2167bf9d0",
+        "passed": 2
+      },
+      "gz-physics-xpbd-static_box": {
+        "build_id": "fc38ccc29b1024d1323545d18d20d1126c1ba24c",
+        "sha256": "19c0199766be3930e463294152c7295657ac777df367d34b0e53d9749ccdd088",
+        "passed": 5
+      },
+      "gz-sim-scene-__lib": {
+        "build_id": "e0278bfe6f5af586b0ef06434bcc82cb0137c75f",
+        "sha256": "5032e38854ee2dd123282f48ccaba64bf8cf65eb09c2b93af852145833700e6a",
+        "passed": 335
+      },
+      "gz-sim-scene-cloth_conveyor": {
+        "build_id": "dae4e26462da52b3eacfe8c7e61f3eb8c46591e4",
+        "sha256": "0d6a29e66229006a482079738fb5532283515e5da3c568f64c81be0979622819",
+        "passed": 3
+      },
+      "gz-sim-scene-curved_cable_guide": {
+        "build_id": "59d7cc2f43c87adf4a49cd075498983f96898458",
+        "sha256": "5764cf759984ba513dbbc306ca1c81f56f4829bb7661f25697e197ee191616aa",
+        "passed": 3
+      },
+      "gz-sim-scene-deformable_coupling": {
+        "build_id": "02ce12692362d8a01fb78adcdf7635f1502ea462",
+        "sha256": "bf8ed27ef611ce4f4612c3cde9a59132d01f20828d8191c93b1ddb721b54a6af",
+        "passed": 8
+      },
+      "gz-sim-scene-finite_surface_pad": {
+        "build_id": "61ac566968f2e3b0ac3e435061e52f35b446fc61",
+        "sha256": "db4dac4830d3fe4eb4a0e7834c074f0931ee6e28d1a581f325d80c63b91b91ed",
+        "passed": 2
+      },
+      "gz-sim-scene-static_soft_bench": {
+        "build_id": "3124f1a48bcf83732b54e3a17e0076e2353d8866",
+        "sha256": "a3b3e34a682503b0c27615619729ecb21412fadec63bdc21508905b402780423",
+        "passed": 3
+      }
+    }
+  }
+}
