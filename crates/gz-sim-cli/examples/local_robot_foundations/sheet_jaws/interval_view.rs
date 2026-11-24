@@ -25,7 +25,7 @@ pub(super) fn world(xml: &str) -> String {
     }
     for (label, force) in [("zero", 0.), ("one_newton", 1.)] {
         let z = 0.31 + height(force);
-        write!(gauges,r#"<visual name="squeeze_{label}"><pose>0.36 0.012 {z} 0 0 0</pose><geometry><box><size>0.222 0.003 0.002</size></box></geometry></visual>"#).unwrap();
+        write!(gauges,r#"<visual name="squeeze_{label}"><pose>0.36 0.012 {z} 0 0 0</pose><geometry><box><size>0.222 0.003 0.002</size></box></geometry><material><diffuse>0.63 0.68 0.74 1</diffuse></material></visual>"#).unwrap();
     }
     xml.replacen(
         "<visual name=\"sheet_0\"",
