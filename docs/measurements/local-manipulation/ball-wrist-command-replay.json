@@ -1,0 +1,489 @@
+{
+  "source": "4462a01",
+  "coverage_source": "df64276",
+  "trace_header": {
+    "binary_sha256": "b9152b4bd97cac1ed1362b3cf963847e8526292b3a84ac37a876dbbd26b43f63",
+    "cargo_lock_sha256": "13e7e7a87e62212ef2a0472e1ed25be56784dd05809128c6a3de5dd55c13c2eb",
+    "compiled_distributed": false,
+    "compiled_gpu_batch": false,
+    "cpu": "AuthenticAMD|26|68|0|AMD Ryzen 9 9950X3D 16-Core Processor|0xb404035|fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d amd_lbr_pmc_freeze",
+    "journal_sha256": "c1d22523726477b830c1b4607c28d33e10359524b38c8646e05974dd553c6080",
+    "numerics": "native serial Rapier f64/enhanced-determinism",
+    "package": "0.1.0",
+    "platform": "linux-x86_64",
+    "profile": "local-cpu-v1",
+    "seed": "wrist-commands-v1",
+    "step_ns": 1000000,
+    "world_sha256": "813cf0aa35e37aa234efb46cb7b410c83031290dcf919fcfa9462d27aa4f407c"
+  },
+  "complete_records": 752,
+  "same_across_thread_counts": [
+    1,
+    8
+  ],
+  "steps_repeated_after_reset": 240,
+  "samples": [
+    {
+      "command": 2,
+      "epoch": 0,
+      "step": 0,
+      "time_ns": 0,
+      "entities": 35,
+      "scene": "3c664783c98f3ba7fef397c6cb7f0e060a6d581804f43fb63895effbddb6081c",
+      "physics": "ba7e0f359773ffb4d0f237d7005741823933aa33adffdd7fa14d1494851d1e04",
+      "contacts": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": "4d793cdf75b639b473f81a9871888fe8521e7ecc07b1b325595d3897b825dbd1",
+      "imu": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wrists": [
+        {
+          "id": 17,
+          "orientation_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "angular_velocity_rad_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "pending_torque_nm": [
+            18.0,
+            -24.0,
+            12.0
+          ]
+        },
+        {
+          "id": 34,
+          "orientation_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "angular_velocity_rad_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "pending_torque_nm": null
+        }
+      ],
+      "held_targets": 0,
+      "pending_wrenches": 0,
+      "imu_samples": 0,
+      "pair_reactions_ns": [],
+      "contact_points": 0,
+      "delivered_normal_ns": 0.0,
+      "stored_normal_ns": 0.0
+    },
+    {
+      "command": 3,
+      "epoch": 0,
+      "step": 0,
+      "time_ns": 0,
+      "entities": 35,
+      "scene": "3c664783c98f3ba7fef397c6cb7f0e060a6d581804f43fb63895effbddb6081c",
+      "physics": "ba7e0f359773ffb4d0f237d7005741823933aa33adffdd7fa14d1494851d1e04",
+      "contacts": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": "4d793cdf75b639b473f81a9871888fe8521e7ecc07b1b325595d3897b825dbd1",
+      "imu": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wrists": [
+        {
+          "id": 17,
+          "orientation_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "angular_velocity_rad_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "pending_torque_nm": [
+            18.0,
+            -24.0,
+            12.0
+          ]
+        },
+        {
+          "id": 34,
+          "orientation_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "angular_velocity_rad_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "pending_torque_nm": null
+        }
+      ],
+      "held_targets": 0,
+      "pending_wrenches": 0,
+      "imu_samples": 0,
+      "pair_reactions_ns": [],
+      "contact_points": 0,
+      "delivered_normal_ns": 0.0,
+      "stored_normal_ns": 0.0
+    },
+    {
+      "command": 4,
+      "epoch": 0,
+      "step": 1,
+      "time_ns": 1000000,
+      "entities": 35,
+      "scene": "ecd0f0b44b706711440e3c7ba6db05517ad737485ed71e75f0a9430e6a2999d2",
+      "physics": "5af40f77a706b52f14b8a232ed496e16a74d1100c9b8608da19723b7ffe530b7",
+      "contacts": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imu": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wrists": [
+        {
+          "id": 17,
+          "orientation_xyzw": [
+            2.6624486096277204e-05,
+            -2.1584971721513854e-05,
+            2.281324430292164e-05,
+            0.9999999991523909
+          ],
+          "angular_velocity_rad_s": [
+            0.09459600210517079,
+            -0.07697819872649615,
+            0.08122370653892118
+          ],
+          "pending_torque_nm": null
+        },
+        {
+          "id": 34,
+          "orientation_xyzw": [
+            9.001420881518671e-07,
+            2.2314258851935383e-06,
+            -1.1248716528799994e-06,
+            0.9999999999964726
+          ],
+          "angular_velocity_rad_s": [
+            0.0031643745257549393,
+            0.0078115832908184635,
+            -0.003943010846333663
+          ],
+          "pending_torque_nm": null
+        }
+      ],
+      "held_targets": 0,
+      "pending_wrenches": 0,
+      "imu_samples": 0,
+      "pair_reactions_ns": [],
+      "contact_points": 0,
+      "delivered_normal_ns": 0.0,
+      "stored_normal_ns": 0.0
+    },
+    {
+      "command": 4,
+      "epoch": 0,
+      "step": 240,
+      "time_ns": 240000000,
+      "entities": 35,
+      "scene": "e9518ad649f09b8a5c246a0cb534703b2a0b3dad9a360e4c706830106bae433d",
+      "physics": "ba74f62fe68aa84571e64a7ddfdeccabf58f5e0ba6ce74cecc663032bd6883af",
+      "contacts": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imu": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wrists": [
+        {
+          "id": 17,
+          "orientation_xyzw": [
+            0.04812046173371178,
+            0.09064623547916976,
+            -0.03927223346540525,
+            0.9939443509747556
+          ],
+          "angular_velocity_rad_s": [
+            0.601111279838616,
+            1.389856104356383,
+            -0.6074494130270474
+          ],
+          "pending_torque_nm": null
+        },
+        {
+          "id": 34,
+          "orientation_xyzw": [
+            0.03954867185937284,
+            0.09725284721919128,
+            -0.04897539035943009,
+            0.9932669315954609
+          ],
+          "angular_velocity_rad_s": [
+            0.5656069483915624,
+            1.3840486506516765,
+            -0.6958581485561985
+          ],
+          "pending_torque_nm": null
+        }
+      ],
+      "held_targets": 0,
+      "pending_wrenches": 0,
+      "imu_samples": 0,
+      "pair_reactions_ns": [],
+      "contact_points": 0,
+      "delivered_normal_ns": 0.0,
+      "stored_normal_ns": 0.0
+    },
+    {
+      "command": 6,
+      "epoch": 0,
+      "step": 500,
+      "time_ns": 500000000,
+      "entities": 35,
+      "scene": "e46490af25e6b71886cbeca30fdcbd1806d2c2214c6c9b213af7a019bba3da1a",
+      "physics": "4fe712828bb3021ca6c8a584d231b8fa5ccad59286f01a03805a9b6a07362aa1",
+      "contacts": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imu": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wrists": [
+        {
+          "id": 17,
+          "orientation_xyzw": [
+            0.09833324229972874,
+            0.25283719511166575,
+            -0.11850292934481721,
+            0.9551758905895739
+          ],
+          "angular_velocity_rad_s": [
+            0.16066847737110546,
+            0.6714528917333646,
+            -0.2647324941125138
+          ],
+          "pending_torque_nm": null
+        },
+        {
+          "id": 34,
+          "orientation_xyzw": [
+            0.10116946127355285,
+            0.24601993470218309,
+            -0.12343081313763887,
+            0.9560354419177849
+          ],
+          "angular_velocity_rad_s": [
+            0.23428398290982572,
+            0.5433562119311348,
+            -0.2716803143587021
+          ],
+          "pending_torque_nm": null
+        }
+      ],
+      "held_targets": 0,
+      "pending_wrenches": 0,
+      "imu_samples": 0,
+      "pair_reactions_ns": [],
+      "contact_points": 0,
+      "delivered_normal_ns": 0.0,
+      "stored_normal_ns": 0.0
+    },
+    {
+      "command": 7,
+      "epoch": 0,
+      "step": 500,
+      "time_ns": 500000000,
+      "entities": 35,
+      "scene": "e46490af25e6b71886cbeca30fdcbd1806d2c2214c6c9b213af7a019bba3da1a",
+      "physics": "4fe712828bb3021ca6c8a584d231b8fa5ccad59286f01a03805a9b6a07362aa1",
+      "contacts": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": "60cf3909c5618a683756c36058e92c1ee8427e13303987ba8b69bd3034d6fb60",
+      "imu": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wrists": [
+        {
+          "id": 17,
+          "orientation_xyzw": [
+            0.09833324229972874,
+            0.25283719511166575,
+            -0.11850292934481721,
+            0.9551758905895739
+          ],
+          "angular_velocity_rad_s": [
+            0.16066847737110546,
+            0.6714528917333646,
+            -0.2647324941125138
+          ],
+          "pending_torque_nm": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "id": 34,
+          "orientation_xyzw": [
+            0.10116946127355285,
+            0.24601993470218309,
+            -0.12343081313763887,
+            0.9560354419177849
+          ],
+          "angular_velocity_rad_s": [
+            0.23428398290982572,
+            0.5433562119311348,
+            -0.2716803143587021
+          ],
+          "pending_torque_nm": null
+        }
+      ],
+      "held_targets": 0,
+      "pending_wrenches": 0,
+      "imu_samples": 0,
+      "pair_reactions_ns": [],
+      "contact_points": 0,
+      "delivered_normal_ns": 0.0,
+      "stored_normal_ns": 0.0
+    },
+    {
+      "command": 9,
+      "epoch": 1,
+      "step": 0,
+      "time_ns": 0,
+      "entities": 35,
+      "scene": "3c664783c98f3ba7fef397c6cb7f0e060a6d581804f43fb63895effbddb6081c",
+      "physics": "ba7e0f359773ffb4d0f237d7005741823933aa33adffdd7fa14d1494851d1e04",
+      "contacts": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imu": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wrists": [
+        {
+          "id": 17,
+          "orientation_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "angular_velocity_rad_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "pending_torque_nm": null
+        },
+        {
+          "id": 34,
+          "orientation_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "angular_velocity_rad_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "pending_torque_nm": null
+        }
+      ],
+      "held_targets": 0,
+      "pending_wrenches": 0,
+      "imu_samples": 0,
+      "pair_reactions_ns": [],
+      "contact_points": 0,
+      "delivered_normal_ns": 0.0,
+      "stored_normal_ns": 0.0
+    }
+  ],
+  "coverage": {
+    "crates/gz-physics-multifidelity/src/lib.rs": {
+      "lines": {
+        "hit": 3,
+        "total": 3,
+        "missing": []
+      },
+      "regions": {
+        "hit": 5,
+        "total": 5,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-rapier/src/joints/robot.rs": {
+      "lines": {
+        "hit": 3,
+        "total": 3,
+        "missing": []
+      },
+      "regions": {
+        "hit": 8,
+        "total": 8,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs": {
+      "lines": {
+        "hit": 3,
+        "total": 3,
+        "missing": []
+      },
+      "regions": {
+        "hit": 12,
+        "total": 12,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/src/bin/local_replay/observation.rs": {
+      "lines": {
+        "hit": 24,
+        "total": 25,
+        "missing": [
+          93
+        ]
+      },
+      "regions": {
+        "hit": 47,
+        "total": 49,
+        "missing": [
+          [
+            93,
+            21,
+            93,
+            26
+          ],
+          [
+            93,
+            38,
+            93,
+            55
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-scene/src/local_replay.rs": {
+      "lines": {
+        "hit": 20,
+        "total": 20,
+        "missing": []
+      },
+      "regions": {
+        "hit": 21,
+        "total": 21,
+        "missing": []
+      }
+    }
+  },
+  "archives": [
+    {
+      "renderer": "WebGPU",
+      "frames": 51,
+      "body_poses_and_shapes_checked": 714,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10023%2F",
+      "reset_ms": 0.0
+    },
+    {
+      "renderer": "WebGPU",
+      "frames": 25,
+      "body_poses_and_shapes_checked": 350,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10024%2F",
+      "reset_ms": 0.0
+    }
+  ]
+}
