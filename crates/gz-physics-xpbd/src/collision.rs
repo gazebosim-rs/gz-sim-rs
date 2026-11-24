@@ -537,7 +537,7 @@ impl Contact {
         (p, incoming): (&mut Particle, DVec3),
         plane: &PreparedBoundary,
         time: Interval,
-        [static_friction, sliding_friction]: [f64; 2],
+        (static_friction, sliding_friction): (f64, Option<f64>),
         reaction: &mut BoundaryImpulse,
     ) -> Result<(), XpbdError> {
         let start = DVec3::from(p.position);
@@ -557,21 +557,32 @@ impl Contact {
         }
         let incoming_relative = incoming - (c1 - c0) / time.h;
         let incoming_tangent = incoming_relative - normal * incoming_relative.dot(normal);
+        let initially_still = incoming_tangent.length() * time.h <= tolerance;
+        if sliding_friction.is_none() && !initially_still {
+            return Ok(());
+        }
         let slip = (*end - start) - (c1 - c0);
         let response = time.h * p.inverse_mass;
         let target = self.tangent_impulse - (slip - normal * slip.dot(normal)) / response;
         let normal_impulse = self.correction / response;
-        let cap = static_friction * normal_impulse;
+        // Preserve the rounding order in previously serialized static-only materials.
+        let cap = if sliding_friction.is_some() {
+            static_friction * normal_impulse
+        } else {
+            (static_friction * self.correction / time.h) / p.inverse_mass
+        };
         if !target.is_finite() || !cap.is_finite() {
             return Err(XpbdError::Numerical);
         }
-        self.sticking_on_plane =
-            incoming_tangent.length() * time.h <= tolerance && target.length() <= cap;
-        let next = if self.sticking_on_plane {
+        let sticking = initially_still && target.length() <= cap;
+        let next = if sticking {
             target
         } else {
-            target.clamp_length_max(sliding_friction * normal_impulse)
+            sliding_friction.map_or(DVec3::ZERO, |mu| {
+                target.clamp_length_max(mu * normal_impulse)
+            })
         };
+        self.sticking_on_plane = sticking && (sliding_friction.is_some() || next != DVec3::ZERO);
         let delta = next - self.tangent_impulse;
         self.tangent_impulse = next;
         if delta != DVec3::ZERO {
@@ -588,6 +599,7 @@ pub(super) struct Contacts {
     pub(super) pad_loads: Option<Box<super::pad_loads::PadLoads>>,
     friction: f64,
     pub(super) static_plane_friction: Option<f64>,
+    pub(super) legacy_plane_friction: bool,
     incoming_on_plane: Vec<DVec3>,
     items: Vec<Contact>,
     index: HashMap<(usize, usize), usize>,
@@ -854,6 +866,8 @@ fn project_points<const SPATIAL: bool>(
                 }
                 if let Some(coefficient) = contacts.static_plane_friction
                     && boundary.has_planar_surface()
+                    && (!contacts.legacy_plane_friction
+                        || matches!(boundary.shape, Shape::Plane(_)))
                     && let Some(&incoming) = contacts.incoming_on_plane.get(i)
                     && let Some(&row) = contacts.index.get(&(i, j))
                 {
@@ -862,7 +876,10 @@ fn project_points<const SPATIAL: bool>(
                         (p, incoming),
                         boundary,
                         time,
-                        [coefficient, contacts.friction],
+                        (
+                            coefficient,
+                            (!contacts.legacy_plane_friction).then_some(contacts.friction),
+                        ),
                         &mut reactions[j],
                     )?;
                     if skip != 0 && !block.contains(*x) {
