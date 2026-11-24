@@ -1295,3 +1295,81 @@ fn sixteen_canonical_doubles_drive_eight_independent_chains_and_reconstruct_afte
     finish(peer);
     network.observer.close().wait().unwrap();
 }
+
+#[test]
+fn universal_wrist_commands_reach_the_selected_axis_on_both_sides_of_reset() {
+    use gz_sim_scene::{UniversalJointSample, set_joint_controller_command};
+    const XML: &str = include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf");
+    let load = || {
+        load_world_with_sdf_step(
+            XML,
+            "serial.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::MultiFidelity,
+        )
+        .unwrap()
+    };
+    let mut ordinary = load();
+    let (wrist, topic) = ordinary
+        .world()
+        .iter_entities()
+        .find_map(|node| {
+            let cfg = node.get::<JointControllerConfiguration>()?;
+            (cfg.joint_name == "wrist")
+                .then(|| (node.get::<EntityId>().unwrap().get(), cfg.topic.clone()))
+        })
+        .unwrap();
+    let sample = |sim: &Simulation| {
+        let e = entity_by_id(sim.world(), wrist).unwrap();
+        sim.world().get::<UniversalJointSample>(e).unwrap().state
+    };
+    let network = Network::new();
+    let options = network.options();
+    let topic = options.topic_key(&topic).unwrap();
+    let sender = network.observer.declare_publisher(&topic).wait().unwrap();
+    let mut server = network.server(load(), options).unwrap();
+    server.prepare_run(Duration::from_secs(8)).unwrap();
+    let mut angles = Vec::new();
+    for (epoch, target) in [(0, -0.06), (1, 0.06)] {
+        if epoch != 0 {
+            reset(&mut server);
+            ordinary.reset().unwrap();
+        }
+        assert_eq!(server.simulation().epoch(), epoch);
+        assert_eq!(sample(server.simulation()), sample(&ordinary));
+        fleet_wait(|| sender.matching_status().wait().unwrap().matching());
+        let applied = server.counters().joint_controller_commands_applied;
+        sender
+            .put(
+                Double {
+                    data: target,
+                    ..Default::default()
+                }
+                .encode_to_vec(),
+            )
+            .attachment("gz.msgs.Double")
+            .wait()
+            .unwrap();
+        fleet_wait(|| {
+            assert!(server.update().unwrap().dt.is_zero());
+            server.counters().joint_controller_commands_applied == applied + 1
+        });
+        set_joint_controller_command(&mut ordinary, wrist, target).unwrap();
+        assert!(server.apply_local_control(WorldControl {
+            pause: false,
+            ..Default::default()
+        }));
+        for _ in 0..100 {
+            assert_eq!(server.update().unwrap().dt, Duration::from_millis(1));
+            ordinary.step_exact(1).unwrap();
+            assert_eq!(sample(server.simulation()), sample(&ordinary));
+        }
+        angles.push(sample(&ordinary).position[1]);
+    }
+    println!("wrist axis two after 100 ms at each target, radians: {angles:?}");
+    assert!(
+        angles[0] < -0.003 && angles[1] > 0.003,
+        "opposite targets moved axis two to {angles:?}"
+    );
+}

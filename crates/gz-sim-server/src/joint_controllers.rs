@@ -31,9 +31,8 @@ impl PhysicalJoint {
         if let Some(joint) = world.get::<JointHandle>(entity) {
             let body = world.get::<BodyHandle>(entity_by_id(world, joint.child())?)?;
             let backend = world.get_resource::<gz_physics::PhysicsBackend>()?;
-            return (backend.joint_child(joint.id()) == Some(body.id())
-                && backend.joint_state(joint.id()).is_some())
-            .then_some(Self {
+            // The scene binding witness validates the coordinate of the controlled axis.
+            return (backend.joint_child(joint.id()) == Some(body.id())).then_some(Self {
                 native: Some(joint.id()),
                 child: joint.child(),
             });

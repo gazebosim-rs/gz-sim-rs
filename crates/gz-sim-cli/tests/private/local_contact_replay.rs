@@ -1,12 +1,11 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use super::{Network, Process};
+use super::{Network, Process, candidate_port};
 use gz_sim_scene::{Name, PhysicsEngine, WorldPose, load_world_with_sdf_step};
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
-    io::{BufRead, BufReader},
-    net::{Ipv4Addr, TcpListener, TcpStream},
+    net::{Ipv4Addr, TcpStream},
     path::Path,
     process::{Command, Stdio},
     time::Duration,
@@ -15,14 +14,6 @@ use tungstenite::{Message, WebSocket};
 
 const WORLD: &str = include_str!("../../../../examples/multifidelity_finite_primary.sdf");
 const TIMEOUT: Duration = Duration::from_secs(10);
-
-fn candidate_port() -> u16 {
-    TcpListener::bind((Ipv4Addr::LOCALHOST, 0))
-        .unwrap()
-        .local_addr()
-        .unwrap()
-        .port()
-}
 
 fn record(path: &Path, ticks: u64) {
     let source = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -76,16 +67,7 @@ fn player(path: &Path) -> (Process, WebSocket<TcpStream>) {
             .spawn()
             .unwrap();
         let mut child = Process(Some(child));
-        let mut err = child.0.as_mut().unwrap().stderr.take().unwrap();
-        let (sender, receiver) = std::sync::mpsc::channel();
-        std::thread::spawn(move || {
-            let mut line = String::new();
-            let result = BufReader::new(&mut err).read_line(&mut line).map(|_| line);
-            let _ = sender.send((result, err));
-        });
-        let (line, err) = receiver.recv_timeout(TIMEOUT).unwrap();
-        child.0.as_mut().unwrap().stderr = Some(err);
-        let line = line.unwrap();
+        let line = super::listen_line(&mut child);
         if line.contains("Address already in use") {
             assert!(!child.wait(TIMEOUT).status.success());
             continue;

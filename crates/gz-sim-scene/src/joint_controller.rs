@@ -398,6 +398,10 @@ pub fn joint_controller_binding_matches_configuration(
             .get::<JointHandle>(entity)
             .is_some_and(|handle| handle.id() == controller.joint)
         && &controller.publication == configuration
+        && world
+            .get_resource::<PhysicsBackend>()
+            .and_then(|backend| controller.actuation.coordinate(backend, controller.joint))
+            .is_some()
 }
 
 #[derive(Resource)]
