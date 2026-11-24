@@ -480,6 +480,10 @@ def same_renderer_executables(prepared, actual):
         raise ValueError("renderer executable changed between preparation and execution")
 
 
+HEADLESS_WORKER_TEST = "crates/gz-physics-distributed/tests/headless_qualification.rs"
+HEADLESS_WORKER_CASES = "crates/gz-physics-distributed/tests/support/headless-worker-cases.json"
+
+
 def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, version, target=None):
     directory.mkdir(parents=True)
     raw_dir = directory / "raw"
@@ -577,6 +581,22 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                 audit_objects.append(item["executable"])
     if not objects:
         raise ValueError(f"{name}: no instrumented test binaries")
+    if name == "headless" and "gz-physics-distributed" in crates:
+        source = ROOT / HEADLESS_WORKER_TEST
+        harnesses = {Path(a["executable"]) for a in artifacts
+                     if a["profile"]["test"] and Path(a["target"]["src_path"]) == source}
+        target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
+        if len(harnesses) != 1:
+            raise ValueError("missing or ambiguous headless worker qualification harness")
+        harness = harnesses.pop()
+        if harness.is_symlink() or not harness.is_file() or not harness.resolve().is_relative_to(target_root):
+            raise ValueError("headless worker qualification harness is outside the owned target")
+        (directory / "headless-artifacts.json").write_text(json.dumps(artifacts))
+        result = profile_process.run([str(harness), "--ignored", "--exact", "real_worker_fixtures"],
+                                     cwd=ROOT, env=dict(env, GZ_HEADLESS_EVIDENCE=str(directory)),
+                                     directory=directory, label="worker-qualification")
+        if result.returncode or not (directory / "headless-workers.json").is_file():
+            raise ValueError(f"physical worker qualification failed: {result.stdout}{result.stderr}")
     if name == "renderer":
         target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
         if (len(worker_objects) != 1 or not Path(worker_objects[0]).is_file()
@@ -772,6 +792,7 @@ def coverage(changed_file=None):
                                  *[ROOT / name for name in zenoh_peer.bootstrap.INPUTS],
                                  *native_peer_inputs(),
                                  wrapper, ROOT / "scripts/verify.py", ROOT / "scripts/profile_process.py",
+                                 ROOT / HEADLESS_WORKER_TEST, ROOT / HEADLESS_WORKER_CASES,
                                  ROOT / "planning/coverage-profiles.json", ROOT / "scripts/proto_inputs.py",
                                  ROOT / proto_inputs.AUDITOR,
                                  ROOT / "crates/gz-sim-proto/schema-source.json",
@@ -978,6 +999,9 @@ def retain_profile_evidence(candidate, output, hashes, missing):
         required = ["test-output.log", "coverage.json", "coverage.lcov", "summary.json",
                     "evidence.json", "merged.profdata", "proto-generated.json",
                     "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"]
+        if profile == "headless" and HEADLESS_WORKER_TEST in data.get("inputs", {}):
+            required.append("headless-workers.json")
+            required.extend(sorted(path.name for path in base.glob("worker-*.std*") if path.is_file()))
         # Partial child transcripts survive an interrupted profile even when
         # no final test-output/evidence file was produced.
         for diagnostic in ("tests.stdout", "tests.stderr", "renderer-build.stdout", "renderer-build.stderr"):

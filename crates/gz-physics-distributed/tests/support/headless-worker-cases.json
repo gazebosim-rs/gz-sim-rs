@@ -1,0 +1,59 @@
+{
+  "gz-physics-distributed/src/lib.rs": [
+    "articulation::crash_tests::real_controller_loss_keeps_one_tree_and_consumes_pending_effort_once",
+    "articulation::crash_tests::real_controller_loss_preserves_ground_contact_history_and_effort",
+    "floating_tree::adaptive::crash_tests::adaptive_grasp_controller_kills_preserve_one_join_and_upcoming_impact",
+    "floating_tree::adaptive::crash_tests::native_warm_member_controller_kills_preserve_contact_and_graph",
+    "floating_tree::adaptive::crash_tests::verified_warm_replay_controller_kills_preserve_history_and_first_cross_contact",
+    "floating_tree::cluster::crash_tests::coupled_cross_contacts_and_paged_graphs_recover_after_controller_sigkill",
+    "floating_tree::crash_tests::floating_tree_controller_kill_preserves_multijoint_tree_and_guarded_continuation",
+    "floating_tree::crash_tests::grasp_controller_kills_restore_an_externally_loaded_part_and_capped_motors",
+    "floating_tree::crash_tests::grounded_tree_controller_kills_restore_warm_contact_graph_and_exact_continuation",
+    "floating_tree::crash_tests::motorized_tree_controller_kills_preserve_persistent_set_clear_and_actuation",
+    "floating_tree::crash_tests::payload_controller_kills_restore_two_simultaneous_warm_contacts_and_exact_release",
+    "floating_tree::crash_tests::stopped_tree_controller_kills_retain_loaded_stop_and_continue_through_release",
+    "floating_tree::placement::crash_tests::controller_kills_at_split_and_rejoin_publish_one_physical_interval",
+    "floating_tree::placement::fleet::crash_tests::fleet_controller_deaths_retain_both_grasps_and_one_clock",
+    "floating_tree::placement::fleet::crash_tests::fleet_rejected_crossing_controller_death_preserves_all_committed_bodies",
+    "moving::crash_tests::moving_controller_sigkill_rolls_back_partial_steps_and_publishes_whole_transitions",
+    "moving::crash_tests::moving_controller_sigkill_with_continuous_drive",
+    "multi_sphere::crash_tests::cold_inspection_reconstructs_native_samples_and_rejects_checksummed_inconsistency",
+    "multi_sphere::crash_tests::controller_kill_during_atomic_effort_and_advance",
+    "multi_sphere::crash_tests::controller_kill_during_membership_changes_and_double_loaded_transfer",
+    "multi_sphere::crash_tests::controller_kill_during_pair_formation_warm_transfer_and_merge"
+  ],
+  "gz-sim-cli/tests/atomic_hinge.rs": [
+    "operator_atomic_step_accumulates_pending_torque_and_matches_split_archive"
+  ],
+  "gz-sim-cli/tests/floating_tree_operator.rs": [
+    "command_line_and_staged_vectors_consume_each_saved_joint_once",
+    "fleet_cli_routes_atomic_inputs_and_preserves_the_clock_through_owner_changes",
+    "motor_commands_replace_native_config_without_a_step_and_reset_clears_it",
+    "payload_force_cli_and_bevy_consume_one_guarded_interval",
+    "separated_grasp_cli_recovers_both_owners_and_rejects_stale_steps",
+    "stopped_session_resolves_by_archive_and_preserves_controls_at_a_loaded_cut"
+  ],
+  "gz-sim-cli/tests/convoy_checkpoint_cli.rs": [
+    "active_bevy_capture_compares_the_retained_worker_state",
+    "snapshots_retain_origin_drive_and_chronology"
+  ],
+  "gz-sim-cli/tests/convoy_scene_install.rs": [
+    "refused_scene_reinstall_parks_without_reissuing_authority"
+  ],
+  "gz-physics-distributed/examples/convoy_checkpoint_replay.rs": [
+    "tests::exact_duplicate_nonzero_epoch_and_rejections"
+  ],
+  "gz-sim-cli/examples/driven_hinge.rs": [
+    "reopen_tests::driven_scene_reopens_both_staged_and_durably_queued_steps",
+    "reopen_tests::scheduled_input_survives_pause_reopen_and_epoch_reset",
+    "tests::live_drive_matches_durable_queue_through_warm_reopen_and_reset"
+  ],
+  "gz-sim-cli/examples/humanoid_stand.rs": [
+    "adoption_tests::live_local_robot_adoption_preserves_clock_held_torque_loaded_floor_and_original_reset",
+    "return_tests::loaded_robot_returns_to_native_fences_workers_and_recovers_held_input",
+    "tests::bevy_posture_and_chest_load_use_one_durable_robot_interval"
+  ],
+  "gz-sim-cli/src/lib.rs": [
+    "live::capsule::tests::running_writer_capture_exact_input_noclobber_and_pinned_offline_read"
+  ]
+}
