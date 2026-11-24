@@ -70,7 +70,16 @@ pub(super) fn capture(r: &mut Recording, forces: &[[f64; 2]; 4]) -> Result<()> {
 
 pub(super) fn save(r: Recording, out: &Path, frames: &[Value]) -> Result<()> {
     let last = frames.len() - 1;
-    gz_sim_cli::export_archive(&out.join("replay"), Default::default(), r.frames)?;
+    let origin = frames[0]["time_ns"]
+        .as_u64()
+        .ok_or("missing physical origin")?;
+    gz_sim_cli::export_archive_at(
+        &out.join("replay"),
+        Default::default(),
+        0,
+        Duration::from_nanos(origin),
+        r.frames,
+    )?;
     write_json(&out.join("particle-frames.json"), &json!(frames))?;
     let nodes = (0..arm_sheet::COUNT)
         .map(arm_sheet::name)
