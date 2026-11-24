@@ -98,6 +98,14 @@ struct Trial {
     #[arg(long, requires_all = ["automatic", "early_face_step_ns"], value_parser = clap::value_parser!(u32).range(1..))]
     #[serde(skip_serializing_if = "Option::is_none")]
     early_face_max_steps: Option<u32>,
+    /// Maximum timestep after an admitted separated face has delivered its reaction.
+    #[arg(long,requires_all=["early_face_guard_ns","early_face_step_ns"],value_parser=clap::value_parser!(u32).range(1..))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    early_face_tail_step_ns: Option<u32>,
+    /// Keep the fine clock for at least this long beyond the forecast arrival.
+    #[arg(long,requires="early_face_tail_step_ns",value_parser=clap::value_parser!(u32).range(1..))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    early_face_guard_ns: Option<u32>,
     /// Use the qualified four-call solver only for a single pair already touching with parallel faces.
     #[arg(long, requires = "automatic")]
     touching_budget: bool,
@@ -191,6 +199,15 @@ fn fixture(trial: &Trial) -> String {
         let early = trial.early_face_step_ns.zip(trial.early_face_max_steps)
             .map(|(ns, calls)| format!("<early_face_step_ns>{ns}</early_face_step_ns><early_face_max_steps>{calls}</early_face_max_steps>"))
             .unwrap_or_default();
+        let early = if let Some((step, guard)) =
+            trial.early_face_tail_step_ns.zip(trial.early_face_guard_ns)
+        {
+            format!(
+                "{early}<early_face_tail_step_ns>{step}</early_face_tail_step_ns><early_face_guard_ns>{guard}</early_face_guard_ns>"
+            )
+        } else {
+            early
+        };
         let speed_stop = if trial.stop_guard {
             "<speed_stop_joint>default::gripper::spindle</speed_stop_joint>"
         } else {
@@ -356,7 +373,7 @@ struct Run {
     #[serde(skip)]
     first_solver: Option<ContactSolverIterations>,
     #[serde(skip)]
-    first_early_schedule: Option<[ContactSegment; 2]>,
+    first_early_schedule: Option<Vec<ContactSegment>>,
     initial_patch_points: usize,
     incoming: Vec<State>,
     samples: Vec<Sample>,
@@ -413,7 +430,7 @@ fn run(trial: Trial) -> Result<Run> {
 fn run_with_first_solver(
     trial: Trial,
     first_solver: Option<ContactSolverIterations>,
-    matched_schedule: Option<[ContactSegment; 2]>,
+    matched_schedule: Option<Vec<ContactSegment>>,
 ) -> Result<Run> {
     let xml = fixture(&trial);
     let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
@@ -473,8 +490,8 @@ fn run_with_first_solver(
                 };
                 let segments = if clock.start_time.is_zero() {
                     matched_schedule
-                        .as_ref()
-                        .map_or(std::slice::from_ref(&segment), |s| s.as_slice())
+                        .as_deref()
+                        .unwrap_or_else(|| std::slice::from_ref(&segment))
                 } else {
                     std::slice::from_ref(&segment)
                 };
@@ -502,7 +519,8 @@ fn run_with_first_solver(
                 .filter(|p| p.sim_time == sim.elapsed());
             if ms == 1 {
                 first_selected_solver = selected.map(|r| r.solver);
-                first_early_schedule = selected.and_then(|r| r.early_face_schedule);
+                first_early_schedule =
+                    selected.and_then(|r| r.realized_face_schedule().map(<[_]>::to_vec));
             }
             let native_steps = selected.map_or(
                 if uniform && ms == 1 {
