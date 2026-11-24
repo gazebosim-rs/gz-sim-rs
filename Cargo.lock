@@ -2692,6 +2692,7 @@ dependencies = [
 name = "gz-physics-xpbd"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "glam 0.33.12",
  "gz-physics",
  "parry3d-f64",

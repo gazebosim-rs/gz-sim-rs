@@ -97,6 +97,7 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
             "shear",
             "pad_contact",
             "self_friction",
+            "bend_damping",
             "self_contact_loads",
             "capsule_contact_history",
         ]);
@@ -152,6 +153,12 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
         )?
     } else {
         SoftBody::cable(particles, stretch, bend, config).map_err(|e| e.to_string())?
+    };
+    let body = if node.attribute("bend_damping").is_some() {
+        body.with_bending_damping(number(node, "bend_damping")?)
+            .map_err(|e| e.to_string())?
+    } else {
+        body
     };
     let samples = node
         .children()

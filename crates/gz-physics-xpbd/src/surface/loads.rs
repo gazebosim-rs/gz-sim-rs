@@ -37,6 +37,8 @@ pub struct SelfContactParticleImpulse {
 pub struct ShellConstraintImpulse {
     pub distance: DVec3,
     pub bending: DVec3,
+    /// Viscous dihedral impulse in N·s.
+    pub bend_damping: DVec3,
 }
 
 #[derive(Clone, Default)]

@@ -221,6 +221,7 @@ pub(super) struct PanelBalance {
     native_elastic_samples: usize,
     applied_distance_up_n: [f64; 2],
     applied_bending_up_n: [f64; 2],
+    applied_bend_damping_up_n: [f64; 2],
 }
 
 impl Metrics {
@@ -405,6 +406,8 @@ pub(super) fn simulate_with_jaw_damping(
                     return Err("missing nodal constraint impulses".into());
                 }
                 for (id, j) in structural.iter().enumerate() {
+                    balance.applied_bend_damping_up_n[panel(id)] +=
+                        j.bend_damping.z / hold_duration;
                     balance.applied_distance_up_n[panel(id)] += j.distance.z / hold_duration;
                     balance.applied_bending_up_n[panel(id)] += j.bending.z / hold_duration;
                 }

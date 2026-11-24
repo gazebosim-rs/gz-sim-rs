@@ -5,13 +5,21 @@ use super::*;
 use serde::{Deserialize, Serialize};
 pub const MAX_ONE_WAY_PARTICLES: usize = 4096;
 const MAX_ROWS: usize = 32768;
+// The first three variants retain the binary and named representations of legacy seeds.
+#[derive(Clone, Copy, Serialize, Deserialize)]
+enum ConstructionTopology {
+    Particles,
+    Cable,
+    Cloth(usize),
+    DampedCloth { columns: usize, coefficient: f64 },
+}
 #[derive(Clone, Serialize, Deserialize)]
 pub struct OneWayConstruction {
     particles: Vec<Particle>,
     constraints: Vec<DistanceConstraint>,
     bending: Vec<DihedralConstraint>,
     config: SolverConfig,
-    topology: MaterialTopology,
+    topology: ConstructionTopology,
     conserve_momentum: bool,
 }
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -82,6 +90,10 @@ impl SoftBody {
                 h.update(b.rest_angle.to_le_bytes());
                 h.update(b.compliance.to_le_bytes());
             }
+            if self.bending_damping > 0. {
+                h.update(b"dihedral-damping");
+                h.update(self.bending_damping.to_le_bytes());
+            }
             h.finalize().into()
         }))
     }
@@ -100,7 +112,17 @@ impl SoftBody {
             constraints: self.constraints.clone(),
             bending: self.bending.clone(),
             config: self.config,
-            topology: self.topology,
+            topology: match self.topology {
+                MaterialTopology::Particles => ConstructionTopology::Particles,
+                MaterialTopology::Cable => ConstructionTopology::Cable,
+                MaterialTopology::Cloth(columns) if self.bending_damping > 0. => {
+                    ConstructionTopology::DampedCloth {
+                        columns,
+                        coefficient: self.bending_damping,
+                    }
+                }
+                MaterialTopology::Cloth(columns) => ConstructionTopology::Cloth(columns),
+            },
             conserve_momentum: self.momentum_rows.is_some(),
         };
         let rebuilt = Self::from_one_way_construction(&seed)?;
@@ -118,7 +140,16 @@ impl SoftBody {
         {
             return Err(XpbdError::MaterialCheckpoint);
         }
-        if let MaterialTopology::Cloth(width) = seed.topology
+        let (topology, damping) = match seed.topology {
+            ConstructionTopology::Particles => (MaterialTopology::Particles, None),
+            ConstructionTopology::Cable => (MaterialTopology::Cable, None),
+            ConstructionTopology::Cloth(width) => (MaterialTopology::Cloth(width), None),
+            ConstructionTopology::DampedCloth {
+                columns,
+                coefficient,
+            } => (MaterialTopology::Cloth(columns), Some(coefficient)),
+        };
+        if let MaterialTopology::Cloth(width) = topology
             && (width < 2 || !n.is_multiple_of(width) || n / width < 2)
         {
             return Err(XpbdError::MaterialCheckpoint);
@@ -128,7 +159,7 @@ impl SoftBody {
             seed.constraints.clone(),
             seed.config,
         )?;
-        body.topology = seed.topology;
+        body.topology = topology;
         for b in &seed.bending {
             if b.vertices.iter().any(|&i| i >= n)
                 || b.vertices
@@ -144,6 +175,14 @@ impl SoftBody {
         }
         body.bending.clone_from(&seed.bending);
         body.bending_lambdas.resize(body.bending.len(), 0.);
+        if let Some(coefficient) = damping {
+            if coefficient == 0. {
+                return Err(XpbdError::MaterialCheckpoint);
+            }
+            body = body
+                .with_bending_damping(coefficient)
+                .map_err(|_| XpbdError::MaterialCheckpoint)?;
+        }
         if seed.conserve_momentum {
             body = body.with_angular_momentum_conservation();
         }
@@ -204,3 +243,7 @@ impl SoftBody {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "../tests/private/damped_checkpoint.rs"]
+mod damped_checkpoint;

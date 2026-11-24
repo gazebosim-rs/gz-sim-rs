@@ -16,6 +16,7 @@ pub use translation_boundary::TranslationBoundary;
 mod boundary_path;
 pub use boundary_path::{BoundaryPath, DEFAULT_PATH_TOLERANCE};
 mod bending;
+mod bending_damping;
 pub use bending::DihedralConstraint;
 mod capsule;
 mod capsule_material;
@@ -251,6 +252,7 @@ pub struct SoftBody {
     constraints: Vec<DistanceConstraint>,
     rest_directions: Vec<DVec3>,
     bending: Vec<DihedralConstraint>,
+    bending_damping: f64,
     bending_lambdas: Vec<f64>,
     config: SolverConfig,
     reactions: Vec<BoundaryImpulse>,
@@ -327,6 +329,7 @@ impl SoftBody {
             topology: MaterialTopology::Particles,
             capsule_material: None,
             bending: Vec::new(),
+            bending_damping: 0.,
             bending_lambdas: Vec::new(),
             scratch: particles.clone(),
             predicted: vec![DVec3::ZERO; particles.len()],
@@ -585,6 +588,9 @@ impl SoftBody {
     }
 
     fn predict(&mut self, h: f64) -> Result<(), XpbdError> {
+        if self.bending_damping > 0. {
+            self.damp_bending(h)?;
+        }
         for (x, p) in self.predicted.iter_mut().zip(&mut self.scratch) {
             let mut velocity = DVec3::from(p.velocity);
             if p.inverse_mass > 0.0 {

@@ -27,6 +27,8 @@ mod fold_patch;
 mod fold_pull;
 #[path = "local_robot_foundations/gripper.rs"]
 mod gripper;
+#[path = "local_robot_foundations/hinge_damping.rs"]
+mod hinge_damping;
 #[path = "local_robot_foundations/inertia.rs"]
 mod inertia;
 #[path = "local_robot_foundations/robot.rs"]
@@ -90,27 +92,15 @@ enum Study {
     FoldPatch { output: PathBuf },
     /// Compare cloth contact forces from the same loaded fold.
     FoldHold { output: PathBuf },
+    /// Compare how quickly three cloth corners settle at different bending damping levels.
+    HingeDamping { output: PathBuf },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
     /// Measure the stability of a folded-sheet grasp with lighter jaws or stiffer pads.
     SheetJaws {
         output: PathBuf,
-        #[arg(long, default_value_t = 1.0)]
-        jaw_mass_scale: f64,
-        /// Scale derivative gain with sqrt(jaw mass) at fixed jaw position stiffness.
-        #[arg(long)]
-        tune_damping: bool,
-        /// Number of native rigid/material exchanges per 1 ms actuator period.
-        #[arg(long, default_value_t = 1)]
-        exchanges_per_ms: usize,
-        /// Measure the signed self-contact impulses delivered to each folded panel.
-        #[arg(long)]
-        panel_balance: bool,
-        /// Pad compliance in m/N.
-        #[arg(long, default_value_t = 0.001)]
-        pad_compliance: f64,
-        #[arg(long, default_value_t = 2)]
-        substeps: usize,
+        #[command(flatten)]
+        settings: sheet_jaws::Settings,
     },
     /// Compare recorded grasps with the finest two exchange rates and select the lowest passing rate.
     SheetJawConvergence {
@@ -295,25 +285,10 @@ fn main() -> Result<()> {
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),
         Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
-        Study::SheetJaws {
-            output,
-            jaw_mass_scale,
-            tune_damping,
-            exchanges_per_ms,
-            pad_compliance,
-            panel_balance,
-            substeps,
-        } => write_new(&output, |out| {
-            sheet_jaws::run(
-                out,
-                jaw_mass_scale,
-                pad_compliance,
-                substeps,
-                tune_damping,
-                exchanges_per_ms,
-                panel_balance,
-            )
-        }),
+        Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
+        Study::SheetJaws { output, settings } => {
+            write_new(&output, |out| sheet_jaws::run(out, settings))
+        }
         Study::SheetJawConvergence { recordings } => {
             println!(
                 "{}",
