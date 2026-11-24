@@ -32,7 +32,7 @@ class AuxiliaryRetention(unittest.TestCase):
                      "crates/gz-sim-proto/schema-source.json", "crates/gz-sim-proto/schemas/manifest.json",
                      "third_party/prost-derive-0.14.4/Cargo.toml", "third_party/prost-derive-0.14.4/LICENSE",
                      "third_party/prost-derive-0.14.4/src/lib.rs",
-                     *QUALIFIER.EXECUTABLE_SOURCES.values(), *QUALIFIER.RGB_SOURCES.values()]:
+                     *QUALIFIER.EXECUTABLE_SOURCES.values(), *QUALIFIER.RGB_CARGO_SOURCES.values()]:
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("fixture input\n")
@@ -86,13 +86,15 @@ class AuxiliaryRetention(unittest.TestCase):
         self.write_json("rgb-camera/coverage.json", {"data": [{"files": [{"filename": name} for name in rgb_sources]}]})
         self.write("rgb-camera/coverage.lcov", "".join(f"SF:{name}\nend_of_record\n" for name in rgb_sources).encode())
         rgb_events, rgb_objects = [], []
-        for name, path in QUALIFIER.RGB_SOURCES.items():
+        for name, path in QUALIFIER.RGB_CARGO_SOURCES.items():
             original = self.root / "target/rapier-rgb-fixture" / name
             event = {"reason": "compiler-artifact", "executable": str(original), "features": ["rgb-camera"],
-                     "profile": {"test": name != "gz-sim-rs"},
+                     "profile": {"test": name == "rgb_camera"},
                      "target": {"name": name, "src_path": str(self.root / path),
-                                "kind": ["bin" if name == "gz-sim-rs" else "test"]}}
+                                "kind": ["test" if name == "rgb_camera" else "bin"]}}
             rgb_events.append(event)
+            if name not in QUALIFIER.RGB_SOURCES:
+                continue
             saved = "rgb-camera/objects/" + name
             self.write(saved, ("synthetic RGB object: " + name).encode())
             rgb_objects.append({"original_path": str(original), "retained_path": saved,

@@ -296,6 +296,9 @@ RGB_TESTS = [
 # CPU-only proof also covers loaded depth admission without demand or GPU images.
 RGB_SOURCES = {"gz-sim-rs": EXECUTABLE_SOURCES["gz-sim-rs"],
                "rgb_camera": "crates/gz-sim-cli/tests/rgb_camera.rs"}
+# Cargo builds ordinary sibling binaries while compiling the CLI integration test.
+# Attest their feature, source and role separately from the two exercised RGB objects.
+RGB_CARGO_SOURCES = {**RGB_SOURCES, "gz-sim-local-replay": "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs"}
 GPU_PACKAGES = {"gz-renderer", "gz-render-worker", "bevy_render", "bevy_window", "bevy_winit",
                 "bevy_core_pipeline", "bevy_pbr", "bevy_shader", "ash", "naga", "vulkano",
                 "winit", "raw-window-handle"}
@@ -334,16 +337,16 @@ def rgb_artifacts(events, source_root, target):
         original = event["executable"]
         path = Path(original)
         if (not path.is_absolute() or ".." in path.parts or str(path) != original
-                or not path.is_relative_to(target) or name not in RGB_SOURCES
+                or not path.is_relative_to(target) or name not in RGB_CARGO_SOURCES
                 or name in objects or event["features"] != ["rgb-camera"]
-                or event["target"]["kind"] != ["bin" if name == "gz-sim-rs" else "test"]
-                or event["profile"]["test"] != (name != "gz-sim-rs")
-                or event["target"]["src_path"] != str(source_root / RGB_SOURCES[name])):
+                or event["target"]["kind"] != ["test" if name == "rgb_camera" else "bin"]
+                or event["profile"]["test"] != (name == "rgb_camera")
+                or event["target"]["src_path"] != str(source_root / RGB_CARGO_SOURCES[name])):
             raise ValueError("RGB executable is not its actual feature/target/source")
         objects[name] = event
-    if set(objects) != set(RGB_SOURCES):
-        raise ValueError("missing actual native-free RGB CLI or test executable")
-    return objects
+    if set(objects) != set(RGB_CARGO_SOURCES):
+        raise ValueError("missing native-free RGB Cargo executable")
+    return {name: objects[name] for name in RGB_SOURCES}
 
 
 def validate_rgb_closure(root, closure, binary):

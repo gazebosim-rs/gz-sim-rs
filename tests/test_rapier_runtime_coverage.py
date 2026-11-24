@@ -132,23 +132,30 @@ class DisabledBackendProof(unittest.TestCase):
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
 
-    def test_rgb_executables_bind_feature_source_and_both_actual_targets(self):
+    def test_rgb_executables_bind_feature_source_and_the_tested_pair_and_companion(self):
         target = Path("/source/target/rapier-rgb-fixture")
         events = [{"reason": "compiler-artifact", "features": ["rgb-camera"],
-                   "executable": str(target / name), "profile": {"test": name != "gz-sim-rs"},
+                   "executable": str(target / name), "profile": {"test": name == "rgb_camera"},
                    "target": {"name": name, "src_path": str(self.root / source),
-                              "kind": ["bin" if name == "gz-sim-rs" else "test"]}}
-                  for name, source in MODULE.RGB_SOURCES.items()]
+                              "kind": ["test" if name == "rgb_camera" else "bin"]}}
+                  for name, source in MODULE.RGB_CARGO_SOURCES.items()]
         self.assertEqual(set(MODULE.rgb_artifacts(events, self.root, target)), set(MODULE.RGB_SOURCES))
-        for missing in MODULE.RGB_SOURCES:
+        for missing in MODULE.RGB_CARGO_SOURCES:
             with self.assertRaises(ValueError):
                 MODULE.rgb_artifacts([event for event in events if event["target"]["name"] != missing], self.root, target)
         for features in [[], ["native-backends", "rgb-camera"]]:
             with self.assertRaises(ValueError):
-                MODULE.rgb_artifacts([{**events[0], "features": features}, events[1]], self.root, target)
+                MODULE.rgb_artifacts([{**events[0], "features": features}, *events[1:]], self.root, target)
         wrong = {**events[0], "target": {**events[0]["target"], "src_path": "/other/main.rs"}}
         with self.assertRaises(ValueError):
-            MODULE.rgb_artifacts([wrong, events[1]], self.root, target)
+            MODULE.rgb_artifacts([wrong, *events[1:]], self.root, target)
+
+        sibling = events[-1]
+        for bad in [{**sibling, "profile": {"test": True}},
+                    {**sibling, "target": {**sibling["target"], "kind": ["test"]}},
+                    {**sibling, "target": {**sibling["target"], "src_path": str(self.root / "foreign.rs")}}]:
+            with self.assertRaises(ValueError):
+                MODULE.rgb_artifacts([*events[:-1], bad], self.root, target)
 
     def test_native_or_gpu_artifacts_are_not_cpu_rgb_evidence(self):
         for name in ["gz_physics_dart", "gz_physics_mujoco", "gz_renderer", "bevy_render", "wgpu_core", "ash"]:
