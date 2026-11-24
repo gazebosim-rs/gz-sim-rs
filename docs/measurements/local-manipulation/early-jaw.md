@@ -28,7 +28,7 @@ A second pair of runs at a 35 µm gap also reproduced the 25 ns reference impuls
 
 ## Grasp, carry and release
 
-For a separate end-to-end test, the same policy watched the inward-facing surfaces during an ordinary two-finger pickup. The robot held its 200 g parcel on both pads for all 4,001 traverse ticks, moved it 462 mm, then transferred its 1.962 N weight to the shelf. After opening, the maximum drop was 0.019 mm. Across an 18 s transfer, enabling the fine window produced identical result and frame bytes to the otherwise identical policy with the window disabled. This held with both the original rail and the 100 kHz rail. [Watch the full transfer](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10090%2F)
+For a separate end-to-end test, the same policy watched the inward-facing surfaces during an ordinary two-finger pickup. The robot held its 200 g parcel on both pads for all 4,001 traverse ticks, moved it 462 mm, then transferred its 1.962 N weight to the shelf. After opening, the maximum drop was 0.019 mm. Across an 18 s transfer, enabling the fine window produced identical result and frame bytes to the otherwise identical policy with the window disabled. This held with both the original rail and the 100 kHz rail. Two negative controls on the 100 kHz rail also retained identical frames. With the jaws open, the robot left the parcel on its source tray. With the receiving shelf out of reach, it kept its grip and withheld release. [Watch the full transfer](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10090%2F)
 
 ## Reproduce
 

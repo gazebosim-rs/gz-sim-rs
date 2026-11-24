@@ -1702,6 +1702,100 @@
       "trace_sha256": "b3eecf6907c78254c9ac7492afd3476ea19c0b033251191dc28d712f26bdee63",
       "frame_count": 451,
       "comparison": "all frame and result bytes identical between the two policies"
+    },
+    "open-jaws": {
+      "outcome": {
+        "payload": {
+          "weight_n": 1.9620000000000002,
+          "min_pad_normal_n": [
+            0.0,
+            0.0
+          ],
+          "mean_pad_normal_n": [
+            0.0,
+            0.0
+          ],
+          "first_missing_bilateral_grip_ms": 3700,
+          "tray_loaded_traverse_ticks": 4001,
+          "shelf_loaded_traverse_ticks": 0
+        },
+        "lift_mm": -0.055375283402048225,
+        "lateral_payload_at_arrival_mm": -0.07353522105120391,
+        "lateral_carriage_at_arrival_mm": 462.18095234508485,
+        "parcel_carried_on_both_pads_ticks": 0,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 479.2169119289362,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.0,
+        "pickup_ready_ticks": 9901,
+        "release_tick": null,
+        "dwell_ms_at_release": null,
+        "shelf_mean_at_release_n": null,
+        "shelf_relative_speed_at_release_m_s": null,
+        "final_shelf_load_n": 0.0,
+        "final_tray_load_n": 1.9620006326811423,
+        "final_pad_load_n": 0.0,
+        "final_parcel_position_m": [
+          -0.00025404763425541227,
+          -7.353522105120392e-05,
+          0.534944624716598
+        ],
+        "final_palm_position_m": [
+          2.8569856953561856e-06,
+          0.45992526431988096,
+          0.7682342274332962
+        ]
+      },
+      "trace_sha256": "5e03d3c90d4f06e13486fe0baccd648120402443418466a43797a88126ccbada",
+      "frame_count": 451,
+      "comparison": "all result and frame bytes identical with and without the early window on the 100 kHz carriage"
+    },
+    "missed-shelf": {
+      "outcome": {
+        "payload": {
+          "weight_n": 1.9620000000000002,
+          "min_pad_normal_n": [
+            6.8429488465133606,
+            7.008374019409837
+          ],
+          "mean_pad_normal_n": [
+            7.017291716553771,
+            7.025427190334822
+          ],
+          "first_missing_bilateral_grip_ms": null,
+          "tray_loaded_traverse_ticks": 0,
+          "shelf_loaded_traverse_ticks": 0
+        },
+        "lift_mm": 126.33053294545016,
+        "lateral_payload_at_arrival_mm": 181.00686065922218,
+        "lateral_carriage_at_arrival_mm": 180.9414432021195,
+        "parcel_carried_on_both_pads_ticks": 4001,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 0.35079680899128496,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.0,
+        "pickup_ready_ticks": 6061,
+        "release_tick": null,
+        "dwell_ms_at_release": null,
+        "shelf_mean_at_release_n": null,
+        "shelf_relative_speed_at_release_m_s": null,
+        "final_shelf_load_n": 0.0,
+        "final_tray_load_n": 1.8862667763083187,
+        "final_pad_load_n": 14.078880579273601,
+        "final_parcel_position_m": [
+          0.00011613367674585324,
+          0.1798881555714713,
+          0.5349804197169746
+        ],
+        "final_palm_position_m": [
+          -9.969422046062563e-07,
+          0.1796692544800116,
+          0.6957951741526324
+        ]
+      },
+      "trace_sha256": "b015a69473159ad990b9be6d372918c5b724d7fdd0d91a40ff04dd4b167128d9",
+      "frame_count": 451,
+      "comparison": "all result and frame bytes identical with and without the early window on the 100 kHz carriage"
     }
   },
   "viewer": {
