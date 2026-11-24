@@ -36,7 +36,11 @@ impl LoadedPlan {
         {
             let root = doc.root_element();
             if root.children().any(|n| {
-                n.has_tag_name("environment") && n.attribute("profile") == Some("parallel-gripper")
+                n.has_tag_name("environment")
+                    && matches!(
+                        n.attribute("profile"),
+                        Some("parallel-gripper" | "carrying-gripper")
+                    )
             }) {
                 return parallel_gripper::Plan::load(sdf, w, step, adapter, root)
                     .map(|p| Self::Gripper(Box::new(p)));
@@ -123,6 +127,9 @@ impl GpuSceneObservations {
 /// Owning allocation of the single physical GPU population installed in this world.
 pub(crate) fn physics_owner(world: &bevy_ecs::world::World) -> Option<MixedBatchOwner> {
     let mut owners = [
+        world
+            .get_resource::<gz_physics_gpu::CarryGripperBatch>()
+            .map(|b| b.owner()),
         world.get_resource::<MixedBatch>().map(|b| b.owner()),
         world
             .get_resource::<gz_physics_gpu::SpherePairBlockBatch>()

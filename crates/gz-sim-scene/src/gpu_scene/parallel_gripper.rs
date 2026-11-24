@@ -3,9 +3,11 @@
 //! Authored three-slider GPU gripper, its public link twists, joint samples and contact loads.
 use super::*;
 use gz_physics_gpu::{
-    ParallelGripperBatch, ParallelGripperLane, simulation::install_parallel_gripper,
+    CarryGripperBatch, ParallelGripperBatch, ParallelGripperLane,
+    simulation::install_parallel_gripper,
 };
 use std::collections::BTreeMap;
+pub mod carry;
 mod configuration;
 pub(crate) use configuration::Plan;
 
@@ -40,25 +42,27 @@ pub(crate) fn valid(world: &World) -> bool {
             && e.get::<WorldPose>().is_some_and(|p| {
                 p.translation == b.floor.1.translation && p.rotation == b.floor.1.rotation
             })
-    }) && b.rows.iter().all(|r| {
-        r.links.iter().all(|&id| {
-            node(id).is_some_and(|e| {
-                e.get::<EntityKind>() == Some(&EntityKind::Link)
-                    && e.contains::<WorldPose>()
-                    && e.contains::<Velocity>()
-            })
-        }) && r.joints.iter().all(|&id| {
-            node(id).is_some_and(|e| {
-                e.get::<EntityKind>() == Some(&EntityKind::Joint)
-                    && e.contains::<JointDefinition>()
-                    && e.contains::<JointSample>()
+    }) && carry::valid(world)
+        && b.rows.iter().all(|r| {
+            r.links.iter().all(|&id| {
+                node(id).is_some_and(|e| {
+                    e.get::<EntityKind>() == Some(&EntityKind::Link)
+                        && e.contains::<WorldPose>()
+                        && e.contains::<Velocity>()
+                })
+            }) && r.joints.iter().all(|&id| {
+                node(id).is_some_and(|e| {
+                    e.get::<EntityKind>() == Some(&EntityKind::Joint)
+                        && e.contains::<JointDefinition>()
+                        && e.contains::<JointSample>()
+                })
             })
         })
-    }) && world
-        .iter_entities()
-        .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::Joint))
-        .count()
-        == 3 * b.rows.len()
+        && world
+            .iter_entities()
+            .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::Joint))
+            .count()
+            == 3 * b.rows.len() + usize::from(world.contains_resource::<carry::Binding>())
 }
 pub(super) fn count(sim: &Simulation) -> Option<usize> {
     valid(sim.world()).then(|| sim.world().resource::<Binding>().rows.len())
@@ -70,7 +74,11 @@ pub fn observe(sim: &Simulation, id: u64) -> Result<&ParallelGripperLane, GpuErr
         return Err(GpuError::StaleBoundary);
     }
     let index = index(world, id)?;
-    Ok(&world.resource::<ParallelGripperBatch>().lanes()[index])
+    Ok(if let Some(c) = world.get_resource::<CarryGripperBatch>() {
+        &c.lanes()[index].hand
+    } else {
+        &world.resource::<ParallelGripperBatch>().lanes()[index]
+    })
 }
 fn index(world: &World, id: u64) -> Result<usize, GpuError> {
     world
@@ -87,11 +95,22 @@ pub fn observations(
     if !valid(w) {
         return Err(GpuError::StaleBoundary);
     }
+    let carry = w.get_resource::<CarryGripperBatch>();
+    let fixed = w.get_resource::<ParallelGripperBatch>();
     Ok(w.resource::<Binding>()
         .rows
         .iter()
-        .map(|r| r.id)
-        .zip(w.resource::<ParallelGripperBatch>().lanes()))
+        .enumerate()
+        .map(move |(i, row)| {
+            (
+                row.id,
+                if let Some(c) = carry {
+                    &c.lanes()[i].hand
+                } else {
+                    &fixed.unwrap().lanes()[i]
+                },
+            )
+        }))
 }
 /// Command the lift, left and right prismatic displacements from the authored pose.
 pub fn set_targets(sim: &mut Simulation, id: u64, relative: [f64; 3]) -> Result<(), GpuError> {
@@ -100,15 +119,31 @@ pub fn set_targets(sim: &mut Simulation, id: u64, relative: [f64; 3]) -> Result<
     }
     let index = index(sim.world(), id)?;
     let origin = sim.world().resource::<Binding>().rows[index].origin;
-    sim.world_mut()
-        .resource_mut::<ParallelGripperBatch>()
-        .set_targets(index, std::array::from_fn(|i| origin[i] + relative[i]))
+    let q = std::array::from_fn(|i| origin[i] + relative[i]);
+    if let Some(mut c) = sim.world_mut().get_resource_mut::<CarryGripperBatch>() {
+        let track = c.lanes()[index].track_target;
+        c.set_targets(index, [track, q[0], q[1], q[2]])
+    } else {
+        sim.world_mut()
+            .resource_mut::<ParallelGripperBatch>()
+            .set_targets(index, q)
+    }
 }
 /// Set every gripper's three displacement commands in the same ascending ID order as
 /// [observations]. The full action vector is validated before any target changes.
 pub fn set_population_targets(sim: &mut Simulation, actions: &[[f64; 3]]) -> Result<(), GpuError> {
     if sim.is_faulted() || !valid(sim.world()) {
         return Err(GpuError::StaleBoundary);
+    }
+    if let Some(c) = sim.world().get_resource::<carry::Binding>() {
+        let id = c.id;
+        let [relative] = actions else {
+            return Err(GpuError::GripperActionCount {
+                expected: 1,
+                actual: actions.len(),
+            });
+        };
+        return set_targets(sim, id, *relative);
     }
     sim.world_mut()
         .resource_mut::<ParallelGripperBatch>()
@@ -119,8 +154,15 @@ pub(super) fn install(
     p: Plan,
     links: &BTreeMap<String, u64>,
 ) -> Result<(), LoadError> {
-    let batch = ParallelGripperBatch::new(&p.adapter, p.rows.iter().map(|row| row.lane).collect())?;
-    let owner = batch.owner();
+    let owner = if let Some(track) = p.track {
+        carry::install(sim, &p.adapter, *track, links)?
+    } else {
+        let batch =
+            ParallelGripperBatch::new(&p.adapter, p.rows.iter().map(|row| row.lane).collect())?;
+        let owner = batch.owner();
+        install_parallel_gripper(sim, batch)?;
+        owner
+    };
     let mut rows = Vec::with_capacity(p.rows.len());
     let mut commands = BTreeMap::<u64, Vec<(usize, [f64; 3])>>::new();
     for (index, p) in p.rows.into_iter().enumerate() {
@@ -165,7 +207,6 @@ pub(super) fn install(
     let floor = links[&p.floor];
     let e = gz_sim_core::entity_by_id(sim.world(), floor).unwrap();
     let floor = (floor, *sim.world().get::<WorldPose>(e).unwrap());
-    install_parallel_gripper(sim, batch)?;
     sim.world_mut().insert_resource(Binding {
         owner,
         rows,
@@ -186,6 +227,10 @@ fn prepare(world: &mut World) {
             ));
         return;
     }
+    if world.contains_resource::<carry::Binding>() {
+        carry::prepare(world);
+        return;
+    }
     let info = world.resource::<UpdateInfo>();
     if !info.paused
         && let Some(commands) = world
@@ -203,16 +248,45 @@ fn prepare(world: &mut World) {
         }
     }
 }
+type PhysicalGrippers<'w> = (
+    Option<Res<'w, ParallelGripperBatch>>,
+    Option<Res<'w, CarryGripperBatch>>,
+    Option<Res<'w, carry::Binding>>,
+);
 fn sync(
     info: Res<UpdateInfo>,
     binding: Res<Binding>,
-    batch: Res<ParallelGripperBatch>,
+    (fixed, carry, track): PhysicalGrippers,
     ids: EntityLookup,
     mut links: Query<(&mut WorldPose, &mut Velocity), Without<JointSample>>,
     mut joints: Query<(&mut WorldPose, &mut JointSample)>,
 ) {
     let mut lookup = ids.reader();
-    for (binding, l) in binding.rows.iter().zip(batch.lanes()) {
+    let (dx, vx) = if let (Some(c), Some(binding)) = (&carry, &track) {
+        let l = &c.lanes()[0];
+        let (mut pose, mut twist) = links.get_mut(lookup(binding.track).unwrap()).unwrap();
+        pose.translation[0] = l.track;
+        twist.linear = [l.track_speed, 0., 0.];
+        let (mut jp, mut sample) = joints.get_mut(lookup(binding.joint).unwrap()).unwrap();
+        *jp = *pose;
+        *sample = JointSample {
+            state: gz_physics::JointState {
+                position: l.track - l.track_origin,
+                velocity: l.track_speed,
+            },
+            time: info.sim_time,
+            epoch: info.epoch,
+        };
+        (l.track - l.track_origin, l.track_speed)
+    } else {
+        (0., 0.)
+    };
+    for (row, binding) in binding.rows.iter().enumerate() {
+        let l = if let Some(c) = &carry {
+            &c.lanes()[row].hand
+        } else {
+            &fixed.as_ref().unwrap().lanes()[row]
+        };
         for i in 0..4 {
             let (mut pose, mut twist) = links.get_mut(lookup(binding.links[i]).unwrap()).unwrap();
             let initial = binding.initial[i];
@@ -229,7 +303,7 @@ fn sync(
                 };
             } else {
                 let x = if i == 0 {
-                    initial.translation[0]
+                    initial.translation[0] + dx
                 } else {
                     l.position[i]
                 };
@@ -242,7 +316,7 @@ fn sync(
                     rotation: initial.rotation,
                 };
                 *twist = Velocity {
-                    linear: [if i == 0 { 0. } else { l.speed[i] }, 0., l.speed[0]],
+                    linear: [if i == 0 { vx } else { l.speed[i] }, 0., l.speed[0]],
                     angular: [0.; 3],
                 };
                 let (mut jp, mut sample) =
@@ -250,8 +324,8 @@ fn sync(
                 *jp = *pose;
                 *sample = JointSample {
                     state: gz_physics::JointState {
-                        position: l.position[i] - binding.origin[i],
-                        velocity: l.speed[i],
+                        position: l.position[i] - binding.origin[i] - if i > 0 { dx } else { 0. },
+                        velocity: l.speed[i] - if i > 0 { vx } else { 0. },
                     },
                     time: info.sim_time,
                     epoch: info.epoch,

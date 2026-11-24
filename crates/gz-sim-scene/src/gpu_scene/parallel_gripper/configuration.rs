@@ -4,24 +4,24 @@ use super::*;
 use roxmltree::Node;
 use std::collections::BTreeSet;
 
-fn reason(why: &str) -> LoadError {
+pub(super) fn reason(why: &str) -> LoadError {
     LoadError::GpuScene {
         entity: "parallel-gripper".into(),
         reason: why.into(),
     }
 }
-fn attr<'a>(n: Node<'a, '_>, k: &str) -> Result<&'a str, LoadError> {
+pub(super) fn attr<'a>(n: Node<'a, '_>, k: &str) -> Result<&'a str, LoadError> {
     n.attribute(k)
         .ok_or_else(|| reason("missing gripper attribute"))
 }
-fn num(n: Node<'_, '_>, k: &str) -> Result<f64, LoadError> {
+pub(super) fn num(n: Node<'_, '_>, k: &str) -> Result<f64, LoadError> {
     attr(n, k)?
         .parse::<f64>()
         .ok()
         .filter(|x| x.is_finite())
         .ok_or_else(|| reason("invalid numeric drive or target"))
 }
-fn plain(l: &sdformat::Link) -> bool {
+pub(super) fn plain(l: &sdformat::Link) -> bool {
     l.properties == sdformat::LinkProperties::default()
         && l.sensors.is_empty()
         && l.velocity_decay.is_none()
@@ -34,6 +34,7 @@ pub(crate) struct Plan {
     pub(super) adapter: String,
     pub(super) floor: String,
     pub(super) rows: Vec<Row>,
+    pub(super) track: Option<Box<carry::Plan>>,
 }
 pub(super) struct Row {
     pub(super) id: u64,
@@ -57,6 +58,12 @@ impl Plan {
             .filter(|s| !s.trim().is_empty())
             .ok_or_else(|| reason("select hardware with --gpu-adapter NAME"))?;
         let nodes: Vec<_> = root.children().filter(Node::is_element).collect();
+        if nodes
+            .iter()
+            .any(|n| n.attribute("profile") == Some("carrying-gripper"))
+        {
+            return carry::Plan::load(sdf, w, dt, adapter, root, &nodes);
+        }
         require(
             !nodes.is_empty()
                 && config::shape(root, &["name", "filename"], true)
@@ -109,7 +116,7 @@ impl Plan {
                 &m.name,
                 "duplicate gripper or sphere ownership",
             )?;
-            let row = Row::load(sdf, w, env, m, obj, ground, floor_mu)?;
+            let row = Row::load(sdf, w, env, (m, obj), (ground, floor_mu), None)?;
             let y = row.poses[3].translation[1];
             strips.push((y - row.half_width, y + row.half_width));
             require(
@@ -128,26 +135,26 @@ impl Plan {
             adapter: adapter.to_owned(),
             floor,
             rows: rows.into_values().collect(),
+            track: None,
         })
     }
 }
 impl Row {
-    fn load(
+    pub(super) fn load(
         sdf: &sdformat::Sdf,
         w: &sdformat::World,
         env: Node<'_, '_>,
-        m: &sdformat::Model,
-        obj: &sdformat::Model,
-        ground: f64,
-        floor_mu: f64,
+        (m, obj): (&sdformat::Model, &sdformat::Model),
+        (ground, floor_mu): (f64, f64),
+        track: Option<&str>,
     ) -> Result<Self, LoadError> {
         let id = attr(env, "id")?
             .parse()
             .map_err(|_| reason("invalid environment id"))?;
         require(
             !m.is_static
-                && m.joints.len() == 3
-                && m.links.len() == 3
+                && m.joints.len() == 3 + usize::from(track.is_some())
+                && m.links.len() == 3 + usize::from(track.is_some())
                 && m.models.is_empty()
                 && m.plugins.iter().all(joint_state_publisher::is_plugin)
                 && !m.enable_wind
@@ -183,7 +190,7 @@ impl Row {
         };
         let links = [link(joints[0])?, link(joints[1])?, link(joints[2])?];
         require(
-            joints[0].parent == "world"
+            joints[0].parent == track.unwrap_or("world")
                 && joints[1].parent == links[0].name
                 && joints[2].parent == links[0].name
                 && links[1].name != links[2].name
@@ -306,6 +313,7 @@ impl Row {
         let mut driven = BTreeSet::new();
         for n in env.children().filter(Node::is_element) {
             match n.tag_name().name() {
+                "track-drive" | "move" | "release" if track.is_some() => continue,
                 "drive"
                     if config::shape(n, &["joint", "stiffness", "damping", "target"], false) =>
                 {

@@ -575,3 +575,6 @@ mod free_object;
 
 #[path = "support/gpu_parallel_gripper.rs"]
 mod parallel_gripper;
+
+#[path = "support/gpu_carry_gripper.rs"]
+mod carry_gripper;

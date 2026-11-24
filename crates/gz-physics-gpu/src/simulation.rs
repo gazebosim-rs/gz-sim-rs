@@ -93,6 +93,12 @@ pub fn install_planar_object(
     install_arm(sim, batch)
 }
 
+pub fn install_carry_gripper(
+    sim: &mut Simulation,
+    batch: super::CarryGripperBatch,
+) -> Result<(), GpuError> {
+    install_arm(sim, batch)
+}
 pub fn install_parallel_gripper(
     sim: &mut Simulation,
     batch: super::ParallelGripperBatch,

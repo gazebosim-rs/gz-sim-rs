@@ -139,7 +139,7 @@ impl ParallelGripperBatch {
     }
 }
 /// Signed distance and outward normal from a finite axis-aligned rectangle to the ball.
-fn box_gap<T: Scalar>(p: [T; 2], half: [T; 2], radius: T, z: T, one: T) -> (T, [T; 2]) {
+pub(crate) fn box_gap<T: Scalar>(p: [T; 2], half: [T; 2], radius: T, z: T, one: T) -> (T, [T; 2]) {
     let s = p.map(|x| x.at_least(z).select(one, z - one));
     let a = [s[0] * p[0] - half[0], s[1] * p[1] - half[1]];
     let d = a.map(|x| x.maximum(z));
@@ -153,60 +153,79 @@ fn box_gap<T: Scalar>(p: [T; 2], half: [T; 2], radius: T, z: T, one: T) -> (T, [
     ];
     (len + a[0].maximum(a[1]).minimum(z) - radius, n)
 }
-type Row<T> = [T; 6];
-fn dot<T: Scalar>(x: Row<T>, y: Row<T>) -> T {
-    x[0] * y[0] + x[1] * y[1] + x[2] * y[2] + x[3] * y[3] + x[4] * y[4] + x[5] * y[5]
+pub(crate) type Row<T, const D: usize> = [T; D];
+fn dot<T: Scalar, const D: usize>(a: Row<T, D>, b: Row<T, D>) -> T {
+    (1..D).fold(a[0] * b[0], |sum, i| sum + a[i] * b[i])
 }
-struct Contacts<T> {
-    rows: [[Row<T>; 2]; 3],
-    mob: [[Row<T>; 2]; 3],
-    gaps: [T; 3],
-    k: [[T; 3]; 3],
+pub(crate) struct Contacts<T, const D: usize, const C: usize> {
+    rows: [[Row<T, D>; 2]; C],
+    mob: [[Row<T, D>; 2]; C],
+    gaps: [T; C],
+    k: [[T; 3]; C],
 }
-impl<T: Scalar> Contacts<T> {
-    /// Accumulated block impulses. Actuator travel limits are unilateral constraints in
-    /// the same velocity iteration, so a loaded pad can push against its rail stop.
-    fn project<const POSITION: bool>(
+impl<T: Scalar, const D: usize, const C: usize> Contacts<T, D, C> {
+    pub(crate) fn new(rows: [[Row<T, D>; 2]; C], inv: Row<T, D>, gaps: [T; C]) -> Self {
+        let mob = rows.map(|pair| pair.map(|r| std::array::from_fn(|j| r[j] * inv[j])));
+        let k = std::array::from_fn(|i| {
+            [
+                dot(rows[i][0], mob[i][0]),
+                dot(rows[i][0], mob[i][1]),
+                dot(rows[i][1], mob[i][1]),
+            ]
+        });
+        Self { rows, mob, gaps, k }
+    }
+    /// Block Coulomb contacts and unilateral slider limits share the same velocity iteration.
+    pub(crate) fn project<const POSITION: bool>(
         &self,
-        mut v: Row<T>,
-        mu: [T; 3],
-        limits: [[T; 2]; 3],
+        mut speed: Row<T, D>,
+        mu: [T; C],
         z: T,
         one: T,
-    ) -> (Row<T>, [[T; 2]; 3]) {
-        let mut impulses = [[z; 2]; 3];
-        let mut stops = [z; 3];
+        mut stops: impl FnMut(&mut Row<T, D>),
+    ) -> (Row<T, D>, [[T; 2]; C]) {
+        let mut impulses = [[z; 2]; C];
         for _ in 0..8 {
-            for i in 0..3 {
-                let [lo, hi] = limits[i];
-                let free = v[i] - stops[i];
-                let bounded = lo.at_most(z).select(
-                    free.maximum(if POSITION { z - lo } else { z }),
-                    hi.at_most(z)
-                        .select(free.minimum(if POSITION { hi } else { z }), free),
-                );
-                v[i] = bounded;
-                stops[i] = bounded - free;
-            }
+            stops(&mut speed);
             for (i, imp) in impulses.iter_mut().enumerate() {
                 let [pn, pt] = *imp;
                 let [nn, nt, tt] = self.k[i];
-                let vn = dot(self.rows[i][0], v) - nn * pn - nt * pt
+                let vn = dot(self.rows[i][0], speed) - nn * pn - nt * pt
                     + if POSITION { self.gaps[i] } else { z };
                 let new = if POSITION {
                     [(z - vn).maximum(z) / nn, z]
                 } else {
-                    let vt = dot(self.rows[i][1], v) - nt * pn - tt * pt;
+                    let vt = dot(self.rows[i][1], speed) - nt * pn - tt * pt;
                     crate::planar_tool::impact([vn, vt], self.k[i], mu[i], z, one)
                 };
                 let [qn, qt] = new.map(|p| self.gaps[i].at_most(z).select(p, z));
-                for (j, w) in v.iter_mut().enumerate() {
+                for (j, w) in speed.iter_mut().enumerate() {
                     *w = *w + self.mob[i][0][j] * (qn - pn) + self.mob[i][1][j] * (qt - pt);
                 }
                 *imp = [qn, qt];
             }
         }
-        (v, impulses)
+        (speed, impulses)
+    }
+}
+pub(crate) fn bounded<const POSITION: bool, T: Scalar>(free: T, [lo, hi]: [T; 2], z: T) -> T {
+    lo.at_most(z).select(
+        free.maximum(if POSITION { z - lo } else { z }),
+        hi.at_most(z)
+            .select(free.minimum(if POSITION { hi } else { z }), free),
+    )
+}
+fn fixed_stops<const POSITION: bool, T: Scalar>(
+    limits: [[T; 2]; 3],
+    z: T,
+) -> impl FnMut(&mut Row<T, 6>) {
+    let mut applied = [z; 3];
+    move |speed| {
+        for i in 0..3 {
+            let free = speed[i] - applied[i];
+            speed[i] = bounded::<POSITION, T>(free, limits[i], z);
+            applied[i] = speed[i] - free;
+        }
     }
 }
 fn tick<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 20] {
@@ -265,21 +284,19 @@ fn tick<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 20] {
             };
             [row(x, h, z), row(h, z - x, v[19])]
         });
-        let mob = rows.map(|p| p.map(|r| std::array::from_fn(|j| r[j] * inv[j])));
-        let k = std::array::from_fn(|i| {
-            [
-                dot(rows[i][0], mob[i][0]),
-                dot(rows[i][0], mob[i][1]),
-                dot(rows[i][1], mob[i][1]),
-            ]
-        });
-        let contacts = Contacts { rows, mob, gaps, k };
+        let contacts = Contacts::new(rows, inv, gaps);
         let limits = std::array::from_fn(|i| [v[i] - v[46 + i], v[49 + i] - v[i]]);
         let mu = [v[35], v[36], v[37]];
-        let (speeds, imp) =
-            contacts.project::<false>([v[3], v[4], v[5], v[15], v[16], v[18]], mu, limits, z, one);
+        let (speeds, imp) = contacts.project::<false>(
+            [v[3], v[4], v[5], v[15], v[16], v[18]],
+            mu,
+            z,
+            one,
+            fixed_stops::<false, T>(limits, z),
+        );
         [v[3], v[4], v[5], v[15], v[16], v[18]] = speeds;
-        let (dx, _) = contacts.project::<true>([z; 6], mu, limits, z, one);
+        let (dx, _) =
+            contacts.project::<true>([z; 6], mu, z, one, fixed_stops::<true, T>(limits, z));
         for (i, d) in [0, 1, 2, 13, 14].into_iter().zip(dx) {
             v[i] = v[i] + d;
         }
