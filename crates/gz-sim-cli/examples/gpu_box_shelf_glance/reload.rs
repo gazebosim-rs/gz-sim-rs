@@ -73,10 +73,12 @@ fn sweep(seed: &State, n: usize, tick: usize, end: usize) -> Value {
     }
     json!({"steps_per_ms":n,"anchor":tick,"rows":samples})
 }
-pub(super) fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let src = std::env::args()
-        .nth(2)
-        .ok_or("expected --reload SDF_TRACE_DIRECTORY")?;
+pub(super) fn run(stick: bool) -> Result<(), Box<dyn std::error::Error>> {
+    let src = std::env::args().nth(2).ok_or(if stick {
+        "expected --stick SDF_TRACE_DIRECTORY"
+    } else {
+        "expected --reload SDF_TRACE_DIRECTORY"
+    })?;
     let dir = Path::new(&src);
     let mut out = BTreeMap::new();
     for name in ["oblique_plus", "oblique_minus"] {
@@ -101,6 +103,13 @@ pub(super) fn run() -> Result<(), Box<dyn std::error::Error>> {
         } else {
             [3, 2]
         };
+        if stick {
+            if !(2216..=2245).all(|t| observed.contains_key(&t)) {
+                return Err("sticking reference requires public samples through 2245 ms".into());
+            }
+            out.insert(name, sliding::stick::run(&observed, ids));
+            continue;
+        }
         for (anchor, end, resolutions) in [
             (2194, 2245, &[32, 128, 512, 2048][..]),
             (2204, 2206, &[128, 512, 2048, 8192, 32768][..]),
@@ -108,14 +117,17 @@ pub(super) fn run() -> Result<(), Box<dyn std::error::Error>> {
         ] {
             let (seed, _) = observed[&anchor];
             for n in [8, 32, 128, 512] {
-                sliding.push(sliding::integrate(
-                    &observed,
-                    ids,
-                    n,
-                    anchor,
-                    2215,
-                    if anchor == 2205 { 2 } else { 1 },
-                ));
+                sliding.push(
+                    sliding::integrate(
+                        &observed,
+                        ids,
+                        n,
+                        anchor,
+                        2215,
+                        if anchor == 2205 { 2 } else { 1 },
+                    )
+                    .1,
+                );
             }
             for &n in resolutions {
                 trials.push(sweep(seed, n, anchor, end));

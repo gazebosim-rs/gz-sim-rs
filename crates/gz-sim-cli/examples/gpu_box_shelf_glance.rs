@@ -157,8 +157,11 @@ fn solve(
     json!({"substeps_per_ms":steps,"half_turn":reverse,"first_loaded_substep_zero_based":first.unwrap(),"outgoing_omega_rad_s":b.angvel().to_array(),"outgoing_com_velocity_m_s":b.linvel().to_array(),"linear_impulse_ns":linear.to_array(),"angular_impulse_nms":angular.to_array(),"identified_upward_ns":upward})
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if std::env::args().nth(1).as_deref() == Some("--stick") {
+        return reload::run(true);
+    }
     if std::env::args().nth(1).as_deref() == Some("--reload") {
-        return reload::run();
+        return reload::run(false);
     }
     if std::env::args().nth(1).as_deref() == Some("--corners") {
         return corners::run();
