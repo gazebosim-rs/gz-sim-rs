@@ -264,3 +264,54 @@ fn exchanging_the_point_and_face_keeps_the_spherical_wrist_response() {
         assert_eq!(tangent, 0.);
     }
 }
+
+#[test]
+#[ignore = "release-mode cost measurement of the actual incoming and impact ticks"]
+fn measure_the_powered_slider_impact_tick() {
+    use std::time::Instant;
+    let sdf = xml(-0.01, 0., true)
+        .replace("3.0 0.12", "-0.02405 0.12")
+        .replace(">0.00001<", ">0.000001<");
+    let mut sim = load(&sdf);
+    let (id, _) = slider(&sim);
+    let mut free_ticks = Vec::new();
+    let mut impact_ticks = Vec::new();
+    let mut last_impulse = 0.;
+    for repeat in 0..421 {
+        set_joint_force(&mut sim, id, 2.).unwrap();
+        sim.step_exact(65).unwrap();
+        let start = Instant::now();
+        sim.step_exact(1).unwrap();
+        let unladen = start.elapsed().as_nanos();
+        let start = Instant::now();
+        sim.step_exact(1).unwrap();
+        let loaded = start.elapsed().as_nanos();
+        let physics = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .downcast_ref::<MultiFidelityBackend>()
+            .unwrap();
+        last_impulse = physics
+            .rigid_contact_patches()
+            .iter()
+            .flat_map(|p| &p.points)
+            .map(|p| p.normal_impulse)
+            .sum();
+        assert!(last_impulse > 0.04);
+        if repeat >= 20 {
+            free_ticks.push(unladen);
+            impact_ticks.push(loaded);
+        }
+        sim.reset().unwrap();
+    }
+    for (label, samples) in [("before", &mut free_ticks), ("impact", &mut impact_ticks)] {
+        samples.sort_unstable();
+        println!(
+            "{label} n={} p50_ns={} p95_ns={} p99_ns={} native_J_Ns={last_impulse:.12}",
+            samples.len(),
+            samples[200],
+            samples[380],
+            samples[396]
+        );
+    }
+}
