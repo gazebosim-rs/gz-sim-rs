@@ -7,6 +7,7 @@ use crate::device::Dispatch;
 use crate::spatial::dot;
 const SUBSTEPS: usize = 8;
 const SWEEPS: usize = 8;
+const H: f64 = 0.001 / SUBSTEPS as f64;
 type V<T> = [T; 3];
 
 #[repr(C)]
@@ -31,18 +32,21 @@ pub(super) struct ContactLane {
     loads: SpatialShelfLoads,
     current: [[f64; 3]; 8],
     incoming_twist_momentum: [f64; 6],
+    split_time: f64,
 }
 const LOAD: usize = WORDS + 6;
 const TORQUE: usize = LOAD + 24;
 const WORK: usize = TORQUE + 3;
 const CURRENT: usize = WORK + 3;
 const BEFORE: usize = CURRENT + 24;
-const N: usize = BEFORE + 6;
+const SPLIT: usize = BEFORE + 6;
+const N: usize = SPLIT + 1;
 const _: () = assert!(size_of::<ContactLane>() == 8 * N);
 
 pub(super) struct Support {
     pub(super) device: ResidentBatch<ContactLane>,
     passes: Vec<Dispatch>,
+    split_predict: [Dispatch; 2],
     surface: SpatialShelf,
     pub(super) latest: Option<SpatialShelfLoads>,
 }
@@ -68,18 +72,20 @@ impl Support {
                 None,
             )
         };
-        let predict = pass(predict)?;
+        let full_predict = pass(predict::<0>)?;
+        let split_predict = [pass(predict::<1>)?, pass(predict::<2>)?];
         let constraints = pass(solve)?;
         let finish = pass(finish)?;
         let mut passes = vec![device.dispatch.clone()];
         for _ in 0..SUBSTEPS {
-            passes.push(predict.clone());
+            passes.push(full_predict.clone());
             passes.push(constraints.clone());
             passes.push(finish.clone());
         }
         Ok(Self {
             device,
             passes,
+            split_predict,
             surface,
             latest: None,
         })
@@ -97,17 +103,42 @@ impl Support {
             self.latest = None;
             return Ok(met);
         }
-        self.device.committed[0] = ContactLane::input(start, mat);
+        let mut input = ContactLane::input(start, mat);
+        let mut changed = None;
+        if let Some((index, dt)) = self
+            .latest
+            .as_ref()
+            .and_then(|previous| competing_corner(&input, previous))
+        {
+            input.split_time = dt;
+            let mut local = self.passes.clone();
+            let slot = 1 + index * 3;
+            local[slot] = self.split_predict[0].clone();
+            local.splice(
+                slot + 3..slot + 3,
+                [
+                    self.split_predict[1].clone(),
+                    self.passes[slot + 1].clone(),
+                    self.passes[slot + 2].clone(),
+                ],
+            );
+            changed = Some(local);
+        }
+        self.device.committed[0] = input;
         self.device.tick = free.tick;
         self.device.upload_needed = true;
-        let metrics = self.device.advance_sequence(1, Some(&self.passes), |r| {
-            // The swept bounds assume a passive shelf. Refuse a non-dissipative
-            // numerical solve before publishing its body or advancing the clock.
-            if r[0].loads.max_added_energy > 1e-12 {
-                return Err(GpuError::SpatialContactBoundary);
-            }
-            shelf::validate_others(mat, &start.body, &r[0].lane, true)
-        })?;
+        let metrics = self.device.advance_sequence(
+            1,
+            Some(changed.as_deref().unwrap_or(&self.passes)),
+            |r| {
+                // The swept bounds assume a passive shelf. Refuse a non-dissipative
+                // numerical solve before publishing its body or advancing the clock.
+                if r[0].loads.max_added_energy > 1e-12 {
+                    return Err(GpuError::SpatialContactBoundary);
+                }
+                shelf::validate_others(mat, &start.body, &r[0].lane, true)
+            },
+        )?;
         let output = self.device.committed[0];
         let mut lane = output.lane;
         let mut ends = [0.; 2];
@@ -127,6 +158,69 @@ impl Support {
         Ok(metrics)
     }
 }
+// Only a single previously supported vertex and a distinct, isolated approaching
+// neighbor qualify. Prediction schedules an extra solve; the rotated geometric
+// gap decides whether contact actually exists at either resulting boundary.
+fn competing_corner(input: &ContactLane, previous: &SpatialShelfLoads) -> Option<(usize, f64)> {
+    let mut supported = previous
+        .world_impulses
+        .iter()
+        .enumerate()
+        .filter(|(_, j)| j[2] > 0.);
+    let (held, _) = supported.next()?;
+    if supported.next().is_some() {
+        return None;
+    }
+    let lane = &input.lane;
+    let b = lane.body;
+    let q = DQuat::from_array(b.orientation);
+    let omega = q * ((q.inverse() * DVec3::from(b.momentum)) / DVec3::from(lane.inertia));
+    let corner = |i: usize| {
+        q * (DVec3::from_array(std::array::from_fn(|a| {
+            if i & (1 << a) == 0 {
+                -input.half[a]
+            } else {
+                input.half[a]
+            }
+        })) - DVec3::from(input.center))
+    };
+    let top = lane.carry.shelf_center[1] + lane.carry.shelf_half[1];
+    let gap = |r: DVec3| b.mass_center[2] + r.z - top;
+    let speed = |r: DVec3| b.center_velocity[2] + omega.cross(r).z;
+    if gap(corner(held)).abs() > 1e-7 || speed(corner(held)).abs() > lane.carry.hand.gravity * 0.001
+    {
+        return None;
+    }
+    let mut candidate = None;
+    for i in 0..8 {
+        if i == held {
+            continue;
+        }
+        let r = corner(i);
+        let h = gap(r);
+        let v = speed(r);
+        if h <= 1e-7 {
+            return None;
+        }
+        if v >= -lane.carry.hand.gravity * 0.001 {
+            continue;
+        }
+        let arrival = h / -v;
+        if arrival >= 0.001 {
+            continue;
+        }
+        if candidate.is_some() || (i ^ held).count_ones() != 1 {
+            return None;
+        }
+        let index = (arrival / H) as usize;
+        let first = arrival - index as f64 * H;
+        if first <= 1e-9 || H - first <= 1e-9 {
+            return None;
+        }
+        candidate = Some((index, first));
+    }
+    candidate
+}
 impl ContactLane {
     fn input(lane: Lane, m: BoxFlightMaterial) -> Self {
         Self {
@@ -136,6 +230,7 @@ impl ContactLane {
             loads: SpatialShelfLoads::default(),
             current: [[0.; 3]; 8],
             incoming_twist_momentum: [0.; 6],
+            split_time: 0.,
         }
     }
 }
@@ -154,8 +249,13 @@ fn hand() -> naga::Module {
 fn at<T: Copy, const K: usize>(v: &[T], i: usize) -> [T; K] {
     std::array::from_fn(|j| v[i + j])
 }
-fn predict() -> naga::Module {
-    kernel::build(&[0.001 / SUBSTEPS as f64, 0., 0.5], |v: [_; N], c| {
+fn predict<const PART: u8>() -> naga::Module {
+    kernel::build(&[H, 0., 0.5], |v: [_; N], c| {
+        let dt = match PART {
+            1 => v[SPLIT],
+            2 => c[0] - v[SPLIT],
+            _ => c[0],
+        };
         let (p, vel, q) = advance(
             at(&v, WIDTH),
             at(&v, WIDTH + 3),
@@ -163,7 +263,7 @@ fn predict() -> naga::Module {
             at(&v, WIDTH + 10),
             at(&v, WIDTH + 13),
             v[21],
-            c[0],
+            dt,
             c[1],
             c[2],
         );
@@ -318,3 +418,7 @@ fn finish() -> naga::Module {
         })
     })
 }
+
+#[cfg(test)]
+#[path = "../../../tests/private/glancing_shelf.rs"]
+mod glancing_shelf;

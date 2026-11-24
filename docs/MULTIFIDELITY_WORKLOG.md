@@ -2437,3 +2437,7 @@ The eccentric box now turns freely after release and loses spin through signed t
 ## 2026-11-24 — Matched-state check of the second glancing shelf strike
 
 At 2.193 s one GPU corner was already supported and the second was 339 µm above the shelf. Replaying just the next millisecond from that exact state gave native CPU yaw speeds from 1.72 to 4.64 rad/s across seven time resolutions. The continuous GPU gave 1.617 rad/s. The next comparison needs to resolve how the second corner takes load while the first is still touching. [Frozen incoming states, reproducible native controls and gz-web-rs](measurements/local-manipulation/gpu-shelf-glance.md)
+
+## 2026-11-24 — A rocked parcel loads its next shelf corner at the measured time
+
+The GPU now adds one short contact solve when a single supported corner is about to share its shelf edge with a new corner. Across both reflected SDF releases, the second strike moved from 500.000 to 433.154 µs in the matched millisecond. The independent native arrival interval was 432.541–432.556 µs. Linear impulse error fell from 87.14 to 3.92 µN s and angular impulse error from 562.94 to 44.96 nN m s against the independent plastic impact calculation. The four symmetric and spinning controls retained their exact trajectories. Subsequent glancing rotation still needs a converged reference. All 47 SDF hardware cases passed. Changed production coverage reached 97/99 lines and 165/170 regions. [Witnessed forces, native comparison, replay and timing](measurements/local-manipulation/gpu-glancing-corner.md)
