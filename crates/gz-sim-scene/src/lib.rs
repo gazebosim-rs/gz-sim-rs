@@ -2359,38 +2359,46 @@ fn parallel_pose_updates(rows: usize) -> bool {
 
 fn sync_models(
     identities: EntityLookup,
-    links: Query<&WorldPose, Without<ModelAnchor>>,
+    links: Query<(&EntityId, &WorldPose), Without<ModelAnchor>>,
     mut models: Query<(&ModelAnchor, &mut WorldPose)>,
 ) {
-    let update = |entity, anchor: &ModelAnchor, mut pose: Mut<WorldPose>| {
-        *pose = links
-            .get(entity)
-            .expect("scene owns canonical link pose")
-            .compose(anchor.link_to_model);
-    };
-    if parallel_pose_updates(models.count()) {
-        models
-            .par_iter_mut()
+    if parallel_pose_updates(models.count())
+        && let (Ok(link_tables), Ok(model_chunks)) =
+            (links.contiguous_iter(), models.contiguous_par_iter_mut())
+    {
+        let tables: Vec<_> = link_tables.collect();
+        model_chunks
             .batching_strategy(bevy_ecs::batching::BatchingStrategy::new().min_batch_size(2048))
-            .for_each_init(
-                || identities.reader(),
-                |resolve, (anchor, pose)| {
-                    update(
-                        resolve(anchor.link).expect("scene owns canonical link identity"),
-                        anchor,
-                        pose,
-                    );
-                },
-            );
-    } else {
-        let mut resolve = identities.reader();
-        for (anchor, pose) in &mut models {
-            update(
-                resolve(anchor.link).expect("scene owns canonical link identity"),
-                anchor,
-                pose,
-            );
-        }
+            .for_each(|(anchors, mut poses)| {
+                let mut resolve = identities.reader();
+                for (anchors, poses) in anchors.chunks(64).zip(poses.chunks_mut(64)) {
+                    // Both tables often retain construction order. Seek once per
+                    // small block; swap-removes and restored IDs can break a run.
+                    let source = tables.iter().find_map(|(ids, values)| {
+                        let start = ids.partition_point(|id| id.get() < anchors[0].link);
+                        (ids.get(start)?.get() == anchors[0].link)
+                            .then(|| (&ids[start..], &values[start..]))
+                    });
+                    for (i, (anchor, pose)) in anchors.iter().zip(poses.iter_mut()).enumerate() {
+                        let adjacent = source.and_then(|(ids, values)| {
+                            (ids.get(i)?.get() == anchor.link).then(|| &values[i])
+                        });
+                        let link = adjacent.unwrap_or_else(|| {
+                            let entity =
+                                resolve(anchor.link).expect("scene owns canonical link identity");
+                            links.get(entity).expect("scene owns canonical link pose").1
+                        });
+                        *pose = link.compose(anchor.link_to_model);
+                    }
+                }
+            });
+        return;
+    }
+    let mut resolve = identities.reader();
+    for (anchor, mut pose) in &mut models {
+        let entity = resolve(anchor.link).expect("scene owns canonical link identity");
+        let (_, link) = links.get(entity).expect("scene owns canonical link pose");
+        *pose = link.compose(anchor.link_to_model);
     }
 }
 
@@ -2594,3 +2602,7 @@ fn reset_imus(mut sensors: Query<(Entity, &mut Imu)>, mut commands: Commands) {
 #[cfg(test)]
 #[path = "../tests/private/observations.rs"]
 mod observation_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/canonical_publication.rs"]
+mod canonical_publication_tests;
