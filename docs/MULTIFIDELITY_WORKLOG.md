@@ -2145,3 +2145,7 @@ A cloth fold can now dissipate bending vibration at an authored rate. In the con
 ## 2026-11-23 — Braking a loaded cable before a rigid jaw hits the barrier
 
 The gripper sensed that the snagged cable was losing supported weight and actively braked the rail. It cleared the 700 mm barrier by 8.05 mm at normal speed and 3.47 mm at twice the speed, then returned the cable to its source. The original stops produced 0.174 and 0.500 N·s of right-jaw impact. The guarded stops produced zero. The clear route and harmless rub matched every command and particle state. Reset reproduced all 148,250 advances. Twenty-one tests passed, and LLVM exercised 395/403 changed production lines and 818/857 regions. [Physical limits, cost and native replays](measurements/local-manipulation/serial-cable-braking.md)
+
+## 2026-11-23 — Keeping a resting payload awake on a moving deck
+
+Forcing 1,000 nearly co-moving payloads to sleep stopped their horizontal motion. Across 40,000 normally supported pair-ticks, carrying the previous pose, twist and reaction forward never matched the continuing solve. Batching the real contact solves preserved all 1,359,760 observed native points. A two-thread guard reduced steady p95 from 9.17 to 6.40 ms, but increased launch-to-landing p95 from 7.31 to 7.57 ms, so the ordinary solver remains in use. The Rust qualification reproduces the 1.122 N·s first landing on a different deck. [Measurements, CPU costs, coverage and native replay](measurements/local-manipulation/fleet-loaded-rest.md)

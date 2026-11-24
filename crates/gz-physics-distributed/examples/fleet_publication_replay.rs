@@ -16,6 +16,9 @@ use std::{error::Error, fs, path::PathBuf};
 struct Args {
     #[arg(long, default_value_t=10000, value_parser=clap::value_parser!(u32).range(9..=100000))]
     decks: u32,
+    /// Launch the first payload with a one-tick native wrench at 1.20 s.
+    #[arg(long)]
+    launch: bool,
     output: PathBuf,
 }
 
@@ -26,9 +29,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let count = args.decks as usize;
     let columns = count.isqrt() + usize::from(count.isqrt().pow(2) != count);
     let mut sim = fleet::scene(count, true)?;
+    let first_payload = sim
+        .world()
+        .iter_entities()
+        .find_map(|entity| {
+            (entity.get::<Name>()?.0 == "default::payload_0::body")
+                .then(|| entity.get::<gz_sim_core::EntityId>().unwrap().get())
+        })
+        .expect("the fleet authors its first payload");
+    let visible_columns = if args.launch { columns.min(4) } else { 3 };
     let mut selected = Vec::new();
     for row in 0..3 {
-        for col in 0..3 {
+        for col in 0..visible_columns {
             let i = row * columns + col;
             if i >= count {
                 continue;
@@ -51,11 +63,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let mut frames = Vec::new();
     let mut samples = Vec::new();
-    for tick in 0..=200 {
+    let last_tick = if args.launch { 220 } else { 200 };
+    for tick in 0..=last_tick {
+        if args.launch && tick == 121 {
+            gz_sim_scene::queue_link_world_wrench(
+                &mut sim,
+                first_payload,
+                [510., 0., 185.],
+                [0.; 3],
+            )?;
+        }
         if tick > 0 {
             sim.step_exact(1)?;
         }
-        if tick % 4 != 0 {
+        if tick % 4 != 0 && !(args.launch && (120..=180).contains(&tick)) {
             continue;
         }
         let mut view = View::default();

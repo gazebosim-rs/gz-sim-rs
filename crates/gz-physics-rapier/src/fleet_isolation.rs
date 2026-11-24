@@ -499,3 +499,83 @@ impl RapierBackend {
         }
     }
 }
+
+#[cfg(test)]
+mod loaded_rest_tests {
+    use super::*;
+
+    fn loaded_lane() -> (RapierBackend, BodyId, BodyId) {
+        let mut world = RapierBackend::new_multifidelity([0., 0., -9.81]).unwrap();
+        let payload = world
+            .spawn(BodySpec {
+                shape: Shape::Box {
+                    half_extents: [0.1; 3],
+                },
+                position: [0., 0., 0.201],
+                velocity: [0.; 3],
+                mass: Some(1.),
+            })
+            .unwrap();
+        let mut first = None;
+        for i in 0..MIN_DECKS {
+            let deck = world
+                .spawn_velocity_boundary(
+                    BodySpec {
+                        shape: Shape::Box {
+                            half_extents: [0.5, 0.5, 0.1],
+                        },
+                        position: [1.1 * i as f64, 0., 0.],
+                        velocity: [0.25, 0., 0.],
+                        mass: Some(1.),
+                    },
+                    Default::default(),
+                    None,
+                )
+                .unwrap();
+            first.get_or_insert(deck);
+        }
+        (world, payload, first.unwrap())
+    }
+
+    #[test]
+    fn native_sleep_zeros_the_world_velocity_of_a_load_on_a_moving_deck() {
+        let dt = Duration::from_millis(10);
+        let (mut ordinary, payload, first) = loaded_lane();
+        let (mut sleeping, other, other_first) = loaded_lane();
+        for _ in 0..80 {
+            ordinary.step(dt).unwrap();
+            sleeping.step(dt).unwrap();
+        }
+        let before = ordinary.state(payload).unwrap();
+        assert_eq!(before, sleeping.state(other).unwrap());
+        let impulse = |backend: &RapierBackend, deck: BodyId, cargo: BodyId| {
+            backend
+                .rigid_contact_observations()
+                .into_iter()
+                .find(|p| (p.a == deck && p.b == cargo) || (p.b == deck && p.a == cargo))
+                .unwrap()
+                .normal_impulse
+        };
+        assert_eq!(
+            impulse(&ordinary, first, payload),
+            impulse(&sleeping, other_first, other)
+        );
+        assert!((before.velocity[0] - 0.25).abs() < 1e-5);
+        let handle = sleeping.bodies[&other].0;
+        sleeping.world.bodies[handle].sleep();
+        assert_eq!(sleeping.state(other).unwrap().velocity, [0.; 3]);
+        ordinary.step(dt).unwrap();
+        sleeping.step(dt).unwrap();
+        let current = ordinary.state(payload).unwrap();
+        assert!((current.position[0] - before.position[0] - 0.0025).abs() < 1e-5);
+        let forced = sleeping.state(other).unwrap();
+        assert!(current.position[0] > forced.position[0]);
+        println!(
+            "ordinary {:?} / {:?} N s; forced native sleep {:?} / {:?} N s",
+            current,
+            impulse(&ordinary, first, payload),
+            forced,
+            impulse(&sleeping, other_first, other)
+        );
+    }
+}
