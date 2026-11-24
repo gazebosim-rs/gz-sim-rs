@@ -2277,3 +2277,7 @@ Both resolutions put the same corner down near 2.521 s and pressed the 8.4 g she
 ## 2026-11-23 — Replaying the loaded wrist from its commands
 
 Two queued three-axis torques survived a paused tick and drove the wrist on the next advancing tick. Reset reproduced all 240 repeated steps. Independent processes with one and eight threads produced identical 752-record traces. The ordinary serial transfer model can again replay with its six-coordinate encoder publisher. [Native recordings, command journal and scoped coverage](measurements/local-manipulation/ball-wrist-command-replay.md)
+
+## 2026-11-23 — Profile the 100,000-deck CPU fleet and reduce range-sensor time
+
+Native contact resolution took 1.05 ms at median, shared deck coordinate updates 0.002 ms and Bevy pose publication 0.74 ms. A live bounding check cut p95 range-sensor time from 0.742 to 0.091 ms at the same 640 physical states. The measured fleet ran at 1.24× real time. Whole-step p95 varied between timing methods, while 340 disturbed and prescribed steps and both resets matched the previous physics exactly. [Timings, full-size validation and native replay](measurements/local-manipulation/fleet-native-cost.md)
