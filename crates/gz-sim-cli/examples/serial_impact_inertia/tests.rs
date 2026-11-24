@@ -536,9 +536,23 @@ fn released_jaw_retains_the_measured_pulse_and_resets_to_the_same_schedule() -> 
         fast.samples[0].impact.left_ns,
         original.samples[0].impact.left_ns
     );
-    let observed = serde_json::to_value(strike::audit(staged.clone())?)?;
-    let control = serde_json::to_value(strike::audit(base)?)?;
+    let observed = serde_json::to_value(strike::audit(staged.clone(), true)?)?;
+    let control = serde_json::to_value(strike::audit(base, true)?)?;
     assert_eq!(observed["pulses"], control["pulses"]);
+    for pulse in control["pulses"].as_array().unwrap() {
+        let reaction = |audit: &serde_json::Value| {
+            audit["samples"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|sample| sample["end_ns"] == pulse["end_ns"])
+                .expect("recorded end of each loaded pulse")["transmitted"]
+                .as_object()
+                .expect("measured reaction through the finger and wrist")
+                .clone()
+        };
+        assert_eq!(reaction(&observed), reaction(&control));
+    }
     let (mut sim, _, _) = load_robot(&staged, &fixture(&staged))?;
     sim.step_exact(1)?;
     let first = gz_sim_scene::primary_contact::last_refinement(&sim)
