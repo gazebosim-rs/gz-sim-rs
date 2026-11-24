@@ -1147,3 +1147,78 @@ fn multifidelity_named_template_and_prescribed_scanner_ownership_through_real_so
     assert_eq!(reset["epoch"], 1);
     assert_eq!(reset["models"], catalog["models"]);
 }
+
+#[test]
+fn live_curved_deliveries_reuse_the_mesh_and_can_be_removed_after_the_source() {
+    let world_file = "worlds/local_curved_delivery.sdf";
+    let mut fixture = Fixture::load(
+        true,
+        include_str!("../../../../examples/worlds/local_curved_delivery.sdf"),
+        world_file,
+        gz_sim_scene::PhysicsEngine::MultiFidelity,
+    );
+    let mut socket = fixture.connect("/?lifecycle=1");
+    let (initial, catalog) = fixture.bootstrap(&mut socket);
+    let world = initial["world_id"].as_u64().unwrap();
+    for (i, (name, x)) in [("cylinder", -0.15), ("capsule", 0.15)]
+        .into_iter()
+        .enumerate()
+    {
+        let first = 1 + 4 * i as u64;
+        let source = catalog["models"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|m| m["name"] == format!("default::{name}"))
+            .unwrap();
+        let original = initial["visuals"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|v| v["id"] == source["visual_ids"][0])
+            .unwrap();
+        let (_, _, removed) = fixture.command(
+            &mut socket,
+            target(
+                first,
+                world,
+                0,
+                "remove",
+                source["model_id"].as_u64().unwrap(),
+            ),
+        );
+        assert_eq!(removed["ok"], true);
+        let (scene, _, added) = fixture.command(
+            &mut socket,
+            spawn(
+                first + 1,
+                world,
+                0,
+                template(&catalog, name),
+                [x, -0.12, 0.25],
+            ),
+        );
+        assert_eq!(added["ok"], true);
+        let id = added["model_id"].as_u64().unwrap();
+        let copy = scene["visuals"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|v| v["id"] == id + 3)
+            .unwrap();
+        assert_eq!(copy["shape"]["kind"], "mesh");
+        assert_eq!(copy["shape"], original["shape"]);
+        let (_, _, state) =
+            fixture.command(&mut socket, target(first + 2, world, 0, "get_state", id));
+        assert_eq!(state["state"]["translation"], json!([x, -0.12, 0.25]));
+        let (_, _, removed) =
+            fixture.command(&mut socket, target(first + 3, world, 0, "remove", id));
+        assert_eq!(removed["ok"], true);
+    }
+    let (restored, _, ack) = fixture.command(
+        &mut socket,
+        json!({"version":1,"kind":"control","request_id":9,"action":"reset"}),
+    );
+    assert_eq!(ack["ok"], true);
+    assert_eq!(initial["visuals"], restored["visuals"]);
+}

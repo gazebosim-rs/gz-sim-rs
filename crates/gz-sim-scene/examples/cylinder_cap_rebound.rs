@@ -14,10 +14,10 @@ use std::error::Error;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const WORLD: &str = include_str!("../../../examples/worlds/local_curved_delivery.sdf");
 
-fn drop_at(passes: usize, per_point: bool) -> Result<Value> {
-    let sdf = sdformat::load_str(WORLD, "delivery.sdf", &sdformat::NoResources)?;
+fn drop_at(world: &str, passes: usize, per_point: bool) -> Result<Value> {
+    let sdf = sdformat::load_str(world, "delivery.sdf", &sdformat::NoResources)?;
     let mut sim = load_world_with_runtime(
-        WORLD,
+        world,
         "delivery.sdf",
         "default",
         &sdformat::NoResources,
@@ -32,21 +32,27 @@ fn drop_at(passes: usize, per_point: bool) -> Result<Value> {
             ..Default::default()
         },
     )?;
-    let templates = sdf.worlds[0].models[1..]
-        .iter()
-        .map(|m| prepare_model_template(&sim, &sdf, m))
-        .collect::<std::result::Result<Vec<_>, _>>()?;
     sim.world_mut()
         .resource_mut::<PhysicsBackend>()
         .downcast_mut::<MultiFidelityBackend>()
         .unwrap()
         .set_contact_pgs_passes(passes)?;
+    let mut templates = Vec::new();
+    for (name, x) in [("cylinder", -0.15), ("capsule", 0.15)] {
+        let model = sdf.worlds[0]
+            .models
+            .iter()
+            .find(|m| m.name == name)
+            .ok_or("missing delivery model")?;
+        let template = prepare_model_template(&sim, &sdf, model)?;
+        templates.push((template, x));
+    }
     sim.step_exact(10)?;
     let mut parts = Vec::new();
-    for (template, x) in templates.iter().zip([-0.15, 0.15]) {
+    for (template, x) in templates {
         let id = spawn_model_template(
             &mut sim,
-            template,
+            &template,
             WorldPose {
                 translation: [x, -0.12, 0.25],
                 rotation: [0., 0., 0., 1.],
@@ -115,9 +121,47 @@ fn main() -> Result<()> {
     let mut cases = Vec::new();
     for passes in [1, 2, 4, 8, 16, 32] {
         for per_point in [false, true] {
-            cases.push(drop_at(passes, per_point)?);
+            cases.push(drop_at(WORLD, passes, per_point)?);
         }
     }
     println!("{}", serde_json::to_string_pretty(&cases)?);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn two_impacts_and_a_valid_native_budget_are_required_to_report_rebound() {
+        assert!(drop_at(WORLD, 0, false).is_err());
+        assert!(drop_at("<sdf", 1, false).is_err());
+        assert!(
+            drop_at(
+                &WORLD.replace("name=\"default\"", "name=\"different\""),
+                1,
+                false
+            )
+            .is_err()
+        );
+        assert!(
+            drop_at(
+                &WORLD.replace("model name=\"capsule\"", "model name=\"other\""),
+                1,
+                false
+            )
+            .is_err()
+        );
+        let absent_floor = WORLD.replace(
+            "<model name=\"floor\">",
+            "<model name=\"floor\"><pose>0 0 -2 0 0 0</pose>",
+        );
+        assert!(drop_at(&absent_floor, 1, false).is_err());
+        let with_sensor = WORLD.replacen(
+            "<link name=\"body\">",
+            "<link name=\"body\"><sensor name=\"imu\" type=\"imu\"><imu/></sensor>",
+            1,
+        );
+        assert!(drop_at(&with_sensor, 1, false).is_err());
+    }
 }
