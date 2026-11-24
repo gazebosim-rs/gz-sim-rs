@@ -75,23 +75,17 @@ impl Recorder {
                 let _ = ready.send(());
                 run(&path, &mut stream, receiver, prefix, files, assets)
             })?;
-        if readiness.recv().is_err() {
-            drop(sender);
-            return match worker.join() {
-                Ok(Err(error)) => Err(error),
-                _ => Err(io::Error::new(
-                    io::ErrorKind::BrokenPipe,
-                    "recording worker failed during startup",
-                )),
-            };
-        }
-        Ok(Self {
+        let mut recorder = Self {
             sender: Some(sender),
             worker: Some(worker),
             frames: 0,
             bytes,
             failed: false,
-        })
+        };
+        if readiness.recv().is_err() {
+            return Err(recorder.stopped_error());
+        }
+        Ok(recorder)
     }
 
     pub fn healthy(&self) -> bool {
@@ -155,11 +149,7 @@ impl Recorder {
         if offline {
             // No physics tick is waiting. Backpressure is safe and deterministic.
             if sender.send(Message::Frame(bytes)).is_err() {
-                self.join_worker()?;
-                return Err(io::Error::new(
-                    io::ErrorKind::BrokenPipe,
-                    "recording writer stopped",
-                ));
+                return Err(self.stopped_error());
             }
         } else {
             sender
@@ -190,6 +180,12 @@ impl Recorder {
             .map_err(|_| io::Error::new(io::ErrorKind::BrokenPipe, "recording writer stopped"));
         self.join_worker()?;
         submitted
+    }
+
+    fn stopped_error(&mut self) -> io::Error {
+        self.join_worker().err().unwrap_or_else(|| {
+            io::Error::new(io::ErrorKind::BrokenPipe, "recording writer stopped")
+        })
     }
 
     fn join_worker(&mut self) -> io::Result<()> {
