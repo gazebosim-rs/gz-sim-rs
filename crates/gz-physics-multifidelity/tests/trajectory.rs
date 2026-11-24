@@ -200,6 +200,9 @@ fn native_warm_trajectory_preserves_pending_work_edits_and_future_contact_graph(
             assert!(restored.restore_trajectory(&bad).is_err());
         }
         restored.restore_trajectory(bytes).unwrap();
+        if restored.translation_interval().0 > 0 {
+            assert_eq!(restored.normal_reaction_on(cargo, deck).unwrap(), None);
+        }
         for (i, cut) in cuts.iter().enumerate().skip(start) {
             if i != start {
                 if [5, 32, 87].contains(&i) {
@@ -218,6 +221,7 @@ fn native_warm_trajectory_preserves_pending_work_edits_and_future_contact_graph(
                 "diverged from {start} at {i}"
             );
             restored.step(dt).unwrap();
+            assert!(restored.normal_reaction_on(cargo, deck).unwrap().is_some());
         }
     }
 }

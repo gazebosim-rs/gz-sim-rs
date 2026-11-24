@@ -28,6 +28,7 @@ mod odometry_publisher;
 mod pose_publisher;
 mod prescribed_motion;
 pub mod primary_contact;
+pub mod receiving_support;
 mod scheduled_link_force;
 #[cfg(feature = "distributed-physics")]
 pub mod trajectory_workers;

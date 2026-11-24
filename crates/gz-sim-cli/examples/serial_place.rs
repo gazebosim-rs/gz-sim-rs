@@ -8,6 +8,7 @@ use clap::{Parser, ValueEnum};
 use gz_physics::{BodyId, PhysicsBackend};
 use gz_physics_multifidelity::MultiFidelityBackend;
 use gz_sim_core::{EntityId, Simulation};
+use gz_sim_scene::receiving_support::{ReceivingSupport, SupportCriteria, SupportReading};
 use gz_sim_scene::{
     BodyHandle, JointForceCommand, JointSample, Name, PhysicsEngine, Velocity, WorldPose,
     load_world_with_sdf_step, set_joint_controller_command,
@@ -94,29 +95,6 @@ fn body(sim: &Simulation, part: &Part) -> Result<BodyId> {
         .id())
 }
 
-#[derive(Default)]
-struct SupportWindow {
-    samples: [f64; 30],
-    count: usize,
-    next: usize,
-}
-
-impl SupportWindow {
-    fn observe(&mut self, top_face: bool, normal_force: f64, vertical_speed: f64) -> Option<f64> {
-        if !(top_face && normal_force >= 0.2 * WEIGHT_N && vertical_speed.abs() <= 0.01) {
-            self.count = 0;
-            self.next = 0;
-            return None;
-        }
-        self.samples[self.next] = normal_force;
-        self.next = (self.next + 1) % self.samples.len();
-        self.count = (self.count + 1).min(self.samples.len());
-        let average = self.samples.iter().sum::<f64>() / self.samples.len() as f64;
-        (self.count == self.samples.len() && (0.94 * WEIGHT_N..=1.25 * WEIGHT_N).contains(&average))
-            .then_some(average)
-    }
-}
-
 #[derive(Debug, Default, PartialEq, Serialize)]
 struct Outcome {
     open_tick: Option<usize>,
@@ -137,53 +115,6 @@ struct Outcome {
     final_tray_load_n: f64,
     parcel_end_z_m: f64,
     hand_end_z_m: f64,
-}
-
-// The named shelf and tray have horizontal tops. A tilted side manifold does
-// not qualify. Interval magnitudes retain impulses from earlier native slices.
-fn contacts(
-    sim: &Simulation,
-    load: BodyId,
-    peers: [BodyId; 4],
-    descending: bool,
-) -> Result<([f64; 4], [bool; 2])> {
-    let native = sim
-        .world()
-        .resource::<PhysicsBackend>()
-        .downcast_ref::<MultiFidelityBackend>()
-        .ok_or("multifidelity solver required")?;
-    // A prescribed shelf splits each public step into native solves. Contact
-    // magnitudes must include every slice, including an early impact that
-    // disappeared by the last slice. The gate separately checks the face.
-    let mut normal = [0.; 4];
-    for row in native.translation_interval().1 {
-        let peer = if row.a == load {
-            row.b
-        } else if row.b == load {
-            row.a
-        } else {
-            continue;
-        };
-        if let Some(slot) = peers.iter().position(|&id| id == peer) {
-            normal[slot] += row.normal_impulse;
-        }
-    }
-    let mut top = [false; 2];
-    if descending && normal[..2].iter().any(|&j| j > 0.) {
-        for p in native.rigid_contact_patches() {
-            let (peer, nz) = if p.a == load {
-                (p.b, p.normal_on_a[2])
-            } else if p.b == load {
-                (p.a, -p.normal_on_a[2])
-            } else {
-                continue;
-            };
-            if let Some(slot) = peers[..2].iter().position(|&body| body == peer) {
-                top[slot] |= nz > 0.999 && p.points.iter().any(|point| point.normal_impulse > 0.);
-            }
-        }
-    }
-    Ok((normal, top))
 }
 
 #[cfg(test)]
@@ -221,8 +152,14 @@ fn run_with_delay(
         id("gripper::right")?,
     ];
     let mut out = Outcome::default();
-    let mut window = SupportWindow::default();
-    let mut tray_window = SupportWindow::default();
+    let criteria = SupportCriteria::for_weight(WEIGHT_N, std::time::Duration::from_millis(30));
+    let mut receiver_sensor = ReceivingSupport::new(sim.world(), parcel.id, shelf.id, criteria)?;
+    let mut tray_sensor = ReceivingSupport::new(
+        sim.world(),
+        parcel.id,
+        part(sim, "stand::post")?.id,
+        criteria,
+    )?;
     let mut contact_hold = None;
     let start_z = sim
         .world()
@@ -248,14 +185,34 @@ fn run_with_delay(
             .get::<Velocity>(parcel.entity)
             .ok_or("missing parcel velocity")?
             .linear[2];
-        let (normal, top) = contacts(sim, load, peers, tick >= DESCENT_START)?;
+        let solver = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .downcast_ref::<MultiFidelityBackend>()
+            .ok_or("multifidelity solver required")?;
+        let mut normal = [0.; 4];
+        for (j, peer) in normal.iter_mut().zip(peers) {
+            *j = solver
+                .normal_reaction_on(load, peer)?
+                .ok_or("no fresh signed contact measurement")?
+                .magnitude;
+        }
+        let [shelf_read, tray_read] = if tick >= DESCENT_START {
+            [
+                receiver_sensor.sample(sim.world())?,
+                tray_sensor.sample(sim.world())?,
+            ]
+        } else {
+            [SupportReading::default(); 2]
+        };
+        let top = [shelf_read.face_loaded, tray_read.face_loaded];
         if tick == 3600 {
             out.lift_mm = (pose.translation[2] - start_z) * 1000.;
         }
         let z = pose.translation[2];
         let parcel_orientation = pose.rotation;
         let shelf_n = normal[0] / dt;
-        let force_n = (normal[0] + normal[1]) / dt;
+        let force_n = shelf_read.normal_force_n + tray_read.normal_force_n;
         if tick >= DESCENT_START {
             out.peak_wrong_tray_n = out.peak_wrong_tray_n.max(normal[1] / dt);
         }
@@ -280,9 +237,8 @@ fn run_with_delay(
             *command += (0.003 * (force_n - WEIGHT_N)).clamp(-0.008, 0.008) * dt;
             set_joint_controller_command(sim, spindle.id, *command)?;
         }
-        let supported = window.observe(top[0], shelf_n, vz);
-        out.qualified_wrong_tray_ticks +=
-            usize::from(tray_window.observe(top[1], normal[1] / dt, vz).is_some());
+        let supported = shelf_read.mean_force_n.filter(|_| shelf_read.ready);
+        out.qualified_wrong_tray_ticks += usize::from(tray_read.ready);
         if may_open && ((trial == Trial::Early && tick == 4450) || supported.is_some()) {
             let retry = out.open_tick.is_some();
             if !retry {
@@ -400,29 +356,6 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn support_needs_continuous_upright_contact_and_a_settled_load() {
-        let mut window = SupportWindow::default();
-        for (face, force, speed) in [
-            (false, WEIGHT_N, 0.),
-            (true, 0., 0.),
-            (true, WEIGHT_N, 0.02),
-            (true, WEIGHT_N, f64::NAN),
-        ] {
-            for _ in 0..29 {
-                assert_eq!(window.observe(true, WEIGHT_N, 0.), None);
-            }
-            assert_eq!(window.observe(face, force, speed), None);
-        }
-        for _ in 0..30 {
-            assert_eq!(window.observe(true, 3. * WEIGHT_N, 0.), None);
-        }
-        for _ in 0..30 {
-            window.observe(true, WEIGHT_N, 0.);
-        }
-        assert!((window.observe(true, WEIGHT_N, 0.).unwrap() - WEIGHT_N).abs() < 1e-14);
-    }
-
     fn withdrawal_run(trial: Trial, delay: usize, repeat: bool) -> Outcome {
         let mut sim = load_world_with_sdf_step(
             &scene(trial),

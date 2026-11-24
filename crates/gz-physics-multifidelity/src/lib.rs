@@ -42,10 +42,10 @@ pub use gz_physics_rapier::{
     FacePressureReceipt, FiniteEndpointCertificate, FiniteImpactReceipt, FleetIsolationStats,
     FractionalBearingSpan, FractionalPointEvent, FractionalPointReceipt,
     FrictionlessRecontactReceipt, HeldSupportStatus, InternalPointImpact,
-    MAX_ARTICULATED_CONTACT_SITES, MixedEdgeImpactReceipt, OpeningEdgeImpactReceipt,
-    PartitionBounds, PartitionBoxBounds, PlanarImpactReceipt, RigidContactObservation,
-    RigidContactPatch, RigidPatchPoint, RigidSurfaceWitness, RobotJoint, RobotSpring,
-    RockingLimitReceipt, SharedFaceReceipt, SharedSupportLoad, SharedSupportRequest,
+    MAX_ARTICULATED_CONTACT_SITES, MixedEdgeImpactReceipt, NormalReaction,
+    OpeningEdgeImpactReceipt, PartitionBounds, PartitionBoxBounds, PlanarImpactReceipt,
+    RigidContactObservation, RigidContactPatch, RigidPatchPoint, RigidSurfaceWitness, RobotJoint,
+    RobotSpring, RockingLimitReceipt, SharedFaceReceipt, SharedSupportLoad, SharedSupportRequest,
     SlidingEdgeImpactReceipt, SlidingPointReceipt, SlidingVertexReceipt, SoftRigidInertia,
     SoftSphereInertia, SoleTransferReceipt, SolidRay, StickingPointReceipt, SupportExpiry,
     SupportLoss, SupportLossReason, SustainedEdgeReceipt, TwoBearingReceipt, UniversalJointState,
@@ -1206,6 +1206,17 @@ impl MultiFidelityBackend {
         support: BodyId,
     ) -> Option<HeldSupportStatus> {
         self.solver.held_support_pair_status(link, support)
+    }
+
+    /// Signed normal load over the ordinary public step, including prescribed motion slices.
+    pub fn normal_reaction_on(
+        &self,
+        body: BodyId,
+        support: BodyId,
+    ) -> Result<Option<NormalReaction>, PhysicsError> {
+        self.solver
+            .normal_reaction_on(body, support)
+            .map_err(engine_error)
     }
 
     /// All native narrow-phase pairs, including speculative contact caches.

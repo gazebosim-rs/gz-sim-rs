@@ -292,6 +292,7 @@ impl RapierBackend {
         self.curves.time = time;
         self.curves.steps = steps as usize;
         self.curves.contacts = contacts;
+        self.curves.normal_reactions = None;
         if !open {
             self.joints.close();
         }

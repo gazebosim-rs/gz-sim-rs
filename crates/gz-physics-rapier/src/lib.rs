@@ -121,7 +121,7 @@ pub use joints::{
     RestartPairHistory,
 };
 pub use partition::{
-    ContactWarmstart, PartitionBounds, PartitionBoxBounds, RigidContactObservation,
+    ContactWarmstart, NormalReaction, PartitionBounds, PartitionBoxBounds, RigidContactObservation,
     RigidContactPatch, RigidPatchPoint, partition_prediction_distance, predicts_box_contact,
 };
 use std::any::Any;

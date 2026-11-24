@@ -28,6 +28,7 @@ pub(super) struct Curves {
     /// Positive and speculative native pairs over the last complete public step.
     pub contacts: Vec<RigidContactObservation>,
     pub steps: usize,
+    pub(super) normal_reactions: Option<Vec<NormalReaction>>,
 }
 impl Curves {
     pub(super) fn authored(&self) -> bool {
@@ -46,6 +47,7 @@ impl Curves {
         self.invalidate_layout();
         self.handles.remove(&handle);
         if self.tracks.remove(&id).is_some() && self.tracks.is_empty() {
+            self.normal_reactions = None;
             self.contacts.clear();
             self.steps = 0;
         }
@@ -66,6 +68,7 @@ impl Curves {
             .extend(self.tracks.keys().map(|id| (bodies[id].0, *id)));
         self.time = Duration::ZERO;
         self.steps = 0;
+        self.normal_reactions = None;
         self.contacts.clear();
         for t in self.tracks.values_mut() {
             t.active = true;
@@ -221,11 +224,59 @@ impl RapierBackend {
     pub fn translation_interval(&self) -> (usize, &[RigidContactObservation]) {
         (self.curves.steps, &self.curves.contacts)
     }
+    /// Signed normal impulse of a named support on a named body during the last
+    /// ordinary solve, or all trajectory slices of that solve. Trajectory
+    /// checkpoints store scalar impulses. A fresh solve after restore
+    /// supplies the signed reaction.
+    pub fn normal_reaction_on(
+        &self,
+        body: BodyId,
+        support: BodyId,
+    ) -> Result<Option<NormalReaction>, PhysicsError> {
+        if body == support {
+            return Err(PhysicsError::InvalidValue);
+        }
+        if !self.bodies.contains_key(&body) || !self.bodies.contains_key(&support) {
+            return Err(PhysicsError::MissingBody);
+        }
+        let key = (body.min(support), body.max(support));
+        if self.curves.steps != 0 {
+            let Some(rows) = &self.curves.normal_reactions else {
+                return Ok(None);
+            };
+            let mut r = self
+                .curves
+                .contacts
+                .binary_search_by_key(&key, |c| (c.a, c.b))
+                .ok()
+                .map(|index| rows[index])
+                .unwrap_or_default();
+            if body != key.0 {
+                r.impulse = (-Vector::from(r.impulse)).to_array();
+            }
+            return Ok(Some(r));
+        }
+        let mut r = NormalReaction::default();
+        let first = self.world.bodies[self.bodies[&body].0].colliders();
+        let second = self.world.bodies[self.bodies[&support].0].colliders();
+        for &a in first {
+            for &b in second {
+                if let Some(p) = self.world.narrow_phase.contact_pair(a, b) {
+                    r.add(
+                        crate::partition::manifold_reaction(p, p.collider1 == a),
+                        true,
+                    );
+                }
+            }
+        }
+        Ok(Some(r))
+    }
     pub(super) fn advance_curve_world(&mut self, deadlines: &[Duration]) {
         let iterations = self.world.integration_parameters.num_solver_iterations;
         let original = self.world.integration_parameters.dt;
         self.world.integration_parameters.num_solver_iterations = 1;
-        let mut reactions = BTreeMap::<(BodyId, BodyId), RigidContactObservation>::new();
+        let mut reactions =
+            BTreeMap::<(BodyId, BodyId), (RigidContactObservation, NormalReaction)>::new();
         let layout = self.curves.layout().clone();
         let mut means = Vec::with_capacity(layout.paths.len());
         let mut ends = Vec::with_capacity(layout.paths.len());
@@ -250,14 +301,30 @@ impl RapierBackend {
             if self.last_step_quarantined() {
                 break;
             }
-            for hit in self.rigid_contact_observations() {
-                reactions
-                    .entry((hit.a, hit.b))
-                    .and_modify(|h| {
-                        h.active |= hit.active;
-                        h.normal_impulse += hit.normal_impulse;
-                    })
-                    .or_insert(hit);
+            {
+                let lookup = self.contact_body_lookup();
+                for pair in self.world.narrow_phase.contact_pairs() {
+                    let (Some(a), Some(b)) = (lookup(pair.collider1), lookup(pair.collider2))
+                    else {
+                        continue;
+                    };
+                    let key = (a.min(b), a.max(b));
+                    let delta = crate::partition::manifold_reaction(pair, a == key.0);
+                    let (observed, vector) = reactions.entry(key).or_insert_with(|| {
+                        (
+                            RigidContactObservation {
+                                a: key.0,
+                                b: key.1,
+                                active: false,
+                                normal_impulse: 0.,
+                            },
+                            NormalReaction::default(),
+                        )
+                    });
+                    observed.active |= pair.has_any_active_contact();
+                    observed.normal_impulse += delta.magnitude;
+                    vector.add(delta, Some(&end) == deadlines.last());
+                }
             }
             for row in &layout.rows {
                 let s = ends[row.group];
@@ -270,6 +337,8 @@ impl RapierBackend {
         }
         self.world.integration_parameters.num_solver_iterations = iterations;
         self.world.integration_parameters.dt = original;
-        self.curves.contacts = reactions.into_values().collect();
+        let (contacts, vectors) = reactions.into_values().unzip();
+        self.curves.contacts = contacts;
+        self.curves.normal_reactions = Some(vectors);
     }
 }

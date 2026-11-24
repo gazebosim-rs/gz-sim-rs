@@ -41,6 +41,44 @@ pub struct RigidContactPatch {
     pub points: Vec<RigidPatchPoint>,
 }
 
+/// Compressive impulse during one ordinary public step, in N·s. The vector
+/// acts on the requested link. The magnitude sums individual point magnitudes,
+/// so opposing faces can carry a load while their resultant cancels.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct NormalReaction {
+    pub impulse: [f64; 3],
+    pub magnitude: f64,
+    pub loaded_at_end: bool,
+}
+
+pub(crate) fn manifold_reaction(
+    pair: &rapier3d_f64::geometry::ContactPair,
+    first_is_target: bool,
+) -> NormalReaction {
+    let mut magnitude = 0.;
+    let mut impulse = Vector::ZERO;
+    for manifold in pair.solver_manifolds() {
+        let j = super::solved_point_indices(manifold)
+            .map(|i| manifold.points[i].data.impulse)
+            .sum::<f64>();
+        magnitude += j;
+        impulse += manifold.data.normal * j;
+    }
+    NormalReaction {
+        impulse: (if first_is_target { -impulse } else { impulse }).to_array(),
+        magnitude,
+        loaded_at_end: magnitude > 0.,
+    }
+}
+
+impl NormalReaction {
+    pub(crate) fn add(&mut self, other: Self, last: bool) {
+        self.impulse = (Vector::from(self.impulse) + Vector::from(other.impulse)).to_array();
+        self.magnitude += other.magnitude;
+        self.loaded_at_end |= last && other.loaded_at_end;
+    }
+}
+
 /// Stored contact-point seeds for a pair of public bodies, in N·s.
 /// These are initial guesses for a later constraint solve. They may persist on
 /// dormant points and are distinct from the impulses delivered in a given step.
