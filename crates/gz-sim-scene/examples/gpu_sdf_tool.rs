@@ -9,50 +9,21 @@ mod native_tool;
 #[allow(dead_code)]
 #[path = "../../gz-physics-gpu/examples/support/planar_arm/reference.rs"]
 mod reference;
+#[path = "../../gz-physics-gpu/examples/support/planar_tool/server.rs"]
+mod server;
 #[allow(dead_code)]
 #[path = "../../gz-physics-gpu/examples/support/planar_tool/reference.rs"]
 mod tool_reference;
-use gz_physics_gpu::{PlanarArmLane, PlanarToolLane};
+use gz_physics_gpu::PlanarToolLane;
 use gz_sim_scene::{
     EntityKind, JointSample, Name, PhysicsEngine, WorldLoadOptions, WorldPose,
     gpu_scene::planar_tool::observe, load_world_on_adapter,
 };
 use reference::turn;
 use serde_json::json;
+use server::{drive_velocity, reference_fixture};
 use std::{error::Error, fs, path::Path};
 const WORLD: &str = include_str!("../../../examples/gpu_planar_tool_world.sdf");
-fn reference_fixture() -> PlanarToolLane {
-    PlanarToolLane {
-        arm: PlanarArmLane {
-            angle: [turn(0.48), turn(-0.62)],
-            speed: [0.; 2],
-            length: [0.30, 0.21],
-            center: [0.15, 0.12],
-            mass: [0.8, 0.4],
-            inertia: [0.0062, 0.0034],
-            tip_mass: 0.,
-            gravity: 9.81,
-            target: [turn(-0.36), turn(-0.50)],
-            stiffness: [16., 5.],
-            damping: [2.3, 0.41],
-            effort_limit: [8., 2.8],
-            effort: [0.; 2],
-        },
-        ground_z: 0.65 - 0.60,
-        radius: 0.018,
-        friction: 0.30,
-        normal_impulse: 0.,
-        tangent_impulse: 0.,
-        first_contact_offset: -1.,
-        first_normal_impulse: 0.,
-        first_tangent_impulse: 0.,
-        turns: [0.; 2],
-        velocity_mode: [0.; 2],
-        velocity_target: [0.; 2],
-        stops: Default::default(),
-        stop_impulse: [0.; 2],
-    }
-}
 fn run(adapter: &str, out: &Path) -> Result<(), Box<dyn Error>> {
     let mut sim = load_world_on_adapter(
         WORLD,
@@ -226,22 +197,14 @@ fn compare_commands(
         if frame.tick_ms != i + 1 {
             return Err("incomplete transport clock".into());
         }
-        let q = native.arm.angles();
-        for axis in 0..2 {
-            let cap = [2.4, 3.2][axis];
-            l.velocity_target[axis] =
-                ((frame.command_rad[axis] - (q[axis] - origin[axis])) / 0.001).clamp(-cap, cap);
-        }
+        l.velocity_target = drive_velocity(frame.command_rad, native.arm.angles());
         let n = native.step(&l);
         let native_position = native.arm.angles();
         if let Some(controls) = &mut controls {
             for (k, control) in controls.iter_mut().enumerate() {
                 let mut control_lane = l;
-                for (i, q) in control.arm.angles().into_iter().enumerate() {
-                    let cap = [2.4, 3.2][i];
-                    control_lane.velocity_target[i] =
-                        ((frame.command_rad[i] - (q - origin[i])) / 0.001).clamp(-cap, cap);
-                }
+                control_lane.velocity_target =
+                    drive_velocity(frame.command_rad, control.arm.angles());
                 control.step(&control_lane);
                 if control.arm.angles() != native_position
                     || control.arm.rates() != native.arm.rates()

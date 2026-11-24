@@ -3,6 +3,8 @@
 //! Compare measured floor contact at a driven articulated arm's round tool.
 #[path = "support/planar_arm/capture.rs"]
 mod capture;
+#[path = "support/planar_tool/iterations.rs"]
+mod iterations;
 #[allow(dead_code)]
 #[path = "support/planar_arm/native.rs"]
 mod native;
@@ -11,6 +13,8 @@ mod native_tool;
 #[allow(dead_code)]
 #[path = "support/planar_arm/reference.rs"]
 mod reference;
+#[path = "support/planar_tool/server.rs"]
+mod server;
 #[path = "support/planar_tool/reference.rs"]
 mod tool_reference;
 use gz_physics_gpu::{PlanarToolBatch, simulation::planar_tool_simulation};
@@ -254,6 +258,11 @@ fn run(adapter: &str, out: &Path) -> Result<(), Box<dyn Error>> {
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
+    if let [mode, trace, out] = args.as_slice()
+        && mode == "--landing-iterations"
+    {
+        return iterations::run(Path::new(trace), Path::new(out));
+    }
     let [name, out] = args.as_slice() else {
         return Err("expected ADAPTER NEW_OUTPUT_DIRECTORY".into());
     };
