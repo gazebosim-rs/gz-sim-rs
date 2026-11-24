@@ -8,7 +8,7 @@ license.workspace = true
 
 [features]
 landing-audit = ["gz-physics-multifidelity/landing-audit", "dep:rustix", "rustix/time"]
-gpu-batch = ["gz-sim-scene/gpu-batch", "gz-sim-server/gpu-batch"]
+gpu-batch = ["dep:gz-physics-gpu", "gz-sim-scene/gpu-batch", "gz-sim-server/gpu-batch"]
 default = ["distributed-physics"]
 distributed-physics = ["gz-sim-scene/distributed-physics", "gz-sim-server/distributed-physics", "dep:tempfile", "dep:rustix"]
 rgb-camera = ["dep:gz-camera-output", "dep:zenoh"]
@@ -29,6 +29,7 @@ zenoh = { workspace = true, optional = true }
 gz-fuel-tools.workspace = true
 clap.workspace = true
 bevy_ecs.workspace = true
+gz-physics-gpu = { path = "../gz-physics-gpu", optional = true }
 gz-physics = { path = "../gz-physics" }
 gz-physics-multifidelity = { path = "../gz-physics-multifidelity" }
 bevy_tasks = { version = "=0.20.0", default-features = false, features = ["multi_threaded"] }
@@ -156,4 +157,8 @@ required-features = ["distributed-physics"]
 
 [[example]]
 name = "gpu_joint_probe"
+required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_box_shelf_impact"
 required-features = ["gpu-batch"]

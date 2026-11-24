@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Spatial momentum and attitude after an actually separated cuboid leaves the fingers.
 use super::*;
+mod shelf;
 use crate::spatial::{cross, rotate};
 use glam::{DMat3, DQuat, DVec3};
+pub use shelf::{ShelfImpact, SpatialShelf};
 
 #[derive(Clone, Copy, Debug)]
 pub struct BoxFlightMaterial {
@@ -27,7 +29,7 @@ pub struct FreeBoxState {
     pub center_velocity: [f64; 3],
     /// Local-to-world unit quaternion (x, y, z, w).
     pub orientation: [f64; 4],
-    /// Conserved world angular momentum about the moving mass center.
+    /// World angular momentum about the moving mass center. It is constant between impulses.
     pub momentum: [f64; 3],
 }
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -43,6 +45,7 @@ const _: () = assert!(size_of::<Lane>() == WORDS * 8);
 
 pub(super) struct BoxFlight {
     device: ResidentBatch<Lane>,
+    shelf: Option<shelf::Shelf>,
     material: BoxFlightMaterial,
     active: bool,
     published: bool,
@@ -122,6 +125,15 @@ impl FreeBoxState {
     }
 }
 fn clear_sweep(m: BoxFlightMaterial, start: &FreeBoxState, l: &Lane) -> bool {
+    clear_environment(m, start, l, false, false)
+}
+fn clear_environment(
+    m: BoxFlightMaterial,
+    start: &FreeBoxState,
+    l: &Lane,
+    shelf_qualified: bool,
+    impact: bool,
+) -> bool {
     let h = l.carry.hand;
     let q = DQuat::from_array(start.orientation);
     let offset = m.local_center(&l.carry);
@@ -133,7 +145,17 @@ fn clear_sweep(m: BoxFlightMaterial, start: &FreeBoxState, l: &Lane) -> bool {
     // Every point travels at most |L|/I_min * radius through angular motion.
     // Include ballistic displacement and the measured swept pad bounds over all four substeps.
     let angular = dt * DVec3::from(start.momentum).length() / DVec3::from(m.inertia).min_element();
-    let padding = (half + offset.abs()).length() * angular.min(2.);
+    let radius = (half + offset.abs()).length();
+    let padding = if impact {
+        let spin = q.inverse() * DVec3::from(start.momentum);
+        let speed = (DVec3::from(start.center_velocity).length_squared()
+            + spin.dot(spin / DVec3::from(m.inertia)) / h.ball_mass)
+            .sqrt()
+            + h.gravity * dt;
+        dt * speed * (1. + radius * (h.ball_mass / DVec3::from(m.inertia).min_element()).sqrt())
+    } else {
+        radius * angular.min(2.)
+    };
     let velocity = DVec3::from(start.center_velocity) * dt;
     let lo = origin - extent - DVec3::splat(padding) + velocity.min(DVec3::ZERO)
         - DVec3::Z * (0.5 * h.gravity * dt * dt);
@@ -144,11 +166,12 @@ fn clear_sweep(m: BoxFlightMaterial, start: &FreeBoxState, l: &Lane) -> bool {
         hi.x < x[0] - r[0] || lo.x > x[1] + r[0] || hi.z < z[0] - r[1] || lo.z > z[1] + r[1]
     };
     lo.z > h.ground
-        && separate(
-            [l.carry.shelf_center[0]; 2],
-            [l.carry.shelf_center[1]; 2],
-            l.carry.shelf_half,
-        )
+        && (shelf_qualified
+            || separate(
+                [l.carry.shelf_center[0]; 2],
+                [l.carry.shelf_center[1]; 2],
+                l.carry.shelf_half,
+            ))
         && (0..2).all(|i| separate(l.swept[i + 1], l.swept[0], h.half_size[i]))
 }
 impl CarryGripperBatch {
@@ -174,11 +197,30 @@ impl CarryGripperBatch {
         self.planar.gpu.info.allocated_buffer_bytes = total;
         self.flight = Some(BoxFlight {
             device,
+            shelf: None,
             material,
             active: false,
             published: false,
         });
         Ok(())
+    }
+    /// Opt into a single frictionless corner impact on the finite shelf top.
+    pub fn enable_shelf_impact(&mut self, surface: SpatialShelf) -> Result<(), GpuError> {
+        let f = self
+            .flight
+            .as_mut()
+            .filter(|f| f.shelf.is_none() && self.planar.tick == 0)
+            .ok_or(GpuError::InvalidBoxRelease)?;
+        let shelf = shelf::Shelf::new(f, surface)?;
+        let total = f.device.device_info().allocated_buffer_bytes + shelf.allocated();
+        f.device.gpu.info.allocated_buffer_bytes = total;
+        self.planar.gpu.info.allocated_buffer_bytes = total;
+        f.shelf = Some(shelf);
+        Ok(())
+    }
+    /// Last accepted corner impact in the current epoch. Reset clears the receipt.
+    pub fn shelf_impact(&self) -> Option<ShelfImpact> {
+        self.flight.as_ref()?.shelf.as_ref()?.receipt
     }
     /// At a free boundary apply a world impulse (N·s) at a box-local material point (m).
     pub fn release_box(&mut self, impulse: [f64; 3], point: [f64; 3]) -> Result<(), GpuError> {
@@ -209,7 +251,7 @@ impl CarryGripperBatch {
         f.active = true;
         Ok(())
     }
-    /// Active state layout and total explicit buffers allocated by both kernels on the device.
+    /// Active state layout and total explicit buffers allocated by the active physics pipelines on the device.
     pub fn device_info(&self) -> &crate::GpuInfo {
         match self.flight.as_ref().filter(|f| f.published) {
             Some(f) => f.device.device_info(),
@@ -250,13 +292,17 @@ impl CarryGripperBatch {
             f.device.upload_needed = true;
         }
         let material = f.material;
-        let metrics = f.device.advance_checked(1, |rows| {
-            if clear_sweep(material, &prev, &rows[0]) {
-                Ok(())
-            } else {
-                Err(GpuError::SpatialContactBoundary)
-            }
-        })?;
+        let metrics = if let Some(shelf) = &mut f.shelf {
+            shelf.step(&mut f.device, material)?
+        } else {
+            f.device.advance_checked(1, |rows| {
+                if clear_sweep(material, &prev, &rows[0]) {
+                    Ok(())
+                } else {
+                    Err(GpuError::SpatialContactBoundary)
+                }
+            })?
+        };
         let l = &mut f.device.committed[0];
         let (p, v, w) = l
             .body
@@ -280,6 +326,9 @@ impl CarryGripperBatch {
             f.active = false;
             f.published = false;
             f.device.reset();
+            if let Some(shelf) = &mut f.shelf {
+                shelf.reset();
+            }
         }
         self.planar.reset();
     }
@@ -290,30 +339,48 @@ fn rotated<T: Scalar>(q: [T; 4], v: [T; 3]) -> [T; 3] {
     let c = cross(a, b);
     std::array::from_fn(|i| v[i] + q[3] * b[i] + c[i])
 }
+fn angular<T: Scalar>(q: [T; 4], l: [T; 3], inertia: [T; 3], zero: T) -> [T; 3] {
+    let local = rotated([zero - q[0], zero - q[1], zero - q[2], q[3]], l);
+    rotated(q, std::array::from_fn(|i| local[i] / inertia[i]))
+}
+#[allow(clippy::too_many_arguments)]
+fn advance<T: Scalar>(
+    mut p: [T; 3],
+    mut v: [T; 3],
+    mut q: [T; 4],
+    l: [T; 3],
+    inertia: [T; 3],
+    g: T,
+    dt: T,
+    zero: T,
+    half: T,
+) -> ([T; 3], [T; 3], [T; 4]) {
+    let mid = rotate(q, angular(q, l, inertia, zero), dt * half, half);
+    q = rotate(q, angular(mid, l, inertia, zero), dt, half);
+    for i in 0..3 {
+        p[i] = p[i] + v[i] * dt;
+    }
+    p[2] = p[2] - half * dt * dt * g;
+    v[2] = v[2] - dt * g;
+    (p, v, q)
+}
+type Unloaded<T> = ([(usize, T); 33], [[T; 2]; 3]);
+fn unloaded_hand<T: Scalar>(mut base: [T; WIDTH], c: &[T]) -> Unloaded<T> {
+    for x in &mut base[13..19] {
+        *x = c[1];
+    }
+    integrate::<false, false, true, _>(base, c)
+}
 fn module() -> naga::Module {
     kernel::build(&constants(), |v: [_; WORDS], c| {
-        let mut base = std::array::from_fn(|i| v[i]);
-        // Payload contact is absent; these words are unused by the unloaded hand.
-        for x in &mut base[13..19] {
-            *x = c[1];
-        }
-        let (hand, swept) = integrate::<false, false, true, _>(base, c);
+        let (hand, swept) = unloaded_hand(std::array::from_fn(|i| v[i]), c);
         let mut p: [_; 3] = std::array::from_fn(|i| v[WIDTH + i]);
         let mut vel: [_; 3] = std::array::from_fn(|i| v[WIDTH + 3 + i]);
         let mut q: [_; 4] = std::array::from_fn(|i| v[WIDTH + 6 + i]);
         let l: [_; 3] = std::array::from_fn(|i| v[WIDTH + 10 + i]);
-        let omega = |q: [_; 4]| {
-            let local = rotated([c[1] - q[0], c[1] - q[1], c[1] - q[2], q[3]], l);
-            rotated(q, std::array::from_fn(|i| local[i] / v[WIDTH + 13 + i]))
-        };
+        let inertia = std::array::from_fn(|i| v[WIDTH + 13 + i]);
         for _ in 0..4 {
-            let mid = rotate(q, omega(q), c[0] * c[3], c[3]);
-            q = rotate(q, omega(mid), c[0], c[3]);
-            for i in 0..3 {
-                p[i] = p[i] + vel[i] * c[0];
-            }
-            p[2] = p[2] - c[3] * c[0] * c[0] * v[21];
-            vel[2] = vel[2] - c[0] * v[21];
+            (p, vel, q) = advance(p, vel, q, l, inertia, v[21], c[0], c[1], c[3]);
         }
         std::array::from_fn::<_, 49, _>(|i| match i {
             0..33 => hand[i],

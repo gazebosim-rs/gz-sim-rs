@@ -15,7 +15,7 @@ use bevy_ecs::prelude::Resource;
 use box_manifold::Rectangle;
 use contact_step::{Loads, Point, Step};
 use flight::BoxFlight;
-pub use flight::{BoxFlightMaterial, BoxLinkState, FreeBoxState};
+pub use flight::{BoxFlightMaterial, BoxLinkState, FreeBoxState, ShelfImpact, SpatialShelf};
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]
 pub struct CarryGripperLane {

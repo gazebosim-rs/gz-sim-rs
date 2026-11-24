@@ -746,3 +746,142 @@ fn release_configuration_checks_spatial_inertia_against_the_physical_box() {
         Err(GpuError::InvalidBoxRelease)
     ));
 }
+
+const SHELF_FLIGHT: &str = include_str!("../../../../examples/gpu_box_shelf_impact.sdf");
+
+#[test]
+#[ignore = "requires a physical f64 GPU"]
+fn rotating_box_strikes_a_single_corner_of_the_finite_shelf() {
+    use gz_physics_gpu::CarryGripperBatch;
+    let adapter = std::env::var("GZ_GPU_ADAPTER").expect("physical adapter");
+    let mut sim = load(SHELF_FLIGHT, Some(&adapter)).unwrap();
+    assert!(
+        sim.world_mut()
+            .resource_mut::<CarryGripperBatch>()
+            .enable_shelf_impact(gz_physics_gpu::SpatialShelf {
+                center_y: 0.,
+                half_depth: 1.,
+                restitution: 0.5
+            })
+            .is_err()
+    );
+    let mut first = None;
+    for tick in 1..=2185 {
+        sim.step_exact(1).unwrap();
+        let batch = sim.world().resource::<CarryGripperBatch>();
+        if tick == 2000 {
+            let l = &batch.lanes()[0];
+            assert!(
+                l.hand.normal_impulse[..2].iter().all(|j| *j > 0.)
+                    && (l.track - 0.18).abs() < 0.001
+            );
+        }
+        let impulse = batch.lanes()[0].shelf_normal;
+        if tick == 2176 {
+            let h = batch.shelf_impact().unwrap();
+            assert_eq!(h.tick, tick);
+            assert!(h.offset_s > 0.00033 && h.offset_s < 0.00035);
+            assert!((h.point_m[2] - 0.014).abs() < 1e-11);
+            assert!(
+                h.linear_impulse[2] > 0.03
+                    && h.angular_impulse[0] < 0.
+                    && h.angular_impulse[1] > 0.
+            );
+            assert_eq!(h.linear_impulse, [0., 0., impulse]);
+            assert_eq!(batch.lanes()[0].point_impulse[3], [impulse, 0.]);
+            first = Some(h);
+        } else if tick >= 2041 {
+            assert_eq!(impulse, 0.);
+            assert_eq!(batch.shelf_impact(), first);
+        }
+    }
+    let body = sim
+        .world()
+        .resource::<CarryGripperBatch>()
+        .free_box()
+        .unwrap();
+    let time = sim.elapsed();
+    assert!(sim.step_exact(1).is_err());
+    assert_eq!(sim.elapsed(), time);
+    let batch = sim.world().resource::<CarryGripperBatch>();
+    assert_eq!(batch.tick(), 2185);
+    assert_eq!(batch.free_box(), Some(body));
+    assert_eq!(batch.shelf_impact(), first);
+}
+
+#[test]
+fn finite_spatial_shelf_needs_a_frictionless_supported_pair_and_bounded_restitution() {
+    let malformed = SHELF_FLIGHT.replace("shelf_restitution=\"0.65\"", "shelf_restitution=\"nan\"");
+    assert!(
+        load(&malformed, Some("unavailable"))
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("invalid numeric")
+    );
+    for src in [
+        SHELF_FLIGHT.replace("0.65\" open_tick", "1.1\" open_tick"),
+        SHELF_FLIGHT.replace("<mu>0</mu><mu2>0</mu2>", "<mu>0.2</mu><mu2>0.2</mu2>"),
+    ] {
+        assert!(
+            load(&src, Some("unavailable"))
+                .err()
+                .unwrap()
+                .to_string()
+                .contains("zero friction")
+        );
+    }
+}
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn finite_shelf_rejects_a_side_strike_and_never_treats_the_unoccupied_top_as_an_infinite_plane() {
+    use gz_physics_gpu::{CarryGripperBatch, SpatialShelf};
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut plain = load(FLIGHT, Some(&adapter)).unwrap();
+    let b = &mut *plain.world_mut().resource_mut::<CarryGripperBatch>();
+    let base = SpatialShelf {
+        center_y: 0.,
+        half_depth: 0.1,
+        restitution: 0.5,
+    };
+    for surface in [
+        base,
+        SpatialShelf {
+            center_y: f64::NAN,
+            ..base
+        },
+        SpatialShelf {
+            half_depth: 0.,
+            ..base
+        },
+        SpatialShelf {
+            half_depth: f64::NAN,
+            ..base
+        },
+        SpatialShelf {
+            restitution: -1.,
+            ..base
+        },
+    ] {
+        assert!(b.enable_shelf_impact(surface).is_err());
+    }
+    for (pose, size) in [
+        ("0.18 0 0.007", "0.12 0.09 0.014"),
+        ("0.235 0 0.007", "0.12 0.21 0.014"),
+        ("-0.18 0 0.007", "0.12 0.21 0.014"),
+    ] {
+        let src = SHELF_FLIGHT
+            .replace("0.18 0 0.007", pose)
+            .replace("0.12 0.21 0.014", size);
+        let mut sim = load(&src, Some(&adapter)).unwrap();
+        sim.step_exact(2140).unwrap();
+        let stop = (2141..2250).find(|_| sim.step_exact(1).is_err()).unwrap();
+        let b = sim.world().resource::<CarryGripperBatch>();
+        assert!(b.shelf_impact().is_none());
+        if pose.starts_with('-') {
+            assert!(stop > 2176);
+        } else {
+            assert!(stop <= 2176);
+        }
+    }
+}

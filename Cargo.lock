@@ -2815,6 +2815,7 @@ dependencies = [
  "gz-camera-output",
  "gz-fuel-tools",
  "gz-physics",
+ "gz-physics-gpu",
  "gz-physics-multifidelity",
  "gz-physics-xpbd",
  "gz-sim-core",

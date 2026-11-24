@@ -3,7 +3,9 @@
 //! A horizontal slider carrying the vertical gripper, with a finite named receiving shelf.
 use super::*;
 use configuration::{attr, num, plain, reason};
-use gz_physics_gpu::{BoxFlightMaterial, CarryGripperLane, simulation::install_carry_gripper};
+use gz_physics_gpu::{
+    BoxFlightMaterial, CarryGripperLane, SpatialShelf, simulation::install_carry_gripper,
+};
 use roxmltree::Node;
 #[derive(Clone, Copy)]
 struct Launch {
@@ -48,6 +50,7 @@ pub(super) struct Plan {
     moves: BTreeMap<u64, Move>,
     policy: Policy,
     flight: Option<(BoxFlightMaterial, Launch)>,
+    spatial_shelf: Option<SpatialShelf>,
 }
 #[derive(Resource)]
 pub(super) struct Binding {
@@ -378,6 +381,7 @@ impl Plan {
             "invalid shelf load threshold or jaw release coordinates",
         )?;
         let mut nodes = env.children().filter(|n| n.has_tag_name("box-flight"));
+        let mut spatial_shelf = None;
         let flight = if let Some(node) = nodes.next() {
             let open_tick = positive_tick(node, "open_tick")?;
             let impulse_tick = positive_tick(node, "impulse_tick")?;
@@ -385,6 +389,19 @@ impl Plan {
                 config::vector(Some(attr(node, name)?))
                     .ok_or_else(|| reason("finite three-component release input required"))
             };
+            if node.attribute("shelf_restitution").is_some() {
+                let restitution = num(node, "shelf_restitution")?;
+                require(
+                    (0. ..=1.).contains(&restitution) && lane.shelf_friction == 0.,
+                    &object.name,
+                    "spatial shelf impact needs zero friction and restitution in [0,1]",
+                )?;
+                spatial_shelf = Some(SpatialShelf {
+                    center_y: shelf_pose.translation[1],
+                    half_depth: size[1] * 0.5,
+                    restitution,
+                });
+            }
             let impulse = vec("impulse")?;
             let point = vec("point")?;
             let half = row
@@ -396,7 +413,13 @@ impl Plan {
                 nodes.next().is_none()
                     && config::shape(
                         node,
-                        &["open_tick", "impulse_tick", "impulse", "point"],
+                        &[
+                            "open_tick",
+                            "impulse_tick",
+                            "impulse",
+                            "point",
+                            "shelf_restitution",
+                        ],
                         false,
                     )
                     && impulse_tick > open_tick
@@ -434,6 +457,7 @@ impl Plan {
         };
         let plan = Self {
             flight,
+            spatial_shelf,
             id: row.id,
             lane,
             track: rail.scoped_name.clone(),
@@ -461,6 +485,9 @@ pub(super) fn install(
     let mut batch = CarryGripperBatch::new(adapter, vec![p.lane])?;
     if let Some((material, _)) = p.flight {
         batch.enable_box_flight(material)?;
+        if let Some(surface) = p.spatial_shelf {
+            batch.enable_shelf_impact(surface)?;
+        }
     }
     let owner = batch.owner();
     let track = links[&p.track];

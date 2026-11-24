@@ -39,6 +39,7 @@ mod carry_gripper;
 mod parallel_gripper;
 pub use carry_gripper::{
     BoxFlightMaterial, BoxLinkState, CarryGripperBatch, CarryGripperLane, FreeBoxState,
+    ShelfImpact, SpatialShelf,
 };
 mod planar_arm;
 mod planar_object;
