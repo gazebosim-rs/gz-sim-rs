@@ -7,7 +7,9 @@ use std::{error::Error, path::PathBuf, time::Duration};
 use bevy_ecs::prelude::{Entity, Res, ResMut, Resource};
 use clap::{Parser, ValueEnum};
 use gz_physics::{BodyId, BodyState, PhysicsBackend};
-use gz_physics_multifidelity::{ContactSegment, MultiFidelityBackend, RigidContactPatch};
+use gz_physics_multifidelity::{
+    ContactSegment, ContactSolverIterations, MultiFidelityBackend, RigidContactPatch,
+};
 use gz_sim_core::{EntityId, Phase, Simulation, StepFault, UpdateInfo};
 use gz_sim_scene::{
     BodyHandle, JointSample, Name, PhysicsEngine, UniversalJointSample, load_world_with_sdf_step,
@@ -62,8 +64,8 @@ struct Trial {
     /// Concentrate each fixed mass inside a centered cuboid with dimensions divided by this number.
     #[arg(long, default_value_t = 1., value_parser = divisor)]
     divisor: f64,
-    /// Native contact solves in one ordinary 1 ms command/publication interval. One uses the unmodified step.
-    #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..=8000))]
+    /// Native contact solves per 1 ms controller interval, up to one per nanosecond. One uses the ordinary step.
+    #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..=1_000_000))]
     substeps: u32,
     /// Use the authored local face detector. The substep budget is spent only on selected impacts.
     #[arg(long)]
@@ -78,7 +80,7 @@ struct Trial {
     #[arg(long, requires = "automatic")]
     stop_guard: bool,
     /// First-tick budget for a uniform reference that must start its tail at the same post-impact state.
-    #[arg(long,conflicts_with="automatic",value_parser=clap::value_parser!(u32).range(1..=8000))]
+    #[arg(long,conflicts_with="automatic",value_parser=clap::value_parser!(u32).range(1..=1_000_000))]
     first_native_steps: Option<u32>,
     /// Reverse the passive 3 N·m effort to challenge the negative speed stop.
     #[arg(long, requires = "passive_spindle")]
@@ -296,7 +298,7 @@ struct Run {
     native_left_tensor_kg_m2: [[f64; 3]; 3],
     native_robot_mass_kg: f64,
     #[serde(skip)]
-    first_solver: Option<gz_physics_multifidelity::ContactSolverIterations>,
+    first_solver: Option<ContactSolverIterations>,
     initial_patch_points: usize,
     incoming: Vec<State>,
     samples: Vec<Sample>,
@@ -352,7 +354,7 @@ fn run(trial: Trial) -> Result<Run> {
 
 fn run_with_first_solver(
     trial: Trial,
-    first_solver: Option<gz_physics_multifidelity::ContactSolverIterations>,
+    first_solver: Option<ContactSolverIterations>,
 ) -> Result<Run> {
     let xml = fixture(&trial);
     let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
