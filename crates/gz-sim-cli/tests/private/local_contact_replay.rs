@@ -194,3 +194,6 @@ fn recorded_contact_poses_survive_real_cli_replay_and_rewind() {
 
 #[path = "local_mesh_payload.rs"]
 mod mesh_payload;
+
+#[path = "contact_cohort_operator.rs"]
+mod contact_cohort;

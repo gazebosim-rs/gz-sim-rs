@@ -2216,3 +2216,7 @@ The sensor-free 100,000-deck fleet lowered p95 from 7.09 to 5.15 ms. With 1,000 
 ## 2026-11-23 — Reading the local robot and resolving a finite material support
 
 The CPU gripper published all six measured coordinates while placing its 200 g parcel. Its full transfer reproduced all 451 visual frames. Correcting sliding displacement halved the incline travel error at every doubling from one to eight material steps. The orange strip then left the finite board and accelerated freely. The finest independent full-sheet runs remained 0.328 mm apart, while the matched 30 ms landing window agreed within 0.028 mm. [Joint sensing and shelf replay](measurements/local-manipulation/cpu-gripper-joint-state.md) · [Material contact, coverage and three replays](measurements/local-manipulation/material-support-edge.md)
+
+## 2026-11-23 — Releasing one of four stationary robot feet
+
+Four 2 kg feet parked together. Removing a pad from under one foot while paused woke only that foot on the next advancing tick. Its body motion and both pad impulses matched continuous dynamics on all 300 resumed ticks, and reset repeated the experiment exactly. Independent headless and renderer runs each added 82 covered scene regions. A cold CLI and gz-web-rs replay preserved all 65 frames. [Measurements, remaining coverage and browser replay](measurements/local-manipulation/parked-foot-cohort.md)
