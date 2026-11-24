@@ -206,6 +206,25 @@ fn late_edge_sliding_refuses_without_publishing_particles_or_impulses() {
     assert_eq!(body.particles(), before);
     assert_eq!(body.last_self_contact_impulse(), receipt);
     assert_eq!(body.last_sweep_refinements(), 0);
+    // A plane admits supported-shell refinement even when it is beyond
+    // the sweep. Both physical contact impulses come from the shell itself.
+    let mut supported = body.clone();
+    let outside = Boundary::Plane {
+        point: [0., 0., -8.],
+        normal: [0., 0., 1.],
+        velocity: [0.; 3],
+    };
+    step_coupled_rigid(
+        &mut [&mut supported],
+        Duration::from_millis(120),
+        &[pad, outside],
+        &[mobility, None],
+    )
+    .unwrap();
+    assert_eq!(supported.last_sweep_refinements(), 6);
+    let slip = supported.last_self_contact_impulse();
+    assert!((slip.normal - 0.4822146611).abs() < 1e-8);
+    assert!((slip.tangent / slip.normal - 0.5).abs() < 1e-9);
     // From the same committed state, 6 ms requires two doublings. All
     // particles and reactions must match one direct four-substep solve.
     let dt = Duration::from_millis(6);

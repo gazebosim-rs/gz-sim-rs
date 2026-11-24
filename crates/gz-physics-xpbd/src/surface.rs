@@ -67,7 +67,7 @@ pub(super) struct Surface {
     // Topology and broad-phase capacity failures retain their hard limits.
     pub(super) subdivide_on_budget: bool,
     pub(super) retry_plane: bool,
-    pub(super) prioritize_terminal_speed: bool,
+    pub(super) row_order: RowOrder,
 }
 
 fn edge(a: usize, b: usize) -> [usize; 2] {
@@ -161,7 +161,7 @@ impl Surface {
             loads: None,
             subdivide_on_budget: false,
             retry_plane: false,
-            prioritize_terminal_speed: false,
+            row_order: RowOrder::Time,
         };
         let positions = particles
             .iter()
@@ -461,22 +461,9 @@ impl Surface {
                         }
                     })?;
                 if let Some(hit) = hit
-                    && earliest.as_ref().is_none_or(|old| {
-                        // Geometry has already been resolved in the terminal
-                        // velocity pass. Resolve its most violated normal first
-                        // when retrying a cluster of near-parallel constraints.
-                        let velocity_order = if self.prioritize_terminal_speed
-                            && search == Search::TerminalVelocity
-                        {
-                            old.speed.total_cmp(&hit.speed)
-                        } else {
-                            std::cmp::Ordering::Equal
-                        };
-                        velocity_order
-                            .then(hit.time.total_cmp(&old.time))
-                            .then(stencil.ids.cmp(&old.stencil.ids))
-                            .is_lt()
-                    })
+                    && earliest
+                        .as_ref()
+                        .is_none_or(|old| hit.precedes(old, search, self.row_order))
                 {
                     earliest = Some(hit);
                 }
@@ -484,6 +471,13 @@ impl Surface {
         }
         Ok(earliest)
     }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum RowOrder {
+    Time,
+    TerminalSpeed,
+    CertifiedSpeed,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -507,6 +501,8 @@ struct Stencil {
     vf: bool,
 }
 pub(super) struct Hit {
+    // The complete sweep cleared the inner gap and only its final velocity closes.
+    endpoint_velocity: bool,
     stencil: Stencil,
     pub(super) weights: [f64; 4],
     pub(super) normal: DVec3,
@@ -619,6 +615,7 @@ impl Stencil {
                             .sum::<f64>();
                         if penetrated || vn < -128. * f64::EPSILON * scale {
                             return Ok(Some(Hit {
+                                endpoint_velocity: !penetrated,
                                 stencil: self,
                                 weights: endpoint.weights,
                                 normal,
@@ -634,6 +631,7 @@ impl Stencil {
         }
         if end_gap < gap - eps || speed < -128. * f64::EPSILON * scale {
             return Ok(Some(Hit {
+                endpoint_velocity: false,
                 stencil: self,
                 weights,
                 normal: n,
@@ -667,6 +665,7 @@ impl Stencil {
                 .map(|(&w, v)| w * v.dot(normal))
                 .sum::<f64>();
             return Ok(Some(Hit {
+                endpoint_velocity: false,
                 stencil: self,
                 weights: terminal.weights,
                 normal,
@@ -926,6 +925,31 @@ fn entry_intervals(
 }
 
 impl Hit {
+    fn precedes(&self, other: &Self, search: Search, order: RowOrder) -> bool {
+        // A geometric event retains its time ordering. Once the swept path is
+        // clear, the largest closing velocity is the tightest unilateral row.
+        let priority = match search {
+            Search::TerminalVelocity if order != RowOrder::Time => {
+                other.speed.total_cmp(&self.speed)
+            }
+            Search::Supported if order == RowOrder::CertifiedSpeed => self
+                .endpoint_velocity
+                .cmp(&other.endpoint_velocity)
+                .then_with(|| {
+                    if self.endpoint_velocity && other.endpoint_velocity {
+                        other.speed.total_cmp(&self.speed)
+                    } else {
+                        std::cmp::Ordering::Equal
+                    }
+                }),
+            _ => std::cmp::Ordering::Equal,
+        };
+        priority
+            .then_with(|| self.time.total_cmp(&other.time))
+            .then_with(|| self.stencil.ids.cmp(&other.stencil.ids))
+            .is_lt()
+    }
+
     fn apply(&self, x: &mut [DVec3], p: &mut [Particle]) -> Result<f64, XpbdError> {
         let denom = (0..4)
             .map(|i| p[self.stencil.ids[i]].inverse_mass * self.weights[i].powi(2))

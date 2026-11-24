@@ -1,0 +1,166 @@
+{
+  "cpu": "AMD Ryzen 9 9950X3D",
+  "public_step_ns": 1000000,
+  "postgrip_tick": 737,
+  "legacy_public": {
+    "samples": 1800,
+    "median_ns": 28299551,
+    "p95_ns": 51603080,
+    "at_682_ns": 2606303067,
+    "at_737_ns": 18532122529
+  },
+  "revised_public": {
+    "samples": 1800,
+    "median_ns": 31869817,
+    "p95_ns": 53037461,
+    "at_682_ns": 2733826126,
+    "at_737_ns": 11321976487
+  },
+  "cut": {
+    "source_sha256": "397402c2e92c9ea1b8d681c5b216aebe9552aa9aed5286296c2bfd796b37cc87",
+    "reference_base": 512,
+    "reference_accepted_leaves": 768,
+    "legacy_accepted_leaves": 361,
+    "revised_accepted_leaves": 196,
+    "legacy_maximum_position_error_m": 2.154957278242753e-05,
+    "revised_maximum_position_error_m": 1.5457133661628282e-05,
+    "legacy_mass_weighted_rms_velocity_error_m_s": 0.05994830926318076,
+    "revised_mass_weighted_rms_velocity_error_m_s": 0.04629621955914601,
+    "legacy_support_impulse_error_ns": 8.39275519486268e-05,
+    "revised_support_impulse_error_ns": 5.9649994365058613e-05
+  },
+  "cases": [
+    {
+      "archive": "mesh-5-1250-guard",
+      "particles": 20,
+      "force_samples": 3088,
+      "matching_prefix": 3088,
+      "first_changed_public_time_ns": null,
+      "maximum_sampled_nodal_difference_m": 0.0,
+      "frames": 193,
+      "rest_last_sample_tick_max_speed_load_ratio": [
+        1588,
+        1.809291079766624e-08,
+        1.0000007914017999
+      ],
+      "rest_criteria": {
+        "required_ticks": 50,
+        "relative_load_tolerance": 0.025,
+        "speed_limit_m_s": 0.001
+      },
+      "triangle_box_intersections": 0,
+      "panel_intersections": 0,
+      "physical_sha256": {
+        "world.sdf": "7b27ef53bc72c9d14822ce2e761626f7b66b2a5d73c6afccb7d954a7a12fdd06",
+        "landing.json": "421709e43602dee8e1dccece864007c4c08c54568f8feed914815e33a672dc7e",
+        "particle-frames.json": "63cbbc2d981803166ef8c48af52e57afba0a58f549e08fe42c1582f0c19fbb80",
+        "trace.json": "57f649bb342ae86a79e46f1df4719887687c30f1a61c3a6c0d61ccf104abf069",
+        "replay/frames.jsonl": "d6073e782b3b449cc181376e2e1ede245f85753c6cdebc572c4d410c6b148428",
+        "rest.json": "b1bc77bbc15bd0bb2d40bd25be8cf67fd7da6874a19f6a55838c13d1982845b1"
+      }
+    },
+    {
+      "archive": "mesh-5-1250-control",
+      "particles": 20,
+      "force_samples": 3286,
+      "matching_prefix": 3286,
+      "first_changed_public_time_ns": null,
+      "maximum_sampled_nodal_difference_m": 0.0,
+      "frames": 201,
+      "rest_last_sample_tick_max_speed_load_ratio": [
+        1786,
+        2.175331572854718e-08,
+        1.0000009162317305
+      ],
+      "rest_criteria": {
+        "required_ticks": 50,
+        "relative_load_tolerance": 0.025,
+        "speed_limit_m_s": 0.001
+      },
+      "triangle_box_intersections": 0,
+      "panel_intersections": 0,
+      "physical_sha256": {
+        "world.sdf": "7b27ef53bc72c9d14822ce2e761626f7b66b2a5d73c6afccb7d954a7a12fdd06",
+        "landing.json": "76aa459c9d8ed8b03dde7e0608c304365e6e5074479b792d6f525145263f7468",
+        "particle-frames.json": "75116c893ad0639d93fd4d4cbd510be0f43f8c9ff062b50a32915d66ac70cfd5",
+        "trace.json": "e591aa985bb55d168747374772f7043e6141ce712eeb0597243025dbc5baa6c4",
+        "replay/frames.jsonl": "26b71f4022722ac82d8ab9a15524b4bfaa625de1cac2ae9abdbb3a0b164135b8",
+        "rest.json": "f357b0959b78bd2ece8aed9f1a0e3dd2fd93de296f8a2cc627e333dbfb5b7dd0"
+      }
+    },
+    {
+      "archive": "mesh-7-1300-guard",
+      "particles": 28,
+      "force_samples": 3188,
+      "matching_prefix": 3188,
+      "first_changed_public_time_ns": null,
+      "maximum_sampled_nodal_difference_m": 0.0,
+      "frames": 196,
+      "rest_last_sample_tick_max_speed_load_ratio": [
+        1588,
+        3.145347333720845e-08,
+        1.0000016491364714
+      ],
+      "rest_criteria": {
+        "required_ticks": 50,
+        "relative_load_tolerance": 0.025,
+        "speed_limit_m_s": 0.001
+      },
+      "triangle_box_intersections": 0,
+      "panel_intersections": 0,
+      "physical_sha256": {
+        "world.sdf": "173916340922b959b0e666327229efd3466bde37e87034d5a36d199b156dec2d",
+        "landing.json": "a07ec8996eee8bfc3b6f0892dc4688fbbe0c712cc57d59fa7a88506ddeee942f",
+        "particle-frames.json": "df8c464a4e2400aa0e013f51f42c01570f40383b01aa75909bc35d32df172706",
+        "trace.json": "7b43ba18416f6557c0aad368e21674825f771c56beed1147ff5662f315b97452",
+        "replay/frames.jsonl": "03f11da419dfa890f7c9e8b493a954dd40b3b064a100dd99e8cbfe9707267859",
+        "rest.json": "d235d4d5fa649cd77a5b5c35522cffba40bda661ad3376788364e34e4d654972"
+      },
+      "browser": {
+        "frames": 196,
+        "body_poses_and_shapes_checked": 8036,
+        "independent_particle_positions_checked": 5488,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9896%2F"
+      }
+    },
+    {
+      "archive": "mesh-7-1300-control",
+      "particles": 28,
+      "force_samples": 3400,
+      "matching_prefix": 2336,
+      "first_changed_public_time_ns": 3987000000,
+      "maximum_sampled_nodal_difference_m": 0.0002592601034052209,
+      "frames": 205,
+      "rest_last_sample_tick_max_speed_load_ratio": [
+        1800,
+        4.11163980065879e-09,
+        1.000000187189722
+      ],
+      "rest_criteria": {
+        "required_ticks": 50,
+        "relative_load_tolerance": 0.025,
+        "speed_limit_m_s": 0.001
+      },
+      "triangle_box_intersections": 0,
+      "panel_intersections": 0,
+      "physical_sha256": {
+        "world.sdf": "173916340922b959b0e666327229efd3466bde37e87034d5a36d199b156dec2d",
+        "landing.json": "124e0fc423b826ef70fa4ab83585eed142bda58d81a4c605d8f916bc13aecc13",
+        "particle-frames.json": "3ed924b646c212895a0332e9c0835be7a5fdcd41487ea69e678f23e896bf2058",
+        "trace.json": "10a0806b640678e13e385ab14319cce4dfa6d35321b89f632e17916955932bf6",
+        "replay/frames.jsonl": "5fd47bfc5ab911d5a1c893de972a0adb915f5ff0bd8750403aaf71154688f12c",
+        "rest.json": "894b4431e52aea8dc9943f0940f45647bf048695af74a1061a53f35c8754668d"
+      },
+      "browser": {
+        "frames": 205,
+        "body_poses_and_shapes_checked": 8405,
+        "independent_particle_positions_checked": 5740,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9897%2F"
+      }
+    }
+  ]
+}

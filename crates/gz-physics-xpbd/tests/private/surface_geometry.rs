@@ -447,6 +447,7 @@ fn a_rolling_edge_uses_the_incoming_material_normal_at_the_plane() {
     });
     let resolved = data.map(|r| DVec3::new(r[7], r[8], r[9]));
     let hit = Hit {
+        endpoint_velocity: false,
         stencil: Stencil {
             ids: [0, 1, 10, 15],
             vf: false,
@@ -616,8 +617,12 @@ fn terminal_speed_priority_preserves_geometric_event_order() {
         Err(XpbdError::UnresolvedSurface)
     );
     let eps = Surface::tolerance(&x, &particles, gap).unwrap();
-    surface.prioritize_terminal_speed = true;
-    for (search, speed) in [(Search::Supported, 0.25), (Search::TerminalVelocity, 2.)] {
+    surface.row_order = RowOrder::CertifiedSpeed;
+    for (search, speed) in [
+        (Search::Ordinary, 0.25),
+        (Search::Supported, 2.),
+        (Search::TerminalVelocity, 2.),
+    ] {
         let hit = surface
             .next_hit(&x, &particles, gap, eps, (&mut 0, &mut 0), search)
             .unwrap()
@@ -625,4 +630,32 @@ fn terminal_speed_priority_preserves_geometric_event_order() {
         assert_eq!(hit.time, 0.);
         assert!((hit.speed - speed).abs() < 1e-12);
     }
+}
+
+#[test]
+fn retry_resolves_swept_geometry_before_certified_endpoint_velocity() {
+    let row = |endpoint_velocity, time, speed, id| Hit {
+        endpoint_velocity,
+        stencil: Stencil {
+            ids: [id; 4],
+            vf: true,
+        },
+        normal: DVec3::Z,
+        weights: [0.; 4],
+        depth: 0.,
+        time,
+        speed,
+    };
+    let early = row(false, 0.1, 0.2, 4);
+    let late = row(false, 0.8, 4., 0);
+    let terminal = row(true, 0., 9., 0);
+    assert!(early.precedes(&late, Search::Supported, RowOrder::CertifiedSpeed));
+    assert!(late.precedes(&terminal, Search::Supported, RowOrder::CertifiedSpeed));
+    assert!(!terminal.precedes(&late, Search::Supported, RowOrder::CertifiedSpeed));
+    assert!(terminal.precedes(&early, Search::Supported, RowOrder::TerminalSpeed));
+    assert!(row(true, 0., 9., 0).precedes(
+        &row(true, 0., 9., 1),
+        Search::Supported,
+        RowOrder::CertifiedSpeed
+    ));
 }

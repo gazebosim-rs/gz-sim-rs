@@ -1,12 +1,74 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded subdivision of an unresolved supported shell on its prescribed clock.
-use super::{BoundaryImpulse, PreparedBoundary, SoftBody, XpbdError, substep_interval};
+use super::{
+    Boundary, BoundaryImpulse, PreparedBoundary, ReceiverMotion, RigidMobility, SoftBody,
+    XpbdError, solve_at_resolution, substep_interval,
+};
+use crate::surface::RowOrder;
 use std::ops::Range;
+use std::time::Duration;
 
 pub(super) struct ShellRetry {
     pub remaining_splits: u32,
     pub deepest: u32,
+}
+
+fn splittable(error: &XpbdError, body: &SoftBody) -> bool {
+    *error == XpbdError::UnresolvedSurface
+        || (*error == XpbdError::SurfaceBudget
+            && body.surface.as_ref().unwrap().subdivide_on_budget)
+}
+
+pub(super) fn solve<M: Copy + Into<RigidMobility>>(
+    bodies: &mut [&mut SoftBody],
+    dt: Duration,
+    boundaries: &[Boundary],
+    mobility: &[Option<M>],
+    count: u32,
+    maximum: u32,
+) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
+    let surface = bodies[0].surface.as_mut().unwrap();
+    surface.retry_plane = true;
+    surface.row_order = RowOrder::CertifiedSpeed;
+    surface.subdivide_on_budget = false;
+    // First try changing only the order of the certified velocity constraints.
+    let mut result = solve_at_resolution(bodies, dt, boundaries, mobility, count.into(), None);
+    let mut depth = 0;
+    // If a finer base cannot resolve the tick within its budget, retain the
+    // original coarse-grid subdivision and terminal-only ordering as a fallback.
+    for (base, order) in [
+        (
+            count.saturating_mul(2).min(maximum),
+            RowOrder::CertifiedSpeed,
+        ),
+        (count, RowOrder::TerminalSpeed),
+    ] {
+        if !result.as_ref().is_err_and(|e| splittable(e, bodies[0])) {
+            break;
+        }
+        bodies[0].surface.as_mut().unwrap().row_order = order;
+        let mut retry = ShellRetry {
+            remaining_splits: maximum - base,
+            deepest: 0,
+        };
+        result = solve_at_resolution(
+            bodies,
+            dt,
+            boundaries,
+            mobility,
+            base.into(),
+            Some(&mut retry),
+        );
+        depth = retry.deepest + u32::from(base > count);
+    }
+    let surface = bodies[0].surface.as_mut().unwrap();
+    surface.retry_plane = false;
+    surface.row_order = RowOrder::Time;
+    if result.is_ok() {
+        bodies[0].sweep_refinements = depth;
+    }
+    result
 }
 
 impl ShellRetry {
@@ -40,10 +102,7 @@ impl ShellRetry {
             }
             Err(error) => error,
         };
-        let splittable = error == XpbdError::UnresolvedSurface
-            || (error == XpbdError::SurfaceBudget
-                && body.surface.as_ref().unwrap().subdivide_on_budget);
-        if !splittable || width < 2 || self.remaining_splits == 0 {
+        if !splittable(&error, body) || width < 2 || self.remaining_splits == 0 {
             return Err(error);
         }
         self.remaining_splits -= 1;
@@ -69,3 +128,7 @@ impl ShellRetry {
         )
     }
 }
+
+#[cfg(test)]
+#[path = "../../tests/private/fold_slide_cut.rs"]
+mod fold_slide_cut;

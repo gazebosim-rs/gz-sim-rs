@@ -134,6 +134,7 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
     let mut rest = landing::Rest::default();
     let mut settled = None;
     let mut captures_by_tick = vec![(0, frame)];
+    let mut step_costs = Vec::new();
     for k in 1..=if end == End::Rest {
         REST_LIMIT
     } else {
@@ -145,9 +146,11 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
         } else {
             None
         };
+        let start = std::time::Instant::now();
         actions.drive(k, &mut grasp, phase, force).map_err(|err| {
             format!("{columns}-point {peak_mn} mN guard={enabled} tick {k} stroke={} lower={:?} open={:?} last={:?}: {err} ({:?})", grasp.stroke, actions.lower, actions.open, grasp.trace.last(), grasp.recording.sim.fault())
         })?;
+        step_costs.push((k, start.elapsed().as_nanos() as u64));
         let last = baseline + k;
         actions.observe(
             k,
@@ -215,6 +218,10 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
     )?;
     if end == End::Rest {
         write_json(&dir.join("rest.json"), &rest.report())?;
+        write_json(
+            &dir.join("step-cost-ns.json"),
+            &serde_json::to_value(step_costs)?,
+        )?;
     }
     if let Some(impact) = &landing {
         write_json(&dir.join("landing.json"), impact)?;
