@@ -40,12 +40,18 @@ pub(super) fn topology(count: usize, columns: usize) -> Arc<[Edge]> {
 
 pub(super) struct Ridge {
     end: [DVec3; 2],
+    translation: DVec3,
     axis: usize,
     signs: DVec3,
     index: usize,
 }
 impl Ridge {
-    pub(super) fn all(center: DVec3, half: DVec3, q: DQuat) -> impl Iterator<Item = Self> {
+    pub(super) fn all(
+        center: DVec3,
+        half: DVec3,
+        q: DQuat,
+        translation: DVec3,
+    ) -> impl Iterator<Item = Self> {
         (0..12).map(move |index| {
             let axis = index / 4;
             let mut signs = DVec3::ZERO;
@@ -55,6 +61,7 @@ impl Ridge {
             let dir = q * (DVec3::AXES[axis] * half[axis]);
             Self {
                 end: [middle - dir, middle + dir],
+                translation,
                 axis,
                 signs,
                 index,
@@ -106,7 +113,7 @@ impl Ridge {
             p[i].position.into(),
             p[j].position.into(),
         ];
-        let z = [a[0], a[1], x[i], x[j]];
+        let z = [a[0], a[1], x[i] - self.translation, x[j] - self.translation];
         if !self.overlaps(&Bounds::swept(
             [(a[2], z[2]), (a[3], z[3])].into_iter(),
             radius,
@@ -173,7 +180,7 @@ impl Ridge {
                 other_wing: edge.other,
                 weights: [-w[2], -w[3], 0.],
                 normal: n,
-                witness: self.end[0].lerp(self.end[1], w[1]),
+                witness: self.end[0].lerp(self.end[1], w[1]) + self.translation,
                 lambda: 0.,
             },
         )))

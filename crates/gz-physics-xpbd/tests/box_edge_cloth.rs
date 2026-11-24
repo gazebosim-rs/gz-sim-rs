@@ -165,3 +165,39 @@ fn a_long_ridge_carries_a_flat_sheet_without_a_node_or_box_corner_on_the_sheet()
             .all(|p| p.position[0].abs() > 0.15 && (p.position[2] - 0.026).abs() < 0.003)
     );
 }
+
+#[test]
+fn a_moving_ridge_sweeps_a_material_edge_in_its_own_frame() {
+    let q = DQuat::from_rotation_y(0.31);
+    let drift = q * DVec3::new(-1.5, 0.7, 1.3);
+    let v = DVec3::Y * 2. - NORMAL * 0.35;
+    let mut a = make(q, 0., 0.02, v, 0.25);
+    let mut b = make(q, 0., 0.02, v + q.conjugate() * drift, 0.25);
+    let dt = Duration::from_millis(1);
+    let mut loaded = 0;
+    for tick in 0..50 {
+        let start = drift * (f64::from(tick) * 0.001);
+        let before = totals(&b);
+        a.step(dt, &[bench(q)]).unwrap();
+        b.step(
+            dt,
+            &[Boundary::TranslatingCuboid {
+                center: start.into(),
+                half_extents: [0.025, 0.16, 0.02],
+                orientation: q.to_array(),
+                velocity: drift.into(),
+            }],
+        )
+        .unwrap();
+        let j = b.last_boundary_impulses()[0];
+        let world_j = DVec3::from(j.linear);
+        assert!(world_j.distance(a.last_boundary_impulses()[0].linear.into()) < 2e-8);
+        let after = totals(&b);
+        assert!((after[0] - before[0] + world_j).length() < 1e-9);
+        assert!(
+            (after[1] - before[1] + DVec3::from(j.angular) + start.cross(world_j)).length() < 1e-9
+        );
+        loaded += usize::from(world_j.length() > 1e-8);
+    }
+    assert!(loaded > 0);
+}

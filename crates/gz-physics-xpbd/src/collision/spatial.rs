@@ -58,7 +58,7 @@ impl Field {
         for (i, b) in boundaries.iter().enumerate() {
             let half = match b.shape {
                 Shape::Capsule(c) => c.axis.abs() * c.half_length + DVec3::splat(c.radius),
-                Shape::StaticCuboid(half, q) => {
+                Shape::FixedOrientationBox(half, q) => {
                     (q * DVec3::X).abs() * half.x
                         + (q * DVec3::Y).abs() * half.y
                         + (q * DVec3::Z).abs() * half.z

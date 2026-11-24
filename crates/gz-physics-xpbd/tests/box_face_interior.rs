@@ -188,3 +188,49 @@ fn skyward_sheet_hits_the_bottom_and_an_in_plane_translation_is_free() {
         }
     }
 }
+
+#[test]
+fn translating_corners_and_face_friction_follow_the_box_frame() {
+    let q = DQuat::from_rotation_x(0.37);
+    let drift = q * DVec3::new(1.2, -0.4, 0.5);
+    let relative = DVec3::new(1.1, -0.2, -35.);
+    let mut fixed = cloth(q, 0.026, relative, 0.25).with_angular_momentum_conservation();
+    let mut moving = cloth(q, 0.026, relative + q.conjugate() * drift, 0.25)
+        .with_angular_momentum_conservation();
+    let dt = Duration::from_millis(1);
+    let Boundary::StaticCuboid {
+        center,
+        half_extents,
+        orientation,
+    } = bench(q, 0., 0.035)
+    else {
+        unreachable!()
+    };
+    for tick in 0..3 {
+        let origin = DVec3::from(center) + drift * (f64::from(tick) * dt.as_secs_f64());
+        fixed.step(dt, &[bench(q, 0., 0.035)]).unwrap();
+        moving
+            .step(
+                dt,
+                &[Boundary::TranslatingCuboid {
+                    center: origin.into(),
+                    half_extents,
+                    orientation,
+                    velocity: drift.into(),
+                }],
+            )
+            .unwrap();
+        let j0 = fixed.last_boundary_impulses()[0];
+        let j1 = moving.last_boundary_impulses()[0];
+        assert!(DVec3::from(j0.linear).distance(j1.linear.into()) < 2e-8);
+        if tick == 0 {
+            assert!(DVec3::from(j1.linear).length() > 1.);
+            assert!((q.conjugate() * DVec3::from(j1.linear)).x > 0.001);
+        }
+        let offset = drift * (f64::from(tick + 1) * dt.as_secs_f64());
+        for (a, b) in fixed.particles().iter().zip(moving.particles()) {
+            assert!((DVec3::from(b.position) - offset).distance(a.position.into()) < 1e-9);
+            assert!((DVec3::from(b.velocity) - drift).distance(a.velocity.into()) < 1e-7);
+        }
+    }
+}

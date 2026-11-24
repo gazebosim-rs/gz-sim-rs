@@ -12,8 +12,25 @@ enum Shape {
     Capsule(super::capsule::Capsule),
     Sphere(f64, DVec3),
     Oriented(OrientedShape),
-    StaticCuboid(DVec3, DQuat),
+    FixedOrientationBox(DVec3, DQuat),
     Plane(DVec3),
+}
+
+fn fixed_orientation_box(
+    half_extents: [f64; 3],
+    orientation: [f64; 4],
+) -> Result<Shape, XpbdError> {
+    let half = DVec3::from(half_extents);
+    let q = DQuat::from_array(orientation);
+    if !half.is_finite()
+        || half.min_element() <= 0.
+        || !half.length().is_finite()
+        || !q.is_finite()
+        || (q.length_squared() - 1.).abs() > 1e-10
+    {
+        return Err(XpbdError::InvalidBoundary);
+    }
+    Ok(Shape::FixedOrientationBox(half, q.normalize()))
 }
 
 #[derive(Clone)]
@@ -102,19 +119,21 @@ impl PreparedBoundary {
                 center,
                 half_extents,
                 orientation,
-            } => {
-                let half = DVec3::from(half_extents);
-                let q = DQuat::from_array(orientation);
-                if !half.is_finite()
-                    || half.min_element() <= 0.
-                    || !half.length().is_finite()
-                    || !q.is_finite()
-                    || (q.length_squared() - 1.).abs() > 1e-10
-                {
-                    return Err(XpbdError::InvalidBoundary);
-                }
-                (center, [0.; 3], Shape::StaticCuboid(half, q.normalize()))
-            }
+            } => (
+                center,
+                [0.; 3],
+                fixed_orientation_box(half_extents, orientation)?,
+            ),
+            Boundary::TranslatingCuboid {
+                center,
+                half_extents,
+                orientation,
+                velocity,
+            } => (
+                center,
+                velocity,
+                fixed_orientation_box(half_extents, orientation)?,
+            ),
             Boundary::Plane {
                 point,
                 normal,
@@ -179,7 +198,7 @@ impl PreparedBoundary {
                 ));
             }
             Shape::Plane(n) => (n, interval.radius - b.dot(n), interval.radius - a.dot(n)),
-            Shape::StaticCuboid(half, q) => {
+            Shape::FixedOrientationBox(half, q) => {
                 let local_a = q.conjugate() * a;
                 let local_b = q.conjugate() * b;
                 if !(local_b - local_a).length_squared().is_finite() {
@@ -403,7 +422,10 @@ impl PreparedBoundary {
     }
 
     fn has_planar_surface(&self) -> bool {
-        matches!(self.shape, Shape::Plane(_) | Shape::StaticCuboid(_, _))
+        matches!(
+            self.shape,
+            Shape::Plane(_) | Shape::FixedOrientationBox(_, _)
+        )
     }
 
     /// Both projected endpoints must lie on the same flat face. Leave rounding
@@ -415,7 +437,7 @@ impl PreparedBoundary {
         radius: f64,
         tolerance: f64,
     ) -> bool {
-        if let Shape::StaticCuboid(half, orientation) = self.shape {
+        if let Shape::FixedOrientationBox(half, orientation) = self.shape {
             let inverse = orientation.conjugate();
             let direction = inverse * normal;
             let axis = direction.abs().max_position();
@@ -436,8 +458,8 @@ impl PreparedBoundary {
             .all(|p| (p.dot(normal) - radius).abs() <= tolerance)
     }
 
-    pub(super) fn fixed_box(&self) -> Option<(DVec3, DQuat)> {
-        if let Shape::StaticCuboid(half, q) = self.shape {
+    pub(super) fn one_way_box(&self) -> Option<(DVec3, DQuat)> {
+        if let Shape::FixedOrientationBox(half, q) = self.shape {
             Some((half, q))
         } else {
             None
@@ -487,7 +509,7 @@ impl PreparedBoundary {
                 self.velocity + (c.axis * c.angular_speed).cross(normal * c.radius)
             }
             Shape::Sphere(r, angular) => self.velocity + angular.cross(normal * r),
-            Shape::StaticCuboid(_, _) | Shape::Plane(_) => self.velocity,
+            Shape::FixedOrientationBox(_, _) | Shape::Plane(_) => self.velocity,
             Shape::Oriented(_) => unreachable!("oriented boundaries require a finite receiver"),
         }
     }

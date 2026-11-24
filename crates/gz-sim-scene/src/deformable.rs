@@ -68,8 +68,18 @@ enum Surface {
         body: BodyId,
         shape: ReceiverShape,
         mobility: Option<ReceiverMass>,
-        static_box_pose: Option<Transform>,
+        one_way_box: Option<BoxMotion>,
     },
+}
+
+#[derive(Clone, Copy)]
+enum BoxMotion {
+    Fixed(Transform),
+    Translating(Transform),
+}
+pub(super) fn requires_translation(world: &World, link: u64) -> bool {
+    world.get_resource::<Deformables>().is_some_and(|soft| soft.surfaces.iter().any(|surface|
+        matches!(surface, Surface::Rigid {link: id, one_way_box: Some(BoxMotion::Translating(_)), ..} if *id == link)))
 }
 
 #[derive(Clone, Copy)]
@@ -432,6 +442,8 @@ enum CouplingError {
     Binding,
     #[error("one-way capsule guide requires a fixed world axis and axial angular velocity")]
     TiltedCapsule,
+    #[error("one-way material cuboid requires linear translation with fixed orientation")]
+    NonlinearBox,
     #[error("nonfinite deformable boundary trajectory or reaction")]
     Nonfinite,
     #[error(transparent)]
@@ -450,6 +462,13 @@ fn capsule_axis(state: BodyState) -> Result<DVec3, CouplingError> {
         return Err(CouplingError::TiltedCapsule);
     }
     Ok(axis)
+}
+
+fn linear_box_motion(physics: &PhysicsBackend, body: BodyId, state: BodyState) -> bool {
+    state.angular_velocity == [0.; 3]
+        && physics
+            .downcast_ref::<MultiFidelityBackend>()
+            .is_some_and(|native| native.translation_sample(body).is_none())
 }
 
 fn start_positions(world: &mut World) {
@@ -479,7 +498,18 @@ fn start_positions(world: &mut World) {
                 if world.get::<BodyHandle>(entity).map(BodyHandle::id) != Some(body) {
                     return Err(CouplingError::Binding);
                 }
-                *start = Some(physics.state(body).ok_or(CouplingError::Binding)?);
+                let state = physics.state(body).ok_or(CouplingError::Binding)?;
+                if matches!(
+                    surface,
+                    Surface::Rigid {
+                        one_way_box: Some(BoxMotion::Translating(_)),
+                        ..
+                    }
+                ) && !linear_box_motion(physics, body, state)
+                {
+                    return Err(CouplingError::NonlinearBox);
+                }
+                *start = Some(state);
                 if matches!(
                     surface,
                     Surface::Rigid {
@@ -629,7 +659,7 @@ impl Deformables {
                     body,
                     shape,
                     mobility,
-                    static_box_pose,
+                    one_way_box,
                     ..
                 } => {
                     let Some(start) = start else {
@@ -693,16 +723,31 @@ impl Deformables {
                                 angular_velocity: end.angular_velocity,
                             },
                             ReceiverShape::Cuboid(half_extents)
-                                if let Some(local) = static_box_pose =>
+                                if let Some(motion) = one_way_box =>
                             {
+                                let local = match motion {
+                                    BoxMotion::Fixed(local) | BoxMotion::Translating(local) => {
+                                        local
+                                    }
+                                };
                                 let rotation = DQuat::from_array(start.orientation);
-                                Boundary::StaticCuboid {
-                                    center: (DVec3::from_array(center)
-                                        + rotation * DVec3::from_array(local.translation))
-                                    .to_array(),
-                                    half_extents,
-                                    orientation: (rotation * DQuat::from_array(local.rotation))
-                                        .to_array(),
+                                let center = (DVec3::from_array(center)
+                                    + rotation * DVec3::from_array(local.translation))
+                                .to_array();
+                                let orientation =
+                                    (rotation * DQuat::from_array(local.rotation)).to_array();
+                                match motion {
+                                    BoxMotion::Fixed(_) => Boundary::StaticCuboid {
+                                        center,
+                                        half_extents,
+                                        orientation,
+                                    },
+                                    BoxMotion::Translating(_) => Boundary::TranslatingCuboid {
+                                        center,
+                                        half_extents,
+                                        orientation,
+                                        velocity: velocity.to_array(),
+                                    },
                                 }
                             }
                             ReceiverShape::Cuboid(half_extents) => Boundary::Cuboid {

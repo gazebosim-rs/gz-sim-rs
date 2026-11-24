@@ -225,6 +225,11 @@ pub fn queue_link_world_velocity(
         if crate::damped_sole::translating_support(sim.world(), id) && angular != [0.; 3] {
             return Err(InputError::Unsupported("coated sole support rotation"));
         }
+        if angular != [0.; 3] && crate::deformable::requires_translation(sim.world(), id) {
+            return Err(InputError::Unsupported(
+                "one-way translating material cuboid rotation",
+            ));
+        }
         binding.velocity_at_com(sim.world(), entity, values, sim.step_duration())?;
     }
     let mut pending = sim
