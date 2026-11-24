@@ -102,10 +102,22 @@
       ]
     },
     "left-700": {
-      "continuous_125ns_impulse_ns": 0.037598337762440176
+      "continuous_125ns_impulse_ns": 0.037598337762440176,
+      "continuous_25ns_impulse_ns": 0.03707190681380221,
+      "125_vs_25ns_error_pct_mm_deg": [
+        1.4200266290105512,
+        0.0755072451766485,
+        0.10482937335712278
+      ]
     },
     "right-700": {
-      "continuous_125ns_impulse_ns": 0.0379351090055199
+      "continuous_125ns_impulse_ns": 0.0379351090055199,
+      "continuous_25ns_impulse_ns": 0.037140629344643114,
+      "125_vs_25ns_error_pct_mm_deg": [
+        2.139112004550281,
+        0.16391978737646482,
+        0.35802886183585536
+      ]
     },
     "left-1200": {
       "continuous_125ns_impulse_ns": 0.026816315776797498,
