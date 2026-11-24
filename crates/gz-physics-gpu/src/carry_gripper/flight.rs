@@ -7,11 +7,13 @@ use crate::spatial::{cross, rotate};
 use glam::{DMat3, DQuat, DVec3};
 pub use shelf::{ShelfImpact, ShelfWitness, SpatialShelf};
 
-/// First-contact manifolds supported on the frictionless receiving shelf.
+/// Authored receiving-shelf contact law for an initially separated cuboid.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ShelfManifold {
     SingleCorner,
     CornerOrEdge,
+    /// Inelastic Coulomb contact for a centered planar release with full transverse support.
+    PlanarSupport,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct BoxFlightMaterial {
@@ -53,6 +55,7 @@ pub(super) struct BoxFlight {
     device: ResidentBatch<Lane>,
     shelf: Option<shelf::Shelf>,
     material: BoxFlightMaterial,
+    planar_support: bool,
     active: bool,
     published: bool,
 }
@@ -205,6 +208,7 @@ impl CarryGripperBatch {
             device,
             shelf: None,
             material,
+            planar_support: false,
             active: false,
             published: false,
         });
@@ -229,8 +233,24 @@ impl CarryGripperBatch {
         let f = self
             .flight
             .as_mut()
-            .filter(|f| f.shelf.is_none() && self.planar.tick == 0)
+            .filter(|f| f.shelf.is_none() && !f.planar_support && self.planar.tick == 0)
             .ok_or(GpuError::InvalidBoxRelease)?;
+        if manifold == ShelfManifold::PlanarSupport {
+            let m = f.material;
+            let q = m.initial_orientation;
+            if surface.restitution != 0.
+                || !surface.half_depth.is_finite()
+                || !surface.center_y.is_finite()
+                || (m.transverse_origin - surface.center_y).abs() + m.half_depth
+                    > surface.half_depth
+                || q[0] != 0.
+                || q[2] != 0.
+            {
+                return Err(GpuError::InvalidBoxRelease);
+            }
+            f.planar_support = true;
+            return Ok(());
+        }
         let shelf = shelf::Shelf::new(f, surface, manifold == ShelfManifold::CornerOrEdge)?;
         let total = f.device.device_info().allocated_buffer_bytes + shelf.allocated();
         f.device.gpu.info.allocated_buffer_bytes = total;
@@ -249,7 +269,13 @@ impl CarryGripperBatch {
         let p = DVec3::from(point);
         let j = DVec3::from(impulse);
         let half = DVec3::new(l.box_half[0], f.material.half_depth, l.box_half[1]);
-        if f.active || !p.is_finite() || !j.is_finite() || !p.abs().cmple(half).all() {
+        if f.active || f.published || !p.is_finite() || !j.is_finite() || !p.abs().cmple(half).all()
+        {
+            return Err(GpuError::InvalidBoxRelease);
+        }
+        // A transverse force or a lever arm out of the symmetry plane can excite
+        // roll or yaw; such a release cannot use the planar contact reduction.
+        if f.planar_support && (j.y != 0. || (p.y != 0. && j != DVec3::ZERO)) {
             return Err(GpuError::InvalidBoxRelease);
         }
         let start = f.material.start(&l, j, p);
@@ -273,7 +299,7 @@ impl CarryGripperBatch {
     }
     /// Active state layout and total explicit buffers allocated by the active physics pipelines on the device.
     pub fn device_info(&self) -> &crate::GpuInfo {
-        match self.flight.as_ref().filter(|f| f.published) {
+        match self.flight.as_ref().filter(|f| f.published && f.active) {
             Some(f) => f.device.device_info(),
             None => self.planar.device_info(),
         }
@@ -301,11 +327,28 @@ impl CarryGripperBatch {
         })
     }
     pub fn step(&mut self) -> Result<crate::StepMetrics, GpuError> {
-        let Some(f) = self.flight.as_mut().filter(|f| f.active) else {
+        let Some(f) = self.flight.as_mut().filter(|f| f.active || f.published) else {
             return self.planar.step();
         };
         let old = self.planar.committed[0];
         let prev = f.device.committed[0].body;
+        if f.planar_support && (!f.active || approaches_support(f.material, &old, prev)) {
+            if f.active {
+                project_into_lane(f.material, prev, &mut self.planar.committed[0]);
+                self.planar.upload_needed = true;
+            }
+            let metrics = self
+                .planar
+                .step()
+                .inspect_err(|_| self.planar.committed[0] = old)?;
+            f.device.committed[0].body =
+                f.material
+                    .start(&self.planar.committed[0], DVec3::ZERO, DVec3::ZERO);
+            f.device.tick = self.planar.tick;
+            f.published = true;
+            f.active = false;
+            return Ok(metrics);
+        }
         if self.planar.upload_needed {
             f.device.committed[0].carry.track_target = old.track_target;
             f.device.committed[0].carry.hand.target = old.hand.target;
@@ -324,18 +367,8 @@ impl CarryGripperBatch {
             })?
         };
         let l = &mut f.device.committed[0];
-        let (p, v, w) = l
-            .body
-            .link_state(material.inertia, material.local_center(&l.carry).to_array());
-        // The canonical spatial attitude is exposed by free_box. The planar API
-        // continues reporting the geometric X/Z components and projected spin.
         self.planar.committed[0] = l.carry;
-        let h = &mut self.planar.committed[0].hand;
-        h.ball = [p[0], p[2]];
-        h.velocity = [v[0], v[2]];
-        h.spin = -w[1];
-        let x = DQuat::from_array(l.body.orientation) * DVec3::X;
-        h.angle = x.z.atan2(x.x) - l.carry.box_heading;
+        project_into_lane(material, l.body, &mut self.planar.committed[0]);
         f.published = true;
         self.planar.tick = f.device.tick;
         self.planar.upload_needed = false;
@@ -352,6 +385,22 @@ impl CarryGripperBatch {
         }
         self.planar.reset();
     }
+}
+// Switch at a public boundary whose conservative swept enclosing circle reaches the
+// shelf height. Both kernels advance identical free planar rigid-body equations until contact.
+fn approaches_support(m: BoxFlightMaterial, l: &CarryGripperLane, s: FreeBoxState) -> bool {
+    let r = DVec3::new(l.box_half[0], 0., l.box_half[1]) + m.local_center(l).abs();
+    let dt = STEP.as_secs_f64();
+    let dz = dt * (s.center_velocity[2] - 0.5 * dt * l.hand.gravity);
+    s.mass_center[2] + dz.min(0.) - r.length() <= l.shelf_center[1] + l.shelf_half[1]
+}
+fn project_into_lane(m: BoxFlightMaterial, state: FreeBoxState, l: &mut CarryGripperLane) {
+    let (p, v, w) = state.link_state(m.inertia, m.local_center(l).to_array());
+    l.hand.ball = [p[0], p[2]];
+    l.hand.velocity = [v[0], v[2]];
+    l.hand.spin = -w[1];
+    let x = DQuat::from_array(state.orientation) * DVec3::X;
+    l.hand.angle = x.z.atan2(x.x) - l.box_heading;
 }
 fn rotated<T: Scalar>(q: [T; 4], v: [T; 3]) -> [T; 3] {
     let a = [q[0], q[1], q[2]];

@@ -989,3 +989,111 @@ fn explicitly_selecting_one_shelf_corner_preserves_the_isolated_impact_and_rejec
             .is_empty()
     );
 }
+
+const SHELF_REST: &str = include_str!("../../../../examples/gpu_box_shelf_rest.sdf");
+#[test]
+fn planar_support_requires_an_inelastic_contact_pair() {
+    let bad = SHELF_REST.replace("shelf_restitution=\"0\"", "shelf_restitution=\"0.65\"");
+    assert!(
+        load(&bad, Some("unavailable"))
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("zero restitution")
+    );
+}
+#[test]
+#[ignore = "requires named physical f64 Vulkan hardware"]
+fn separated_box_recontacts_and_its_weight_stays_on_the_finite_shelf() {
+    use gz_physics_gpu::CarryGripperBatch;
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(SHELF_REST, Some(&adapter)).unwrap();
+    let mut peak = 0_f64;
+    for tick in 1..=2450 {
+        sim.step_exact(1).unwrap();
+        let b = sim.world().resource::<CarryGripperBatch>();
+        let l = b.lanes()[0];
+        if tick >= 2041 {
+            assert!(b.free_box().is_some());
+            assert!(l.shelf_up >= 0.);
+            assert_eq!(l.hand.normal_impulse[..2], [0.; 2]);
+            peak = peak.max(l.shelf_up);
+        }
+        if tick > 2350 {
+            assert!(
+                (l.shelf_up / 0.001 - 0.7848).abs() < 0.005,
+                "tick {tick}, {l:?}"
+            );
+            assert!(l.settling_speed() < 0.002);
+        }
+    }
+    assert!(peak > 0.02);
+}
+#[test]
+#[ignore = "requires named physical f64 Vulkan hardware"]
+fn out_of_plane_impulses_cannot_enter_the_planar_support_profile() {
+    use gz_physics_gpu::{CarryGripperBatch, GpuError};
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(SHELF_REST, Some(&adapter)).unwrap();
+    sim.step_exact(2040).unwrap();
+    let b = &mut *sim.world_mut().resource_mut::<CarryGripperBatch>();
+    for (j, p) in [
+        ([0.003, 0.001, 0.045], [0.; 3]),
+        ([0.003, 0., 0.045], [0., 0.001, 0.]),
+    ] {
+        assert!(matches!(
+            b.release_box(j, p),
+            Err(GpuError::InvalidBoxRelease)
+        ));
+        assert!(b.free_box().is_none());
+    }
+    sim.step_exact(410).unwrap();
+    let b = &mut *sim.world_mut().resource_mut::<CarryGripperBatch>();
+    assert!(matches!(
+        b.release_box([0.; 3], [0.; 3]),
+        Err(GpuError::InvalidBoxRelease)
+    ));
+}
+
+#[test]
+#[ignore = "requires named physical f64 Vulkan hardware"]
+fn reduced_shelf_contacts_require_full_transverse_width_and_a_single_material_law() {
+    use gz_physics_gpu::{CarryGripperBatch, ShelfManifold, SpatialShelf};
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(FLIGHT, Some(&adapter)).unwrap();
+    let b = &mut *sim.world_mut().resource_mut::<CarryGripperBatch>();
+    let full = SpatialShelf {
+        center_y: 0.,
+        half_depth: 0.1,
+        restitution: 0.,
+    };
+    for bad in [
+        SpatialShelf {
+            restitution: 0.65,
+            ..full
+        },
+        SpatialShelf {
+            half_depth: f64::NAN,
+            ..full
+        },
+        SpatialShelf {
+            center_y: f64::NAN,
+            ..full
+        },
+        SpatialShelf {
+            center_y: 0.095,
+            ..full
+        },
+    ] {
+        assert!(
+            b.enable_shelf_manifold(bad, ShelfManifold::PlanarSupport)
+                .is_err()
+        );
+    }
+    b.enable_shelf_manifold(full, ShelfManifold::PlanarSupport)
+        .unwrap();
+    assert!(
+        b.enable_shelf_manifold(full, ShelfManifold::SingleCorner)
+            .is_err()
+    );
+}

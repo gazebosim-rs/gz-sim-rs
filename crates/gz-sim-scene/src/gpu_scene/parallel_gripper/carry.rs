@@ -401,6 +401,7 @@ impl Plan {
                     match mode {
                         "corner" => ShelfManifold::SingleCorner,
                         "edge" => ShelfManifold::CornerOrEdge,
+                        "planar-support" => ShelfManifold::PlanarSupport,
                         _ => return Err(reason("unknown spatial shelf manifold")),
                     }
                 }
@@ -408,9 +409,12 @@ impl Plan {
             if node.attribute("shelf_restitution").is_some() {
                 let restitution = num(node, "shelf_restitution")?;
                 require(
-                    (0. ..=1.).contains(&restitution) && lane.shelf_friction == 0.,
+                    match manifold {
+                        ShelfManifold::PlanarSupport => restitution == 0.,
+                        _ => (0. ..=1.).contains(&restitution) && lane.shelf_friction == 0.,
+                    },
                     &object.name,
-                    "spatial shelf impact needs zero friction and restitution in [0,1]",
+                    "spatial impacts require zero friction and restitution in [0,1]; planar support requires zero restitution",
                 )?;
                 spatial_shelf = Some((
                     SpatialShelf {
