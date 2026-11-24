@@ -599,6 +599,22 @@ fn terminal_speed_priority_preserves_geometric_event_order() {
     let x: Vec<_> = particles.iter().map(|p| DVec3::from(p.position)).collect();
     let mut surface = Surface::new(faces, &particles).unwrap();
     surface.set_friction(0.3).unwrap();
+    assert!(surface.starts_clear(&particles, gap).unwrap());
+    let mut overlap = particles.clone();
+    for p in &mut overlap[3..6] {
+        p.position[2] -= 1e-6;
+    }
+    assert!(!surface.starts_clear(&overlap, gap).unwrap());
+    let mut far = particles.clone();
+    far[0].position[0] = 1e14;
+    assert_eq!(surface.starts_clear(&far, gap), Err(XpbdError::Numerical));
+    for p in &mut overlap[3..6] {
+        p.position[2] = 0.;
+    }
+    assert_eq!(
+        surface.starts_clear(&overlap, gap),
+        Err(XpbdError::UnresolvedSurface)
+    );
     let eps = Surface::tolerance(&x, &particles, gap).unwrap();
     surface.prioritize_terminal_speed = true;
     for (search, speed) in [(Search::Supported, 0.25), (Search::TerminalVelocity, 2.)] {

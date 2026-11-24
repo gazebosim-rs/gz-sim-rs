@@ -364,6 +364,28 @@ impl Surface {
         }
         Err(XpbdError::UnresolvedSurface)
     }
+    /// A local velocity solve may continue a clear incoming shell. Starting
+    /// with overlapping material skins would instead require a geometric
+    /// repair of the public input, independent of how small the first slice is.
+    pub(super) fn starts_clear(
+        &mut self,
+        particles: &[Particle],
+        gap: f64,
+    ) -> Result<bool, XpbdError> {
+        let x: Vec<_> = particles.iter().map(|p| DVec3::from(p.position)).collect();
+        let still: Vec<_> = particles
+            .iter()
+            .map(|p| Particle {
+                velocity: [0.; 3],
+                ..*p
+            })
+            .collect();
+        let eps = Self::tolerance(&x, &still, gap)?;
+        Ok(self
+            .next_hit(&x, &still, gap, eps, (&mut 0, &mut 0), Search::Supported)?
+            .is_none())
+    }
+
     pub fn verify(&mut self, x: &[DVec3], p: &[Particle], gap: f64) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
         if self

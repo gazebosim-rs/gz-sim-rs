@@ -564,6 +564,15 @@ fn solve<M: Copy + Into<RigidMobility>>(
                 // All receivers follow prescribed trajectories. Reuse the
                 // original substep grid and spend its remaining leaf budget
                 // only at an interval that refuses its contact constraints.
+                let body = &mut *bodies[0];
+                if !body
+                    .surface
+                    .as_mut()
+                    .unwrap()
+                    .starts_clear(&body.particles, 2. * body.config.particle_radius)?
+                {
+                    return result;
+                }
                 let mut retry = ShellRetry {
                     remaining_splits: maximum - count,
                     deepest: 0,
