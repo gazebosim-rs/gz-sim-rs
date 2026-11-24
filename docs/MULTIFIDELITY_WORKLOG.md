@@ -11,6 +11,10 @@ Each new development phase includes visual output from the measured simulation a
 
 An 80 g cuboid lifted 96.19 mm clear of the table on the GPU and 96.79 mm in independent 3D Rapier. Tilting it initially, shifting its mass, missing the target, reducing pad friction and opening in midair produced distinct measured outcomes. A normal SDF run also handed the box to the receiving shelf. The freely rotating reference departed from planar motion during the tilted pinch and individual finger loads differed despite matching net weight. The flat single-world case reached 791 observed steps/s. [Contact geometry, measurements, coverage and gz-web-rs replays](measurements/local-manipulation/gpu-box-pickup.md)
 
+## 2026-11-23 — Cloth on a translating turntable
+
+A rectangular turntable carried its inner cloth through a three-radian turn while the outer cloth slid off at 160 ms. Both material resolutions agreed on the release tick, with a maximum 0.060 mm difference in the outer trajectory. Measured deck forces and moments matched the cloth momentum balance through release. This uses axial rotation and one-way contact. A freely tipping support with two-way cloth loads remains open. [Measurements, tests, coverage and gz-web-rs playback](measurements/local-manipulation/cloth-turntable.md)
+
 ## 2026-11-23 — Cloth on a moving finite deck
 
 A deck moving at 0.4 m/s carried one 100 g sheet while a second slid off and fell. The sliding sheet lost its last measured support after 230 ms. While fully supported, it tracked the analytical solution within 0.037 mm. Reset reproduced both trajectories and the signed deck loads. A rotating or accelerating deck remains outside this straight-line qualification. [Measurements, coverage and native gz-web-rs replay](measurements/local-manipulation/cloth-conveyor.md)
