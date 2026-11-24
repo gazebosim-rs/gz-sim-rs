@@ -2452,3 +2452,7 @@ The eccentric box now turns freely after release and loses spin through signed t
 
 At 2.193 s one GPU corner was already supported and the second was 339 µm above the shelf. Replaying just the next millisecond from that exact state gave native CPU yaw speeds from 1.72 to 4.64 rad/s across seven time resolutions. The continuous GPU gave 1.617 rad/s. The next comparison needs to resolve how the second corner takes load while the first is still touching. [Frozen incoming states, reproducible native controls and gz-web-rs](measurements/local-manipulation/gpu-shelf-glance.md)
 
+
+## 2026-11-24 — Sliding on two shelf corners after a glancing strike
+
+The corner returned at 2.205 s in both mirrored GPU releases. Through 2.215 s the existing device law agreed with a separate sliding-contact calculation within 0.00388° of yaw, 6.18 µm of link motion and 0.561 µN·s of per-corner impulse. A matched Rapier run directed friction differently at the returning corner and differed by 0.251° at 2.215 s. Both native recordings passed 2,450 visual pose checks each. The next physics check is the transition from sliding to sticking. [Signed loads, three matched restarts, coverage and gz-web-rs replays](measurements/local-manipulation/gpu-shelf-reload.md)

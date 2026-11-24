@@ -20,9 +20,9 @@ struct DeviceContact {
 }
 #[derive(Default)]
 pub(super) struct Witnesses {
-    impulses: [Vector; 8],
-    torques: [Vector; 8],
-    first_loaded: [Option<usize>; 8],
+    pub(super) impulses: [Vector; 8],
+    pub(super) torques: [Vector; 8],
+    pub(super) first_loaded: [Option<usize>; 8],
     peak_cone_excess: f64,
     max_witness_offset: f64,
     arriving: usize,
@@ -40,7 +40,7 @@ impl Witnesses {
         normal: Vector,
         sign: f64,
         data: &ContactData,
-    ) {
+    ) -> (usize, Vector) {
         // Rapier writes the accumulated tangential impulse in the solver's fixed
         // basis on body one. The box can be either member of the contact pair.
         let axis = -normal;
@@ -72,6 +72,7 @@ impl Witnesses {
         {
             self.first_burst += impulse;
         }
+        (i, impulse)
     }
 }
 fn plastic(
