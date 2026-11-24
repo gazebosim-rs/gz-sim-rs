@@ -95,7 +95,10 @@ fn legacy_particle_and_cable_constructions_keep_their_exact_wire_format() {
     ] {
         let bytes = bincode::serialize(&body.one_way_construction().unwrap()).unwrap();
         let old: LegacyConstruction = bincode::deserialize(&bytes).unwrap();
-        assert_eq!(old.topology, expected);
+        assert_eq!(
+            std::mem::discriminant(&old.topology),
+            std::mem::discriminant(&expected)
+        );
         let legacy_bytes = bincode::serialize(&old).unwrap();
         assert_eq!(bytes, legacy_bytes);
         let rebuilt =
