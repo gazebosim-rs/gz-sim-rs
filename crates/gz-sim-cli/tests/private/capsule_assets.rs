@@ -143,3 +143,41 @@ fn unpainted_planes_and_round_primitives_have_portable_materials() {
     }
     assert!(assets.plane_uri([0., 0., 1.], [1.; 2], [1.; 4]).is_err());
 }
+
+#[test]
+fn ground_mesh_rejects_stale_dimensions_and_unsupported_materials() {
+    let plane = "<visual name='floor'><geometry><plane><normal>0 0 1</normal><size>3 9</size></plane></geometry><material><diffuse>0.8 0.8 0.8 1</diffuse></material></visual>";
+    let mut sim = scene(plane);
+    let assets = Assets::offline(&sim).unwrap().unwrap();
+    let entity = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.contains::<VisualGeometry>())
+        .unwrap()
+        .id();
+    sim.world_mut()
+        .entity_mut(entity)
+        .insert(VisualGeometry(Arc::new(sdformat::Geometry::Plane {
+            normal: [0., 0., 1.],
+            size: [4., 9.],
+        })));
+    assert!(
+        extract_with_assets(&sim, "default", 0, Some(&assets))
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("outside the admitted asset snapshot")
+    );
+    sim.world_mut()
+        .get_mut::<VisualMaterial>(entity)
+        .unwrap()
+        .0
+        .normal_map = "normal.png".into();
+    assert!(
+        Assets::offline(&sim)
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("opaque diffuse primitives")
+    );
+}

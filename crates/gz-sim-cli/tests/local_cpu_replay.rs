@@ -1621,3 +1621,72 @@ fn rejected_robot_control_leaves_the_trace_at_the_last_committed_step() {
         }
     }
 }
+
+#[test]
+fn upstream_motor_journal_preserves_reaction_reversal_reset_and_ground_visual() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
+    let world = root.join("worlds/upstream_joint_force.sdf");
+    let journal = root.join("replay/upstream_joint_force.json");
+    let archive = dir.path().join("motor");
+    let trace = dir.path().join("observations");
+    success(run(
+        &world,
+        &journal,
+        &[
+            "--trace",
+            trace.to_str().unwrap(),
+            "--record",
+            archive.to_str().unwrap(),
+            "--record-every",
+            "5",
+        ],
+    ));
+    success(run(
+        &world,
+        &journal,
+        &["--verify", trace.to_str().unwrap(), "--threads", "8"],
+    ));
+    let rows: Vec<Value> = fs::read_to_string(trace)
+        .unwrap()
+        .lines()
+        .map(|s| serde_json::from_str(s).unwrap())
+        .collect();
+    for (command, step, velocity) in [(3, 100, 10.0), (5, 300, 10.0), (7, 500, -10.0)] {
+        let sample = record(&rows, command, step);
+        let speed = sample["scalar_joints"][0]["velocity"].as_f64().unwrap();
+        assert!((speed - velocity).abs() < 1e-4);
+        let impulse = sample["delivered_normal_ns"].as_f64().unwrap();
+        assert!((impulse - 120.6 * 9.8 * 0.001).abs() < 0.002);
+    }
+    let reset = record(&rows, 9, 0);
+    assert_eq!(reset["epoch"], 1);
+    shared(reset, record(&rows, 0, 0), STATE);
+    for step in 1..=100 {
+        shared(record(&rows, 3, step), record(&rows, 12, step), STATE);
+    }
+    for (epoch, frames) in [(0, 101), (1, 21)] {
+        let recording = archive.join(format!("epoch-{epoch}"));
+        let manifest: Value =
+            serde_json::from_slice(&fs::read(recording.join("manifest.json")).unwrap()).unwrap();
+        assert_eq!(manifest["complete"], true);
+        assert_eq!(manifest["frames"], frames);
+        let route = manifest["assets"][0]["route"].as_str().unwrap();
+        assert!(route.ends_with("/plane.glb"));
+        assert!(
+            fs::read(recording.join(route.trim_start_matches('/')))
+                .unwrap()
+                .starts_with(b"glTF")
+        );
+    }
+    let original = fs::read_to_string(world).unwrap();
+    for invalid in [
+        original.replace("<static>true</static>", "<static>false</static>"),
+        original.replace("gz::sim::systems::Physics", "gz::sim::systems::Unknown"),
+    ] {
+        let bad = file(dir.path(), "unsupported.sdf", &invalid);
+        let out = run(&bad, &journal, &[]);
+        assert!(!out.status.success());
+        assert!(String::from_utf8_lossy(&out.stderr).contains("local-cpu-v1 admits"));
+    }
+}
