@@ -31,6 +31,12 @@ For each body the difference in linear momentum between the strike and the miss 
 
 The angular balance uses the same bodies, their SDF mass centers and their inertia tensors rotated into world coordinates. The moment origin starts at the incoming wrist pivot and falls with gravity while its axes stay aligned with the world. In that frame, the balance includes each body's spin and its center-of-mass motion about the pivot. The clear parcel is aligned with its original approach for this calculation. The resulting angular impulse includes both forces acting through a lever arm and joint couples. The world Y axis coincides with the second wrist axis initially.
 
+## Return to larger steps after separation
+
+At both 35 and 50 µm, the left and right grippers retained every impact pulse and every measured component of finger and wrist impulse and moment at the boundaries of those pulses. Starting at 25 ns, the policy checks for separation 2 µs after the predicted arrival and uses 125 ns for the remainder of the fine window when the check passes. Starting at 1 ns, a 3 µs guard and 25 ns tail admitted all four approaches. At the end of the public millisecond the largest wrist differences across these eight cases were 10.04 µN·s of impulse and 1.80 µN·m·s of moment against their original fine-prefix runs. [Per-case signed impulses and differences](wrist-release-balance.json)
+
+On the 50 µm left approach, testing at 2 µs kept all 93,808 native calls because the pair had yet to pass the separation check. Waiting another microsecond allowed both sides to finish in 70,689 native calls. To reproduce the latter setting, add `--early-face-tail-step-ns 25 --early-face-guard-ns 3000` to the command below. [Left after release](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10105%2F) · [Right after release](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10106%2F) · [Left at the earlier check](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10104%2F) · [Portable worlds and recordings](wrist-release-replays.tar.xz)
+
 ## Reproduce the left strike
 
 ```sh
