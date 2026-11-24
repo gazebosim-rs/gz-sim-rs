@@ -2235,3 +2235,7 @@ Saved cloth now preserves the sliding equations that generated it. An archived c
 ## 2026-11-23 — Isolating the folded sheet's first sideways impulse
 
 Two independently advanced sheets left the jaws 0.5 µs apart and reached the table 127.5 µs apart. Before touchdown their corners differed by 0.026 mm. The signed sideways table impulses diverged during the first millisecond of impact and the largest measured corner difference reached 0.350 mm. Per-particle table reactions are the next discriminator. [Timed reactions, trajectories and both native replays](measurements/local-manipulation/cloth-incoming-history.md)
+
+## 2026-11-23 — A spherical wrist rests and wakes under load
+
+A balanced 2 kg hand entered the cheaper tier for 300 ticks and woke on the first commanded torque. Its largest positional difference from continuous dynamics was under 3 × 10⁻¹⁵ m. Reloading reproduced all 1,500 states. In a separate strike the first contact impulse and both post-impact readings matched exactly. The eligibility test also caught an inverted hand, an off-center descendant and a rotated slider that could move away from its stop. [Measurements, coverage and native replay](measurements/local-manipulation/hanging-ball-wrist.md)

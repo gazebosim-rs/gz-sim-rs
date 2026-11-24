@@ -1,0 +1,156 @@
+{
+  "first_resumed_angular_velocity_rad_s": [
+    0.06534424013881504,
+    0.050887576979053196,
+    0.13113328432573895
+  ],
+  "first_resumed_tick": 351,
+  "max_bearing_orientation_error_rad": 2.733429794228649e-13,
+  "max_bearing_velocity_error_rad_s": 1.3122697137636226e-12,
+  "max_rotation_rad": 3.141071525616586,
+  "max_tool_position_error_m": 2.640730067781619e-15,
+  "parked_ticks": 300,
+  "reset_states": 1500,
+  "rest_phase_p95_ns": {
+    "dynamic": 30640,
+    "parked": 2810,
+    "reset_parked": 2880
+  },
+  "ticks": 1500,
+  "visual_frames": 151,
+  "incremental_coverage": {
+    "crates/gz-physics-rapier/src/joints/parked_robot.rs": {
+      "lines": {
+        "hit": 14,
+        "total": 14,
+        "missing": []
+      },
+      "regions": {
+        "hit": 32,
+        "total": 32,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/examples/ball_wrist.rs": {
+      "lines": {
+        "hit": 5,
+        "total": 5,
+        "missing": []
+      },
+      "regions": {
+        "hit": 9,
+        "total": 9,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/examples/ball_wrist/mounted.rs": {
+      "lines": {
+        "hit": 120,
+        "total": 124,
+        "missing": [
+          92,
+          133,
+          140,
+          160
+        ]
+      },
+      "regions": {
+        "hit": 264,
+        "total": 277,
+        "missing": [
+          [
+            85,
+            75,
+            85,
+            76
+          ],
+          [
+            87,
+            46,
+            87,
+            47
+          ],
+          [
+            89,
+            27,
+            89,
+            28
+          ],
+          [
+            91,
+            36,
+            91,
+            37
+          ],
+          [
+            92,
+            28,
+            92,
+            74
+          ],
+          [
+            103,
+            45,
+            103,
+            46
+          ],
+          [
+            133,
+            10,
+            133,
+            11
+          ],
+          [
+            136,
+            41,
+            136,
+            42
+          ],
+          [
+            136,
+            62,
+            136,
+            63
+          ],
+          [
+            137,
+            60,
+            137,
+            61
+          ],
+          [
+            138,
+            57,
+            138,
+            58
+          ],
+          [
+            140,
+            16,
+            140,
+            71
+          ],
+          [
+            160,
+            16,
+            160,
+            147
+          ]
+        ]
+      }
+    }
+  },
+  "source_revisions": [
+    "209e17a",
+    "e66f0f8",
+    "e5a402a"
+  ],
+  "viewer": {
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10009%2F",
+    "frames": 151,
+    "body_poses_and_shapes_checked": 755,
+    "reset_ms": 0.0,
+    "renderer": "WebGPU"
+  },
+  "verified_visual_frames_sha256": "6b959134f69f96cd6c8f8cc99fcb408f22bf1a29989e5a614fdba6ef50a3f276"
+}
