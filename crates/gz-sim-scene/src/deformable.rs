@@ -25,6 +25,29 @@ use gz_physics_xpbd::{
 };
 use gz_sim_core::{StepFault, UpdateInfo, entity_by_id};
 
+/// Material contact wrench on one articulated pad, measured over the last
+/// committed positive-duration step. Both vectors use world axes; the moment
+/// is about the native pad's center of mass at the end of that interval.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct ArticulatedPadWrench {
+    pub force_n: [f64; 3],
+    pub torque_nm: [f64; 3],
+}
+
+/// A newly loaded, removed or faulted pad has no current reaction reading.
+/// Multiple deformable materials contribute to the same physical pad sensor.
+pub fn articulated_pad_wrench(sim: &Simulation, link: u64) -> Option<ArticulatedPadWrench> {
+    if sim.is_faulted() {
+        return None;
+    }
+    entity_by_id(sim.world(), link)?;
+    sim.world()
+        .get_resource::<Deformables>()?
+        .pad_wrenches
+        .get(&link)
+        .copied()
+}
+
 pub mod articulated_impact;
 mod config;
 #[cfg(test)]
@@ -152,6 +175,7 @@ pub(crate) struct Deformables {
     receivers: Vec<Option<(BodyId, BodyState)>>,
     active_slots: Vec<usize>,
     articulated_wrenches: bool,
+    pad_wrenches: BTreeMap<u64, ArticulatedPadWrench>,
     samples: BTreeMap<String, DeformableSample>,
 }
 
@@ -363,6 +387,7 @@ pub fn material_elastic_forces(
 fn reset(info: Res<UpdateInfo>, mut soft: ResMut<Deformables>) {
     let soft = &mut *soft;
     soft.pending_accelerations.clear();
+    soft.pad_wrenches.clear();
     soft.current.clone_from(&soft.initial);
     soft.automatic_consumed = false;
     soft.starts.fill(None);
@@ -780,7 +805,7 @@ impl Deformables {
     /// Native has finished this tick. Apply the measured impulse over its next
     /// solve so joint constraints distribute the load through the articulation.
     fn queue_articulated_reactions(
-        &self,
+        &mut self,
         backend: &mut MultiFidelityBackend,
         dt: Duration,
     ) -> Result<(), CouplingError> {
@@ -803,11 +828,21 @@ impl Deformables {
                 linear += DVec3::from(reaction.linear);
                 angular += DVec3::from(reaction.angular);
             }
+            let force = linear / dt.as_secs_f64();
+            let torque = (angular + offset.cross(linear)) / dt.as_secs_f64();
             if linear != DVec3::ZERO || angular != DVec3::ZERO {
-                let force = linear / dt.as_secs_f64();
-                let torque = (angular + offset.cross(linear)) / dt.as_secs_f64();
                 backend.add_world_wrench(id, force.to_array(), torque.to_array())?;
             }
+            let Surface::Rigid { link, .. } = self.surfaces[slot] else {
+                return Err(CouplingError::Binding);
+            };
+            self.pad_wrenches.insert(
+                link,
+                ArticulatedPadWrench {
+                    force_n: force.to_array(),
+                    torque_nm: torque.to_array(),
+                },
+            );
         }
         Ok(())
     }

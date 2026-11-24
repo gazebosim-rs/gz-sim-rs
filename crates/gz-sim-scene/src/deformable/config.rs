@@ -865,6 +865,7 @@ fn parse(
         starts: vec![None; surfaces.len()],
         accelerations: vec![None; surfaces.len()],
         applied_forcing: vec![],
+        pad_wrenches: BTreeMap::new(),
         articulated_wrenches: surfaces.iter().any(|s| {
             matches!(
                 s,

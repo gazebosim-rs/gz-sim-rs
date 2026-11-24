@@ -16,13 +16,26 @@ pub(super) enum Stage {
     Placing,
     Opening,
     Withdrawn,
+    LostGrip,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub(super) struct Event {
     pub tick: usize,
     pub stage: Stage,
     pub carriage_y_m: f64,
-    pub bar_force_n: f64,
+    #[serde(rename = "bar_force_n")]
+    pub load_n: f64,
+    pub spindle_rad: f64,
+}
+/// Signals needed by the route. Each observer obtains them from its own instruments.
+#[derive(Clone, Copy)]
+pub(super) struct Feedback {
+    pub carried: bool,
+    pub snag: bool,
+    pub clear: bool,
+    pub supported: bool,
+    pub lost: bool,
+    pub load_n: f64,
     pub spindle_rad: f64,
 }
 struct RailMotion {
@@ -47,17 +60,22 @@ pub(super) struct Controller {
     pub abort: bool,
     pub lift: f64,
     stage_start: usize,
+    travel_ticks: usize,
     motion: RailMotion,
     dwell: usize,
 }
 impl Controller {
     pub fn new() -> Self {
+        Self::with_travel_ticks(4000)
+    }
+    pub fn with_travel_ticks(travel_ticks: usize) -> Self {
         Self {
             stage: Stage::Pickup,
             events: vec![],
             abort: false,
             lift: NORMAL_LIFT,
             stage_start: 0,
+            travel_ticks,
             motion: RailMotion {
                 from: 0.,
                 to: 0.,
@@ -108,13 +126,13 @@ impl Controller {
         )?;
         Ok(())
     }
-    fn enter(&mut self, stage: Stage, tick: usize, y: f64, s: &Sample, to: f64, duration: usize) {
+    fn enter(&mut self, stage: Stage, tick: usize, y: f64, s: &Feedback, to: f64, duration: usize) {
         self.events.push(Event {
             tick,
             stage,
             carriage_y_m: y,
-            bar_force_n: s.bar,
-            spindle_rad: s.spindle,
+            load_n: s.load_n,
+            spindle_rad: s.spindle_rad,
         });
         self.stage = stage;
         self.stage_start = tick;
@@ -127,22 +145,40 @@ impl Controller {
         };
     }
     pub fn observe(&mut self, tick: usize, y: f64, s: &Sample) -> Result<()> {
+        self.apply(
+            tick,
+            y,
+            &Feedback {
+                carried: s.squeeze.iter().all(|&p| p >= 0.05) && s.source <= 0.001,
+                snag: s.bar > FORCE_TRIGGER,
+                clear: s.bar < 0.001,
+                supported: (if self.abort { s.source } else { s.shelf }) > 0.9 * WEIGHT,
+                lost: false,
+                load_n: s.bar,
+                spindle_rad: s.spindle,
+            },
+        )
+    }
+    pub fn apply(&mut self, tick: usize, y: f64, s: &Feedback) -> Result<()> {
         let rail_done =
             tick >= self.motion.start + self.motion.duration && (y - self.motion.to).abs() < 0.003;
         match self.stage {
             Stage::Pickup if tick >= 5400 => {
-                if s.squeeze.iter().any(|&p| p < 0.05) || s.source > 0.001 {
+                if !s.carried {
                     return Err("cable pickup failed".into());
                 }
-                self.enter(Stage::Transport, tick, y, s, 0.46, 4000);
+                self.enter(Stage::Transport, tick, y, s, 0.46, self.travel_ticks);
             }
-            Stage::Transport if s.bar > FORCE_TRIGGER => {
+            Stage::Transport | Stage::Backoff | Stage::Raising | Stage::Returning if s.lost => {
+                self.enter(Stage::LostGrip, tick, y, s, y, 1);
+            }
+            Stage::Transport if s.snag => {
                 // Retreat from the measured event; obstacle dimensions and position
                 // are unavailable to the controller.
                 self.abort = self.lift + LIFT_INCREMENT > SAFE_LIFT + 1e-9;
                 self.enter(Stage::Backoff, tick, y, s, (y - BACKOFF).max(0.), 1200);
             }
-            Stage::Backoff if rail_done && s.bar < 0.001 => {
+            Stage::Backoff if rail_done && s.clear => {
                 if self.abort {
                     self.enter(Stage::Returning, tick, y, s, 0., 3500);
                 } else {
@@ -151,18 +187,17 @@ impl Controller {
                 }
             }
             Stage::Raising
-                if (s.spindle - self.lift).abs() < 0.005
+                if (s.spindle_rad - self.lift).abs() < 0.005
                     && tick - self.stage_start >= 1000
-                    && s.bar < 0.001 =>
+                    && s.clear =>
             {
-                self.enter(Stage::Transport, tick, y, s, 0.46, 4000);
+                self.enter(Stage::Transport, tick, y, s, 0.46, self.travel_ticks);
             }
             Stage::Transport | Stage::Returning if rail_done => {
                 self.enter(Stage::Placing, tick, y, s, self.motion.to, 1);
             }
             Stage::Placing => {
-                let force = if self.abort { s.source } else { s.shelf };
-                if force > 0.9 * WEIGHT {
+                if s.supported {
                     self.dwell += 1;
                 } else {
                     self.dwell = 0;
@@ -179,6 +214,6 @@ impl Controller {
         Ok(())
     }
     pub fn done(&self, tick: usize) -> bool {
-        self.stage == Stage::Withdrawn && tick - self.stage_start >= 2500
+        matches!(self.stage, Stage::LostGrip | Stage::Withdrawn) && tick - self.stage_start >= 2500
     }
 }

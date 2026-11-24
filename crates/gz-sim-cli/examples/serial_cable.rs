@@ -340,6 +340,12 @@ fn main() -> Result<()> {
     let out = std::env::args_os()
         .nth(1)
         .ok_or("supply fresh output directory")?;
+    if out == "--tactile" {
+        let output = std::env::args_os()
+            .nth(2)
+            .ok_or("supply fresh tactile output directory")?;
+        return snag::tactile::record(Path::new(&output));
+    }
     if out == "--snag" {
         let output = std::env::args_os()
             .nth(2)

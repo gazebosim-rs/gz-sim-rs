@@ -2123,3 +2123,7 @@ Rigid fingertips now report the normal and friction impulse on each cloth partic
 ## 2026-11-23 — Recovering a cable snag during serial transport
 
 A 0.447 N contact triggered braking on the next 1 ms tick. The robot reversed 103 mm, raised the held cable, cleared the original snag by 7.15 mm, and placed it on the shelf. A taller barrier snagged the cable again at the safe lift limit, so the robot returned it to the pickup table and opened after the table took its weight. All 52,659 ticks matched after reset, and the unchanged clear-route trajectory matched both obstructed runs until impact. Eleven release tests passed with 367/374 changed production lines and 647/678 regions covered. [Measurements and three native replays](measurements/local-manipulation/serial-cable-snag.md)
+
+## 2026-11-23 — Feeling a cable snag at the gripper
+
+The gripper sensed a snag 120 ms after the cable touched the barrier and carried it to the shelf after a second lift. A light 153 ms rub and a twice-as-fast clear run caused no retreat. A taller barrier forced a return to the pickup table, while a jaw drive failure stopped the carriage within 3.71 mm and the cable fell onto that table. The 700 mm stress case reached the rigid robot during braking and remains outside the cable-only recovery envelope. All 86,037 measured ticks repeated after reset. Twenty-eight Rust tests passed, with 456/464 changed production lines and 854/895 regions covered. [Measured forces and six native replays](measurements/local-manipulation/serial-cable-tactile.md)

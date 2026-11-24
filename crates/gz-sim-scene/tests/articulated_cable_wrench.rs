@@ -550,3 +550,65 @@ fn patch_reactions_on_both_jaws_change_the_opening_under_identical_motor_efforts
     let opening = |jaws: [BodyState; 2]| jaws[1].position[0] - jaws[0].position[0] - 0.024;
     assert!(opening(actual) > opening(unloaded) + 1e-7);
 }
+
+#[test]
+fn pad_sensor_sums_material_wrenches_at_native_com_and_expires_on_reset_removal_or_fault() {
+    use gz_sim_scene::deformable::{ArticulatedPadWrench, articulated_pad_wrench};
+    let cable = &PLUGIN[PLUGIN.find("<cable").unwrap()..PLUGIN.find("</plugin>").unwrap()];
+    let plug = PLUGIN.replace(
+        "</plugin>",
+        &format!(
+            "{}</plugin>",
+            cable.replace("name=\"cable\"", "name=\"second\"")
+        ),
+    );
+    let xml = scene(&plug);
+    let mut sim = load(&xml);
+    let (id, start) = jaw(&sim);
+    let lookup = |s: &Simulation, name| {
+        s.world()
+            .iter_entities()
+            .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get()
+    };
+    let right = lookup(&sim, "default::arm::right");
+    let arm = lookup(&sim, "default::arm");
+    assert_eq!(articulated_pad_wrench(&sim, id), None);
+    assert_eq!(articulated_pad_wrench(&load(ARM), id), None);
+    sim.step_exact(1).unwrap();
+    let (_, end) = jaw(&sim);
+    let (mut j, mut l) = (DVec3::ZERO, DVec3::ZERO);
+    assert_eq!(bodies(&sim).count(), 2);
+    for (_, material) in bodies(&sim) {
+        let r = material.last_boundary_impulses()[0];
+        assert!(r.linear[0] < -0.001 && r.angular[2] > 1e-5);
+        j += DVec3::from(r.linear);
+        l += DVec3::from(r.angular);
+    }
+    let about_end = l + (DVec3::from(start.position) - DVec3::from(end.position)).cross(j);
+    let expected = ArticulatedPadWrench {
+        force_n: (j / 0.001).into(),
+        torque_nm: (about_end / 0.001).into(),
+    };
+    assert_eq!(articulated_pad_wrench(&sim, id), Some(expected));
+    assert_eq!(
+        articulated_pad_wrench(&sim, right),
+        Some(Default::default())
+    );
+    sim.set_paused(true);
+    sim.tick().unwrap();
+    assert_eq!(articulated_pad_wrench(&sim, id), Some(expected));
+    gz_sim_scene::remove_model(&mut sim, arm).unwrap();
+    assert_eq!(articulated_pad_wrench(&sim, id), None);
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(articulated_pad_wrench(&sim, id), None);
+    sim.step_exact(1).unwrap();
+    assert_eq!(articulated_pad_wrench(&sim, id), Some(expected));
+    sim.world()
+        .resource::<gz_sim_core::StepFault>()
+        .report(std::io::Error::other("failed step"));
+    assert_eq!(articulated_pad_wrench(&sim, id), None);
+}

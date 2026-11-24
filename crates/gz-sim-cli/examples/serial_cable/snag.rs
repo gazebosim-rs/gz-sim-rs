@@ -5,6 +5,8 @@ use super::*;
 mod controller;
 #[path = "snag/qualification.rs"]
 mod qualification;
+#[path = "snag/tactile.rs"]
+pub(super) mod tactile;
 use controller::{Controller, Event, Stage};
 use serde_json::{Value, json};
 const MAX_TICKS: usize = 30000;
