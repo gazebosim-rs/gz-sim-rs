@@ -33,6 +33,9 @@ pub(crate) struct Settings {
     /// Normal viscous damping of each fingertip contact in N·s/m.
     #[arg(long, default_value_t = 0.)]
     pad_damping: f64,
+    /// Static Coulomb coefficient between the cloth and its support plane.
+    #[arg(long)]
+    static_plane_friction: Option<f64>,
     /// Pad compliance in m/N.
     #[arg(long, default_value_t = 0.001)]
     pad_compliance: f64,
@@ -130,6 +133,28 @@ fn damped_pads(xml: String, coefficient: f64) -> Result<String> {
     ))
 }
 
+fn plane_friction(mut xml: String, coefficient: Option<f64>) -> Result<String> {
+    if let Some(coefficient) = coefficient {
+        let doc = roxmltree::Document::parse(&xml)?;
+        let sheet = doc
+            .descendants()
+            .find(|n| n.has_tag_name("cloth") && n.attribute("name") == Some("sheet"))
+            .ok_or("missing sheet")?;
+        let sliding: f64 = sheet
+            .attribute("friction")
+            .ok_or("missing sheet friction")?
+            .parse()?;
+        if !coefficient.is_finite() || coefficient < sliding {
+            return Err(
+                "static plane friction must be finite and at least the sliding coefficient".into(),
+            );
+        }
+        let offset = sheet.range().start + "<cloth".len();
+        xml.insert_str(offset, &format!(" static_plane_friction=\"{coefficient}\""));
+    }
+    Ok(xml)
+}
+
 fn timed_scene(
     scale: f64,
     compliance: f64,
@@ -160,6 +185,7 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
         jaw_mass_scale: scale,
         pad_compliance: compliance,
         pad_damping,
+        static_plane_friction,
         substeps,
         tune_damping,
         public_exchange_clock,
@@ -197,7 +223,7 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
             bend_damping,
         )?
     };
-    let xml = damped_pads(xml, pad_damping)?;
+    let xml = plane_friction(damped_pads(xml, pad_damping)?, static_plane_friction)?;
     // With the same position stiffness, this preserves the continuous-time
     // damping ratio of an unloaded jaw. Both force and speed limits remain active.
     let damping = if tune_damping {
@@ -238,18 +264,38 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
             )?,
             pad_damping,
         )?;
+        let fine = plane_friction(fine, static_plane_friction)?;
         exchange_audit::check(&xml, &fine, exchanges_per_ms, damping, out)?;
     }
     fs::write(out.join("world.sdf"), xml)?;
     write_json(
         &out.join("jaw-contact.json"),
-        &json!({"native_step_ns":1_000_000/exchanges_per_ms,"public_step_ns":if public_exchange_clock {1_000_000}else{1_000_000/exchanges_per_ms},"actuator_period_ns":1_000_000,"jaw_density_scale":scale,"jaw_damping_ns_per_m":damping,"pad_compliance_m_per_n":compliance,"pad_damping_ns_per_m":pad_damping,"panel_balance":panel_balance,"bend_damping_nms_per_rad":bend_damping,"substeps":substeps,"trial":trial}),
+        &json!({"native_step_ns":1_000_000/exchanges_per_ms,"public_step_ns":if public_exchange_clock {1_000_000}else{1_000_000/exchanges_per_ms},"actuator_period_ns":1_000_000,"jaw_density_scale":scale,"jaw_damping_ns_per_m":damping,"pad_compliance_m_per_n":compliance,"pad_damping_ns_per_m":pad_damping,"static_plane_friction":static_plane_friction,"panel_balance":panel_balance,"bend_damping_nms_per_rad":bend_damping,"substeps":substeps,"trial":trial}),
     )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn the_sheet_plane_law_requires_an_identified_surface_with_a_valid_coefficient() -> Result<()> {
+        let xml = scene(1., 0.001, Case::default(), false, 0.)?;
+        assert_eq!(plane_friction(xml.clone(), None)?, xml);
+        for c in [0.69, f64::NAN] {
+            assert!(plane_friction(xml.clone(), Some(c)).is_err());
+        }
+        for raw in [
+            "<",
+            "<sdf/>",
+            "<cloth name='sheet'/>",
+            "<cloth name='sheet' friction='wrong'/>",
+        ] {
+            assert!(plane_friction(raw.into(), Some(0.7)).is_err());
+        }
+        assert!(plane_friction(xml, Some(0.7))?.contains("static_plane_friction=\"0.7\""));
+        Ok(())
+    }
+
     #[test]
     fn public_and_reference_audits_refuse_inconsistent_clocks_and_missing_gripper() -> Result<()> {
         let case = Case {
@@ -290,6 +336,7 @@ mod tests {
             panel_balance: true,
             bend_damping: 0.,
             pad_damping: 0.,
+            static_plane_friction: None,
         };
         assert!(study(dir.path(), settings, Some((0, 2))).is_err());
         settings.exchanges_per_ms = 3;
@@ -340,6 +387,7 @@ mod tests {
             panel_balance: false,
             bend_damping: 0.,
             pad_damping: 0.,
+            static_plane_friction: None,
         };
         for (exchanges, soft_steps) in [(1, 4), (4, 1)] {
             let dir = temp.path().join(exchanges.to_string());

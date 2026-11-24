@@ -45,6 +45,7 @@ struct Recording {
     pad_compliance_m_per_n: f64,
     #[serde(default)]
     pad_damping_ns_per_m: f64,
+    static_plane_friction: Option<f64>,
     #[serde(default)]
     panel_balance: bool,
     #[serde(default)]
@@ -92,6 +93,7 @@ pub(crate) fn compare(paths: &[PathBuf]) -> Result<Value> {
             r.jaw_damping_ns_per_m,
             r.pad_compliance_m_per_n,
             r.pad_damping_ns_per_m,
+            r.static_plane_friction,
             r.panel_balance,
             r.bend_damping_nms_per_rad,
         );
@@ -116,6 +118,7 @@ pub(crate) fn compare(paths: &[PathBuf]) -> Result<Value> {
             r.bend_damping_nms_per_rad,
         )?;
         let expected = super::damped_pads(expected, r.pad_damping_ns_per_m)?;
+        let expected = super::plane_friction(expected, r.static_plane_friction)?;
         if fs::read_to_string(path.join("world.sdf"))? != expected {
             return Err(
                 "recording SDF differs from the expected gripper, material or clock".into(),
