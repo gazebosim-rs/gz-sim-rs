@@ -4,16 +4,19 @@ use crate::{SoftBody, XpbdError};
 use glam::DVec3;
 use std::collections::BTreeMap;
 
-/// Signed world impulses (N·s) on a prescribed cuboid from one material particle.
+/// Signed world impulses (N·s) on a prescribed boundary from one material particle.
 /// Each vector sums the impulses actually applied across all iterations and
 /// substeps of the last committed interval, including unloading corrections.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ParticlePadImpulse {
+pub struct ParticleBoundaryImpulse {
     pub boundary: usize,
     pub particle: usize,
     pub normal: [f64; 3],
     pub tangent: [f64; 3],
 }
+
+/// Per-particle impulse on a prescribed cuboid pad.
+pub type ParticlePadImpulse = ParticleBoundaryImpulse;
 
 #[derive(Default, Clone)]
 pub(crate) struct PadLoads {
@@ -98,6 +101,39 @@ impl SoftBody {
             .pad_loads
             .as_ref()
             .map_or(&[], |v| v.committed.as_slice())
+    }
+}
+
+/// Observes the normal and tangential impulses on prescribed planes during one
+/// ordinary material advance. The probe owns its readings and storage. It can
+/// be attached to a different material or to a restored material at the next
+/// step without changing the material's equations or checkpoints.
+#[derive(Default)]
+pub struct PlaneImpulseProbe {
+    pub(crate) loads: Option<Box<PadLoads>>,
+}
+
+impl PlaneImpulseProbe {
+    /// Last successful step, in boundary and particle order. Missing pairs had zero net impulse.
+    pub fn readings(&self) -> &[ParticleBoundaryImpulse] {
+        self.loads.as_ref().map_or(&[], |p| &p.committed)
+    }
+
+    /// Advance one material using the usual coupled solver, including rigid or
+    /// damped pads, and accumulate actual plane impulses across accepted substeps.
+    pub fn step(
+        &mut self,
+        material: &mut SoftBody,
+        dt: std::time::Duration,
+        boundaries: &[crate::Boundary],
+        mobility: &[Option<crate::RigidMobility>],
+        damping: &[(usize, f64)],
+    ) -> Result<Vec<Option<crate::ReceiverMotion>>, XpbdError> {
+        material.contacts.plane_loads = Some(self.loads.take().unwrap_or_default());
+        let result =
+            crate::step_coupled_damped_pads(&mut [material], dt, boundaries, mobility, damping);
+        self.loads = material.contacts.plane_loads.take();
+        result
     }
 }
 

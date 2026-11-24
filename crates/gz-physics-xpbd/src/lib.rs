@@ -37,7 +37,7 @@ mod oriented;
 mod pad;
 mod pad_loads;
 mod pad_samples;
-pub use pad_loads::ParticlePadImpulse;
+pub use pad_loads::{ParticleBoundaryImpulse, ParticlePadImpulse, PlaneImpulseProbe};
 pub use pad_samples::PadSample;
 /// Maximum simultaneous finite spherical pads on a triangulated shell.
 pub const MAX_SURFACE_PADS: usize = 4;
@@ -469,6 +469,9 @@ impl SoftBody {
         if let Some(loads) = &mut self.contacts.pad_loads {
             loads.begin();
         }
+        if let Some(loads) = &mut self.contacts.plane_loads {
+            loads.begin();
+        }
         if let Some(m) = &mut self.capsule_material {
             m.begin_step();
         }
@@ -483,6 +486,9 @@ impl SoftBody {
             s.publish_loads();
         }
         if let Some(loads) = &mut self.contacts.pad_loads {
+            loads.publish();
+        }
+        if let Some(loads) = &mut self.contacts.plane_loads {
             loads.publish();
         }
         if let Some(m) = &mut self.capsule_material {

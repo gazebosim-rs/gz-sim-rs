@@ -7,7 +7,9 @@ use std::fmt::Write;
 const MARKER: &str = "default::source::body::pressure_";
 
 pub(super) fn world(xml: &str) -> String {
-    let mut gauges = String::new();
+    let mut gauges = String::from(
+        r#"<visual name="table_contact"><pose>0 0 0.035 0 0 0</pose><geometry><sphere><radius>0.0135</radius></sphere></geometry><material><diffuse>0.85 0.10 0.85 1</diffuse></material></visual>"#,
+    );
     // The source link origin is (0.32, 0, 0.06). Each cluster belongs to a jaw.
     for (level, color) in [
         "1 0.63 0.10",
@@ -38,7 +40,11 @@ fn height(force: f64) -> f64 {
     0.06 * force.asinh()
 }
 
-pub(super) fn capture(r: &mut Recording, forces: &[[f64; 2]; 4]) -> Result<()> {
+pub(super) fn capture(
+    r: &mut Recording,
+    forces: &[[f64; 2]; 4],
+    strongest: Option<[f64; 3]>,
+) -> Result<()> {
     let (raw, catalog) =
         gz_sim_cli::primitive_frame(&r.sim, &r.sdf, &r.world, r.frames.len() as u64 + 1)?;
     let mut scene: Value = serde_json::from_str(&raw)?;
@@ -47,6 +53,12 @@ pub(super) fn capture(r: &mut Recording, forces: &[[f64; 2]; 4]) -> Result<()> {
         .as_array_mut()
         .ok_or("missing gripper visuals")?
     {
+        if visual["name"] == "default::source::body::table_contact" {
+            if let Some(p) = strongest {
+                visual["translation"] = json!(p);
+            }
+            continue;
+        }
         let Some(suffix) = visual["name"].as_str().and_then(|s| s.strip_prefix(MARKER)) else {
             continue;
         };

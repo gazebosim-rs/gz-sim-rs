@@ -13,7 +13,10 @@ fn incremental_support_ignores_departed_nodes_and_obeys_its_own_friction_budget(
         .unwrap()
     };
     let boundaries = [plane(DVec3::Z), plane(DVec3::X)];
-    let mut contacts = Contacts::default();
+    let mut contacts = Contacts {
+        plane_loads: Some(Default::default()),
+        ..Default::default()
+    };
     let projection = Projection {
         event: None,
         normal: DVec3::Z,
@@ -53,6 +56,17 @@ fn incremental_support_ignores_departed_nodes_and_obeys_its_own_friction_budget(
             },
         )
         .unwrap();
+    let mut probe = crate::PlaneImpulseProbe::default();
+    let loads = contacts.plane_loads.as_mut().unwrap();
+    loads.publish();
+    // The departed and separating nodes supplied no incremental support.
+    std::mem::swap(&mut probe.loads, &mut contacts.plane_loads);
+    assert_eq!(probe.readings().len(), 1);
+    assert_eq!(probe.readings()[0].particle, 0);
+    let measured =
+        DVec3::from(probe.readings()[0].normal) + DVec3::from(probe.readings()[0].tangent);
+    assert_eq!(measured.to_array(), reactions[0].linear);
+
     assert_eq!(p[1..], before[1..]);
     let dv = DVec3::from(p[0].velocity) - DVec3::from(before[0].velocity);
     assert!((dv - DVec3::new(-0.25, 0., 1.)).length() < 1e-14);

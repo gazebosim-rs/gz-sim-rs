@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Replay the same measured rigid jaw path from a complete, matched soft state.
 use super::*;
-use gz_physics_xpbd::{Boundary, RigidMobility, SoftBody, step_coupled_damped_pads};
+use gz_physics_xpbd::{
+    Boundary, PlaneImpulseProbe, RigidMobility, SoftBody, step_coupled_damped_pads,
+};
 use std::time::Duration;
 
 #[path = "interval_view.rs"]
@@ -78,6 +80,8 @@ pub(super) fn run(
     } else {
         &[]
     };
+    let mut probe = PlaneImpulseProbe::default();
+    let mut display_loads = [0.; arm_sheet::COUNT];
     let mut branches = Vec::<(u32, SoftBody)>::new();
     let mut samples = Vec::with_capacity(count);
     let stride = count.div_ceil(160);
@@ -119,7 +123,11 @@ pub(super) fn run(
         let mut levels = Vec::new();
         let mut forces = [[0.; 2]; 4];
         for (index, (steps, branch)) in branches.iter_mut().enumerate() {
-            step_coupled_damped_pads(&mut [branch], dt, &geometry, &mobility, viscosity)?;
+            if index == 0 {
+                probe.step(branch, dt, &geometry, &mobility, viscosity)?;
+            } else {
+                step_coupled_damped_pads(&mut [branch], dt, &geometry, &mobility, viscosity)?;
+            }
             if index == 0
                 && (branch.particles() != native.particles()
                     || branch.last_boundary_impulses() != native.last_boundary_impulses())
@@ -154,6 +162,26 @@ pub(super) fn run(
                 "table_impulse_ns": table.to_array(), "lowest_node": lowest_node,
                 "min_table_gap_m": lowest.position[2] - arm_sheet::BENCH - arm_sheet::RADIUS,
             });
+            if index == 0 {
+                let mut observed = DVec3::ZERO;
+                let mut nodes = Vec::new();
+                for load in probe.readings() {
+                    let normal = -DVec3::from_array(load.normal);
+                    let tangent = -DVec3::from_array(load.tangent);
+                    observed += normal + tangent;
+                    display_loads[load.particle] += normal.z;
+                    nodes.push(json!({"node":load.particle,"normal_ns":normal.to_array(),"tangent_ns":tangent.to_array()}));
+                }
+                if observed.distance(table) > 1e-13 * (1. + table.length()) {
+                    return Err(format!(
+                        "particle readings do not sum to the table impulse at tick {tick}"
+                    )
+                    .into());
+                }
+                if !nodes.is_empty() {
+                    sample["table_particle_impulses"] = json!(nodes);
+                }
+            }
             if capture {
                 sample["positions_m"] =
                     json!(particles.iter().map(|p| p.position).collect::<Vec<_>>());
@@ -170,7 +198,13 @@ pub(super) fn run(
                 .map(|p| p.position)
                 .collect::<Vec<_>>();
             frames.push(json!({"time_ns":time,"positions":positions}));
-            view::capture(&mut r, &forces)?;
+            let strongest = display_loads
+                .iter()
+                .enumerate()
+                .max_by(|a, b| a.1.total_cmp(b.1))
+                .and_then(|(i, up)| (*up > 0.).then_some(positions[i]));
+            view::capture(&mut r, &forces, strongest)?;
+            display_loads.fill(0.);
         }
         samples.push(json!({"end_tick":tick,"samples":levels}));
     }

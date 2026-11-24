@@ -445,6 +445,22 @@ impl PreparedBoundary {
         Ok(())
     }
 
+    fn record_plane_impulse(
+        &self,
+        loads: &mut Option<Box<super::pad_loads::PadLoads>>,
+        boundary: usize,
+        particle: usize,
+        normal: DVec3,
+        tangent: DVec3,
+    ) -> Result<(), XpbdError> {
+        if let Some(loads) = loads
+            && matches!(self.shape, Shape::Plane(_))
+        {
+            loads.react(boundary, particle, normal, tangent)?;
+        }
+        Ok(())
+    }
+
     fn has_planar_surface(&self) -> bool {
         matches!(
             self.shape,
@@ -598,7 +614,7 @@ impl Contact {
         time: Interval,
         (static_friction, sliding_friction): (f64, Option<f64>),
         reaction: &mut BoundaryImpulse,
-    ) -> Result<(), XpbdError> {
+    ) -> Result<DVec3, XpbdError> {
         let start = DVec3::from(p.position);
         let (c0, c1) = plane.centers(time);
         let normal = self.normal;
@@ -625,7 +641,7 @@ impl Contact {
                         || x.y.abs() >= table.half.y - tolerance
                 })
             {
-                return Ok(());
+                return Ok(DVec3::ZERO);
             }
             let carried = c1 + table.orientation(time.t1) * a;
             (
@@ -634,7 +650,7 @@ impl Contact {
             )
         } else {
             if !plane.on_friction_face([start - c0, *end - c1], normal, time.radius, tolerance) {
-                return Ok(());
+                return Ok(DVec3::ZERO);
             }
             (c1 - c0, (c1 - c0) / time.h)
         };
@@ -642,7 +658,7 @@ impl Contact {
         let incoming_tangent = incoming_relative - normal * incoming_relative.dot(normal);
         let initially_still = incoming_tangent.length() * time.h <= tolerance;
         if sliding_friction.is_none() && !initially_still {
-            return Ok(());
+            return Ok(DVec3::ZERO);
         }
         let slip = (*end - start) - travel;
         let response = time.h * p.inverse_mass;
@@ -685,7 +701,7 @@ impl Contact {
             correct(end, p, response * delta, time.h);
             reaction.react(start - plane.origin, delta)?;
         }
-        Ok(())
+        Ok(delta)
     }
 }
 
@@ -693,6 +709,7 @@ impl Contact {
 pub(super) struct Contacts {
     pub(super) pad_samples: Vec<crate::PadSample>,
     pub(super) pad_loads: Option<Box<super::pad_loads::PadLoads>>,
+    pub(super) plane_loads: Option<Box<super::pad_loads::PadLoads>>,
     friction: f64,
     pub(super) static_plane_friction: Option<f64>,
     pub(super) legacy_plane_friction: bool,
@@ -737,7 +754,7 @@ impl Contacts {
     /// Spend only the additional normal impulse on friction. The ordinary
     /// impact has already spent its own Coulomb budget on these contacts.
     pub(super) fn finish_plane_increment(
-        &self,
+        &mut self,
         x: &[DVec3],
         p: &mut [Particle],
         boundaries: &[PreparedBoundary],
@@ -767,11 +784,20 @@ impl Contacts {
             if vn < 0. {
                 let tangent = relative - c.normal * vn;
                 let speed = tangent.length();
-                let dv = -vn * c.normal
-                    - tangent * ((-vn * friction) / speed.max(f64::MIN_POSITIVE)).min(1.);
+                let tangential_loss =
+                    tangent * ((-vn * friction) / speed.max(f64::MIN_POSITIVE)).min(1.);
+                let dv = -vn * c.normal - tangential_loss;
                 particle.velocity = (v + dv).to_array();
                 reactions[c.boundary]
                     .react(x[c.particle] - b.origin, dv / particle.inverse_mass)?;
+                if let Some(loads) = &mut self.plane_loads {
+                    loads.react(
+                        c.boundary,
+                        c.particle,
+                        -vn * c.normal / particle.inverse_mass,
+                        -tangential_loss / particle.inverse_mass,
+                    )?;
+                }
             }
         }
         Ok(())
@@ -969,6 +995,13 @@ fn project_points<const SPATIAL: bool>(
                         start,
                         [applied, DVec3::ZERO],
                     )?;
+                    boundary.record_plane_impulse(
+                        &mut contacts.plane_loads,
+                        j,
+                        i,
+                        applied,
+                        DVec3::ZERO,
+                    )?;
                     contacts.record(i, j, &hit, normal_impulse, remaining);
                 }
                 if let Some(coefficient) = contacts.static_plane_friction
@@ -978,7 +1011,7 @@ fn project_points<const SPATIAL: bool>(
                     && let Some(&incoming) = contacts.incoming_on_plane.get(i)
                     && let Some(&row) = contacts.index.get(&(i, j))
                 {
-                    contacts.items[row].project_plane_friction(
+                    let tangent = contacts.items[row].project_plane_friction(
                         x,
                         (p, incoming),
                         boundary,
@@ -988,6 +1021,13 @@ fn project_points<const SPATIAL: bool>(
                             (!contacts.legacy_plane_friction).then_some(contacts.friction),
                         ),
                         &mut reactions[j],
+                    )?;
+                    boundary.record_plane_impulse(
+                        &mut contacts.plane_loads,
+                        j,
+                        i,
+                        DVec3::ZERO,
+                        tangent,
                     )?;
                     if skip != 0 && !block.contains(*x) {
                         skip = 0;
@@ -1078,6 +1118,13 @@ pub(super) fn finish_contacts(
         let change = c.normal * normal_change + friction;
         p.velocity = (v + change).to_array();
         reactions[c.boundary].react(x[c.particle] - b.origin, change / p.inverse_mass)?;
+        b.record_plane_impulse(
+            &mut contacts.plane_loads,
+            c.boundary,
+            c.particle,
+            c.normal * normal_change / p.inverse_mass,
+            friction / p.inverse_mass,
+        )?;
     }
     Ok(())
 }
