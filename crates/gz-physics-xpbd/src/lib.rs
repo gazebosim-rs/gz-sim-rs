@@ -834,7 +834,12 @@ impl SoftBody {
             && let Some(surface) = &mut self.surface
         {
             let gap = 2. * self.config.particle_radius;
-            if self.contacts.on_single_plane(boundaries) {
+            // A spring's end displacement already fixes its force. A closing
+            // shell edge may still need an internal endpoint impulse after the
+            // pad response. Recheck the rigid support after each shell impulse.
+            if self.contacts.on_single_plane(boundaries)
+                || (surface.retry_plane && self.contacts.spring_pads_with_one_plane(boundaries))
+            {
                 surface.finish_supported(&mut self.predicted, &mut self.scratch, gap, |x, p| {
                     self.contacts.finish_plane_increment(
                         x,
@@ -927,3 +932,7 @@ impl Distance {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "../tests/private/stiff_pad_endpoint.rs"]
+mod stiff_pad_endpoint;

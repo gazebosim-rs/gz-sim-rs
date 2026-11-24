@@ -504,6 +504,21 @@ impl Contacts {
         })
     }
 
+    pub(super) fn spring_pads_with_one_plane(&self, boundaries: &[PreparedBoundary]) -> bool {
+        let mut plane = None;
+        let mut pad = false;
+        for c in &self.items {
+            let b = &boundaries[c.boundary];
+            if b.normal_compliance > 0. {
+                pad = true;
+            } else if !matches!(b.shape, Shape::Plane(_))
+                || plane.replace(c.boundary).is_some_and(|p| p != c.boundary)
+            {
+                return false;
+            }
+        }
+        pad
+    }
     /// Spend only the additional normal impulse on friction. The ordinary
     /// impact has already spent its own Coulomb budget on these contacts.
     pub(super) fn finish_plane_increment(
@@ -517,6 +532,11 @@ impl Contacts {
     ) -> Result<(), XpbdError> {
         for c in &self.items {
             let b = &boundaries[c.boundary];
+            // A spring pad uses a finite force through this endpoint. Only a
+            // rigid support imposes an additional nonclosing velocity constraint.
+            if !matches!(b.shape, Shape::Plane(_)) {
+                continue;
+            }
             let point = x[c.particle];
             let center = b.origin + time.t1 * b.velocity;
             let separation = (point - center).dot(c.normal) - time.radius;
