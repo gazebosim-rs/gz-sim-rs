@@ -3,12 +3,15 @@
 //! Accelerate a fixed-pivot wrist about an oblique axis, then brake it to rest.
 use super::*;
 use glam::DMat3;
+use gz_physics::joint_drive::SphericalDrive;
 use gz_sim_scene::{BallJointSample, locked_subtree_inertia};
 use serde::Serialize;
 
 const HALF: usize = 400;
 const END: usize = 1000;
 const DT: f64 = 0.001;
+const LIMIT_NM: f64 = 5.2;
+const DISTURBANCE_NM: [f64; 3] = [8., -12., 6.];
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 struct Sample {
@@ -70,13 +73,19 @@ fn reference(wrist: &Wrist, sim: &Simulation) -> (DMat3, DVec3) {
 
 fn episode(
     sim: &mut Simulation,
+    stabilize: bool,
     mut capture: impl FnMut(usize, &Simulation) -> Result<()>,
 ) -> Result<Vec<[Sample; 2]>> {
     let wrists = ["held", "free"].map(|m| Wrist::new(sim, m));
     let entities = ["held", "free"].map(|m| named(sim, &format!("default::{m}::bearing")));
     let axis = DVec3::new(0.4, -0.18, 0.9).normalize();
-    let mut trace = Vec::with_capacity(END + 1);
-    for tick in 0..=END {
+    let drives = [
+        SphericalDrive::new(24., 2.4, LIMIT_NM)?,
+        SphericalDrive::new(0., 0., LIMIT_NM)?,
+    ];
+    let end = if stabilize { 2 * END } else { END };
+    let mut trace = Vec::with_capacity(end + 1);
+    for tick in 0..=end {
         if tick % 10 == 0 {
             capture(tick, sim)?;
         }
@@ -101,13 +110,25 @@ fn episode(
                 .ok_or("missing spherical encoder")?
                 .state;
             let omega = DVec3::from(encoder.angular_velocity);
-            let tensor = if i == 0 {
+            let tensor = if i == 0 || stabilize {
                 real
             } else {
                 DMat3::from_diagonal(DVec3::new(real.x_axis.x, real.y_axis.y, real.z_axis.z))
             };
             let gravity = DVec3::from(joint_gravity_load(sim, wrist.bearing)?.torque_nm);
             let torque = tensor * (axis * acceleration) + omega.cross(tensor * omega) - gravity;
+            let target = DQuat::from_axis_angle(axis, angle);
+            let torque = if stabilize {
+                drives[i].torque(
+                    DQuat::from_array(encoder.orientation),
+                    target,
+                    omega,
+                    rate * axis,
+                    torque,
+                )?
+            } else {
+                torque
+            };
             let residual =
                 DQuat::from_array(encoder.orientation) * DQuat::from_axis_angle(axis, -angle);
             Ok(Sample {
@@ -121,8 +142,16 @@ fn episode(
             })
         };
         let pair = [sample(0)?, sample(1)?];
-        if tick < END {
+        if tick < end {
             for i in 0..2 {
+                if stabilize && (450..470).contains(&tick) {
+                    let id = sim
+                        .world()
+                        .get::<EntityId>(wrists[i].payload)
+                        .unwrap()
+                        .get();
+                    gz_sim_scene::queue_link_world_wrench(sim, id, [0.; 3], DISTURBANCE_NM)?;
+                }
                 queue_ball_joint_effort(sim, wrists[i].bearing, pair[i].torque_nm)?;
             }
             sim.step_exact(1)?;
@@ -132,7 +161,7 @@ fn episode(
     Ok(trace)
 }
 
-pub(super) fn record(out: &Path) -> Result<()> {
+pub(super) fn record(out: &Path, stabilize: bool) -> Result<()> {
     if out.exists() {
         return Err("choose a new inertia recording directory".into());
     }
@@ -145,7 +174,7 @@ pub(super) fn record(out: &Path) -> Result<()> {
     )?;
     let sdf = sdformat::load_str(XML, "gravity_wrist.sdf", &sdformat::NoResources)?;
     let mut frames = Vec::new();
-    let first = episode(&mut sim, |_, s| {
+    let first = episode(&mut sim, stabilize, |_, s| {
         frames.push(gz_sim_cli::primitive_frame(
             s,
             &sdf,
@@ -155,7 +184,7 @@ pub(super) fn record(out: &Path) -> Result<()> {
         Ok(())
     })?;
     reset_loaded_world(&mut sim, |_| ())?;
-    let second = episode(&mut sim, |_, _| Ok(()))?;
+    let second = episode(&mut sim, stabilize, |_, _| Ok(()))?;
     if first != second {
         return Err("reset changed a loaded rotation or measured inertia".into());
     }
@@ -170,7 +199,25 @@ pub(super) fn record(out: &Path) -> Result<()> {
         .flatten()
         .map(|p| p.inertia_error_kg_m2)
         .fold(0., f64::max);
-    let result = json!({"ticks":END,"dt_s":DT,"target_angle_rad":trajectory(END).0,"full_peak_angle_error_rad":peak(0),"diagonal_peak_angle_error_rad":peak(1),"max_tensor_error_kg_m2":max_tensor,"last":first[END],"reset_exact":true});
+    let end = first.len() - 1;
+    let mut result = json!({"ticks":end,"dt_s":DT,"target_angle_rad":trajectory(END).0,"full_peak_angle_error_rad":peak(0),"diagonal_peak_angle_error_rad":peak(1),"max_tensor_error_kg_m2":max_tensor,"last":first[end],"reset_exact":true});
+    if stabilize {
+        let maximum_effort = |i: usize| {
+            first
+                .iter()
+                .map(|p| DVec3::from(p[i].torque_nm).length())
+                .fold(0., f64::max)
+        };
+        result = json!({"ticks":end, "dt_s":DT, "target_angle_rad":trajectory(end).0,
+            "disturbance_ticks":[450,470],"world_disturbance_nm":DISTURBANCE_NM,
+            "drive_limit_nm":LIMIT_NM, "max_torque_nm":[maximum_effort(0),maximum_effort(1)],
+            "peak_angle_error_rad":[peak(0),peak(1)],"last":first[end], "reset_exact":true});
+    }
+    let captures = if stabilize {
+        json!({"before_pulse":45,"after_pulse":47,"braking":65,"hold":100,"end":end/10})
+    } else {
+        json!({"accelerating":20,"peak_speed":40,"rest":80,"end":end/10})
+    };
     fs::create_dir_all(out)?;
     gz_sim_cli::export_archive(&out.join("replay"), Default::default(), frames)?;
     for (name, value) in [
@@ -178,7 +225,7 @@ pub(super) fn record(out: &Path) -> Result<()> {
         ("trace.json", serde_json::to_value(first)?),
         (
             "frames.json",
-            json!({"kind":"authored-archive-v1","dt_ns":1,"camera":"right","captures":{"accelerating":20,"peak_speed":40,"rest":80,"end":100}}),
+            json!({"kind":"authored-archive-v1","dt_ns":1,"camera":"right","captures":captures}),
         ),
     ] {
         fs::write(out.join(name), serde_json::to_vec_pretty(&value)?)?;
@@ -195,8 +242,8 @@ mod tests {
     fn full_inertia_tracks_the_oblique_rotation_after_reset() -> Result<()> {
         let tmp = tempfile::tempdir()?;
         let out = tmp.path().join("wrist");
-        record(&out)?;
-        assert!(record(&out).is_err());
+        record(&out, false)?;
+        assert!(record(&out, false).is_err());
         let comparison: serde_json::Value =
             serde_json::from_slice(&fs::read(out.join("comparison.json"))?)?;
         assert!(comparison["full_peak_angle_error_rad"].as_f64().unwrap() < 0.015);
@@ -219,7 +266,7 @@ mod tests {
             &sdformat::NoResources,
             PhysicsEngine::MultiFidelity,
         )?;
-        assert!(episode(&mut sim, |_, _| Err("interrupted".into())).is_err());
+        assert!(episode(&mut sim, false, |_, _| Err("interrupted".into())).is_err());
         for model in ["held", "free"] {
             let sensor = named(&sim, &format!("default::{model}::bearing"));
             let sample = sim
@@ -227,7 +274,7 @@ mod tests {
                 .entity_mut(sensor)
                 .take::<BallJointSample>()
                 .unwrap();
-            assert!(episode(&mut sim, |_, _| Ok(())).is_err());
+            assert!(episode(&mut sim, false, |_, _| Ok(())).is_err());
             sim.world_mut().entity_mut(sensor).insert(sample);
         }
         Ok(())
@@ -259,13 +306,30 @@ mod tests {
                         .remove_joint(handle)
                 );
             }
-            assert!(episode(&mut sim, |_, _| Ok(())).is_err());
+            assert!(episode(&mut sim, false, |_, _| Ok(())).is_err());
         }
         let dir = tempfile::tempdir()?;
         let file = dir.path().join("file");
         fs::write(&file, b"occupied")?;
-        assert!(record(&file.join("recording")).is_err());
+        assert!(record(&file.join("recording"), false).is_err());
         assert_eq!(fs::read(file)?, b"occupied");
+        Ok(())
+    }
+    #[test]
+    fn a_torque_limited_drive_recovers_from_the_same_external_disturbance() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let out = dir.path().join("disturbed");
+        record(&out, true)?;
+        let value: serde_json::Value =
+            serde_json::from_slice(&fs::read(out.join("comparison.json"))?)?;
+        let peak = value["peak_angle_error_rad"][0].as_f64().unwrap();
+        assert!(peak > 0.03 && peak < 0.08);
+        assert!(value["last"][0]["angle_error_rad"].as_f64().unwrap() < 0.001);
+        assert!(value["last"][1]["velocity_error_rad_s"].as_f64().unwrap() > 1.);
+        for v in value["max_torque_nm"].as_array().unwrap() {
+            assert!((v.as_f64().unwrap() - LIMIT_NM).abs() < 1e-12);
+        }
+        assert_eq!(value["reset_exact"], true);
         Ok(())
     }
 }

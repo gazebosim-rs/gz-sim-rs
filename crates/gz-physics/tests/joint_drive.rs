@@ -56,3 +56,49 @@ fn invalid_limits_and_invalid_runtime_inputs_are_rejected() {
         .is_err()
     );
 }
+
+#[test]
+fn spherical_drive_uses_parent_axes_shortest_rotation_and_one_vector_limit() {
+    use glam::{DQuat, DVec3};
+    use gz_physics::joint_drive::SphericalDrive;
+    let d = SphericalDrive::new(2., 3., 10.).unwrap();
+    let a = DQuat::from_rotation_y(0.8);
+    let goal = DQuat::from_rotation_z(0.2) * a;
+    let run = |a, g| d.torque(a, g, DVec3::X, DVec3::Y, DVec3::Z).unwrap();
+    assert!(run(a, goal).abs_diff_eq(DVec3::new(-3., 3., 1.4), 1e-12));
+    assert_eq!(run(a, goal), run(-a, goal));
+    assert_eq!(run(a, goal), run(a, -goal));
+    let half = DQuat::from_xyzw(0., -1., 0., 0.);
+    assert_eq!(run(DQuat::IDENTITY, half), run(DQuat::IDENTITY, -half));
+    assert!(run(DQuat::IDENTITY, half).y > 0.);
+    let cap = SphericalDrive::new(0., 0., 5.).unwrap();
+    for f in [
+        DVec3::ZERO,
+        DVec3::new(3., 4., 0.),
+        DVec3::new(3e300, 4e300, 0.),
+    ] {
+        let out = cap.torque(a, a, DVec3::ZERO, DVec3::ZERO, f).unwrap();
+        assert_eq!(
+            out,
+            if f == DVec3::ZERO {
+                f
+            } else {
+                DVec3::new(3., 4., 0.)
+            }
+        );
+    }
+    for (k, c, m) in [(-1., 1., 1.), (1., f64::NAN, 1.), (1., 1., 0.)] {
+        assert!(SphericalDrive::new(k, c, m).is_err());
+    }
+    let zero = DQuat::from_xyzw(0., 0., 0., 0.);
+    for (actual, target) in [(zero, a), (a, zero)] {
+        assert!(
+            d.torque(actual, target, DVec3::ZERO, DVec3::ZERO, DVec3::ZERO)
+                .is_err()
+        );
+    }
+    assert!(
+        d.torque(a, a, DVec3::NAN, DVec3::ZERO, DVec3::ZERO)
+            .is_err()
+    );
+}

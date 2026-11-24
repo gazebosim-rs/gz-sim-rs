@@ -32,12 +32,15 @@ struct Options {
     /// Accelerate and brake the loaded wrist using its measured composite inertia.
     #[arg(long)]
     accelerate: bool,
+    /// Recover from a measured disturbance using a torque-limited spherical drive.
+    #[arg(long, conflicts_with = "accelerate")]
+    stabilize: bool,
 }
 
 fn main() -> Result<()> {
     let options = Options::parse();
-    if options.accelerate {
-        inertia::record(&options.output)
+    if options.accelerate || options.stabilize {
+        inertia::record(&options.output, options.stabilize)
     } else {
         record(&options.output)
     }
