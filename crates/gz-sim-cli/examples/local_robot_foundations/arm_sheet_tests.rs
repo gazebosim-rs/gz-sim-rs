@@ -70,6 +70,7 @@ fn altered_arm_fixture_and_material_settings_are_checked() -> Result<()> {
     let empty = Recording::new(arm::SCENE, "arm.sdf", "default")?;
     assert!(cloth(&empty.sim).is_err());
     assert!(gz_sim_scene::deformable::material_elastic_forces(&empty.sim, "sheet").is_none());
+    assert!(gz_sim_scene::deformable::material_snapshot(&empty.sim, "sheet").is_none());
     assert!(gz_sim_scene::deformable::shell_constraint_impulses(&empty.sim, "sheet").is_none());
     let mut empty = empty;
     assert!(capture(&mut empty, &mut vec![]).is_err());
@@ -132,6 +133,7 @@ fn unusable_fold_surfaces_report_the_failed_tick_and_solver_diagnostic() -> Resu
     assert!(r.advance().is_err());
     assert!(r.sim.is_faulted());
     assert!(gz_sim_scene::deformable::material_elastic_forces(&r.sim, "sheet").is_none());
+    assert!(gz_sim_scene::deformable::material_snapshot(&r.sim, "sheet").is_none());
     assert!(gz_sim_scene::deformable::shell_constraint_impulses(&r.sim, "sheet").is_none());
     assert!(energy(&r.sim).is_none());
     assert!(r.sim.reset().is_err());

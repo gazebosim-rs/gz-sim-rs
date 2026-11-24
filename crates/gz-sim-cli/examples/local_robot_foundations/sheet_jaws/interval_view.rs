@@ -55,6 +55,9 @@ pub(super) fn capture(r: &mut Recording, forces: &[[f64; 2]; 4]) -> Result<()> {
             .get(level.parse::<usize>()?)
             .and_then(|p| p.get(side.parse::<usize>().ok()?))
             .ok_or("unknown pressure marker")?;
+        if !value.is_finite() || *value < 0. {
+            return Err("invalid measured pad pressure".into());
+        }
         let z = visual["translation"][2]
             .as_f64()
             .ok_or("missing marker height")?;
@@ -69,10 +72,10 @@ pub(super) fn capture(r: &mut Recording, forces: &[[f64; 2]; 4]) -> Result<()> {
 }
 
 pub(super) fn save(r: Recording, out: &Path, frames: &[Value]) -> Result<()> {
-    let last = frames.len() - 1;
-    let origin = frames[0]["time_ns"]
+    let origin = frames.first().ok_or("empty pressure clip")?["time_ns"]
         .as_u64()
         .ok_or("missing physical origin")?;
+    let last = frames.len() - 1;
     gz_sim_cli::export_archive_at(
         &out.join("replay"),
         Default::default(),
@@ -89,3 +92,7 @@ pub(super) fn save(r: Recording, out: &Path, frames: &[Value]) -> Result<()> {
         &json!({"kind":"authored-archive-v1","dt_ns":1,"camera":"right","particle_visuals":nodes,"captures":{"early":last/4,"middle":last/2,"late":3*last/4,"end":last}}),
     )
 }
+
+#[cfg(test)]
+#[path = "interval_view_tests.rs"]
+mod tests;

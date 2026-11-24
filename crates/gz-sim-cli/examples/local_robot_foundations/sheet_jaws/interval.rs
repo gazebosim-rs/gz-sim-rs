@@ -244,3 +244,43 @@ mod viscous_tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod invalid_cut_tests {
+    use super::*;
+    #[test]
+    fn unmatched_boundary_inputs_and_incomplete_scenes_refuse_the_cut() -> Result<()> {
+        let xml = super::super::timed_scene(
+            1.,
+            0.001,
+            Case {
+                substeps: 1,
+                ..Default::default()
+            },
+            1,
+            true,
+            0.,
+        )?;
+        let dir = tempfile::tempdir()?;
+        let at = |s: &str, law| run(dir.path(), s, 12., law, 1, (1701, 1));
+        assert!(
+            at(&xml, [0.002, 0.])
+                .unwrap_err()
+                .to_string()
+                .contains("failed to reproduce")
+        );
+        assert!(at("invalid XML", [0.001, 0.]).is_err());
+        let renamed = xml.replace("close_left", "missing_drive");
+        assert!(at(&renamed, [0.001, 0.]).is_err());
+        let nomaterial = xml
+            .replace("name=\"sheet\"", "name=\"absent\"")
+            .replace("material=\"sheet\"", "material=\"absent\"");
+        assert!(
+            at(&nomaterial, [0.001, 0.])
+                .unwrap_err()
+                .to_string()
+                .contains("missing matched material")
+        );
+        Ok(())
+    }
+}
