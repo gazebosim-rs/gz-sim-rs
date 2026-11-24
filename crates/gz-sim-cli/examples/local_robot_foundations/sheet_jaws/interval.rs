@@ -115,6 +115,7 @@ pub(super) fn run(
         let post = jaw_states(&r.sim, ids)?;
         let (geometry, mobility) = paths(pre, post, half, dt, compliance);
         let native = arm_sheet::cloth(&r.sim)?;
+        let capture = (tick - first_tick).is_multiple_of(stride) || tick == end;
         let mut levels = Vec::new();
         let mut forces = [[0.; 2]; 4];
         for (index, (steps, branch)) in branches.iter_mut().enumerate() {
@@ -139,11 +140,29 @@ pub(super) fn run(
             let up: [f64; 2] = std::array::from_fn(|i| {
                 -branch.last_boundary_impulses()[i].linear[2] / dt.as_secs_f64()
             });
-            levels.push(
-                json!({"substeps":steps,"normal_n":normal,"up_n":up,"max_pose_delta_m":peak}),
-            );
+            let particles = branch.particles();
+            let (lowest_node, lowest) = particles
+                .iter()
+                .enumerate()
+                .min_by(|(_, a), (_, b)| a.position[2].total_cmp(&b.position[2]))
+                .ok_or("empty folded sheet")?;
+            // Reactions are recorded on the boundary. Reverse their sign to
+            // report the table's impulse on the sheet in world coordinates.
+            let table = -DVec3::from(branch.last_boundary_impulses()[2].linear);
+            let mut sample = json!({
+                "substeps": steps, "normal_n": normal, "up_n": up, "max_pose_delta_m": peak,
+                "table_impulse_ns": table.to_array(), "lowest_node": lowest_node,
+                "min_table_gap_m": lowest.position[2] - arm_sheet::BENCH - arm_sheet::RADIUS,
+            });
+            if capture {
+                sample["positions_m"] =
+                    json!(particles.iter().map(|p| p.position).collect::<Vec<_>>());
+                sample["velocities_m_s"] =
+                    json!(particles.iter().map(|p| p.velocity).collect::<Vec<_>>());
+            }
+            levels.push(sample);
         }
-        if (tick - first_tick).is_multiple_of(stride) || tick == end {
+        if capture {
             let time = native.sim_time().as_nanos();
             let positions = native
                 .particles()
@@ -190,6 +209,18 @@ mod tests {
         for step in steps {
             for (i, sample) in step["samples"].as_array().unwrap().iter().enumerate() {
                 assert_eq!(sample["substeps"], 1 << i);
+                assert_eq!(sample["table_impulse_ns"], json!([0., 0., 0.]));
+                assert!(sample["min_table_gap_m"].as_f64().unwrap() > 0.1);
+                let lowest = sample["lowest_node"].as_u64().unwrap() as usize;
+                let nodes = sample["positions_m"].as_array().unwrap();
+                assert_eq!(nodes.len(), arm_sheet::COUNT);
+                assert_eq!(
+                    sample["velocities_m_s"].as_array().unwrap().len(),
+                    nodes.len()
+                );
+                let height = nodes[lowest][2].as_f64().unwrap();
+                assert!(nodes.iter().all(|p| p[2].as_f64().unwrap() >= height));
+
                 assert!(
                     sample["normal_n"]
                         .as_array()
