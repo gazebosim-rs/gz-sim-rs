@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!-- Two sorting lanes share the public timestep. The second parcel passes beside its pad. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="sorter" type="ignored"><max_step_size>0.02</max_step_size></physics>
+    <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
+      <native_steps>100</native_steps><solver_iterations>4</solver_iterations>
+      <pair><foot>default::parcel::body</foot><support>default::pad::deck</support><incoming_face>+z</incoming_face></pair>
+      <pair><foot>default::bypass::body</foot><support>default::other_pad::deck</support><incoming_face>+z</incoming_face></pair>
+    </plugin>
+    <model name="pad"><static>true</static><pose>0 0 0.03 0 0 0</pose>
+      <link name="deck">
+        <collision name="deck"><geometry><box><size>0.012 0.02 0.01</size></box></geometry><surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface></collision>
+        <visual name="deck"><geometry><box><size>0.012 0.02 0.01</size></box></geometry><material><diffuse>0.16 0.68 0.61 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="other_pad"><static>true</static><pose>0 0.05 0.03 0 0 0</pose>
+      <link name="deck">
+        <collision name="deck"><geometry><box><size>0.012 0.02 0.01</size></box></geometry><surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface></collision>
+        <visual name="deck"><geometry><box><size>0.012 0.02 0.01</size></box></geometry><material><diffuse>0.16 0.68 0.61 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="parcel"><pose>-0.02 0 0.079 0 0 0</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>2 0 -4</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="body">
+        <inertial><mass>0.01</mass><inertia><ixx>1.066666666666667e-7</ixx><iyy>1.066666666666667e-7</iyy><izz>1.066666666666667e-7</izz></inertia></inertial>
+        <collision name="part"><geometry><box><size>0.008 0.008 0.008</size></box></geometry><surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface></collision>
+        <visual name="part"><geometry><box><size>0.008 0.008 0.008</size></box></geometry><material><diffuse>0.98 0.58 0.15 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="bypass"><pose>-0.02 0.11 0.079 0 0 0</pose>
+      <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system">
+        <linear_velocity>2 0 -4</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>
+      <link name="body">
+        <inertial><mass>0.01</mass><inertia><ixx>1.066666666666667e-7</ixx><iyy>1.066666666666667e-7</iyy><izz>1.066666666666667e-7</izz></inertia></inertial>
+        <collision name="part"><geometry><box><size>0.008 0.008 0.008</size></box></geometry><surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface></collision>
+        <visual name="part"><geometry><box><size>0.008 0.008 0.008</size></box></geometry><material><diffuse>0.47 0.63 0.94 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

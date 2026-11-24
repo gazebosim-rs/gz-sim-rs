@@ -188,9 +188,9 @@ pub(super) fn predict_oriented(
 }
 
 /// Detect closure across the finite authored face from the current rigid twists.
-/// Project the incident body's lower hull in the moving face frame at both
-/// boundaries. This predictor intentionally covers entry through that face;
-/// rotation or acceleration can cause an intermediate crossing to be missed.
+/// For fixed orientations also test where the incident box first reaches
+/// the face plane. A fast transverse motion can miss both endpoint footprints.
+/// Intermediate rotational contacts and unmodeled accelerations remain outside this test.
 pub(super) fn incoming_face(
     latched: &mut bool,
     face: DVec3,
@@ -211,32 +211,53 @@ pub(super) fn incoming_face(
         let com = DVec3::from(state.position) + q0 * shape.local_com + v * t;
         (com, q, v, w)
     };
-    let sample = |t| {
+    let body_at = |t| {
         let (a, qa, va, wa) = at(foot, t);
         let (b, qb, vb, wb) = at(support, t);
         let inv = (qb * face_rotation).conjugate();
-        let body = BoxAt {
+        BoxAt {
             com: inv * (a - b + qb * support.1.local_com),
             rotation: inv * qa,
             velocity: inv * (va - vb - wb.cross(a - b)),
             spin: inv * (wa - wb),
             shape: foot.1,
-        };
-        body.over_support(half)
+        }
     };
-    let Some((gap, _)) = sample(0.) else {
-        *latched = false;
-        return false;
-    };
-    if gap > tolerance {
+    let start = body_at(0.);
+    let gap = start.over_support(half).map(|(gap, _)| gap);
+    if gap.is_none_or(|z| z > tolerance) {
         *latched = false;
     }
-    if *latched || gap < -tolerance {
+    if *latched || gap.is_some_and(|z| z < -tolerance) {
         return false;
     }
-    let hit = sample(dt).is_some_and(|(end, closing)| closing && end < gap);
+    let hit = gap.is_some_and(|z| {
+        body_at(dt)
+            .over_support(half)
+            .is_some_and(|(end, closing)| closing && end < z)
+    }) || (foot.0.angular_velocity == [0.; 3]
+        && support.0.angular_velocity == [0.; 3]
+        && translating_face_entry(start, half, dt, tolerance));
     *latched = hit;
     hit
+}
+
+/// Project the box half extents onto the receiver normal. Until its lowest
+/// point reaches the plane, the two solid boxes are separated along this axis.
+fn translating_face_entry(body: BoxAt, pad: DVec3, dt: f64, tolerance: f64) -> bool {
+    if body.velocity.z >= 0. {
+        return false;
+    }
+    let normal_in_box = body.rotation.conjugate() * DVec3::Z;
+    let bottom = body.com.z
+        - normal_in_box.dot(body.shape.local_com)
+        - normal_in_box.abs().dot(body.shape.half);
+    let arrival = (bottom - pad.z) / -body.velocity.z;
+    (0. ..=dt).contains(&arrival)
+        && body
+            .at(DVec3::ZERO, arrival)
+            .over_support(pad)
+            .is_some_and(|(gap, _)| gap.abs() <= tolerance)
 }
 
 #[cfg(test)]
@@ -328,6 +349,54 @@ mod tests {
                 foot(-0.08, 1., DVec3::ZERO),
                 pad,
                 DT
+            ));
+        }
+    }
+
+    #[test]
+    fn swept_face_checks_the_lowest_feature_at_its_plane_crossing() {
+        let half = DVec3::new(0.006, 0.010, 0.005);
+        let turn = DQuat::from_rotation_y(0.31);
+        let shape = BoxShape {
+            half: DVec3::splat(0.004),
+            local_com: DVec3::new(-0.001, 0.002, 0.003),
+        };
+        let relative_point = turn * shape.local_com;
+        let lowest = (turn.conjugate() * DVec3::Z).abs().dot(shape.half);
+        let body = BoxAt {
+            com: DVec3::new(-0.020, 0., half.z + lowest + 0.04) + relative_point,
+            rotation: turn,
+            velocity: DVec3::new(2., 0., -4.),
+            spin: DVec3::ZERO,
+            shape,
+        };
+        assert!(body.over_support(half).is_none());
+        assert!(body.at(DVec3::ZERO, 0.020).over_support(half).is_none());
+        assert!(translating_face_entry(body, half, 0.020, 1e-13));
+        // The plane is reached before the projected footprint enters the pad.
+        let beyond = BoxAt {
+            com: body.com - DVec3::X * 0.020,
+            ..body
+        };
+        assert!(!translating_face_entry(beyond, half, 0.020, 1e-13));
+        // Only the upper corner overlaps the footprint at the instant of crossing.
+        let outboard = BoxAt {
+            com: body.com + DVec3::X * 0.008,
+            ..body
+        };
+        assert!(!translating_face_entry(outboard, half, 0.020, 1e-13));
+        for dt in [0., 0.005] {
+            assert!(!translating_face_entry(body, half, dt, 1e-13));
+        }
+        for speed in [0., 1.] {
+            assert!(!translating_face_entry(
+                BoxAt {
+                    velocity: DVec3::Z * speed,
+                    ..body
+                },
+                half,
+                0.020,
+                1e-13
             ));
         }
     }

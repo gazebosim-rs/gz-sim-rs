@@ -788,3 +788,57 @@ fn fractional_paths_decline_unmodelled_wrenches_and_neighbor_contacts() {
         }
     }
 }
+
+#[test]
+fn a_translating_parcel_hits_the_finite_face_between_two_disjoint_endpoint_footprints() {
+    let xml = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let mut selected = load(xml);
+    let raw = plugin_free(xml);
+    let fine_xml = raw.replace("0.02</max_step_size>", "0.0002</max_step_size>");
+    let mut fine = load(&fine_xml);
+    let mut ordinary = load(&raw);
+    let part = id(&selected, "parcel::body");
+    let bypass = id(&selected, "bypass::body");
+    // Without contact the two 8 mm parcels cross from x=-20 to +20 mm.
+    // Both endpoint footprints are clear of the 12 mm pad. At 10 ms only
+    // the orange parcel is over its pad, arriving at 4 m/s along the normal.
+    for epoch in 0..2 {
+        selected.step_exact(1).unwrap();
+        fine.step_exact(100).unwrap();
+        ordinary.step_exact(1).unwrap();
+        let r = last_refinement(&selected).unwrap();
+        assert_eq!(
+            (
+                r.epoch,
+                r.iteration,
+                r.requested_pairs.len(),
+                r.interval.native_steps
+            ),
+            (epoch, 1, 1, 100)
+        );
+        let pair = r.requested_pairs[0];
+        assert_eq!(pair.foot_link, part);
+        let arriving = state(&selected, part);
+        assert_eq!(arriving, state(&fine, part));
+        assert!(
+            (pair.normal_impulse_on_foot[2] - 0.01 * (arriving.velocity[2] + 4.)).abs() < 1e-10
+        );
+        assert!((pair.normal_impulse - 0.04).abs() < 0.0001);
+        let first = pair.first_positive_end.unwrap().as_secs_f64();
+        assert!((first - 0.010).abs() < 0.001);
+        assert!((arriving.position[0] - 0.020).abs() < 1e-12);
+        assert!((state(&ordinary, part).position[0] - arriving.position[0]).abs() > 0.020);
+        let free = state(&selected, bypass);
+        assert_eq!(free.velocity, [2., 0., -4.]);
+        assert_eq!(free, state(&fine, bypass));
+        eprintln!(
+            "sorter epoch {epoch}, first positive end {first:.9} s, vertical impulse {:.12} N s, public body at {:?}",
+            pair.normal_impulse_on_foot[2], arriving.position
+        );
+        selected.step_exact(3).unwrap();
+        assert_eq!(last_refinement(&selected).unwrap().iteration, 1);
+        for s in [&mut selected, &mut fine, &mut ordinary] {
+            s.reset().unwrap();
+        }
+    }
+}
