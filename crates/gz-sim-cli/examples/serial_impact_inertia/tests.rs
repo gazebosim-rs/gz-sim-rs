@@ -104,3 +104,116 @@ fn refining_the_extreme_mass_distribution_keeps_the_driven_axes_below_their_spee
     }
     Ok(())
 }
+
+#[test]
+fn both_approach_faces_select_only_the_strike_and_the_miss_spends_no_extra_steps() -> Result<()> {
+    for option in ["--right", "--miss", "--automatic"] {
+        let mut args = Args::try_parse_from([
+            "study",
+            "--divisor",
+            "1.75",
+            "--substeps",
+            "1000",
+            "--ticks",
+            "4",
+            option,
+        ])?;
+        args.trial.automatic = true;
+        let r = run(args.trial)?;
+        let selected = r.samples.iter().map(|s| s.native_steps).collect::<Vec<_>>();
+        if option == "--miss" {
+            assert_eq!(selected, [1; 4]);
+        } else {
+            assert_eq!(selected, [1000, 1, 1, 1]);
+            let i = &r.samples[0].impact;
+            assert!(if option == "--right" {
+                i.right_ns > 0.045 && i.left_ns == 0.
+            } else {
+                i.left_ns > 0.045 && i.right_ns == 0.
+            });
+            let normal = 0.2 * (r.samples[0].bodies[5].v[0] - r.incoming[5].v[0]);
+            assert!((normal - i.normal_on_parcel_ns[0]).abs() < 1e-9);
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn authored_faces_rebind_after_reset_and_reject_mixed_modes() -> Result<()> {
+    let args = Args::try_parse_from(["study", "--automatic", "--substeps", "8"])?;
+    let xml = fixture(&args.trial);
+    let load = |text: &str| {
+        load_world_with_sdf_step(
+            text,
+            "impact.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::MultiFidelity,
+        )
+    };
+    for axis in ["+x", "-x", "+y", "-y", "+z", "-z"] {
+        load(&xml.replace("<incoming_face>-x", &format!("<incoming_face>{axis}")))?;
+    }
+    for invalid in [
+        "q</incoming_face>",
+        "-x</incoming_face><project_planar>true</project_planar>",
+    ] {
+        assert!(load(&xml.replace("-x</incoming_face>", invalid)).is_err());
+    }
+    let mut sim = load(&xml)?;
+    let mut impulses = Vec::new();
+    for _ in 0..2 {
+        sim.step_exact(1)?;
+        let r = gz_sim_scene::primary_contact::last_refinement(&sim).unwrap();
+        assert_eq!(r.requested_pairs.len(), 1);
+        impulses.push(r.requested_pairs[0].normal_impulse);
+        sim.reset()?;
+        assert!(gz_sim_scene::primary_contact::last_refinement(&sim).is_none());
+    }
+    assert_eq!(impulses[0], impulses[1]);
+    Ok(())
+}
+
+#[test]
+fn removing_the_velocity_motor_still_leaves_a_physical_spindle_stop() -> Result<()> {
+    let max_speed = |cap: &str| -> Result<f64> {
+        let args = Args::try_parse_from([
+            "study",
+            "--passive-spindle",
+            cap,
+            "--automatic",
+            "--substeps",
+            "64",
+        ])?;
+        let r = run(args.trial)?;
+        Ok(r.samples
+            .iter()
+            .map(|s| s.joint_velocity[1].abs())
+            .fold(0., f64::max))
+    };
+    assert!(max_speed("capped")? < 0.81);
+    assert!(max_speed("uncapped")? > 3.);
+    Ok(())
+}
+
+#[test]
+fn a_predicted_arrival_without_load_does_not_spend_the_next_strike() -> Result<()> {
+    let r = run(Args::try_parse_from([
+        "study",
+        "--automatic",
+        "--divisor",
+        "1.75",
+        "--substeps",
+        "1000",
+        "--gap-um",
+        "1200",
+        "--ticks",
+        "3",
+    ])?
+    .trial)?;
+    let steps = r.samples.iter().map(|s| s.native_steps).collect::<Vec<_>>();
+    assert_eq!(steps, [1, 1000, 1000]);
+    assert_eq!(r.samples[1].impact.left_ns, 0.);
+    assert!(r.samples[2].impact.left_ns > 0.02);
+    Ok(())
+}

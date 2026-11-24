@@ -5,6 +5,9 @@ use super::*;
 #[derive(Serialize)]
 pub(super) struct Native {
     pub left_ns: f64,
+    pub right_ns: f64,
+    pub native_steps: u32,
+    pub refined_public_ms: Vec<u32>,
     other_ns: f64,
     first_loaded_end_ns: Option<u128>,
     last_loaded_public_ms: Option<u32>,
@@ -17,6 +20,9 @@ impl Native {
     fn from_run(r: &Run) -> Self {
         let mut x = Self {
             left_ns: 0.,
+            right_ns: 0.,
+            native_steps: 0,
+            refined_public_ms: Vec::new(),
             other_ns: 0.,
             first_loaded_end_ns: None,
             last_loaded_public_ms: None,
@@ -29,9 +35,14 @@ impl Native {
         for s in &r.samples {
             let i = &s.impact;
             x.left_ns += i.left_ns;
+            x.right_ns += i.right_ns;
+            x.native_steps += s.native_steps;
+            if s.native_steps > 1 {
+                x.refined_public_ms.push(s.ms);
+            }
             x.other_ns += i.other_ns;
             normal_x += i.normal_on_parcel_ns[0];
-            if i.left_ns > 0. {
+            if i.left_ns + i.right_ns > 0. {
                 x.first_loaded_end_ns = x.first_loaded_end_ns.or(i.first_end_ns);
                 x.last_loaded_public_ms = Some(s.ms);
             }
@@ -64,8 +75,9 @@ fn compare(a: &Run, b: &Run, measured: &Native, reference: &Native) -> Differenc
     assert_eq!(b.initial_patch_points, 0);
     assert_eq!(a.samples.len(), b.samples.len());
     let mut d = Difference::default();
-    if reference.left_ns > 0. {
-        d.impulse_percent = Some(100. * (measured.left_ns / reference.left_ns - 1.).abs());
+    let total = |s: &Native| if a.trial.right { s.right_ns } else { s.left_ns };
+    if total(reference) > 0. {
+        d.impulse_percent = Some(100. * (total(measured) / total(reference) - 1.).abs());
     }
     for (x, y) in a.samples.iter().zip(&b.samples) {
         assert_eq!(x.ms, y.ms);
@@ -103,6 +115,7 @@ pub(super) fn against_fine(a: &Run) -> Result<Comparison<'_>> {
     let fork = |substeps| {
         run(Trial {
             substeps,
+            automatic: false,
             replay: None,
             ..a.trial.clone()
         })

@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Prospective refinement of one public tick at a released box foot's touchdown.
+//! Prospective refinement at a released box foot’s touchdown or a nominated box face strike.
 //! The authored world plugin selects pairs. All bodies share the native clock.
 
 mod geometry;
@@ -210,6 +210,8 @@ struct SupportPressure {
     pad: BodyState,
 }
 struct Pair {
+    incoming_face: Option<DVec3>,
+    strike_latched: bool,
     follow_planar_edge: bool,
     follow_sliding_vertex: bool,
     follow_sticking_point: bool,
@@ -361,7 +363,7 @@ fn selected_interval(
 
 /// Toggle future selections without advancing physics or changing the current
 /// native contact history. A changed setting clears release and feature-tracking
-/// witnesses. Re-enabling requires a new measured release. Reset restores the
+/// witnesses. Foot touchdown requires a new measured release, and incoming faces may detect a cold strike. Reset restores the
 /// authored enabled state. Historical receipts remain readable in their epoch.
 pub fn set_enabled(sim: &mut Simulation, enabled: bool) -> Result<(), PolicyError> {
     sim.validate_steps(0)?;
@@ -372,6 +374,7 @@ pub fn set_enabled(sim: &mut Simulation, enabled: bool) -> Result<(), PolicyErro
     if p.enabled != enabled {
         p.enabled = enabled;
         for binding in &mut p.pairs {
+            binding.strike_latched = false;
             binding.armed = false;
             binding.tracking_geometry = false;
             binding.edge_active = false;
@@ -439,24 +442,25 @@ pub(crate) fn install(
         ) && !p.refresh_box_features
             && !p.refresh_returning_box_features
             && !p.prospective_timing;
-        if native.is_dynamic(pad.body) != Some(false)
-            || !native.state(pad.body).is_some_and(|s| {
-                if instantaneous_edge {
-                    // Only current tangency can qualify on a rotating support.
-                    // The shared free-flight planner requires a constant support orientation.
-                    true
-                } else if p.refresh_box_features
-                    || p.refresh_returning_box_features
-                    || p.prospective_timing
-                    || p.projection.is_some()
-                    || p.detect_finite_arrival
-                    || p.follow_frictionless_face
-                {
-                    s.angular_velocity == [0.; 3]
-                } else {
-                    geometry::horizontal(s)
-                }
-            })
+        if p.incoming_face.is_none()
+            && (native.is_dynamic(pad.body) != Some(false)
+                || !native.state(pad.body).is_some_and(|s| {
+                    if instantaneous_edge {
+                        // Only current tangency can qualify on a rotating support.
+                        // The shared free-flight planner requires a constant support orientation.
+                        true
+                    } else if p.refresh_box_features
+                        || p.refresh_returning_box_features
+                        || p.prospective_timing
+                        || p.projection.is_some()
+                        || p.detect_finite_arrival
+                        || p.follow_frictionless_face
+                    {
+                        s.angular_velocity == [0.; 3]
+                    } else {
+                        geometry::horizontal(s)
+                    }
+                }))
         {
             return Err(invalid(
                 &p.support,
@@ -494,6 +498,8 @@ pub(crate) fn install(
             })
             .transpose()?;
         pairs.push(Pair {
+            incoming_face: p.incoming_face,
+            strike_latched: false,
             opponent,
             project_opponent_corner: p.project_opponent_corner,
             project_opponent_return: p.project_opponent_return,
@@ -586,6 +592,7 @@ fn reset(world: &mut World) {
             p.pressure_history = None;
             p.inspect_initial_bearing = true;
             p.release_active = false;
+            p.strike_latched = false;
             p.foot.rebind(world);
             p.pad.rebind(world);
             if let Some(link) = &mut p.opponent {
@@ -676,6 +683,7 @@ fn advance(
         let foot_link = group[0].foot;
         if !foot_link.present(&links) || native.is_dynamic(foot_link.body) != Some(true) {
             for p in group {
+                p.strike_latched = false;
                 p.armed = false;
                 p.tracking_geometry = false;
                 p.edge_active = false;
@@ -700,7 +708,10 @@ fn advance(
             return;
         };
         for (j, p) in group.iter_mut().enumerate() {
-            if !p.pad.present(&links) || native.is_dynamic(p.pad.body) != Some(false) {
+            if !p.pad.present(&links)
+                || p.incoming_face.is_none() && native.is_dynamic(p.pad.body) != Some(false)
+            {
+                p.strike_latched = false;
                 p.armed = false;
                 p.tracking_geometry = false;
                 p.edge_active = false;
@@ -716,6 +727,18 @@ fn advance(
                 fault.report(gz_physics::PhysicsError::MissingBody);
                 return;
             };
+            if let Some(face) = p.incoming_face {
+                if geometry::incoming_face(
+                    &mut p.strike_latched,
+                    face,
+                    (foot, p.foot.shape),
+                    (pad, p.pad.shape),
+                    time.dt.as_secs_f64(),
+                ) {
+                    requests.push(start + j);
+                }
+                continue;
+            }
             if p.pressure_history
                 .as_ref()
                 .is_some_and(|w| w.foot != foot || w.pad != pad)
@@ -1514,9 +1537,14 @@ fn advance(
         let requested_pairs = requests
             .into_iter()
             .map(|i| {
-                let p = &policy.pairs[i];
+                let p = &mut policy.pairs[i];
                 let key = p.key();
                 let integrated = interval.pairs.iter().find(|c| (c.a, c.b) == key);
+                // Acceleration inside the interval may turn a predicted arrival
+                // into free flight. A later strike can still start at tangency.
+                if p.incoming_face.is_some() {
+                    p.strike_latched = integrated.is_some_and(|c| c.normal_impulse > 0.);
+                }
                 RequestedPair {
                     foot_link: p.foot.id,
                     support_link: p.pad.id,

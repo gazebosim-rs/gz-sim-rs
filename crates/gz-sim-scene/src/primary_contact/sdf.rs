@@ -20,6 +20,7 @@ pub(super) enum Projection {
     FrictionlessSole,
 }
 pub(super) struct NamedPair {
+    pub incoming_face: Option<DVec3>,
     pub follow_planar_edge: bool,
     pub follow_sliding_vertex: bool,
     pub follow_sticking_point: bool,
@@ -190,6 +191,7 @@ pub(crate) fn parse(
                 );
             }
             "pair" => {
+                let mut incoming_face = None;
                 let mut foot = None;
                 let mut support = None;
                 let mut refresh = None;
@@ -267,6 +269,17 @@ pub(crate) fn parse(
                             })?);
                         }
                         "guard_opponent" if opposing_name.is_none() => opposing_name = Some(v),
+                        "incoming_face" if incoming_face.is_none() => {
+                            incoming_face = Some(match v {
+                                "+x" => DVec3::X,
+                                "-x" => DVec3::NEG_X,
+                                "+y" => DVec3::Y,
+                                "-y" => DVec3::NEG_Y,
+                                "+z" => DVec3::Z,
+                                "-z" => DVec3::NEG_Z,
+                                _ => return Err(err("incoming_face requires a signed local axis")),
+                            });
+                        }
                         "foot" if foot.is_none() => foot = Some(v),
                         "support" if support.is_none() => support = Some(v),
                         "resolve_fractional_points" if fractional_points.is_none() => {
@@ -531,6 +544,11 @@ pub(crate) fn parse(
                         _ => return Err(err("each pair requires one foot and one support")),
                     }
                 }
+                if incoming_face.is_some() && children(n).count() != 3 {
+                    return Err(err(
+                        "incoming_face accepts only the foot and support fields",
+                    ));
+                }
                 if returning_refresh == Some(true) && refresh == Some(true) {
                     return Err(err(
                         "choose either continuous or returning box feature refresh for this pair",
@@ -750,6 +768,7 @@ pub(crate) fn parse(
                     return Err(err("follow_planar_edge requires project_planar"));
                 }
                 pairs.push(NamedPair {
+                    incoming_face,
                     follow_planar_edge: follow.unwrap_or(false),
                     follow_sliding_vertex: vertex.unwrap_or(false),
                     follow_sticking_point: sticking_point.unwrap_or(false),

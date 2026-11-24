@@ -5,7 +5,7 @@
 use std::{error::Error, path::PathBuf, time::Duration};
 
 use bevy_ecs::prelude::{Entity, Res, ResMut, Resource};
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use gz_physics::{BodyId, BodyState, PhysicsBackend};
 use gz_physics_multifidelity::{ContactSegment, MultiFidelityBackend, RigidContactPatch};
 use gz_sim_core::{EntityId, Phase, Simulation, StepFault, UpdateInfo};
@@ -38,6 +38,15 @@ struct Args {
     /// Compare the selected public trajectory with independently initialized 250 ns and 125 ns native steps.
     #[arg(long)]
     compare: bool,
+    /// Write the exact authored study world for the ordinary simulator CLI.
+    #[arg(long)]
+    write_world: Option<PathBuf>,
+}
+
+#[derive(Clone, Copy, PartialEq, ValueEnum, Serialize)]
+enum PassiveSpindle {
+    Capped,
+    Uncapped,
 }
 
 #[derive(clap::Args, Clone, Serialize)]
@@ -48,6 +57,18 @@ struct Trial {
     /// Native contact solves in one ordinary 1 ms command/publication interval. One uses the unmodified step.
     #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..=8000))]
     substeps: u32,
+    /// Use the authored local face detector. The substep budget is spent only on selected impacts.
+    #[arg(long)]
+    automatic: bool,
+    /// Strike the outer right jaw from positive X.
+    #[arg(long)]
+    right: bool,
+    /// Additional initial separation from the chosen face, in micrometres.
+    #[arg(long, default_value_t = 0)]
+    gap_um: u32,
+    /// Remove spindle velocity control, apply a held 3 N·m input, and retain or remove its physical speed stop.
+    #[arg(long, value_enum)]
+    passive_spindle: Option<PassiveSpindle>,
     /// Move the incoming parcel sideways to miss both jaws.
     #[arg(long)]
     miss: bool,
@@ -86,6 +107,31 @@ fn fixture(trial: &Trial) -> String {
                 if trial.miss { 0.16 } else { 0.01 }
             ),
         );
+    let side = if trial.right { 1.0 } else { -1.0 };
+    let x = side * (0.099 + f64::from(trial.gap_um) * 1e-6);
+    xml = xml.replace("<pose>-0.099 ", &format!("<pose>{x} "));
+    if trial.right {
+        xml = xml.replace("<linear_velocity>0.75 ", "<linear_velocity>-0.75 ");
+    }
+    if let Some(control) = trial.passive_spindle {
+        let begin = xml
+            .find(r#"<plugin filename="gz-sim-joint-position-controller-system""#)
+            .unwrap();
+        let end = begin + xml[begin..].find("</plugin>").unwrap() + "</plugin>".len();
+        assert!(xml[begin..end].contains("<joint_name>spindle</joint_name>"));
+        xml.replace_range(begin..end, "");
+        if control == PassiveSpindle::Uncapped {
+            xml = xml.replace("<velocity>0.8</velocity>", "");
+        }
+    }
+    if trial.automatic {
+        xml=xml.replace("</world>", &format!(r#"
+          <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
+            <native_steps>{}</native_steps><solver_iterations>4</solver_iterations>
+            <pair><foot>default::parcel::box</foot><support>default::gripper::left</support><incoming_face>-x</incoming_face></pair>
+            <pair><foot>default::parcel::box</foot><support>default::gripper::right</support><incoming_face>+x</incoming_face></pair>
+          </plugin></world>"#, trial.substeps));
+    }
     for (name, mass, dims) in LINKS {
         let [ix, iy, iz] = tensor(mass, dims, trial.divisor);
         let link = xml.find(&format!("<link name=\"{name}\">")).unwrap();
@@ -102,41 +148,84 @@ fn fixture(trial: &Trial) -> String {
 #[derive(Default, Clone, Resource, Serialize)]
 struct Impact {
     left_ns: f64,
+    right_ns: f64,
     other_ns: f64,
     normal_on_parcel_ns: [f64; 3],
     first_end_ns: Option<u128>,
 }
+#[derive(Clone, Copy)]
+struct Contacts {
+    parcel: BodyId,
+    left: BodyId,
+    right: BodyId,
+}
+impl Contacts {
+    fn counterpart(self, a: BodyId, b: BodyId) -> Option<(BodyId, f64)> {
+        if a == self.parcel {
+            Some((b, 1.))
+        } else if b == self.parcel {
+            Some((a, -1.))
+        } else {
+            None
+        }
+    }
+}
 impl Impact {
-    fn record(
+    fn add(
         &mut self,
-        patches: &[RigidContactPatch],
-        parcel: BodyId,
-        left: BodyId,
-        end: Duration,
+        ids: Contacts,
+        other: BodyId,
+        impulse: f64,
+        on_parcel: [f64; 3],
+        end: Option<Duration>,
     ) {
+        if other == ids.left {
+            self.left_ns += impulse;
+        } else if other == ids.right {
+            self.right_ns += impulse;
+        } else {
+            self.other_ns += impulse;
+        }
+        if (other == ids.left || other == ids.right)
+            && let Some(end) = end.filter(|_| impulse > 0.)
+        {
+            let ns = end.as_nanos();
+            self.first_end_ns = Some(self.first_end_ns.map_or(ns, |old| old.min(ns)));
+        }
+        for (sum, v) in self.normal_on_parcel_ns.iter_mut().zip(on_parcel) {
+            *sum += v;
+        }
+    }
+    fn record(&mut self, patches: &[RigidContactPatch], ids: Contacts, end: Duration) {
         for p in patches {
-            let (other, sign) = if p.a == parcel {
-                (p.b, 1.)
-            } else if p.b == parcel {
-                (p.a, -1.)
-            } else {
-                continue;
-            };
-            for point in &p.points {
-                let j = point.normal_impulse;
-                if other == left {
-                    self.left_ns += j;
-                    if j > 0. {
-                        self.first_end_ns.get_or_insert(end.as_nanos());
-                    }
-                } else {
-                    self.other_ns += j;
-                }
-                for (i, sum) in self.normal_on_parcel_ns.iter_mut().enumerate() {
-                    *sum += sign * (p.normal_on_a[i] * j);
+            if let Some((other, sign)) = ids.counterpart(p.a, p.b) {
+                for point in &p.points {
+                    let j = point.normal_impulse;
+                    self.add(
+                        ids,
+                        other,
+                        j,
+                        p.normal_on_a.map(|v| v * j * sign),
+                        Some(end),
+                    );
                 }
             }
         }
+    }
+    fn integrated(r: &gz_sim_scene::primary_contact::Refinement, ids: Contacts) -> Self {
+        let mut impact = Self::default();
+        for p in &r.interval.pairs {
+            if let Some((other, sign)) = ids.counterpart(p.a, p.b) {
+                impact.add(
+                    ids,
+                    other,
+                    p.normal_impulse,
+                    p.normal_impulse_on_a.map(|v| v * sign),
+                    p.first_positive_end.map(|t| r.start_time + t),
+                );
+            }
+        }
+        impact
     }
 }
 
@@ -160,6 +249,7 @@ impl From<BodyState> for State {
 #[derive(Serialize)]
 struct Sample {
     ms: u32,
+    native_steps: u32,
     bodies: Vec<State>,
     impact: Impact,
     joint_position: [f64; 6],
@@ -210,10 +300,17 @@ fn run(trial: Trial) -> Result<Run> {
     let mut bodies = LINKS
         .map(|(name, _, _)| body(&format!("gripper::{name}")))
         .to_vec();
-    let left = bodies[3];
-    let parcel = body("parcel::box");
-    bodies.push(parcel);
+    let ids = Contacts {
+        parcel: body("parcel::box"),
+        left: bodies[3],
+        right: bodies[4],
+    };
+    bodies.push(ids.parcel);
     let joint = JOINTS.map(|name| entity(&sim, &format!("gripper::{name}")));
+    if trial.passive_spindle.is_some() {
+        let id = sim.world().get::<EntityId>(joint[1]).unwrap().get();
+        gz_sim_scene::JointForceCommand::set_batch(&mut sim, [(id, 3.)])?;
+    }
     let native = sim
         .world()
         .resource::<PhysicsBackend>()
@@ -232,7 +329,8 @@ fn run(trial: Trial) -> Result<Run> {
     let native_robot_mass_kg = subtree(0)?.mass_kg;
     let incoming = states(&sim, &bodies);
     let n = trial.substeps;
-    if n > 1 {
+    let uniform = n > 1 && !trial.automatic;
+    if uniform {
         sim.initialize_schedules()?;
         assert_eq!(
             sim.remove_systems_in_set(Phase::PhysicsStep, Phase::PhysicsStep)?,
@@ -253,12 +351,7 @@ fn run(trial: Trial) -> Result<Run> {
                 };
                 *impact = Impact::default();
                 if let Err(e) = native.observe_contact_schedule(clock.dt, &[segment], &[], |cut| {
-                    impact.record(
-                        &cut.contact_patches(),
-                        parcel,
-                        left,
-                        clock.start_time + cut.elapsed,
-                    );
+                    impact.record(&cut.contact_patches(), ids, clock.start_time + cut.elapsed);
                 }) {
                     fault.report(e);
                 }
@@ -270,7 +363,13 @@ fn run(trial: Trial) -> Result<Run> {
     for ms in 0..=trial.ticks {
         if ms > 0 {
             sim.step_exact(1)?;
-            let impact = if n == 1 {
+            let selected = gz_sim_scene::primary_contact::last_refinement(&sim)
+                .filter(|p| p.sim_time == sim.elapsed());
+            let native_steps =
+                selected.map_or(if uniform { n } else { 1 }, |r| r.interval.native_steps);
+            let impact = if let Some(r) = selected {
+                Impact::integrated(r, ids)
+            } else if !uniform {
                 let mut impact = Impact::default();
                 let native = sim
                     .world()
@@ -279,8 +378,7 @@ fn run(trial: Trial) -> Result<Run> {
                     .unwrap();
                 impact.record(
                     &native.rigid_contact_patches(),
-                    parcel,
-                    left,
+                    ids,
                     Duration::from_millis(u64::from(ms)),
                 );
                 impact
@@ -303,6 +401,7 @@ fn run(trial: Trial) -> Result<Run> {
             joint_velocity[4..].copy_from_slice(&wrist.velocity);
             samples.push(Sample {
                 ms,
+                native_steps,
                 bodies: states(&sim, &bodies),
                 impact,
                 joint_position,
@@ -333,6 +432,9 @@ fn run(trial: Trial) -> Result<Run> {
 }
 fn main() -> Result<()> {
     let args = Args::parse();
+    if let Some(path) = args.write_world {
+        std::fs::write(path, fixture(&args.trial))?;
+    }
     let report = run(args.trial)?;
     let output = std::io::stdout().lock();
     if args.compare {

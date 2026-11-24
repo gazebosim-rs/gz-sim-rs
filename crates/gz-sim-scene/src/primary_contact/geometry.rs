@@ -187,6 +187,58 @@ pub(super) fn predict_oriented(
     }
 }
 
+/// Detect closure across the finite authored face from the current rigid twists.
+/// Project the incident body's lower hull in the moving face frame at both
+/// boundaries. This predictor intentionally covers entry through that face;
+/// rotation or acceleration can cause an intermediate crossing to be missed.
+pub(super) fn incoming_face(
+    latched: &mut bool,
+    face: DVec3,
+    foot: (BodyState, BoxShape),
+    support: (BodyState, BoxShape),
+    dt: f64,
+) -> bool {
+    let face_rotation = DQuat::from_rotation_arc(DVec3::Z, face);
+    let half = (face_rotation.conjugate() * support.1.half).abs();
+    let tolerance = 64.
+        * f64::EPSILON
+        * (1. + DVec3::from(foot.0.position).length() + DVec3::from(support.0.position).length());
+    let at = |(state, shape): (BodyState, BoxShape), t| {
+        let q0 = DQuat::from_array(state.orientation);
+        let w = DVec3::from(state.angular_velocity);
+        let v = DVec3::from(state.velocity);
+        let q = DQuat::from_scaled_axis(w * t) * q0;
+        let com = DVec3::from(state.position) + q0 * shape.local_com + v * t;
+        (com, q, v, w)
+    };
+    let sample = |t| {
+        let (a, qa, va, wa) = at(foot, t);
+        let (b, qb, vb, wb) = at(support, t);
+        let inv = (qb * face_rotation).conjugate();
+        let body = BoxAt {
+            com: inv * (a - b + qb * support.1.local_com),
+            rotation: inv * qa,
+            velocity: inv * (va - vb - wb.cross(a - b)),
+            spin: inv * (wa - wb),
+            shape: foot.1,
+        };
+        body.over_support(half)
+    };
+    let Some((gap, _)) = sample(0.) else {
+        *latched = false;
+        return false;
+    };
+    if gap > tolerance {
+        *latched = false;
+    }
+    if *latched || gap < -tolerance {
+        return false;
+    }
+    let hit = sample(dt).is_some_and(|(end, closing)| closing && end < gap);
+    *latched = hit;
+    hit
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,6 +251,86 @@ mod tests {
         }
     }
     const DT: f64 = 0.0005;
+
+    #[test]
+    fn cold_strike_uses_relative_motion_inside_each_moving_finite_face() {
+        let q = DQuat::from_rotation_z(0.4);
+        let w = DVec3::new(0., 0., 0.3);
+        let center = DVec3::new(0.4, 0.3, -0.15);
+        let v = DVec3::new(0.2, 0.1, -0.3);
+        let shape = BoxShape {
+            half: DVec3::splat(0.025),
+            local_com: DVec3::new(0., 0., 0.006),
+        };
+        let pad = (state(center, q, v, w), shape);
+        for face in [
+            DVec3::X,
+            DVec3::NEG_X,
+            DVec3::Y,
+            DVec3::NEG_Y,
+            DVec3::Z,
+            DVec3::NEG_Z,
+        ] {
+            let outward = q * face;
+            let foot = |gap, speed, lateral| {
+                let offset = outward * (0.05 + gap) + lateral;
+                (
+                    state(center + offset, q, v + w.cross(offset) - outward * speed, w),
+                    shape,
+                )
+            };
+            let mut latch = false;
+            assert!(incoming_face(
+                &mut latch,
+                face,
+                foot(0., 1., DVec3::ZERO),
+                pad,
+                DT
+            ));
+            assert!(!incoming_face(
+                &mut latch,
+                face,
+                foot(0., 1., DVec3::ZERO),
+                pad,
+                DT
+            ));
+            assert!(!incoming_face(
+                &mut latch,
+                face,
+                foot(0.002, 1., DVec3::ZERO),
+                pad,
+                DT
+            ));
+            assert!(incoming_face(
+                &mut latch,
+                face,
+                foot(0.0001, 1., DVec3::ZERO),
+                pad,
+                DT
+            ));
+            assert!(!incoming_face(
+                &mut latch,
+                face,
+                foot(0., 1., q * face.any_orthonormal_vector() * 0.3),
+                pad,
+                DT
+            ));
+            assert!(!incoming_face(
+                &mut latch,
+                face,
+                foot(0., -1., DVec3::ZERO),
+                pad,
+                DT
+            ));
+            assert!(!incoming_face(
+                &mut latch,
+                face,
+                foot(-0.08, 1., DVec3::ZERO),
+                pad,
+                DT
+            ));
+        }
+    }
 
     #[test]
     fn low_outboard_corner_does_not_land_over_empty_space() {
