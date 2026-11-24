@@ -14,7 +14,7 @@ pub(crate) enum Clock {
     FineNative,
 }
 
-#[derive(Default, Serialize, PartialEq)]
+#[derive(Default, Debug, Serialize, PartialEq)]
 struct Events {
     requests_ns: Vec<u64>,
     requests_with_measured_contact_ns: Vec<u64>,
@@ -27,6 +27,21 @@ struct Events {
     rebound_m: f64,
 }
 
+impl Events {
+    fn qualify(&self, mode: Mode) -> Result<()> {
+        if self.requests_ns != self.requests_with_measured_contact_ns
+            || self.fast_landings_ns != self.guarded_landings_ns
+        {
+            return Err(format!("missed fast landing or unconfirmed refinement: {self:?}").into());
+        }
+        if mode != Mode::DropLate && !self.requests_ns.is_empty() {
+            return Err(
+                "secure or supported sheet incorrectly requested landing refinement".into(),
+            );
+        }
+        Ok(())
+    }
+}
 struct Episode {
     rows: Vec<Reading>,
     events: Events,
@@ -200,20 +215,7 @@ pub(crate) fn run(
     }
     let physical = ObservationWindow::new(mode, &a.rows, r.sim.step_duration().as_secs_f64())?;
     if clock == Clock::Adaptive {
-        if a.events.requests_ns != a.events.requests_with_measured_contact_ns
-            || a.events.fast_landings_ns != a.events.guarded_landings_ns
-        {
-            return Err(format!(
-                "missed fast landing or unconfirmed refinement: {}",
-                serde_json::to_string(&a.events)?
-            )
-            .into());
-        }
-        if mode != Mode::DropLate && !a.events.requests_ns.is_empty() {
-            return Err(
-                "secure or supported sheet incorrectly requested landing refinement".into(),
-            );
-        }
+        a.events.qualify(mode)?;
     }
     let mut actuator_costs = r
         .costs_ns
@@ -260,5 +262,44 @@ mod tests {
             costs(&mut samples),
             json!({"n":4,"total_ns":20,"p50_ns":4,"p95_ns":8,"p99_ns":8})
         );
+    }
+    #[test]
+    fn missing_and_false_requests_fail_independently_of_the_trajectory() {
+        let mut e = Events {
+            requests_ns: vec![10],
+            fast_landings_ns: vec![10],
+            ..Default::default()
+        };
+        assert!(e.qualify(Mode::DropLate).is_err());
+        e.requests_with_measured_contact_ns.push(10);
+        assert!(e.qualify(Mode::DropLate).is_err());
+        e.guarded_landings_ns.push(10);
+        assert!(e.qualify(Mode::DropLate).is_ok());
+        assert!(e.qualify(Mode::DropEarly).is_err());
+    }
+    #[test]
+    fn fine_material_on_an_underresolved_rigid_pickup_does_not_emit_a_comparison() {
+        let d = tempfile::tempdir().unwrap();
+        let error = run(d.path(), Mode::DropLate, Clock::Fine, 1000, false)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("swept surface self-contact"), "{error}");
+        assert!(!d.path().join("comparison.json").exists());
+    }
+    #[test]
+    fn the_measurement_requires_live_material_and_receiver_geometry() {
+        let bare = r#"<sdf version="1.12"><world name="default"><model name="source"><static>true</static><link name="body"><collision name="surface"><geometry><box><size>1 1 1</size></box></geometry></collision></link></model></world></sdf>"#;
+        let mut r = Recording::new(bare, "bare.sdf", "default").unwrap();
+        assert!(measure(&mut r, Mode::DropLate, Clock::Fine, 1000, true).is_err());
+        assert!(measure(&mut r, Mode::DropLate, Clock::Coarse, 1000, true).is_err());
+        let other = bare.replace(r#"name="source""#, r#"name="other""#);
+        let mut r = Recording::new(&other, "missing.sdf", "default").unwrap();
+        assert!(measure(&mut r, Mode::DropLate, Clock::Coarse, 1000, true).is_err());
+        let wrong = bare.replace(
+            "<box><size>1 1 1</size></box>",
+            "<sphere><radius>0.4</radius></sphere>",
+        );
+        let mut r = Recording::new(&wrong, "round.sdf", "default").unwrap();
+        assert!(measure(&mut r, Mode::DropLate, Clock::Coarse, 1000, true).is_err());
     }
 }
