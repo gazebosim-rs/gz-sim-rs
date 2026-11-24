@@ -75,3 +75,21 @@ fn opposed_forces_on_rotated_link_spin_without_linear_momentum_and_reset_clears_
     assert_eq!(body.velocity, [0.; 3]);
     assert!((body.angular_velocity[2] + 2. * 0.0005 / 0.035).abs() < 1e-10);
 }
+
+#[test]
+fn load_readback_distinguishes_queued_zero_from_a_missing_owner() {
+    use gz_sim_scene::{pending_link_world_wrench, queue_link_world_wrench};
+    let (mut sim, link) = fixture();
+    assert_eq!(pending_link_world_wrench(&sim, u64::MAX), None);
+    assert_eq!(pending_link_world_wrench(&sim, 1), None);
+    assert_eq!(pending_link_world_wrench(&sim, link), None);
+    queue_link_world_wrench(&mut sim, link, [0.; 3], [0.; 3]).unwrap();
+    assert_eq!(
+        pending_link_world_wrench(&sim, link),
+        Some(([0.; 3], [0.; 3]))
+    );
+    sim.step_exact(1).unwrap();
+    assert_eq!(pending_link_world_wrench(&sim, link), None);
+    sim.world_mut().remove_resource::<PhysicsBackend>();
+    assert_eq!(pending_link_world_wrench(&sim, link), None);
+}
