@@ -27,6 +27,7 @@ use gz_physics::{
     PreparedPhysicsReset, RotationSpec,
 };
 use gz_physics_rapier::RapierBackend;
+pub use gz_physics_rapier::{CoatedAnkle, CoatedAnkleStep};
 mod contact_window;
 pub use contact_window::ContactWindow;
 pub use gz_physics::NormalApproach;
@@ -277,6 +278,27 @@ pub struct MultiFidelityBackend {
 }
 
 impl MultiFidelityBackend {
+    pub fn validate_coated_ankle(
+        &self,
+        ankle: CoatedAnkle,
+        dt: Duration,
+    ) -> Result<(), PhysicsError> {
+        self.solver
+            .validate_coated_ankle(ankle, dt)
+            .map_err(engine_error)
+    }
+
+    /// One transactional native ankle step with a single owner for sole traction.
+    pub fn step_coated_ankle(
+        &mut self,
+        ankle: CoatedAnkle,
+        dt: Duration,
+    ) -> Result<CoatedAnkleStep, PhysicsError> {
+        self.solver
+            .step_coated_ankle(ankle, dt)
+            .map_err(engine_error)
+    }
+
     /// Pending world-frame force and torque on the independent coated foot.
     pub fn sole_wrench(
         &self,

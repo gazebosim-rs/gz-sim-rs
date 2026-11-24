@@ -92,6 +92,7 @@ pub(super) enum JointConstruction<'a> {
     Reduced(&'a [usize]),
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn validate_model(
     sdf: &Sdf,
     model: &Model,
@@ -100,6 +101,7 @@ pub(super) fn validate_model(
     engine: Option<&str>,
     is_static: bool,
     actuated: &[&str],
+    coated_tree: bool,
 ) -> Result<Option<ReducedPlan>, LoadError> {
     let options = articulation::validate_marker(model, engine)?;
     let switchable = options.is_some();
@@ -259,7 +261,7 @@ pub(super) fn validate_model(
             },
         )?;
     }
-    if !switchable && !bounded && !welded && !robot {
+    if !switchable && !bounded && !welded && !robot && !coated_tree {
         return Ok(None);
     }
     // Unique parents and acyclicity were validated above. A connected floating

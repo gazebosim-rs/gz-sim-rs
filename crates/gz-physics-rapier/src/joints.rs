@@ -19,6 +19,8 @@ pub use landing_audit::{
     LandingCachedPoint, LandingFork, LandingRestartState, LandingSolverPoint, LandingTrial,
     RestartPairHistory,
 };
+mod coated_ankle;
+pub use coated_ankle::{CoatedAnkle, CoatedAnkleStep};
 mod exact_lock;
 mod parked_robot;
 pub(crate) mod parked_speed;

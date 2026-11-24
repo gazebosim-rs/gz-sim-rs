@@ -2078,3 +2078,8 @@ Two 2.8125 g fingers lifted an 8.4 g folded sheet with mass-scaled damping. With
 ## 2026-11-23 — Physical GPU release tests and independent coverage
 
 The RTX 5090 passed 62 physics tests across 14 Cargo targets. Frozen build 84569c9 reached 95.26% GPU crate region coverage after exercising real hardware and capturing the resident worker's last contact on normal exit. An independent, build-ID-matched calculation also exceeded 95%. A new stock server recording matched all 600 earlier robot observations, and gz-web-rs verified 34 frames. Shared scene and CLI qualification remains underway. [Hardware evidence and new replay](measurements/local-manipulation/gpu-hardware-qualification.md)
+
+
+## 2026-11-23 — Ground load through a freely moving ankle
+
+The native ankle bent 19.973° under a 0.55 N·m shank moment while the same robot with a locked ankle held zero. The independently integrated trajectory predicted 19.968°, and the sole stayed loaded throughout both runs. Halving the internal step reduced the free ankle’s maximum transmitted impulse error from 1.328 to 0.660 µN·s. Reset, finite-edge refusal, held joint effort and zero duplicate rigid impulse passed with 97.48% changed line coverage and 95.47% region coverage. Rigid frictional multi-point shank contact remains open. [Measurements and gz-web-rs replays](measurements/local-manipulation/compliant-ankle.md)

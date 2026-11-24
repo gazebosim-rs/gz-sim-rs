@@ -800,7 +800,7 @@ impl RapierBackend {
             self.world.integration_parameters.num_solver_iterations,
         )?;
         let fresh = BoxFeatures::new(self, pairs)?;
-        self.advance_public_tick(dt, None, fresh.as_ref())?;
+        self.advance_public_tick(dt, None, fresh.as_ref(), None)?;
         if self.last_step_quarantined() {
             return Err(PhysicsError::NonFiniteStep { engine: "rapier" });
         }
@@ -1519,7 +1519,7 @@ impl RapierBackend {
             body_index: Default::default(),
             pairs: BTreeMap::new(),
         };
-        self.advance_public_tick(dt, Some(&mut work), fresh)?;
+        self.advance_public_tick(dt, Some(&mut work), fresh, None)?;
         if self.last_step_quarantined() {
             return Err(PhysicsError::NonFiniteStep { engine: "rapier" });
         }
@@ -2372,6 +2372,7 @@ impl RapierBackend {
         dt: Duration,
         refinement: Option<&mut Integration<'_, '_>>,
         fresh: Option<&BoxFeatures>,
+        coating: Option<collision::SuppressedRows>,
     ) -> Result<(), PhysicsError> {
         if !dt.is_zero() {
             if let FleetClock::Translating(elapsed) = self.fleet_clock {
@@ -2450,7 +2451,7 @@ impl RapierBackend {
                 }
                 self.solve_subdivisions(plan, fresh, dt)?;
             } else if curve_cuts.is_empty() {
-                self.step_with_box_features(fresh);
+                self.step_with_suppressed_rows(fresh, coating.as_slice());
                 if let Some(end) = curve_end {
                     self.curves.advance_unloaded(end);
                 }
@@ -2481,8 +2482,15 @@ impl RapierBackend {
         }
         Ok(())
     }
+    pub(super) fn advance_coated_pair(
+        &mut self,
+        dt: Duration,
+        row: collision::SuppressedRows,
+    ) -> Result<(), PhysicsError> {
+        self.advance_public_tick(dt, None, None, Some(row))
+    }
     pub(super) fn advance_ordinary(&mut self, dt: Duration) -> Result<(), PhysicsError> {
-        self.advance_public_tick(dt, None, None)
+        self.advance_public_tick(dt, None, None, None)
     }
 }
 

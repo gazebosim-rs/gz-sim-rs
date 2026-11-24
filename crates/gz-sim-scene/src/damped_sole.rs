@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! A compliant lower face on a free box, two-box compound, or floating two-link welded foot.
 //! The scene owns this contact domain for the entire public step, including flight.
+//! Setting `native_ankle` to true couples the plantar pressure and shear to a native
+//! two-link revolute or fixed joint over one static deck. [ankle_step] returns the jointed
+//! foot’s reaction and physical clearance from the rim and shank.
 //! Static collisionless observation models share the scene graph and can carry
 //! fixed visuals, cameras and lidars. Other articulated or free rigid guests require
 //! an independently stepped island plus a swept cross-island contact check.
@@ -52,6 +55,9 @@ use gz_physics::sole_turntable::{
 };
 use gz_physics::{BodyState, DynamicBackend};
 use gz_physics_multifidelity::SoleFoot;
+mod ankle;
+pub(super) use ankle::wrench_body as ankle_wrench_body;
+pub use ankle::{AnkleStep, ankle_step};
 mod config;
 mod side;
 mod welded;
@@ -134,12 +140,14 @@ pub fn last_step(sim: &Simulation) -> Option<&DampedSoleStep> {
 
 /// Reactions for the last advancing tick, ordered by stable support link ID.
 pub fn panel_steps(sim: &Simulation) -> &[PanelStep] {
-    sim.world()
-        .get_resource::<Coating>()
-        .map_or(&[], |c| &c.rows)
+    if let Some(c) = sim.world().get_resource::<Coating>() {
+        &c.rows
+    } else {
+        ankle_step(sim).map_or(&[], |s| std::slice::from_ref(&s.panel))
+    }
 }
 pub(super) fn installed(world: &World) -> bool {
-    world.contains_resource::<Coating>()
+    world.contains_resource::<Coating>() || world.contains_resource::<ankle::Ankle>()
 }
 pub(super) fn translating_support(world: &World, id: u64) -> bool {
     world.get_resource::<Coating>().is_some_and(|c| {
@@ -148,6 +156,7 @@ pub(super) fn translating_support(world: &World, id: u64) -> bool {
 }
 /// A lifecycle removal can occur while paused, before a new reaction is available.
 pub(super) fn retire(world: &mut World, removed: &[u64]) {
+    ankle::retire(world, removed);
     let Some(mut c) = world.get_resource_mut::<Coating>() else {
         return;
     };
@@ -225,6 +234,22 @@ pub(crate) fn install(
         Ok((id, body))
     };
     let (foot, f) = resolve(&controls.foot)?;
+    if controls.ankle {
+        let (Some(upper), _) = controls.upper.as_ref().unwrap() else {
+            unreachable!("validated two-link ankle");
+        };
+        let high = resolve(upper)?;
+        let (name, _, material) = &controls.supports[0];
+        let floor = resolve(name)?;
+        return ankle::install(
+            sim,
+            backend,
+            [(foot, f), high, floor],
+            *material,
+            controls.substeps,
+            controls.depth,
+        );
+    }
     let binding = match &controls.upper {
         None => SoleFoot::Box(f),
         Some((None, _)) => SoleFoot::Compound(f),

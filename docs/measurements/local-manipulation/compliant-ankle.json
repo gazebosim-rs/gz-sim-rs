@@ -1,0 +1,690 @@
+{
+  "branches": [
+    {
+      "driven": [
+        {
+          "driven": true,
+          "final_foot_x_m": 0.0022764038009904617,
+          "final_joint_rad": 0.3492091145727926,
+          "joint_transmission_total_xz_ns": [
+            0.2968210367443043,
+            2.1791051877117797
+          ],
+          "locked": false,
+          "max_cumulative_normal_error_ns": 0.00038879621974263756,
+          "max_cumulative_shear_error_ns": 0.0005640659582268615,
+          "max_foot_error_m": 5.462022491100132e-05,
+          "max_friction_work_error_j": 0.00026832619924691686,
+          "max_joint_error_rad": 0.0006932249861401063,
+          "max_joint_observer_error_rad": 1.1102230246251565e-16,
+          "max_joint_rad": 0.3492091145727926,
+          "max_linear_balance_residual_ns": 4.2981411977475686e-07,
+          "max_per_tick_joint_transmission_error_ns": 1.153629626754592e-05,
+          "max_shank_error_m": 9.025475848130946e-05,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.0843555717673231e-05,
+          "min_edge_margin_m": 0.24950720158094628,
+          "min_mean_normal_n": 17.427689600415988,
+          "min_shank_margin_m": 0.08381634734213883,
+          "normal_impulse_ns": 4.533798569858314,
+          "peak_mean_joint_upward_n": 9.816628162134409,
+          "peak_normal_n": 19.639295781232857,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.007673612900167052,
+            0.1772186304118666
+          ],
+          "shear_impulse_ns": 0.11115331249796782,
+          "sliding_work_j": -0.021521046245806082,
+          "substeps": 1
+        },
+        {
+          "driven": true,
+          "final_foot_x_m": 0.0023032992808789303,
+          "final_joint_rad": 0.3488628743866402,
+          "joint_transmission_total_xz_ns": [
+            0.2968564284367509,
+            2.1792867034994874
+          ],
+          "locked": false,
+          "max_cumulative_normal_error_ns": 0.00019365773557211696,
+          "max_cumulative_shear_error_ns": 0.00027858607188188667,
+          "max_foot_error_m": 2.733208334284481e-05,
+          "max_friction_work_error_j": 0.0001338482296193086,
+          "max_joint_error_rad": 0.00034698479998773735,
+          "max_joint_observer_error_rad": 1.1102230246251565e-16,
+          "max_joint_rad": 0.3488628743866402,
+          "max_linear_balance_residual_ns": 2.1473814940937477e-07,
+          "max_per_tick_joint_transmission_error_ns": 5.501675024122229e-06,
+          "max_shank_error_m": 4.515411104549563e-05,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.0927870468721394e-05,
+          "min_edge_margin_m": 0.24975361084908726,
+          "min_mean_normal_n": 17.43103119529552,
+          "min_shank_margin_m": 0.08407929273106418,
+          "normal_impulse_ns": 4.533993708342485,
+          "peak_mean_joint_upward_n": 9.816543159061617,
+          "peak_normal_n": 19.63890657331772,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.007657477719776942,
+            0.17721991587827424
+          ],
+          "shear_impulse_ns": 0.11116036055259855,
+          "sliding_work_j": -0.02138676371117823,
+          "substeps": 2
+        },
+        {
+          "driven": true,
+          "final_foot_x_m": 0.0023167656359612144,
+          "final_joint_rad": 0.3486894724064707,
+          "joint_transmission_total_xz_ns": [
+            0.2968738628013424,
+            2.1793772566655236
+          ],
+          "locked": false,
+          "max_cumulative_normal_error_ns": 9.66542348423971e-05,
+          "max_cumulative_shear_error_ns": 0.00013847072755629464,
+          "max_foot_error_m": 1.3671702737653488e-05,
+          "max_friction_work_error_j": 6.684716871595969e-05,
+          "max_joint_error_rad": 0.00017358281981821877,
+          "max_joint_observer_error_rad": 1.6653345369377348e-16,
+          "max_joint_rad": 0.3486894724064707,
+          "max_linear_balance_residual_ns": 1.0732060817651516e-07,
+          "max_per_tick_joint_transmission_error_ns": 2.6870133739218573e-06,
+          "max_shank_error_m": 2.2583790218366193e-05,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.0970239774810587e-05,
+          "min_edge_margin_m": 0.24987680819331365,
+          "min_mean_normal_n": 17.432702126064154,
+          "min_shank_margin_m": 0.0842107664809317,
+          "normal_impulse_ns": 4.5340907118432145,
+          "peak_mean_joint_upward_n": 9.816509234400652,
+          "peak_normal_n": 19.63873640342981,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.007650211010221863,
+            0.17722046102539615
+          ],
+          "shear_impulse_ns": 0.11116405257551817,
+          "sliding_work_j": -0.021319863749404432,
+          "substeps": 4
+        },
+        {
+          "driven": true,
+          "final_foot_x_m": 0.0023235034939791924,
+          "final_joint_rad": 0.34860270326252774,
+          "joint_transmission_total_xz_ns": [
+            0.29688251688456613,
+            2.1794224871001004
+          ],
+          "locked": false,
+          "max_cumulative_normal_error_ns": 4.828481005869634e-05,
+          "max_cumulative_shear_error_ns": 6.903434635224803e-05,
+          "max_foot_error_m": 6.837286309667881e-06,
+          "max_friction_work_error_j": 3.340454452754535e-05,
+          "max_joint_error_rad": 8.681367587526356e-05,
+          "max_joint_observer_error_rad": 1.1102230246251565e-16,
+          "max_joint_rad": 0.34860270326252774,
+          "max_linear_balance_residual_ns": 5.364750756201374e-08,
+          "max_per_tick_joint_transmission_error_ns": 1.3278830230003282e-06,
+          "max_shank_error_m": 1.1293584523296891e-05,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.099147857625991e-05,
+          "min_edge_margin_m": 0.24993840481967305,
+          "min_mean_normal_n": 17.433531844492684,
+          "min_shank_margin_m": 0.08427650348455806,
+          "normal_impulse_ns": 4.534139081267998,
+          "peak_mean_joint_upward_n": 9.816494364327593,
+          "peak_normal_n": 19.63865442969962,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.007646980397930605,
+            0.17722070967689812
+          ],
+          "shear_impulse_ns": 0.11116593475085687,
+          "sliding_work_j": -0.021286472623621166,
+          "substeps": 8
+        },
+        {
+          "driven": true,
+          "final_foot_x_m": 0.002326873596332687,
+          "final_joint_rad": 0.34855930194851703,
+          "joint_transmission_total_xz_ns": [
+            0.2968868283996341,
+            2.1794450914033208
+          ],
+          "locked": false,
+          "max_cumulative_normal_error_ns": 2.413199764284002e-05,
+          "max_cumulative_shear_error_ns": 3.4467467550231e-05,
+          "max_foot_error_m": 3.419004265965383e-06,
+          "max_friction_work_error_j": 1.6697536024217613e-05,
+          "max_joint_error_rad": 4.341236186455877e-05,
+          "max_joint_observer_error_rad": 1.1102230246251565e-16,
+          "max_joint_rad": 0.34855930194851703,
+          "max_linear_balance_residual_ns": 2.6820475976817215e-08,
+          "max_per_tick_joint_transmission_error_ns": 6.600760834344803e-07,
+          "max_shank_error_m": 5.647215287887659e-06,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.100211165841556e-05,
+          "min_edge_margin_m": 0.2499692025943835,
+          "min_mean_normal_n": 17.43394462060289,
+          "min_shank_margin_m": 0.08430937200148375,
+          "normal_impulse_ns": 4.534163234080414,
+          "peak_mean_joint_upward_n": 9.816487446916378,
+          "peak_normal_n": 19.6386142030151,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.007645341355223413,
+            0.1772208280737393
+          ],
+          "shear_impulse_ns": 0.11116688416236781,
+          "sliding_work_j": -0.02126979160319608,
+          "substeps": 16
+        }
+      ],
+      "locked": false,
+      "reference_final_joint_rad": 0.34851588958665247,
+      "reference_halving_max_impulse_ns": 1.750975534658251e-13,
+      "reference_halving_max_pose_si": 2.707496770185114e-15,
+      "reference_halving_max_work_j": 9.8879238130678e-16,
+      "reference_normal_impulse_ns": 4.534187366078057,
+      "reference_shear_impulse_ns": 0.11116783885522312,
+      "reference_sliding_work_j": -0.0212531202148986,
+      "without_external_moment": {
+        "driven": false,
+        "final_foot_x_m": 0.0028376871465995678,
+        "final_joint_rad": 0.21357104628897683,
+        "joint_transmission_total_xz_ns": [
+          0.11106639167117122,
+          2.2906259237140896
+        ],
+        "locked": false,
+        "max_cumulative_normal_error_ns": 1.7387126391987806e-05,
+        "max_cumulative_shear_error_ns": 6.903434635224803e-05,
+        "max_foot_error_m": 6.576102809242166e-06,
+        "max_friction_work_error_j": 3.251274125427514e-05,
+        "max_joint_error_rad": 5.3080297752694516e-05,
+        "max_joint_observer_error_rad": 5.551115123125783e-17,
+        "max_joint_rad": 0.21357104628897683,
+        "max_linear_balance_residual_ns": 1.0813941682389224e-08,
+        "max_per_tick_joint_transmission_error_ns": 1.0558059262641686e-06,
+        "max_shank_error_m": 4.403785134755412e-06,
+        "maximum_duplicate_rigid_impulse_ns": 0.0,
+        "min_coulomb_impulse_margin_ns": 1.099147857625991e-05,
+        "min_edge_margin_m": 0.24996373229283106,
+        "min_mean_normal_n": 18.82754544019917,
+        "min_shank_margin_m": 0.09059138528447656,
+        "normal_impulse_ns": 4.645173330860139,
+        "peak_mean_joint_upward_n": 9.816494364327593,
+        "peak_normal_n": 19.63865442969962,
+        "pressure_center_slip_speed_range_m_s": [
+          -0.0037751199687821382,
+          0.17722070967689812
+        ],
+        "shear_impulse_ns": -0.07272778554952557,
+        "sliding_work_j": -0.019977010550255705,
+        "substeps": 8
+      }
+    },
+    {
+      "driven": [
+        {
+          "driven": true,
+          "final_foot_x_m": 0.00512344676161041,
+          "final_joint_rad": 0.0,
+          "joint_transmission_total_xz_ns": [
+            -0.1802853710109552,
+            2.3547440358191594
+          ],
+          "locked": true,
+          "max_cumulative_normal_error_ns": 0.000155640269493329,
+          "max_cumulative_shear_error_ns": 0.0005338074470410126,
+          "max_foot_error_m": 5.2841397094050395e-05,
+          "max_friction_work_error_j": 0.00026705534700940253,
+          "max_joint_error_rad": 0.0,
+          "max_joint_observer_error_rad": 0.0,
+          "max_joint_rad": 0.0,
+          "max_linear_balance_residual_ns": 1.0395674450887172e-08,
+          "max_per_tick_joint_transmission_error_ns": 1.5203356901570245e-05,
+          "max_shank_error_m": 5.6627199324650994e-05,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.0843555717673231e-05,
+          "min_edge_margin_m": 0.24990632599953866,
+          "min_mean_normal_n": 18.255922148819835,
+          "min_shank_margin_m": 0.09963657638634377,
+          "normal_impulse_ns": 4.70948859147207,
+          "peak_mean_joint_upward_n": 10.620758415223944,
+          "peak_normal_n": 21.24371549667803,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.004002760678838093,
+            0.1772420255812658
+          ],
+          "shear_impulse_ns": -0.360356191490411,
+          "sliding_work_j": -0.03194183458240195,
+          "substeps": 1
+        },
+        {
+          "driven": true,
+          "final_foot_x_m": 0.0051488436085076385,
+          "final_joint_rad": 0.0,
+          "joint_transmission_total_xz_ns": [
+            -0.1802953883588882,
+            2.354756023132618
+          ],
+          "locked": true,
+          "max_cumulative_normal_error_ns": 7.241395885837498e-05,
+          "max_cumulative_shear_error_ns": 0.00026514552612272313,
+          "max_foot_error_m": 2.6440782061854296e-05,
+          "max_friction_work_error_j": 0.00013316445909815344,
+          "max_joint_error_rad": 0.0,
+          "max_joint_observer_error_rad": 0.0,
+          "max_joint_rad": 0.0,
+          "max_linear_balance_residual_ns": 2.5728746796850053e-09,
+          "max_per_tick_joint_transmission_error_ns": 7.1811119589249466e-06,
+          "max_shank_error_m": 2.8329651785343148e-05,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.0927154164275081e-05,
+          "min_edge_margin_m": 0.24995317318618812,
+          "min_mean_normal_n": 18.266734056169984,
+          "min_shank_margin_m": 0.09967436715622992,
+          "normal_impulse_ns": 4.709512177045223,
+          "peak_mean_joint_upward_n": 10.611919371425854,
+          "peak_normal_n": 21.2269809362136,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.003968190263710959,
+            0.17724409384781076
+          ],
+          "shear_impulse_ns": -0.3603669516303541,
+          "sliding_work_j": -0.03180809321941266,
+          "substeps": 2
+        },
+        {
+          "driven": true,
+          "final_foot_x_m": 0.005161563621445923,
+          "final_joint_rad": 0.0,
+          "joint_transmission_total_xz_ns": [
+            -0.18030017760282607,
+            2.3547608760509395
+          ],
+          "locked": true,
+          "max_cumulative_normal_error_ns": 3.497371693961249e-05,
+          "max_cumulative_shear_error_ns": 0.00013218060990416447,
+          "max_foot_error_m": 1.3225389005543496e-05,
+          "max_friction_work_error_j": 6.649397585669486e-05,
+          "max_joint_error_rad": 0.0,
+          "max_joint_observer_error_rad": 0.0,
+          "max_joint_rad": 0.0,
+          "max_linear_balance_residual_ns": 6.402464941246146e-10,
+          "max_per_tick_joint_transmission_error_ns": 3.492511323594384e-06,
+          "max_shank_error_m": 1.4168920748275139e-05,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.0969139751529789e-05,
+          "min_edge_margin_m": 0.2499765887197583,
+          "min_mean_normal_n": 18.271313279812126,
+          "min_shank_margin_m": 0.09969131581130929,
+          "normal_impulse_ns": 4.709521786416501,
+          "peak_mean_joint_upward_n": 10.607894575336745,
+          "peak_normal_n": 21.2189598666645,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.003950978707528132,
+            0.17724497327921968
+          ],
+          "shear_impulse_ns": -0.3603721255875295,
+          "sliding_work_j": -0.03174149433738082,
+          "substeps": 4
+        },
+        {
+          "driven": true,
+          "final_foot_x_m": 0.005167928992855965,
+          "final_joint_rad": 0.0,
+          "joint_transmission_total_xz_ns": [
+            -0.18030251534114933,
+            2.354763053552824
+          ],
+          "locked": true,
+          "max_cumulative_normal_error_ns": 1.7191621579648597e-05,
+          "max_cumulative_shear_error_ns": 6.599786373961969e-05,
+          "max_foot_error_m": 6.613939785465252e-06,
+          "max_friction_work_error_j": 3.3225215549451126e-05,
+          "max_joint_error_rad": 0.0,
+          "max_joint_observer_error_rad": 0.0,
+          "max_joint_rad": 0.0,
+          "max_linear_balance_residual_ns": 1.5970752676031936e-10,
+          "max_per_tick_joint_transmission_error_ns": 1.7225581679090474e-06,
+          "max_shank_error_m": 7.085489401752965e-06,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.0990180944500053e-05,
+          "min_edge_margin_m": 0.24998829478612353,
+          "min_mean_normal_n": 18.2733555624347,
+          "min_shank_margin_m": 0.09969924697566128,
+          "normal_impulse_ns": 4.709526117406811,
+          "peak_mean_joint_upward_n": 10.605979430735795,
+          "peak_normal_n": 21.215173344062453,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.00394239669780587,
+            0.1772453745662091
+          ],
+          "shear_impulse_ns": -0.36037465929666895,
+          "sliding_work_j": -0.03170826083100127,
+          "substeps": 8
+        },
+        {
+          "driven": true,
+          "final_foot_x_m": 0.005171113014852096,
+          "final_joint_rad": 0.0,
+          "joint_transmission_total_xz_ns": [
+            -0.18030366974649042,
+            2.3547640842481896
+          ],
+          "locked": true,
+          "max_cumulative_normal_error_ns": 8.522115003906094e-06,
+          "max_cumulative_shear_error_ns": 3.297650056816037e-05,
+          "max_foot_error_m": 3.3072811772527867e-06,
+          "max_friction_work_error_j": 1.6607196289014636e-05,
+          "max_joint_error_rad": 0.0,
+          "max_joint_observer_error_rad": 0.0,
+          "max_joint_rad": 0.0,
+          "max_linear_balance_residual_ns": 3.98837123357647e-11,
+          "max_per_tick_joint_transmission_error_ns": 8.554504607852105e-07,
+          "max_shank_error_m": 3.5430031634584053e-06,
+          "maximum_duplicate_rigid_impulse_ns": 0.0,
+          "min_coulomb_impulse_margin_ns": 1.10007138689641e-05,
+          "min_edge_margin_m": 0.2499941475059597,
+          "min_mean_normal_n": 18.274346883261092,
+          "min_shank_margin_m": 0.09970306959528792,
+          "normal_impulse_ns": 4.7095281728119565,
+          "peak_mean_joint_upward_n": 10.605045968285129,
+          "peak_normal_n": 21.213294747527726,
+          "pressure_center_slip_speed_range_m_s": [
+            -0.003938112131040299,
+            0.17724556563001023
+          ],
+          "shear_impulse_ns": -0.36037591260256346,
+          "sliding_work_j": -0.0316916603047008,
+          "substeps": 16
+        }
+      ],
+      "locked": true,
+      "reference_final_joint_rad": 0.0,
+      "reference_halving_max_impulse_ns": 3.9175070134656726e-13,
+      "reference_halving_max_pose_si": 1.0195620389619187e-14,
+      "reference_halving_max_work_j": 1.4922091340352495e-14,
+      "reference_normal_impulse_ns": 4.709530157922972,
+      "reference_shear_impulse_ns": -0.3603771567769148,
+      "reference_sliding_work_j": -0.03167507051310153,
+      "without_external_moment": {
+        "driven": false,
+        "final_foot_x_m": 0.005235887013484589,
+        "final_joint_rad": 0.0,
+        "joint_transmission_total_xz_ns": [
+          -0.17878130435579645,
+          2.3546747438330793
+        ],
+        "locked": true,
+        "max_cumulative_normal_error_ns": 2.2095581008407805e-05,
+        "max_cumulative_shear_error_ns": 6.195362010202876e-05,
+        "max_foot_error_m": 6.575792793129644e-06,
+        "max_friction_work_error_j": 3.285593583344376e-05,
+        "max_joint_error_rad": 0.0,
+        "max_joint_observer_error_rad": 0.0,
+        "max_joint_rad": 0.0,
+        "max_linear_balance_residual_ns": 1.246944127836165e-10,
+        "max_per_tick_joint_transmission_error_ns": 1.9729131769708037e-06,
+        "max_shank_error_m": 6.987952930659142e-06,
+        "maximum_duplicate_rigid_impulse_ns": 0.0,
+        "min_coulomb_impulse_margin_ns": 1.0990180944500053e-05,
+        "min_edge_margin_m": 0.24998829478612353,
+        "min_mean_normal_n": 18.27546072759381,
+        "min_shank_margin_m": 0.09969924697566128,
+        "normal_impulse_ns": 4.709349447397398,
+        "peak_mean_joint_upward_n": 10.59893046825931,
+        "peak_normal_n": 21.200541984364822,
+        "pressure_center_slip_speed_range_m_s": [
+          -0.0022170424785252574,
+          0.1772453745662091
+        ],
+        "shear_impulse_ns": -0.3589277492537622,
+        "sliding_work_j": -0.03222112923189495,
+        "substeps": 8
+      }
+    }
+  ],
+  "moment_first_tick": 81,
+  "moment_last_tick": 200,
+  "moment_nm": 0.55,
+  "public_dt_s": 0.0005,
+  "public_ticks": 480,
+  "reference_steps_per_tick": 64,
+  "changed_coverage": {
+    "changed_production": {
+      "crates/gz-physics-rapier/src/joints/coated_ankle.rs": {
+        "mapped_lines": [
+          205,
+          209
+        ],
+        "mapped_regions": [
+          372,
+          385
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints.rs": {
+        "mapped_lines": [
+          0,
+          0
+        ],
+        "mapped_regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-rapier/src/lib.rs": {
+        "mapped_lines": [
+          0,
+          0
+        ],
+        "mapped_regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-rapier/src/contact_interval.rs": {
+        "mapped_lines": [
+          11,
+          12
+        ],
+        "mapped_regions": [
+          24,
+          33
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole/ankle.rs": {
+        "mapped_lines": [
+          95,
+          96
+        ],
+        "mapped_regions": [
+          140,
+          148
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole/config.rs": {
+        "mapped_lines": [
+          17,
+          17
+        ],
+        "mapped_regions": [
+          30,
+          32
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole.rs": {
+        "mapped_lines": [
+          17,
+          19
+        ],
+        "mapped_regions": [
+          32,
+          39
+        ]
+      },
+      "crates/gz-sim-scene/src/inputs.rs": {
+        "mapped_lines": [
+          1,
+          1
+        ],
+        "mapped_regions": [
+          5,
+          5
+        ]
+      },
+      "crates/gz-sim-scene/src/joints.rs": {
+        "mapped_lines": [
+          2,
+          2
+        ],
+        "mapped_regions": [
+          5,
+          5
+        ]
+      },
+      "crates/gz-sim-scene/src/lib.rs": {
+        "mapped_lines": [
+          4,
+          4
+        ],
+        "mapped_regions": [
+          10,
+          11
+        ]
+      },
+      "crates/gz-sim-scene/src/prescribed_motion.rs": {
+        "mapped_lines": [
+          2,
+          2
+        ],
+        "mapped_regions": [
+          6,
+          6
+        ]
+      },
+      "crates/gz-physics-multifidelity/src/lib.rs": {
+        "mapped_lines": [
+          18,
+          18
+        ],
+        "mapped_regions": [
+          14,
+          14
+        ]
+      },
+      "crates/gz-sim-cli/examples/compliant_ankle.rs": {
+        "mapped_lines": [
+          195,
+          203
+        ],
+        "mapped_regions": [
+          438,
+          459
+        ]
+      },
+      "crates/gz-sim-cli/examples/compliant_ankle/reference.rs": {
+        "mapped_lines": [
+          130,
+          132
+        ],
+        "mapped_regions": [
+          251,
+          253
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "native",
+        "sha256": "d1e8dfe43e017d1d603d327023412ed4948750c62caa3075765ee3f84d160df6"
+      },
+      {
+        "case": "ankle",
+        "sha256": "ea51779fcc64e3374b2f35624a6c1bd9153e402e2346a57464d61ebf6be346aa"
+      },
+      {
+        "case": "upper",
+        "sha256": "527a803088ee976005d37037198410a9e9576da28552ff74308f6ac14a26043c"
+      },
+      {
+        "case": "scene",
+        "sha256": "d67e7334c1cba154f91a63dea2e604c98707bfbfe9609017b8b4781f98f7d661"
+      },
+      {
+        "case": "lifecycle",
+        "sha256": "52abb97d1fbb1fcdb62352d262b00a529edc4f916a739cca24177c0a965580e6"
+      },
+      {
+        "case": "app",
+        "sha256": "23dcc2619ca6a220675240bb7c6ee96be945e7ea2c3fd73e851f32069ecb1663"
+      },
+      {
+        "case": "product",
+        "sha256": "4c5dd7aeeaf82845eec3492a547a34636998f66759f5835094acabeec99cebd8"
+      },
+      {
+        "case": "interval",
+        "sha256": "8661bcc67a958d307ccd95d06567d57de496c8ba26fd94decbc202cd184e9155"
+      },
+      {
+        "case": "rapier",
+        "sha256": "c687a28cadfc41c8fe039edbcdb409ab6bd032d86d8c9c9cced7806d19bd29ec"
+      }
+    ],
+    "combined": {
+      "mapped_lines": [
+        697,
+        715
+      ],
+      "mapped_regions": [
+        1327,
+        1390
+      ]
+    }
+  },
+  "browser": {
+    "free": {
+      "body_poses_and_shapes_checked": 605,
+      "captured_ms": {
+        "end": 240.0,
+        "moment": 50.0,
+        "start": 0.0,
+        "unloaded": 102.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 121,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 121,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9934%2F",
+      "archive_sha256": {
+        "frames.jsonl": "99b54db35775b0d10fe323ac6351d8cecfb6cc4cb83f2afd942519f763fa764a",
+        "manifest.json": "3dab54baf9a92f9f04320f1c1fa1a429816e7548c7f8514183056b6b59560c4a"
+      }
+    },
+    "locked": {
+      "body_poses_and_shapes_checked": 605,
+      "captured_ms": {
+        "end": 240.0,
+        "moment": 50.0,
+        "start": 0.0,
+        "unloaded": 102.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 121,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 121,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9935%2F",
+      "archive_sha256": {
+        "frames.jsonl": "8455c4fff03dd4771bdd9f7ad9ea4a8814667ff33a5cdb5b274eecaa368be088",
+        "manifest.json": "2059289837011c7429226be5dae41dbaea3259ca6a7cd15198869623891472e5"
+      }
+    }
+  }
+}

@@ -31,6 +31,7 @@ pub(super) fn initial_velocity(
     model: &Model,
     engine: PhysicsEngine,
     top_level: bool,
+    coated_tree: bool,
 ) -> Result<Option<PrescribedMotion>, LoadError> {
     let Some(plugin) = model.plugins.iter().find(|p| is_initial_velocity(p)) else {
         return Ok(None);
@@ -77,7 +78,7 @@ pub(super) fn initial_velocity(
             && top_level
             && !model.is_static
             && model.models.is_empty()
-            && (primitive || tree || rotor || weld)
+            && (primitive || tree || rotor || weld || coated_tree && motion_plugin_count == 1)
             && model.links.iter().all(|l| !l.properties.kinematic),
         &model.scoped_name,
         "InitialVelocity requires a free multifidelity primitive, welded or switchable tree, or a single world-revolute sphere",

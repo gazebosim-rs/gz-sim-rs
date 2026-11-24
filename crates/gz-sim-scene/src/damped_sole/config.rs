@@ -23,6 +23,7 @@ pub(crate) struct Plan {
     pub(super) body: SoleBody,
     pub(super) upper: Option<(Option<String>, GuardBox)>,
     pub(super) side: Option<(String, f64)>,
+    pub(super) ankle: bool,
     pub(super) substeps: u32,
     pub(super) depth: u8,
     pub(super) flat_elastic_fast_path: bool,
@@ -186,6 +187,7 @@ pub(crate) fn parse(
         Some("true") => Ok(true),
         _ => Err(err(&format!("{name} must be true or false"))),
     };
+    let ankle = enabled("native_ankle")?;
     let flat_elastic_fast_path = enabled("flat_elastic_fast_path")?;
     let flat_damped_fast_path = enabled("flat_damped_fast_path")?;
     let side = match (
@@ -272,6 +274,18 @@ pub(crate) fn parse(
             rotation: g.rotation.to_array(),
         })
     };
+    if ankle
+        && (side.is_some()
+            || adaptive
+            || flat_elastic_fast_path
+            || flat_damped_fast_path
+            || names.len() != 1
+            || !matches!(model.joints.as_slice(), [j] if j.parent == link.name && matches!(j.kind,sdformat::JointKind::Fixed|sdformat::JointKind::Revolute)))
+    {
+        return Err(err(
+            "native_ankle requires a lower-rooted revolute or fixed sole, one static deck and a fixed material grid",
+        ));
+    }
     let (lower, upper) = match (
         model.links.as_slice(),
         model.joints.as_slice(),
@@ -290,7 +304,7 @@ pub(crate) fn parse(
                 }
             }
         }
-        ([a, b], [joint], [sole]) if joint.kind == sdformat::JointKind::Fixed => {
+        ([a, b], [joint], [sole]) if joint.kind == sdformat::JointKind::Fixed || ankle => {
             let other = if a.scoped_name == foot { b } else { a };
             let [c] = other.collisions.as_slice() else {
                 return Err(err("welded foot expects one box on each link"));
@@ -327,6 +341,9 @@ pub(crate) fn parse(
     let single_support = names.len() == 1;
     for (support, node) in names {
         let (deck, _, deck_half) = resolve(support)?;
+        if ankle && (!deck.is_static || !deck.plugins.is_empty()) {
+            return Err(err("native_ankle requires a static deck"));
+        }
         if deck
             .plugins
             .iter()
@@ -377,6 +394,7 @@ pub(crate) fn parse(
         foot: foot.into(),
         upper,
         side,
+        ankle,
         supports,
         body: SoleBody {
             half_extents,

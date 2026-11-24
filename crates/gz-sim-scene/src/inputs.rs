@@ -270,6 +270,7 @@ pub fn queue_link_world_wrench(
     let entity = target_entity(sim.world(), id, (force, torque))?;
     let body = crate::articulation::wrench_body(sim.world(), entity, id)
         .map_err(|_| InputError::InvalidPhysics)?
+        .or_else(|| crate::damped_sole::ankle_wrench_body(sim.world(), entity, id))
         .or_else(|| {
             let world = sim.world();
             let model = world.get::<ChildOf>(entity)?.parent();

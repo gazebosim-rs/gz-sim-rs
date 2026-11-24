@@ -1393,7 +1393,11 @@ fn build_model(
     let restitution = contact_material::parse(model, context.engine)?;
     let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
     let prescribed = prescribed_motion::parse(model, context.engine, top_level)?;
-    let initial_velocity = prescribed_motion::initial_velocity(model, context.engine, top_level)?;
+    // The DampedSole loader has admitted at most one moving tree. All other
+    // registered panels and static observers are jointless.
+    let coated_tree = context.sole_observers && !model.joints.is_empty();
+    let initial_velocity =
+        prescribed_motion::initial_velocity(model, context.engine, top_level, coated_tree)?;
     let motion = initial_velocity
         .or_else(|| prescribed.as_ref().map(|p| p.twist))
         .unwrap_or_default();
@@ -1495,6 +1499,7 @@ fn build_model(
             backend.as_ref().map(|backend| backend.engine()),
             parent.is_static || model.is_static,
             &actuated,
+            coated_tree,
         )?
     };
     let force_configurations = joint_forces::parse(model)?;
