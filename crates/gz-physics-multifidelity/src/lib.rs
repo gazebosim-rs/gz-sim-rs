@@ -1968,6 +1968,16 @@ impl DynamicBackend for MultiFidelityBackend {
         self.solver.read_states(visit);
     }
 
+    fn bodies_overlapping_aabb(
+        &self,
+        min: [f64; 3],
+        max: [f64; 3],
+    ) -> Result<Vec<BodyId>, PhysicsError> {
+        self.solver
+            .bodies_overlapping_aabb(min, max)
+            .map_err(engine_error)
+    }
+
     fn cast_ray(
         &self,
         origin: [f64; 3],

@@ -292,3 +292,98 @@ fn native_beam_keeps_the_tip_of_a_rotating_box_and_checks_invalid_off_ray_poses(
             .is_some()
     );
 }
+
+#[test]
+fn closed_gate_candidates_are_sorted_and_match_world_bounds_after_edits_and_reset() {
+    let (mut world, ids) = lane();
+    for (lo, hi) in [
+        ([f64::NAN; 3], [0.; 3]),
+        ([0.; 3], [f64::INFINITY; 3]),
+        ([1., 0., 0.], [0.; 3]),
+    ] {
+        assert_eq!(
+            world.bodies_overlapping_aabb(lo, hi),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+    let advance = Duration::from_millis(10);
+    world.step(advance).unwrap();
+    let query = |b: &RapierBackend, lo: [f64; 3], hi: [f64; 3]| {
+        let mut expected = Vec::new();
+        for (&id, (h, ..)) in &b.bodies {
+            let state = b.state(id).unwrap();
+            let pose = Pose::from_parts(
+                state.position.into(),
+                Rotation::from_array(state.orientation),
+            );
+            if b.world.bodies[*h].colliders().iter().any(|h| {
+                let c = &b.world.colliders[*h];
+                let bounds = c
+                    .shape()
+                    .compute_aabb(&(pose * c.position_wrt_parent().unwrap()));
+                (0..3).all(|a| bounds.mins[a] <= hi[a] && bounds.maxs[a] >= lo[a])
+            }) {
+                expected.push(id);
+            }
+        }
+        let hits = b.bodies_overlapping_aabb(lo, hi).unwrap();
+        assert_eq!(hits, expected);
+        hits
+    };
+    let x = world.state(ids[0]).unwrap().position[0] + 0.45;
+    assert_eq!(query(&world, [x, 0., 0.], [x, 0., 0.]), [ids[0]]);
+    let after = f64::from_bits(x.to_bits() + 1);
+    assert!(query(&world, [after, 0., 0.], [after, 0., 0.]).is_empty());
+    assert_eq!(query(&world, [-1.; 3], [2.6, 1., 1.]), ids[..4]);
+    assert_eq!(query(&world, [-2.0e6; 3], [2.0e6; 3]), ids);
+    let lost = ids[2];
+    assert!(world.remove(lost));
+    let replacement = world
+        .spawn_velocity_boundary(spec(2.), Default::default(), None)
+        .unwrap();
+    world
+        .set_world_velocity(replacement, [-1., 0., 0.], [0.; 3])
+        .unwrap();
+    world.step(advance).unwrap();
+    assert!(query(&world, [-1.; 3], [3.6, 1., 1.]).contains(&replacement));
+    assert!(world.translation_rays.get().unwrap().is_none());
+    let malformed = world.bodies[&replacement].0;
+    world.world.bodies[malformed].set_translation(Vector::NAN, false);
+    assert_eq!(
+        world.bodies_overlapping_aabb([-1.; 3], [3.6, 1., 1.]),
+        Err(PhysicsError::InvalidValue)
+    );
+    world.reset().unwrap();
+    query(&world, [-1.; 3], [3.6, 1., 1.]);
+}
+
+#[test]
+fn a_rotated_box_reports_its_world_bounds_including_empty_corners() {
+    let (mut world, _) = lane();
+    let box_id = world
+        .spawn_velocity_boundary(
+            BodySpec {
+                shape: Shape::Box {
+                    half_extents: [0.8, 0.05, 0.1],
+                },
+                ..spec(-3.)
+            },
+            RotationSpec {
+                orientation: Rotation::from_rotation_z(std::f64::consts::FRAC_PI_4).to_array(),
+                ..Default::default()
+            },
+            None,
+        )
+        .unwrap();
+    let corner = [-2.45, -0.55, 0.];
+    assert_eq!(
+        world.bodies_overlapping_aabb(corner, corner).unwrap(),
+        [box_id]
+    );
+    assert_eq!(
+        world
+            .cast_ray([corner[0], corner[1], 1.], [0., 0., -1.], 2., None)
+            .unwrap(),
+        None
+    );
+}

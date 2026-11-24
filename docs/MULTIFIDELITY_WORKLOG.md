@@ -2311,3 +2311,7 @@ The four-slider gripper lifted an 80 g eccentric box and opened. One measured of
 ## 2026-11-23 — A tumbling GPU cuboid strikes a finite shelf on one corner
 
 The gripper carried the 80 g box 180 mm, opened, and released it above the shelf. Its first corner struck at 2.175338537 s, producing a 0.033538 N s upward impulse and changing its spin about two axes. A separately integrated body agreed within 9.85 ps at touchdown and 18.7 nm through the following 9.66 ms. Lower restitution reduced the rebound, and moving the shelf clear removed the impulse. The next physics step is the following contact and transition to supported rest. [Independent comparison, native replays and scoped coverage](measurements/local-manipulation/gpu-shelf-corner.md)
+
+## 2026-11-23 — Measure four discrete collision volumes in the 100,000-body kinematic scene
+
+The local backend now finds moving bodies inside a requested volume using live collider bounds. In the 100,000-deck scene, four checks fell from 64.53 ms to 2.64 µs at median. All entries and exits matched an exhaustive scan and independent geometry, including a lane which stayed empty. The complete scene reached 3.18× real time with sparse observations and 2.30× with full pose and twist reads, leaving the 100× target open. [Paired timings, controls, coverage and verified gz-web-rs recording](measurements/local-manipulation/kinematic-fleet-gates.md)
