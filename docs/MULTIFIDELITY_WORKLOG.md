@@ -3,7 +3,7 @@
 
 # Multi-fidelity physics worklog
 
-The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain pressure on a folded sheet. The released sheet differed by 0.368 mm when the reference was refined to 2,000 exchanges, leaving its 0.1 mm trajectory target open. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Weighing a cable](measurements/local-manipulation/serial-cable-weigh.md) · [Folded sheet](measurements/local-manipulation/viscous-gripper-pads.md)
+The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain pressure on a folded sheet. The released sheet differed by 0.328 mm between the latest 1,000- and 2,000-exchange runs, leaving its 0.1 mm trajectory target open. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Weighing a cable](measurements/local-manipulation/serial-cable-weigh.md) · [Folded sheet](measurements/local-manipulation/viscous-gripper-pads.md)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
@@ -71,7 +71,7 @@ The [approved technical design](../../physics_tdd.md) defines five acceptance mi
 
 **Replay and release.** The local CPU gripper reproduced 596 trace records in separate one- and eight-thread processes through spawn, removal and reset. A changed impulse altered the first resumed solve. Changing the noise seed altered only sensor readings. The profile records the executable, build, CPU, numerical settings and input journal. The previous crate-wide Rapier run exceeded 95% on lines and regions. The full combined candidate still needs independent per-profile coverage and hosted qualification. [Local CPU replay](measurements/local-manipulation/local-cpu-input-replay.md) · [Rapier coverage](measurements/local-manipulation/rapier-crate-coverage.md) · [Combined release gate](measurements/local-manipulation/local-implementation-gate.md)
 
-The next single-node work targets out-of-plane rotation and release drift of a GPU-held cuboid, cloth on a rotating deck, and the individual floor impulses that separate the two cloth landing trajectories. The local CPU wrist now parks under gravity and wakes on the first torque or impact. The four-slider GPU gripper places 80 g and 200 g spheres and an 80 g finite cuboid on a shelf, and the separate 2,048-gripper population cleared its throughput target with full joint sensing. The 100,000-entity CPU throughput target and the combined release-coverage gate remain open. [Spherical wrist](measurements/local-manipulation/hanging-ball-wrist.md) · [GPU shelf transfer](measurements/local-manipulation/gpu-shelf-transfer.md) · [Moving cloth deck](measurements/local-manipulation/cloth-conveyor.md) · [Timed landing comparison](measurements/local-manipulation/cloth-incoming-history.md)
+The next single-node work targets out-of-plane rotation and release drift of a GPU-held cuboid, the cause of the incoming tilt before cloth impact, and loaded wrist gravity compensation. The local CPU wrist now parks under gravity and wakes on the first torque or impact. The four-slider GPU gripper places 80 g and 200 g spheres and an 80 g finite cuboid on a shelf, and the separate 2,048-gripper population cleared its throughput target with full joint sensing. The 100,000-entity CPU throughput target and the combined release-coverage gate remain open. [Spherical wrist](measurements/local-manipulation/hanging-ball-wrist.md) · [GPU shelf transfer](measurements/local-manipulation/gpu-shelf-transfer.md) · [Rotating cloth deck](measurements/local-manipulation/cloth-turntable.md) · [Individual table impacts](measurements/local-manipulation/cloth-table-particles.md)
 
 ### Proposed phases and completion criteria
 
@@ -2251,3 +2251,7 @@ A balanced 2 kg hand entered the cheaper tier for 300 ticks and woke on the firs
 ## 2026-11-23 — Combined release checks for the deterministic local robot candidate
 
 The frozen candidate passed 3,861 headless tests, 2,805 renderer tests and all eight additional physical qualification suites. Both strict release profiles missed the 95% coverage gate. The same binaries passed 65 physical RTX tests, taking GPU physics to 96.30% of lines and 95.57% of regions. The remaining local CLI and scene gaps, absent feature-specific sources and exact per-crate results are recorded in the [release measurements](measurements/local-manipulation/replay-release-gate.md).
+
+## 2026-11-23 — Measuring each corner of the cloth at touchdown
+
+At 1,000 exchanges per millisecond corner 11 touched first. At 2,000 the sheet arrived tilted the opposite way, corner 0 hit 127.5 µs earlier, and contact took 282.5 µs to spread across the bottom plane. The individual readings reproduced the total table impulse on every native step and explain the opposite sideways impulses. The 0.1 mm trajectory target remains open. [Measured contact sequence, coverage and two native replays](measurements/local-manipulation/cloth-table-particles.md)

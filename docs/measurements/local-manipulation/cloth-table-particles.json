@@ -1,0 +1,293 @@
+{
+  "source": "63ce160107f9450ff74e49c3674e36f82de1ec5e",
+  "instrumented_source": "1638310",
+  "actuator_period_ns": 1000000,
+  "common_impulse_window_ns": {
+    "start_exclusive": 2689100000,
+    "end_inclusive": 2690100000
+  },
+  "runs": {
+    "1000": {
+      "native_dt_ns": 1000,
+      "first_contact_ns": 2689276000,
+      "first_impact_nodes": [
+        {
+          "node": 11,
+          "normal_ns": [
+            -0.0,
+            -0.0,
+            9.140455629599154e-05
+          ],
+          "tangent_ns": [
+            5.722781851888117e-07,
+            1.6709362332468778e-07,
+            -0.0
+          ]
+        }
+      ],
+      "first_normal_ns_by_node": {
+        "11": 2689276000,
+        "2": 2689277000,
+        "10": 2689282000,
+        "1": 2689283000,
+        "0": 2689289000,
+        "9": 2689289000
+      },
+      "preimpact_corner_heights_um_at_2689ms": {
+        "0": 37.30109662714032,
+        "2": 35.62178104735136,
+        "9": 37.21023573632909,
+        "11": 35.62590403161092
+      },
+      "node_impulses_mNs_over_common_1ms": {
+        "0": [
+          -0.0012348570972975838,
+          0.02530129100229058,
+          0.28069883560010184
+        ],
+        "1": [
+          0.0012974727033606586,
+          0.025142407618315526,
+          0.2701188968252896
+        ],
+        "2": [
+          0.0006074579547297507,
+          -0.00017028747379324263,
+          0.25951148234530014
+        ],
+        "9": [
+          -0.0005015507516779659,
+          9.042881532578736e-05,
+          0.25614209828509155
+        ],
+        "10": [
+          -0.0029430857555983294,
+          -0.03106329675493448,
+          0.27485534706763215
+        ],
+        "11": [
+          0.0005308563306477114,
+          -0.03332772038627195,
+          0.2904788053706298
+        ]
+      },
+      "sideways_mNs_by_initial_edge": {
+        "negative_y": 0.025391719817616367,
+        "center": -0.005920889136618954,
+        "positive_y": -0.033498007860065196
+      },
+      "first_200us_impulse_mNs": {
+        "x": -0.0020243193966987785,
+        "y": -0.010758252957206114,
+        "z": 1.5119747565911272
+      },
+      "maximum_difference_from_independent_total_Ns": 2.5414224771095617e-21,
+      "matched_native_endpoints": 3200,
+      "independently_checked_frames": 161,
+      "first_displayed_loaded_node": [
+        2689280000,
+        11
+      ],
+      "browser": {
+        "renderer": "WebGPU",
+        "frames": 161,
+        "independent_particle_positions_checked": 1932,
+        "body_poses_and_shapes_checked": 5796,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10013%2F",
+        "reset_ms": 2689.0
+      },
+      "replay_sha256": "6aa2a3b5f1df5478bd0d867e3aee5c156a0c411a2a350472873e77d1f68b5628"
+    },
+    "2000": {
+      "native_dt_ns": 500,
+      "first_contact_ns": 2689148500,
+      "first_impact_nodes": [
+        {
+          "node": 0,
+          "normal_ns": [
+            -0.0,
+            -0.0,
+            9.054694676630947e-05
+          ],
+          "tangent_ns": [
+            -4.5682198870853623e-07,
+            -2.3432513204874013e-07,
+            -0.0
+          ]
+        }
+      ],
+      "first_normal_ns_by_node": {
+        "0": 2689148500,
+        "9": 2689149000,
+        "1": 2689292000,
+        "10": 2689293000,
+        "11": 2689428000,
+        "2": 2689431000
+      },
+      "preimpact_corner_heights_um_at_2689ms": {
+        "0": 19.083710581180302,
+        "2": 55.86116557249055,
+        "9": 19.070976798207795,
+        "11": 55.94339811079707
+      },
+      "node_impulses_mNs_over_common_1ms": {
+        "0": [
+          0.00496885051416645,
+          0.09097423958250439,
+          0.36522918356960543
+        ],
+        "1": [
+          0.014497961733058019,
+          0.04829398172606052,
+          0.20172738824474418
+        ],
+        "2": [
+          -0.0013815011051316378,
+          0.02626628017087185,
+          0.23772868555792076
+        ],
+        "9": [
+          -0.00010612605674867807,
+          0.007677929656251646,
+          0.2920153091213102
+        ],
+        "10": [
+          0.006838810948552624,
+          0.03622875095084036,
+          0.1343607754186813
+        ],
+        "11": [
+          -0.0003463041857077443,
+          0.07184869754694845,
+          0.23537552236677706
+        ]
+      },
+      "sideways_mNs_by_initial_edge": {
+        "negative_y": 0.09865216923875604,
+        "center": 0.08452273267690089,
+        "positive_y": 0.0981149777178203
+      },
+      "first_200us_impulse_mNs": {
+        "x": 0.006156612618706872,
+        "y": 0.0696197336683453,
+        "z": 0.7386429057538694
+      },
+      "maximum_difference_from_independent_total_Ns": 8.470329472543003e-22,
+      "matched_native_endpoints": 6400,
+      "independently_checked_frames": 161,
+      "first_displayed_loaded_node": [
+        2689160000,
+        0
+      ],
+      "browser": {
+        "renderer": "WebGPU",
+        "frames": 161,
+        "independent_particle_positions_checked": 1932,
+        "body_poses_and_shapes_checked": 5796,
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10014%2F",
+        "reset_ms": 2689.0
+      },
+      "replay_sha256": "bc71e866e4ad8e9a722ed948490f1644446083272932f4f6ad9eca40ed2a7901"
+    }
+  },
+  "coverage": {
+    "crates/gz-physics-xpbd/src/collision.rs": {
+      "lines": {
+        "hit": 47,
+        "total": 47,
+        "missing": []
+      },
+      "regions": {
+        "hit": 51,
+        "total": 52,
+        "missing": [
+          [
+            433,
+            16,
+            433,
+            24
+          ]
+        ]
+      }
+    },
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": {
+        "hit": 6,
+        "total": 6,
+        "missing": []
+      },
+      "regions": {
+        "hit": 8,
+        "total": 8,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-xpbd/src/pad_loads.rs": {
+      "lines": {
+        "hit": 31,
+        "total": 31,
+        "missing": []
+      },
+      "regions": {
+        "hit": 34,
+        "total": 34,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/sheet_jaws/interval.rs": {
+      "lines": {
+        "hit": 46,
+        "total": 46,
+        "missing": []
+      },
+      "regions": {
+        "hit": 92,
+        "total": 97,
+        "missing": [
+          [
+            159,
+            72,
+            159,
+            73
+          ],
+          [
+            161,
+            93,
+            161,
+            94
+          ],
+          [
+            198,
+            66,
+            198,
+            67
+          ],
+          [
+            198,
+            95,
+            198,
+            96
+          ],
+          [
+            224,
+            54,
+            224,
+            55
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/sheet_jaws/interval_view.rs": {
+      "lines": {
+        "hit": 12,
+        "total": 12,
+        "missing": []
+      },
+      "regions": {
+        "hit": 10,
+        "total": 10,
+        "missing": []
+      }
+    }
+  }
+}
