@@ -2320,3 +2320,7 @@ The gripper carried the 80 g box 180 mm, opened, and released it above the shelf
 ## 2026-11-23 — Measure four discrete collision volumes in the 100,000-body kinematic scene
 
 The local backend now finds moving bodies inside a requested volume using live collider bounds. In the 100,000-deck scene, four checks fell from 64.53 ms to 2.64 µs at median. All entries and exits matched an exhaustive scan and independent geometry, including a lane which stayed empty. The complete scene reached 3.18× real time with sparse observations and 2.30× with full pose and twist reads, leaving the 100× target open. [Paired timings, controls, coverage and verified gz-web-rs recording](measurements/local-manipulation/kinematic-fleet-gates.md)
+
+## 2026-11-23 — Measure the cost of keeping every fleet pose directly readable
+
+Publishing 100,000 moving bodies took 2.63 ms at median, about 99% of a sparse tick. A write-only control updated the same 500,001 coordinates in 0.383 ms, compared with a 0.10 ms budget for the complete 100× step. Two experiments reduced dirty memory pages but gave mixed timings across readers and CPU core groups. The ordinary publisher remains in use, with a regression for direct edits and change notifications. [Stage timings, memory footprint, coverage, native replay and reproducible trials](measurements/local-manipulation/kinematic-publication-budget.md)
