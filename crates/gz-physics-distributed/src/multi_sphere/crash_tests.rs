@@ -254,12 +254,9 @@ fn controller_kill_during_pair_formation_warm_transfer_and_merge() -> Result<()>
     // This frozen v1 barrier has a warm sphere-sphere manifold and no hinge
     // contact. It must be possible to recover either side of extracting the
     // whole pair while the next torque is pending.
-    let old = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../artifacts/multifidelity-two-sphere-hinge/four/cuts/tick-1292")
-        .join(ARCHIVE);
-    let seed = fs::read(old)?;
+    let seed = include_bytes!("../../tests/fixtures/pair-warm-v1-tick-1292.gzmultisphere");
     let legacy = tempfile::tempdir()?;
-    fs::write(legacy.path().join(ARCHIVE), &seed)?;
+    fs::write(legacy.path().join(ARCHIVE), seed)?;
     let mut restored = MultiSpherePool::resume(&exe, legacy.path())?;
     assert_eq!(restored.owners(), [1; 3]);
     assert!(
@@ -278,7 +275,7 @@ fn controller_kill_during_pair_formation_warm_transfer_and_merge() -> Result<()>
         "before-rename",
         "after-rename",
     ] {
-        check(&exe, &seed, "step", gate)?;
+        check(&exe, seed, "step", gate)?;
     }
 
     // This oblique impact eventually leaves two freely moving bodies with

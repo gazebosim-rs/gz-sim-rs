@@ -196,3 +196,21 @@ fn resealed_changes_to_the_plane_mass_material_or_contact_are_rejected_atomicall
     fresh.restore_grounded_revolute(&live).unwrap();
     assert_eq!(fresh.checkpoint_grounded_revolute().unwrap(), live);
 }
+
+#[test]
+fn legacy_pair_link_requires_authored_inertia_and_an_attached_collider() {
+    let collider = ColliderBuilder::ball(0.1).density(0.).build();
+    let unconfigured = RigidBodyBuilder::dynamic().build();
+    assert!(!legacy_pair_link_mass(
+        &unconfigured,
+        &collider,
+        &unconfigured,
+        &collider
+    ));
+    let authored = RigidBodyBuilder::dynamic()
+        .additional_mass_properties(MassProperties::new(Vector::ZERO, 1., Vector::ONE))
+        .build();
+    assert!(!legacy_pair_link_mass(
+        &authored, &collider, &authored, &collider
+    ));
+}

@@ -536,3 +536,7 @@ fn serve_at(slot: u8, path: &Path, forward: Option<worker::ForwardedPorts>) -> i
         })
     })
 }
+
+#[cfg(test)]
+#[path = "legacy_pair_tests.rs"]
+mod legacy_pair_tests;

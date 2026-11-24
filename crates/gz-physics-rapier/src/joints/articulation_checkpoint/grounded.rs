@@ -38,6 +38,32 @@ pub struct MovingReaction {
     pub tangent_impulse: [f64; 3],
 }
 
+// Early two-sphere images used a zero-density offset collider on each hinge
+// link. Rapier transformed its zero-mass frame into the body frame and added
+// the authored inertia, which can re-diagonalize the same physical tensor.
+// Match that exact construction while retaining the original native solver state.
+fn legacy_pair_link_mass(
+    body: &RigidBody,
+    collider: &rapier3d_f64::geometry::Collider,
+    expected_body: &RigidBody,
+    expected_collider: &rapier3d_f64::geometry::Collider,
+) -> bool {
+    let Some(RigidBodyAdditionalMassProps::MassProps(authored)) = expected_body
+        .mass_properties()
+        .additional_local_mprops
+        .as_deref()
+    else {
+        return false;
+    };
+    let Some(pose) = expected_collider.position_wrt_parent() else {
+        return false;
+    };
+    let zero = expected_collider.shape().mass_properties(0.0);
+    *pose != Pose::IDENTITY
+        && collider.mass_properties() == zero
+        && body.mass_properties().local_mprops == zero.transform_by(pose) + *authored
+}
+
 pub(super) fn validate_contacts(world: &PhysicsWorld) -> Result<(), PhysicsError> {
     validate_manifold_points(world, 1)
 }
@@ -258,7 +284,9 @@ impl RapierBackend {
                 // pair worker never solves a disabled link, and merge overwrites it
                 // with the authoritative hinge body before reenabling the collider.
                 || ((!sphere_island || independent)
-                    && rb.mass_properties().local_mprops != expected_rb.mass_properties().local_mprops)
+                    && rb.mass_properties().local_mprops != expected_rb.mass_properties().local_mprops
+                    && !(matches!(companion, Companion::Pair(_)) && !independent
+                        && legacy_pair_link_mass(rb, c, expected_rb, expected_c)))
                 || rb.mass_properties().additional_local_mprops
                     != expected_rb.mass_properties().additional_local_mprops
                 || rb.activation().normalized_linear_threshold
