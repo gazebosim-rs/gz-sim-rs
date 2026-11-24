@@ -656,3 +656,50 @@ fn kinetic_slip_stops_and_static_support_reacquires_without_creep() {
         near(impulse, DVec3::new(0.5, 0., -2.5), 1e-10);
     }
 }
+
+#[test]
+fn a_particle_leaving_a_finite_bench_loses_its_friction_and_support() {
+    let bench = Boundary::StaticCuboid {
+        center: [0., 0., -0.05],
+        half_extents: [0.25, 0.2, 0.05],
+        orientation: [0., 0., 0., 1.],
+    };
+    let mut body = SoftBody::new(
+        vec![Particle {
+            position: [0.235, 0., 0.005],
+            velocity: [0.6, 0., 0.],
+            inverse_mass: 1.,
+        }],
+        vec![],
+        SolverConfig {
+            gravity: [2., 0., -10.],
+            friction: 0.15,
+            substeps: 1,
+            iterations: 8,
+            particle_radius: 0.005,
+            ..isolated()
+        },
+    )
+    .unwrap()
+    .with_static_plane_friction(0.55)
+    .unwrap();
+    let dt = Duration::from_millis(1);
+    let mut unsupported = 0;
+    for _ in 0..200 {
+        let before = body.particles()[0];
+        body.step(dt, &[bench]).unwrap();
+        let after = body.particles()[0];
+        let reaction = DVec3::from(body.last_boundary_impulses()[0].linear);
+        if after.position[0] < 0.249 {
+            near(reaction, DVec3::new(0.0015, 0., -0.01), 1e-10);
+        }
+        if before.position[0] > 0.256 {
+            near(reaction, DVec3::ZERO, 1e-12);
+            let dv = DVec3::from(after.velocity) - DVec3::from(before.velocity);
+            near(dv, DVec3::new(0.002, 0., -0.01), 1e-11);
+            unsupported += 1;
+        }
+    }
+    assert!(unsupported > 150);
+    assert!(body.particles()[0].position[2] < -0.1);
+}
