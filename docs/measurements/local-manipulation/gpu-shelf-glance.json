@@ -1,0 +1,516 @@
+{
+  "integration_parent": "8ebad7b278177de8ad436cd7b97828857131f339",
+  "snapshot_sha256": "dad9fab25c2fadb95b0767d5847c28c8ee099229513a3fd62453efdd2f1e656c",
+  "source_trace_sha256": "ec0cad051b015dffe2d26dabad994307dddc1fc145c7956edb57c6d58829e4dc",
+  "native_reference": "rapier3d-f64 0.36.1, f64; 80 g free cuboid, static finite 120 x 210 x 14 mm shelf. Cold contact manifold for each preceding state. Awake, 32 solver iterations, eight internal PGS, per-point Coulomb, zero extra stabilization, predicted distance, recycle distance, allowed error and maximum correction speed. Static contact frequency 1e6, damping ratio 1. A single 1 ms public interval. Friction 0.45, zero restitution and gravity -9.81 m/s^2 along Z.",
+  "replay_source": "oblique_plus",
+  "results": {
+    "gpu": {
+      "cold_matched_interval": [
+        {
+          "angular_impulse_nms": [
+            -4.3648408286176657e-05,
+            -0.00036450690091355297,
+            1.5814823064879985e-06
+          ],
+          "first_loaded_substep_zero_based": 1,
+          "half_turn": false,
+          "identified_upward_ns": 0.039634290555900044,
+          "linear_impulse_ns": [
+            -0.017688621030001458,
+            0.002283152407662749,
+            0.03963429055589999
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.18260904798035676,
+            0.01295511935347733,
+            0.013944238440150292
+          ],
+          "outgoing_omega_rad_s": [
+            -2.70291187219684,
+            1.0785724942233788,
+            1.7217385566956587
+          ],
+          "substeps_per_ms": 8
+        },
+        {
+          "angular_impulse_nms": [
+            2.2908902297351772e-05,
+            -0.00037549594857552064,
+            6.093899689832716e-05
+          ],
+          "first_loaded_substep_zero_based": 1,
+          "half_turn": false,
+          "identified_upward_ns": 0.03907026028294025,
+          "linear_impulse_ns": [
+            -0.016729780533495435,
+            0.005298203736960732,
+            0.03907026028293969
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.19459455418668206,
+            0.050643260969702106,
+            0.0068938600281465675
+          ],
+          "outgoing_omega_rad_s": [
+            1.8780749663911749,
+            0.15299148084344916,
+            4.64128957078983
+          ],
+          "substeps_per_ms": 32
+        },
+        {
+          "angular_impulse_nms": [
+            -4.309690757237425e-05,
+            -0.00036498340407733717,
+            2.056693689061483e-06
+          ],
+          "first_loaded_substep_zero_based": 1,
+          "half_turn": false,
+          "identified_upward_ns": 0.03960520425844305,
+          "linear_impulse_ns": [
+            -0.01767288065471104,
+            0.0023026136286335135,
+            0.0396052042584425
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.18280580267148697,
+            0.013198384615611883,
+            0.013580659721931728
+          ],
+          "outgoing_omega_rad_s": [
+            -2.66329771839363,
+            1.0543295791472025,
+            1.7466617095667654
+          ],
+          "substeps_per_ms": 64
+        },
+        {
+          "angular_impulse_nms": [
+            -4.23949925625238e-05,
+            -0.0003650489903880748,
+            2.677879702067405e-06
+          ],
+          "first_loaded_substep_zero_based": 1,
+          "half_turn": false,
+          "identified_upward_ns": 0.03960280206581384,
+          "linear_impulse_ns": [
+            -0.01766745520968045,
+            0.002334819397137715,
+            0.03960280206581316
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.18287362073436936,
+            0.013600956721914404,
+            0.013550632314064968
+          ],
+          "outgoing_omega_rad_s": [
+            -2.615090432848465,
+            1.0466979957510334,
+            1.7769335082734306
+          ],
+          "substeps_per_ms": 128
+        },
+        {
+          "angular_impulse_nms": [
+            -4.1474551430232175e-05,
+            -0.0003651565768989519,
+            3.4930548168311435e-06
+          ],
+          "first_loaded_substep_zero_based": 1,
+          "half_turn": false,
+          "identified_upward_ns": 0.03959831968372162,
+          "linear_impulse_ns": [
+            -0.017659221347945894,
+            0.0023766804843521647,
+            0.03959831968372079
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.1829765440060513,
+            0.014124220312095023,
+            0.01349460253791025
+          ],
+          "outgoing_omega_rad_s": [
+            -2.551771993768663,
+            1.0357525809885553,
+            1.8167414491973544
+          ],
+          "substeps_per_ms": 256
+        },
+        {
+          "angular_impulse_nms": [
+            6.859386661730903e-06,
+            -0.0003724955982876061,
+            4.655528344316726e-05
+          ],
+          "first_loaded_substep_zero_based": 1,
+          "half_turn": false,
+          "identified_upward_ns": 0.0392513943412796,
+          "linear_impulse_ns": [
+            -0.017017732168111012,
+            0.004576150849752286,
+            0.03925139434129553
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.19099515875398732,
+            0.04161759987959655,
+            0.009158035757594494
+          ],
+          "outgoing_omega_rad_s": [
+            0.7729802018520421,
+            0.39088216829631,
+            3.9316677455999174
+          ],
+          "substeps_per_ms": 512
+        },
+        {
+          "angular_impulse_nms": [
+            -4.0391190154090926e-05,
+            -0.0003653722576528179,
+            4.462068722793012e-06
+          ],
+          "first_loaded_substep_zero_based": 1,
+          "half_turn": false,
+          "identified_upward_ns": 0.03958737221546635,
+          "linear_impulse_ns": [
+            -0.0176407503985936,
+            0.002425630946520542,
+            0.03958737221548042
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.183207430872955,
+            0.014736101089199736,
+            0.013357759184905647
+          ],
+          "outgoing_omega_rad_s": [
+            -2.4771605128547947,
+            1.0190947734164026,
+            1.8646313143721531
+          ],
+          "substeps_per_ms": 1024
+        },
+        {
+          "angular_impulse_nms": [
+            2.2908891424117242e-05,
+            -0.00037549594818299273,
+            6.093898734232691e-05
+          ],
+          "first_loaded_substep_zero_based": 1,
+          "half_turn": true,
+          "identified_upward_ns": 0.03907026028463722,
+          "linear_impulse_ns": [
+            -0.016729780552803705,
+            0.005298203233687109,
+            0.03907026028463672
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.19459455394532868,
+            0.05064325467878182,
+            0.006893860049359362
+          ],
+          "outgoing_omega_rad_s": [
+            1.8780742202724607,
+            0.15299157181732603,
+            4.641289109012279
+          ],
+          "substeps_per_ms": 32
+        }
+      ],
+      "continuous_outgoing_yaw_speed_rad_s": 1.6170366600064598
+    },
+    "rapier": {
+      "cold_matched_interval": [
+        {
+          "angular_impulse_nms": [
+            -3.4625808048076e-05,
+            -0.00036899057564328865,
+            9.985302505277196e-06
+          ],
+          "first_loaded_substep_zero_based": 0,
+          "half_turn": false,
+          "identified_upward_ns": 0.03933451488844698,
+          "linear_impulse_ns": [
+            -0.017287003012645016,
+            0.0026699583714304676,
+            0.03933451488844694
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.18760439813424606,
+            0.017569753002139057,
+            0.010308989876568007
+          ],
+          "outgoing_omega_rad_s": [
+            -2.1429633092831954,
+            0.8146196489945461,
+            2.1995228390636337
+          ],
+          "substeps_per_ms": 8
+        },
+        {
+          "angular_impulse_nms": [
+            2.5283151232445866e-05,
+            -0.00037648798203925054,
+            6.312644497333364e-05
+          ],
+          "first_loaded_substep_zero_based": 0,
+          "half_turn": false,
+          "identified_upward_ns": 0.039000932086973986,
+          "linear_impulse_ns": [
+            -0.01665072425040972,
+            0.005402581414182764,
+            0.039000932086973444
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.1955578826621873,
+            0.05172754103654276,
+            0.006139204858149266
+          ],
+          "outgoing_omega_rad_s": [
+            1.9767340732306915,
+            0.08616651139938537,
+            4.801044600645964
+          ],
+          "substeps_per_ms": 32
+        },
+        {
+          "angular_impulse_nms": [
+            2.4208823869022225e-05,
+            -0.00037617018836991244,
+            6.213240003237719e-05
+          ],
+          "first_loaded_substep_zero_based": 0,
+          "half_turn": false,
+          "identified_upward_ns": 0.039018382843359165,
+          "linear_impulse_ns": [
+            -0.016674606783785056,
+            0.0053550266919287015,
+            0.03901838284335862
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.19525935099499558,
+            0.05113310700836698,
+            0.0063573393129640115
+          ],
+          "outgoing_omega_rad_s": [
+            1.9025585927316182,
+            0.10715472199477626,
+            4.751311640079205
+          ],
+          "substeps_per_ms": 64
+        },
+        {
+          "angular_impulse_nms": [
+            2.2791328770746253e-05,
+            -0.00037574889001000143,
+            6.0836435863461356e-05
+          ],
+          "first_loaded_substep_zero_based": 0,
+          "half_turn": false,
+          "identified_upward_ns": 0.0390419727671444,
+          "linear_impulse_ns": [
+            -0.0167118092237687,
+            0.0052920925726985795,
+            0.03904197276714393
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.19479432049520004,
+            0.05034643051799046,
+            0.006652213360280459
+          ],
+          "outgoing_omega_rad_s": [
+            1.8046810646563405,
+            0.13483951006949688,
+            4.686437658842548
+          ],
+          "substeps_per_ms": 128
+        },
+        {
+          "angular_impulse_nms": [
+            1.7402812717714098e-05,
+            -0.0003746723735476862,
+            5.599928340978123e-05
+          ],
+          "first_loaded_substep_zero_based": 0,
+          "half_turn": false,
+          "identified_upward_ns": 0.039099979024926346,
+          "linear_impulse_ns": [
+            -0.016810898392152704,
+            0.005048926472469639,
+            0.039099979024926124
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.19355570589039997,
+            0.0473068542651287,
+            0.0073772915825577896
+          ],
+          "outgoing_omega_rad_s": [
+            1.433439020109193,
+            0.21748701545095842,
+            4.4473008287071725
+          ],
+          "substeps_per_ms": 256
+        },
+        {
+          "angular_impulse_nms": [
+            -1.09421134287592e-05,
+            -0.00037047184501491686,
+            3.073967230306991e-05
+          ],
+          "first_loaded_substep_zero_based": 0,
+          "half_turn": false,
+          "identified_upward_ns": 0.03930229231409041,
+          "linear_impulse_ns": [
+            -0.017181138966935645,
+            0.003758450890888659,
+            0.0393022923141037
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.1889276987056132,
+            0.03117590949536645,
+            0.009906207697277408
+          ],
+          "outgoing_omega_rad_s": [
+            -0.5168641727476921,
+            0.590091879923143,
+            3.2069700643039702
+          ],
+          "substeps_per_ms": 512
+        },
+        {
+          "angular_impulse_nms": [
+            1.2263652715999421e-05,
+            -0.00037460489786447337,
+            5.149774140858677e-05
+          ],
+          "first_loaded_substep_zero_based": 0,
+          "half_turn": false,
+          "identified_upward_ns": 0.03909355120499691,
+          "linear_impulse_ns": [
+            -0.016807472949017147,
+            0.004810717467974898,
+            0.039093551205010624
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.19359852392959445,
+            0.04432924170894444,
+            0.007296943833614074
+          ],
+          "outgoing_omega_rad_s": [
+            1.0809182584922465,
+            0.25533246759845135,
+            4.23038588508319
+          ],
+          "substeps_per_ms": 1024
+        },
+        {
+          "angular_impulse_nms": [
+            2.528312848103993e-05,
+            -0.0003764879828779218,
+            6.312642515369338e-05
+          ],
+          "first_loaded_substep_zero_based": 0,
+          "half_turn": true,
+          "identified_upward_ns": 0.039000931986220275,
+          "linear_impulse_ns": [
+            -0.016650724123157757,
+            0.005402580350587839,
+            0.03900093198621967
+          ],
+          "outgoing_com_velocity_m_s": [
+            0.19555788425283682,
+            0.0517275277416062,
+            0.006139203598727133
+          ],
+          "outgoing_omega_rad_s": [
+            1.9767325143006689,
+            0.0861666302344719,
+            4.801043652545441
+          ],
+          "substeps_per_ms": 32
+        }
+      ],
+      "continuous_outgoing_yaw_speed_rad_s": 4.8083975997320305
+    }
+  },
+  "coverage": {
+    "branches": {
+      "count": 0,
+      "covered": 0,
+      "notcovered": 0,
+      "percent": 0
+    },
+    "functions": {
+      "count": 5,
+      "covered": 5,
+      "percent": 100
+    },
+    "instantiations": {
+      "count": 5,
+      "covered": 5,
+      "percent": 100
+    },
+    "lines": {
+      "count": 84,
+      "covered": 84,
+      "percent": 100
+    },
+    "mcdc": {
+      "count": 0,
+      "covered": 0,
+      "notcovered": 0,
+      "percent": 0
+    },
+    "regions": {
+      "count": 195,
+      "covered": 192,
+      "notcovered": 3,
+      "percent": 98.46153846153847
+    }
+  },
+  "executable_sha256": "29751a1158af00b428357aeb9bf149d7238ccc6eae2004d974dcced15ef99c39",
+  "profile_sha256": "beda08383868e8a0529d3035bcc13fde38ebadea32495f6ef6d9bfb8a98f6d7c",
+  "input_ms": 2193,
+  "output_ms": 2194,
+  "spatial_combined_smoke": {
+    "commit": "8ebad7b278177de8ad436cd7b97828857131f339",
+    "strict_clippy": "passed",
+    "native_sdf_hardware_tests": 47,
+    "byte_identical_outputs": {
+      "center-poses.json": "ab647b1b3bcd66d1a62e79102c4d172c3abda2090eef47528c97fbb64385a541",
+      "center-replay/frames.jsonl": "500bc770ade2062e9d3dfa6fabe54ba7cded6a10b9a822f1af0e0ddd2decc34c",
+      "center-replay/manifest.json": "ffb7ee5e6d3085beb0517cf9372d0847dbcfb7c80f560cb12f57f19a72090e80",
+      "center-trace.json": "53588279f2ef7cdd921267a99bd3d6becf7501c09bb1d909d211374f8c4950f1",
+      "oblique_minus-poses.json": "01081c8f3ecc8fd1738cc8cb64cc6e9fd251aadb191263acb81ec1dd6c755b48",
+      "oblique_minus-replay/frames.jsonl": "e625aa3bf190bc88628f3ee844c2a96a55d0bad3bc22407898ad9f70a6ec649c",
+      "oblique_minus-replay/manifest.json": "265b79edc23a08da203f96e2ef162796332cdb57a4eaa6db3193a4ef5fbdc8b5",
+      "oblique_minus-trace.json": "a86ce9db392c56db04005a6a3e492de133684f070a7c0b920212590975f4175f",
+      "oblique_plus-poses.json": "3124c1463528f33b49cf7f7fc42f543f2a916db7175287584273cca7cb6d60b6",
+      "oblique_plus-replay/frames.jsonl": "48e1f83a88f39de40b2711c6a10fe42737baf05d0f355ad1dd2d6dec41113668",
+      "oblique_plus-replay/manifest.json": "3b50b213100a5ec7857ce02c2708ac87f29e2c5054453142829bfe1dca76bc4d",
+      "oblique_plus-trace.json": "ec0cad051b015dffe2d26dabad994307dddc1fc145c7956edb57c6d58829e4dc",
+      "spin_minus-poses.json": "ecd69cc5b80b590f145eda4feb7e81c3e09f8d4dcb8e0631bf855f4add7ea86c",
+      "spin_minus-replay/frames.jsonl": "93df9a6c69dad82e2d719f7148ddc6a8c6cc208d208efa0ff3ea10fdd25c15d8",
+      "spin_minus-replay/manifest.json": "c3a060fc663ba772f75847b36a712a2a38f662c0dc4a1e2e5a4e2080ac553fc1",
+      "spin_minus-trace.json": "4279167308166f0c083e43bfe25dcc95d55dac6ff16aeec474122bc786cb4ad1",
+      "spin_plus-poses.json": "a6386def6a6f22109ee4824bd9453f4ed6e35c6fd515cd3af03987a80b5f91f3",
+      "spin_plus-replay/frames.jsonl": "8aed2d3abbacd1717f4a9b60c93b30a0f47b6499da9f15352336a7a687735c23",
+      "spin_plus-replay/manifest.json": "21e1380676c456f60694503fedac5e15bcbe4774362b0bbaef36265ec62646d8",
+      "spin_plus-trace.json": "d7810536292eee8c75949fa0ce98c16ff603c6a07d48a496d50bffc65ba9ae9c",
+      "spin_slick-poses.json": "19b391214cf7a628ace09787512e0889db54009fc3968783d92f93e7a89715fe",
+      "spin_slick-replay/frames.jsonl": "5adf3318f8ace281792008d9e23da1aa3268d509e6e680939b37a452d2f8cdb3",
+      "spin_slick-replay/manifest.json": "8f71856b49c9916492f55b72f17d334d68a5e81a3437520a34665f301c9ce722",
+      "spin_slick-trace.json": "a0deed4f580a1b03bce4a870232dc9f12175aef7914bf35a4e2a3ffc7dc475a1",
+      "symmetry.json": "3aef1d691895e52ace299c01c944aa63a2eeafc170c754c1b44423ae9f056b99",
+      "yaw_minus-poses.json": "bb75163879ab41cc93070b1dce2bee92e9ce2ad1a807a58625eaac7c2d8ede71",
+      "yaw_minus-replay/frames.jsonl": "ecf48dfc9338023358d38033dbf2e62474b89472bd9201fc54ab7884cf647c8a",
+      "yaw_minus-replay/manifest.json": "99e73756a6be03260f128576f98373c62129b8f344cc12dea391e6eac28f62f2",
+      "yaw_minus-trace.json": "8d5ddcfaae3b4ad38de3e8b8e5e96d65fb32227d400ea45aa4691c8bfcbec19a",
+      "yaw_plus-poses.json": "969c821c83ad8a8a4f5d88be544f7d3c85c625182dc6be97cdd5c777ab483fcd",
+      "yaw_plus-replay/frames.jsonl": "1d3b48d8670b3c60db48febf84331bc8ba4c97a91ee0f0d07baa3a5ebabb7f8f",
+      "yaw_plus-replay/manifest.json": "b0385bb94e8adc6248493605db094459862ec99421a0a3c19958c844ed2012d7",
+      "yaw_plus-trace.json": "0e1a5fce2bfae8c46c99506f53e248608afa73f932fa52dcd104dc40b177f9fe"
+    },
+    "test_log_sha256": "9f453883eb3bf778279ba0b903c68fdb53df1e0e2ceeb722f0edc4df782275be",
+    "clippy_log_sha256": "bc06dcd8e408cca82226de15bb42a7754fa7c8823e220ac7064422bdecbf052c"
+  }
+}
