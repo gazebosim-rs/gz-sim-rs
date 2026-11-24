@@ -7,6 +7,10 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — Gravity compensation holds an eccentric wrist payload
+
+The local robot can calculate the weight and turning moment of its downstream rigid links in the joint's own axes. Applying the opposite torque held a 1 kg offset payload within 0.00216 mm over 1.2 seconds. The same free wrist moved 205.14 mm and swung 35.46°. Reset reproduced every calculated torque. Closed loops and conflicting parentage are refused. Contact and acceleration loads still require separate sensing or dynamics. [Example, native replay and four-crate coverage](measurements/local-manipulation/gravity-wrist.md)
+
 ## 2026-11-23 — GPU fingers grasp a finite rectangular payload
 
 An 80 g cuboid lifted 96.19 mm clear of the table on the GPU and 96.79 mm in independent 3D Rapier. Tilting it initially, shifting its mass, missing the target, reducing pad friction and opening in midair produced distinct measured outcomes. A normal SDF run also handed the box to the receiving shelf. The freely rotating reference departed from planar motion during the tilted pinch and individual finger loads differed despite matching net weight. The flat single-world case reached 791 observed steps/s. [Contact geometry, measurements, coverage and gz-web-rs replays](measurements/local-manipulation/gpu-box-pickup.md)

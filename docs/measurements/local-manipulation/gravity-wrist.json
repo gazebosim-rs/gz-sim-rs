@@ -1,0 +1,424 @@
+{
+  "base": "b8aaa6ccba5b76a1f087c4d06537ca357597297b",
+  "source": "c4ed110422a941f0fceb1572e30e8805a12f5a40",
+  "physics": {
+    "compared_models": [
+      "held",
+      "free"
+    ],
+    "dt_s": 0.001,
+    "initial_joint_force_n": [
+      -12.000390133543156,
+      -8.197598982260391,
+      -25.59130531193758
+    ],
+    "initial_joint_torque_nm": [
+      0.7992407523509614,
+      1.9541502354405889,
+      -1.0007516423213945
+    ],
+    "max_analytical_force_error_n": 2.503103621450356e-14,
+    "max_analytical_torque_error_nm": 2.7577367830154345e-15,
+    "max_payload_angle_rad": [
+      1.4044097714972425e-05,
+      0.6188636419152768
+    ],
+    "max_payload_displacement_m": [
+      2.1567462724392596e-06,
+      0.2051369295906787
+    ],
+    "reset": {
+      "max_angle_rad": 5.5484066038975084e-17,
+      "max_force_n": 0.0,
+      "max_position_m": 2.7755575615628914e-17,
+      "max_torque_nm": 0.0
+    },
+    "reset_sample_pairs": 1201,
+    "ticks": 1200
+  },
+  "native_view": {
+    "body_poses_and_shapes_checked": 1694,
+    "captured_ms": {
+      "apex": 560.0,
+      "end": 1200.0,
+      "return": 920.0,
+      "start": 0.0,
+      "swing": 240.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      70.0,
+      80.0,
+      90.0,
+      100.0,
+      110.0,
+      120.0,
+      130.0,
+      140.0,
+      150.0,
+      160.0,
+      170.0,
+      180.0,
+      190.0,
+      200.0,
+      210.0,
+      220.0,
+      230.0,
+      240.0,
+      250.0,
+      260.0,
+      270.0,
+      280.0,
+      290.0,
+      300.0,
+      310.0,
+      320.0,
+      330.0,
+      340.0,
+      350.0,
+      360.0,
+      370.0,
+      380.0,
+      390.0,
+      400.0,
+      410.0,
+      420.0,
+      430.0,
+      440.0,
+      450.0,
+      460.0,
+      470.0,
+      480.0,
+      490.0,
+      500.0,
+      510.0,
+      520.0,
+      530.0,
+      540.0,
+      550.0,
+      560.0,
+      570.0,
+      580.0,
+      590.0,
+      600.0,
+      610.0,
+      620.0,
+      630.0,
+      640.0,
+      650.0,
+      660.0,
+      670.0,
+      680.0,
+      690.0,
+      700.0,
+      710.0,
+      720.0,
+      730.0,
+      740.0,
+      750.0,
+      760.0,
+      770.0,
+      780.0,
+      790.0,
+      800.0,
+      810.0,
+      820.0,
+      830.0,
+      840.0,
+      850.0,
+      860.0,
+      870.0,
+      880.0,
+      890.0,
+      900.0,
+      910.0,
+      920.0,
+      930.0,
+      940.0,
+      950.0,
+      960.0,
+      970.0,
+      980.0,
+      990.0,
+      1000.0,
+      1010.0,
+      1020.0,
+      1030.0,
+      1040.0,
+      1050.0,
+      1060.0,
+      1070.0,
+      1080.0,
+      1090.0,
+      1100.0,
+      1110.0,
+      1120.0,
+      1130.0,
+      1140.0,
+      1150.0,
+      1160.0,
+      1170.0,
+      1180.0,
+      1190.0,
+      1200.0
+    ],
+    "frames": 121,
+    "independent_visual_poses_checked": 1694,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 121,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10015%2F"
+  },
+  "sha256": {
+    "recording_binary": "e8740bd6d7f129fe8517939fefc18053f4af2ae39c87effc55ce90b610608833",
+    "replay_frames": "1002346a4418caf64a58bb7788e0e1861da51b076241e742677e12de938ce0be",
+    "replay_manifest": "daf66fb39516e790b3672e29cc57e00e57d2623ccbd5ff864d6dabc6f89acf7c",
+    "trajectory": "64c8541c8b2a40af40c5a92c7503ec7d88f5b697c26d2fbc0ac0f0f95f1f089f",
+    "viewer_source_poses": "2132890a24f83e5262f0f9e683156855caf8e16ac3bcecc24f899ad82f5c218b"
+  },
+  "changed_source_coverage": {
+    "totals": {
+      "gz-physics-rapier": {
+        "production": {
+          "lines": [
+            97,
+            97
+          ],
+          "regions": [
+            195,
+            195
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            159,
+            159
+          ],
+          "regions": [
+            375,
+            378
+          ]
+        }
+      },
+      "gz-physics-multifidelity": {
+        "production": {
+          "lines": [
+            3,
+            3
+          ],
+          "regions": [
+            6,
+            6
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            3,
+            3
+          ],
+          "regions": [
+            6,
+            6
+          ]
+        }
+      },
+      "gz-sim-scene": {
+        "production": {
+          "lines": [
+            34,
+            34
+          ],
+          "regions": [
+            61,
+            64
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            114,
+            114
+          ],
+          "regions": [
+            209,
+            214
+          ]
+        }
+      },
+      "gz-sim-cli": {
+        "production": {
+          "lines": [
+            174,
+            177
+          ],
+          "regions": [
+            410,
+            425
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            231,
+            238
+          ],
+          "regions": [
+            495,
+            520
+          ]
+        }
+      }
+    },
+    "files": {
+      "crates/gz-physics-multifidelity/src/lib.rs": {
+        "lines": [
+          3,
+          3
+        ],
+        "regions": [
+          6,
+          6
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints.rs": {
+        "lines": [
+          5,
+          5
+        ],
+        "regions": [
+          8,
+          8
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints/gravity.rs": {
+        "lines": [
+          89,
+          89
+        ],
+        "regions": [
+          176,
+          176
+        ]
+      },
+      "crates/gz-physics-rapier/src/joints/parked_robot.rs": {
+        "lines": [
+          3,
+          3
+        ],
+        "regions": [
+          11,
+          11
+        ]
+      },
+      "crates/gz-physics-rapier/src/lib.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-rapier/tests/private/gravity_load.rs": {
+        "lines": [
+          62,
+          62
+        ],
+        "regions": [
+          180,
+          183
+        ]
+      },
+      "crates/gz-sim-cli/examples/gravity_wrist.rs": {
+        "lines": [
+          174,
+          177
+        ],
+        "regions": [
+          410,
+          425
+        ]
+      },
+      "crates/gz-sim-cli/examples/gravity_wrist/tests.rs": {
+        "lines": [
+          57,
+          61
+        ],
+        "regions": [
+          85,
+          95
+        ]
+      },
+      "crates/gz-sim-scene/src/inputs.rs": {
+        "lines": [
+          31,
+          31
+        ],
+        "regions": [
+          50,
+          52
+        ]
+      },
+      "crates/gz-sim-scene/src/joints.rs": {
+        "lines": [
+          3,
+          3
+        ],
+        "regions": [
+          11,
+          12
+        ]
+      },
+      "crates/gz-sim-scene/src/lib.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-sim-scene/tests/gravity_load_scene.rs": {
+        "lines": [
+          80,
+          80
+        ],
+        "regions": [
+          148,
+          150
+        ]
+      }
+    },
+    "executables": {
+      "gz-physics-rapier-__lib": {
+        "build_id": "93c925cccbf05f3bc388c0a8f6006e37093a7765",
+        "sha256": "c476697ce7241eb386dc9af840cc635e624a3902c33e8c4a10d35af938c97abe",
+        "passed": 109
+      },
+      "gz-sim-cli-gravity_wrist": {
+        "build_id": "cb5afcd0b6a201d30f21c4ccd6b82f1bc5f27e52",
+        "sha256": "1d10aec42ec381d8fa41d303ef60121b7286c4e6ff07aa6b5fc7a90e5cbb03d4",
+        "passed": 3
+      },
+      "gz-sim-cli-gravity_wrist_main": {
+        "build_id": "f1df466ab324301552d03b1e51e9a49997bb439c",
+        "sha256": "67504c116e60ca9d16b0cf9c743028011cf57a17c42b5f76f0fa4049f3eb915c",
+        "passed": 0
+      },
+      "gz-sim-scene-gravity_load_scene": {
+        "build_id": "253ed356d843b174c33322513b82f38ac74a5ec8",
+        "sha256": "f5e2e23de8e019daa9b50da5230eef4afc7824d278453f5ebc2ef5437108a825",
+        "passed": 2
+      }
+    }
+  }
+}
