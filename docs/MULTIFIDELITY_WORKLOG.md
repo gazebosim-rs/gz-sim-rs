@@ -11,6 +11,10 @@ Each new development phase includes visual output from the measured simulation a
 
 A 1 ms controller now lowers the gripper until its receiving surface carries the folded sheet for twenty consecutive observations. It took about 1.12 mm of additional travel to eliminate the free drop measured with timed opening. When the physical bench moved 262.5 mm aside, the jaws held the 8.4 g sheet and stopped their search after 4 mm. Both outcomes repeated after reset. [Measured loads, convergence, coverage and three native gz-web-rs recordings](measurements/local-manipulation/sheet-supported-setdown.md)
 
+## 2026-11-23 — Replaying both axes of a screw-mounted wrist
+
+A screw and a two-axis wrist now accept independent one-step loads in the local CPU journal. All three encoders responded on the first millisecond, pause retained the accumulated efforts and reset reproduced every one of the 180 repeated physics steps. All measured changed lines and regions were covered in the three crates. [Native recordings, control and measurements](measurements/local-manipulation/screw-universal-replay.md)
+
 ## 2026-11-23 — Gravity compensation holds an eccentric wrist payload
 
 The local robot can calculate the weight and turning moment of its downstream rigid links in the joint's own axes. Applying the opposite torque held a 1 kg offset payload within 0.00216 mm over 1.2 seconds. The same free wrist moved 205.14 mm and swung 35.46°. Reset reproduced every calculated torque. Closed loops and conflicting parentage are refused. Contact and acceleration loads still require separate sensing or dynamics. [Example, native replay and four-crate coverage](measurements/local-manipulation/gravity-wrist.md)
