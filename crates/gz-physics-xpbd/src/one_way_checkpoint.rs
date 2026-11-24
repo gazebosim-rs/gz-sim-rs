@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! A cold construction and committed publication for externally prescribed boundary owners.
 use super::*;
+use crate::collision::PlaneFrictionLaw;
 use serde::{Deserialize, Serialize};
 pub const MAX_ONE_WAY_PARTICLES: usize = 4096;
 const MAX_ROWS: usize = 32768;
@@ -21,6 +22,11 @@ enum ConstructionTopology {
         coefficient: f64,
     },
     ProjectedPlaneFriction {
+        material: MaterialTopology,
+        bend_damping: Option<f64>,
+        coefficient: f64,
+    },
+    ArrestingPlaneFriction {
         material: MaterialTopology,
         bend_damping: Option<f64>,
         coefficient: f64,
@@ -108,10 +114,14 @@ impl SoftBody {
                 h.update(self.bending_damping.to_le_bytes());
             }
             if let Some(coefficient) = self.contacts.static_plane_friction {
-                if self.contacts.legacy_plane_friction {
-                    h.update(b"static-plane-friction");
-                } else {
-                    h.update(b"projected-plane-and-cuboid-face-friction-01");
+                match self.contacts.plane_friction_law {
+                    PlaneFrictionLaw::StaticOnly => h.update(b"static-plane-friction"),
+                    PlaneFrictionLaw::Projected => {
+                        h.update(b"projected-plane-and-cuboid-face-friction-01")
+                    }
+                    PlaneFrictionLaw::WithSlipArrest => {
+                        h.update(b"projected-plane-and-cuboid-face-friction-02")
+                    }
                 }
                 h.update(coefficient.to_le_bytes());
             }
@@ -136,17 +146,23 @@ impl SoftBody {
             topology: if let Some(coefficient) = self.contacts.static_plane_friction {
                 let material = self.topology;
                 let bend_damping = (self.bending_damping > 0.).then_some(self.bending_damping);
-                if self.contacts.legacy_plane_friction {
-                    ConstructionTopology::PlaneFriction {
+                match self.contacts.plane_friction_law {
+                    PlaneFrictionLaw::StaticOnly => ConstructionTopology::PlaneFriction {
                         material,
                         bend_damping,
                         coefficient,
-                    }
-                } else {
-                    ConstructionTopology::ProjectedPlaneFriction {
+                    },
+                    PlaneFrictionLaw::Projected => ConstructionTopology::ProjectedPlaneFriction {
                         material,
                         bend_damping,
                         coefficient,
+                    },
+                    PlaneFrictionLaw::WithSlipArrest => {
+                        ConstructionTopology::ArrestingPlaneFriction {
+                            material,
+                            bend_damping,
+                            coefficient,
+                        }
                     }
                 }
             } else {
@@ -188,6 +204,11 @@ impl SoftBody {
                 coefficient,
             } => (MaterialTopology::Cloth(columns), Some(coefficient), None),
             ConstructionTopology::PlaneFriction {
+                material,
+                bend_damping,
+                coefficient,
+            }
+            | ConstructionTopology::ArrestingPlaneFriction {
                 material,
                 bend_damping,
                 coefficient,
@@ -239,8 +260,11 @@ impl SoftBody {
             body = body
                 .with_static_plane_friction(coefficient)
                 .map_err(|_| XpbdError::MaterialCheckpoint)?;
-            body.contacts.legacy_plane_friction =
-                matches!(seed.topology, ConstructionTopology::PlaneFriction { .. });
+            body.contacts.plane_friction_law = match seed.topology {
+                ConstructionTopology::PlaneFriction { .. } => PlaneFrictionLaw::StaticOnly,
+                ConstructionTopology::ProjectedPlaneFriction { .. } => PlaneFrictionLaw::Projected,
+                _ => PlaneFrictionLaw::WithSlipArrest,
+            };
         }
         if seed.conserve_momentum {
             body = body.with_angular_momentum_conservation();

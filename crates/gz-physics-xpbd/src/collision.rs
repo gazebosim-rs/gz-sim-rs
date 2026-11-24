@@ -602,6 +602,46 @@ struct Contact {
     initial_overlap: f64,
 }
 
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+pub(super) enum PlaneFrictionLaw {
+    StaticOnly,
+    #[cfg(feature = "one-way-checkpoint")]
+    Projected,
+    #[default]
+    WithSlipArrest,
+}
+
+/// Impulse for the tangential position solve when straight-line slip stops
+/// inside this substep. The endpoint velocity solve accounts for the remainder
+/// of the interval spent at rest. A transverse load can turn the slip direction
+/// and is left to the ordinary vector Coulomb solve.
+fn straight_slip_stop(
+    incoming: DVec3,
+    position_target: DVec3,
+    inverse_mass: f64,
+    static_cap: f64,
+    kinetic_cap: f64,
+) -> Option<DVec3> {
+    let speed = incoming.length();
+    let direction = incoming / speed;
+    // Without this contact's current tangential response, the predicted
+    // relative displacement over h corresponds to this free velocity change.
+    let drive = -inverse_mass * position_target - incoming;
+    let along = drive.dot(direction);
+    let braking = kinetic_cap * inverse_mass - along;
+    if braking < speed || drive.length() > static_cap * inverse_mass {
+        return None;
+    }
+    let transverse = drive - along * direction;
+    if transverse.length() > 128. * f64::EPSILON * (drive.length() + speed) {
+        return None;
+    }
+    // During t_stop, velocity decreases linearly from incoming to zero.
+    // t_stop / h = speed / braking. The rest of the substep has zero slip.
+    let arrest = position_target + (0.5 * (speed / braking) * incoming) / inverse_mass;
+    arrest.is_finite().then_some(arrest)
+}
+
 impl Contact {
     /// Solve sustained tangential displacement against the static or sliding cone.
     /// A newly arriving point keeps the tangential travel preceding its impact.
@@ -611,9 +651,10 @@ impl Contact {
         (p, incoming): (&mut Particle, DVec3),
         plane: &PreparedBoundary,
         time: Interval,
-        (static_friction, sliding_friction): (f64, Option<f64>),
+        (static_friction, kinetic_friction, law): (f64, f64, PlaneFrictionLaw),
         reaction: &mut BoundaryImpulse,
     ) -> Result<DVec3, XpbdError> {
+        let sliding_friction = (law != PlaneFrictionLaw::StaticOnly).then_some(kinetic_friction);
         let start = DVec3::from(p.position);
         let (c0, c1) = plane.centers(time);
         let normal = self.normal;
@@ -686,14 +727,31 @@ impl Contact {
         } else {
             initially_still && target.length() <= cap
         };
-        let next = if sticking {
+        let stopped = if law == PlaneFrictionLaw::WithSlipArrest
+            && !initially_still
+            && !matches!(plane.shape, Shape::Turntable(_))
+        {
+            straight_slip_stop(
+                incoming_tangent,
+                target,
+                p.inverse_mass,
+                cap,
+                kinetic_friction * normal_impulse,
+            )
+        } else {
+            None
+        };
+        let next = if let Some(arrest) = stopped {
+            arrest
+        } else if sticking {
             target
         } else {
             sliding_friction.map_or(DVec3::ZERO, |mu| {
                 target.clamp_length_max(mu * normal_impulse)
             })
         };
-        self.sticking_on_plane = sticking && (sliding_friction.is_some() || next != DVec3::ZERO);
+        self.sticking_on_plane =
+            stopped.is_some() || sticking && (sliding_friction.is_some() || next != DVec3::ZERO);
         let delta = next - self.tangent_impulse;
         self.tangent_impulse = next;
         if delta != DVec3::ZERO {
@@ -711,7 +769,7 @@ pub(super) struct Contacts {
     pub(super) plane_loads: Option<Box<super::pad_loads::PadLoads>>,
     friction: f64,
     pub(super) static_plane_friction: Option<f64>,
-    pub(super) legacy_plane_friction: bool,
+    pub(super) plane_friction_law: PlaneFrictionLaw,
     incoming_on_plane: Vec<DVec3>,
     items: Vec<Contact>,
     index: HashMap<(usize, usize), usize>,
@@ -1005,7 +1063,7 @@ fn project_points<const SPATIAL: bool>(
                 }
                 if let Some(coefficient) = contacts.static_plane_friction
                     && boundary.has_planar_surface()
-                    && (!contacts.legacy_plane_friction
+                    && (contacts.plane_friction_law != PlaneFrictionLaw::StaticOnly
                         || matches!(boundary.shape, Shape::Plane(_)))
                     && let Some(&incoming) = contacts.incoming_on_plane.get(i)
                     && let Some(&row) = contacts.index.get(&(i, j))
@@ -1015,10 +1073,7 @@ fn project_points<const SPATIAL: bool>(
                         (p, incoming),
                         boundary,
                         time,
-                        (
-                            coefficient,
-                            (!contacts.legacy_plane_friction).then_some(contacts.friction),
-                        ),
+                        (coefficient, contacts.friction, contacts.plane_friction_law),
                         &mut reactions[j],
                     )?;
                     boundary.record_plane_impulse(

@@ -703,3 +703,49 @@ fn a_particle_leaving_a_finite_bench_loses_its_friction_and_support() {
     assert!(unsupported > 150);
     assert!(body.particles()[0].position[2] < -0.1);
 }
+
+#[test]
+fn a_particle_moving_uphill_stops_inside_the_substep_without_rolling_back_down() {
+    for belt in [0., 0.45] {
+        for sign in [-1., 1.] {
+            let mut body = SoftBody::new(
+                vec![Particle {
+                    position: [0., 0., 0.125],
+                    velocity: [belt + sign * 0.005, 0., 0.],
+                    inverse_mass: 1.,
+                }],
+                vec![],
+                SolverConfig {
+                    gravity: [3., 0., -10.],
+                    friction: 0.2,
+                    particle_radius: 0.125,
+                    substeps: 1,
+                    ..isolated()
+                },
+            )
+            .unwrap()
+            .with_static_plane_friction(0.6)
+            .unwrap();
+            let mut total = DVec3::ZERO;
+            for _ in 0..10 {
+                body.step(Duration::from_millis(10), &[floor([belt, 0., 0.])])
+                    .unwrap();
+                total += DVec3::from(body.last_boundary_impulses()[0].linear);
+            }
+            let q = body.particles()[0];
+            let x = q.position[0] - 0.1 * belt;
+            let v = q.velocity[0] - belt;
+            let (expected_x, expected_v) = if sign < 0. {
+                (-0.5 * 0.005 * 0.001, 0.)
+            } else {
+                (0.0005 + 0.5 * 0.1 * 0.11, 0.105)
+            };
+            assert!((v - expected_v).abs() < 1e-12 && (x - expected_x).abs() < 1e-12);
+            near(
+                total,
+                DVec3::new(0.3 - (expected_v - sign * 0.005), 0., -1.),
+                1e-12,
+            );
+        }
+    }
+}

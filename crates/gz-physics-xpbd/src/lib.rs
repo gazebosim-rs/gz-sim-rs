@@ -441,7 +441,7 @@ impl SoftBody {
             return Err(XpbdError::InvalidConfig);
         }
         self.contacts.static_plane_friction = (coefficient > 0.).then_some(coefficient);
-        self.contacts.legacy_plane_friction = false;
+        self.contacts.plane_friction_law = collision::PlaneFrictionLaw::WithSlipArrest;
         #[cfg(feature = "one-way-checkpoint")]
         self.one_way_identity.take();
         Ok(self)

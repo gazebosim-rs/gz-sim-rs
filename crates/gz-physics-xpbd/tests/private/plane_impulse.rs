@@ -163,7 +163,7 @@ fn a_static_plane_row_rejects_an_unrepresentable_force_before_moving_the_node() 
             (&mut p, DVec3::ZERO),
             &boundary,
             time,
-            (0.5, Some(0.3)),
+            (0.5, 0.3, PlaneFrictionLaw::WithSlipArrest),
             &mut reaction
         ),
         Err(XpbdError::Numerical)
@@ -210,4 +210,17 @@ fn finite_face_friction_refuses_rounded_edges_stale_normals_and_airborne_endpoin
             ));
         }
     }
+}
+
+#[test]
+fn arrest_requires_a_straight_stop_and_enough_static_traction() {
+    let v = DVec3::new(-0.005, 0., 0.);
+    // The free step adds 0.03 m/s downhill. A lateral component turns
+    // the trajectory, while insufficient static traction lets it restart.
+    let target = DVec3::new(-0.025, 0., 0.);
+    assert!(straight_slip_stop(v, target - 0.01 * DVec3::Y, 1., 0.06, 0.02).is_none());
+    assert!(straight_slip_stop(v, target, 1., 0.025, 0.02).is_none());
+    let free = straight_slip_stop(v, target, 1., 0.06, 0.).unwrap();
+    assert!((free.x - (target.x - 0.5 * 0.005 / 6.)).abs() < 1e-15);
+    assert!(straight_slip_stop(-v, -v, 1., 0.06, 0.001).is_none());
 }

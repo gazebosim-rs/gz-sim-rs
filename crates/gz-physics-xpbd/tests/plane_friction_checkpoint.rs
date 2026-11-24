@@ -158,3 +158,53 @@ fn loaded_rotating_deck_restarts_from_only_material_construction_state_and_exter
         );
     }
 }
+
+/// Seed and endpoint digests recorded by the projected-friction solver at d0dafcb.
+#[test]
+fn previous_projected_law_resumes_its_original_stop_and_reversal() {
+    let seed = include_bytes!("fixtures/plane_friction_v2.bin");
+    let original =
+        SoftBody::from_one_way_construction(&bincode::deserialize(seed).unwrap()).unwrap();
+    assert_eq!(
+        original.one_way_identity().unwrap(),
+        [
+            237, 2, 221, 122, 11, 223, 145, 72, 18, 205, 164, 209, 33, 166, 19, 24, 237, 181, 149,
+            98, 32, 27, 92, 229, 255, 247, 169, 217, 161, 114, 100, 172,
+        ]
+    );
+    assert_eq!(
+        bincode::serialize(&original.one_way_construction().unwrap()).unwrap(),
+        seed
+    );
+    let authored = original.clone().with_static_plane_friction(0.6).unwrap();
+    assert_ne!(original.one_way_identity(), authored.one_way_identity());
+    let reopened =
+        SoftBody::from_one_way_construction(&authored.one_way_construction().unwrap()).unwrap();
+    for (speed, golden) in [
+        (
+            0.,
+            "c5a13f4b09ceaa72615fa0defe315079521425927c00779a5c194d006df48606",
+        ),
+        (
+            0.02,
+            "047c57ee0d54f6ed50b2d14ac5f7cc282591ece0ce5b8efc82491884d0a9795c",
+        ),
+    ] {
+        let trace = |mut body: SoftBody| {
+            let floor = Boundary::Plane {
+                point: [0.; 3],
+                normal: [0., 0., 1.],
+                velocity: [speed, 0., 0.],
+            };
+            let mut hash = Sha256::new();
+            for _ in 0..10 {
+                body.step(Duration::from_millis(10), &[floor]).unwrap();
+                hash.update(bincode::serialize(&body.one_way_state().unwrap()).unwrap());
+            }
+            format!("{:x}", hash.finalize())
+        };
+        assert_eq!(trace(original.clone()), golden);
+        assert_ne!(trace(authored.clone()), golden);
+        assert_eq!(trace(authored.clone()), trace(reopened.clone()));
+    }
+}
