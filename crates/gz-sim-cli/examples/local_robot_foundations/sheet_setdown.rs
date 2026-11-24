@@ -79,6 +79,16 @@ fn episode(
     mode: Mode,
     frames: &mut Option<Vec<arm_sheet::Frame>>,
 ) -> Result<Vec<Reading>> {
+    episode_observing(r, mode, frames, |_, _| Ok(()))
+}
+
+/// Observer time is relative to the end of the finite receiver's descent.
+fn episode_observing(
+    r: &mut Recording,
+    mode: Mode,
+    frames: &mut Option<Vec<arm_sheet::Frame>>,
+    mut after_stop: impl FnMut(&Recording, u64) -> Result<()>,
+) -> Result<Vec<Reading>> {
     let native_per_command = usize::try_from(1_000_000 / r.sim.step_duration().as_nanos())?;
     let controller = Controller::with_jaw_damping(&r.sim, 1.5)?;
     let mut guard = SupportedSetdown::new(WEIGHT).unwrap();
@@ -130,24 +140,31 @@ fn episode(
         )?;
         let (mut js, mut grip) = ([0.; 3], [0.; 2]);
         let (mut pad_free, mut unsupported, mut peak) = (0, 0, 0_f64);
-        for _ in 0..native_per_command {
+        for substep in 1..=native_per_command {
             r.advance()?;
             let b = arm_sheet::cloth(&r.sim)?;
-            let [l, r, t] = b.last_boundary_impulses() else {
+            let [l, right, t] = b.last_boundary_impulses() else {
                 return Err("missing native jaw or table reading".into());
             };
-            for (i, b) in [l, r, t].into_iter().enumerate() {
+            for (i, b) in [l, right, t].into_iter().enumerate() {
                 js[i] -= b.linear[2];
             }
-            for (i, b) in [l, r].into_iter().enumerate() {
+            for (i, b) in [l, right].into_iter().enumerate() {
                 grip[i] += b.linear[0].hypot(b.linear[1]);
             }
-            let no_pad = [l, r]
+            let no_pad = [l, right]
                 .iter()
                 .all(|j| DVec3::from(j.linear).length() < 1e-15);
             pad_free += usize::from(no_pad);
             unsupported += usize::from(no_pad && t.linear[2].abs() < 1e-15);
             peak = peak.max(-t.linear[2]);
+            if let Some(start) = drop_start
+                && tick >= start + DROP_DURATION_MS
+            {
+                let elapsed = (tick - start - DROP_DURATION_MS) * 1_000_000
+                    + substep * (1_000_000 / native_per_command);
+                after_stop(r, elapsed as u64)?;
+            }
         }
         let cloth = arm_sheet::cloth(&r.sim)?;
         use sha2::{Digest, Sha256};
@@ -366,6 +383,23 @@ impl ObservationWindow {
     }
 }
 
+fn world(exchanges: usize, deck: bool, public: bool) -> Result<String> {
+    let mut xml = sheet_jaws::setdown_world(exchanges, deck, public)?;
+    if deck {
+        const STATIC: &str = r#"<model name="source">
+      <static>true</static>"#;
+        const DECK: &str = r#"<model name="source">
+      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system">
+        <linear_velocity>0 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
+      </plugin>"#;
+        xml = xml.replace(STATIC, DECK);
+    }
+    Ok(xml)
+}
+
+#[path = "sheet_setdown/rebound.rs"]
+pub(super) mod rebound;
+
 pub(super) fn run(
     out: &Path,
     mode: Mode,
@@ -387,16 +421,7 @@ pub(super) fn run(
             "prescribed finite bench requires --native-steps for multiple exchanges".into(),
         );
     }
-    let mut xml = sheet_jaws::setdown_world(exchanges, deck, public)?;
-    if deck {
-        const STATIC: &str = r#"<model name="source">
-      <static>true</static>"#;
-        const DECK: &str = r#"<model name="source">
-      <plugin name="gz::sim::systems::PrescribedMotion" filename="gz-sim-prescribed-motion-system">
-        <linear_velocity>0 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity>
-      </plugin>"#;
-        xml = xml.replace(STATIC, DECK);
-    }
+    let xml = world(exchanges, deck, public)?;
     let mut r = Recording::new(&xml, "sheet_setdown.sdf", "default")?;
     let mut frames = Some(Vec::new());
     let rows = episode(&mut r, mode, &mut frames)?;
