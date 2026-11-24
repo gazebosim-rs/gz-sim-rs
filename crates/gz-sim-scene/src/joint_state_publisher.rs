@@ -196,13 +196,13 @@ impl Plan {
         placement: (bool, bool),
     ) -> Result<(), LoadError> {
         require(
-            engine == Some("rapier")
+            matches!(engine, Some("rapier" | "gpu-planar"))
                 && placement.0
                 && !placement.1
                 && model.models.is_empty()
                 && model.raw_namespace.is_none(),
             &model.scoped_name,
-            "joint-state requires a top-level dynamic Rapier model",
+            "joint-state requires a supported top-level dynamic model",
         )?;
         require(
             sim.world()
@@ -232,7 +232,7 @@ pub(super) fn build(
     sim: &mut Simulation,
     model: &Model,
     model_entity: Entity,
-    backend: &PhysicsBackend,
+    backend: Option<&PhysicsBackend>,
     plan: &Plan,
 ) -> Result<(), LoadError> {
     let mut metadata = Vec::with_capacity(plan.names.len());
@@ -249,12 +249,15 @@ pub(super) fn build(
             &scoped,
             "joint-state ownership",
         )?;
-        let handle = node
-            .get::<JointHandle>()
-            .ok_or_else(|| invalid(model, "missing joint-state binding"))?;
-        let state = backend
-            .joint_state(handle.id())
-            .ok_or_else(|| invalid(model, "missing joint-state value"))?;
+        let state = if let Some(backend) = backend {
+            let handle = node
+                .get::<JointHandle>()
+                .ok_or_else(|| invalid(model, "missing joint-state binding"))?;
+            backend.joint_state(handle.id())
+        } else {
+            node.get::<JointSample>().map(|s| s.state)
+        }
+        .ok_or_else(|| invalid(model, "missing joint-state value"))?;
         require(
             state.position.is_finite() && state.velocity.is_finite(),
             &scoped,

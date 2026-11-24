@@ -5,7 +5,7 @@ use gz_physics_gpu::PlanarToolLane as Lane;
 use rapier3d_f64::prelude::*;
 use rapier3d_f64::utils::OrthonormalBasis;
 pub struct NativeTool {
-    arm: Native,
+    pub(super) arm: Native,
     tool: ColliderHandle,
     ground: ColliderHandle,
 }
@@ -39,7 +39,8 @@ impl NativeTool {
     pub fn step(&mut self, l: &Lane) -> Observation {
         let mut obs = Observation::default();
         for k in 0..16 {
-            self.arm.step_once(&l.arm);
+            self.arm
+                .step_with_motor(&l.arm, l.velocity_mode, l.velocity_target);
             if let Some(pair) = self
                 .arm
                 .world

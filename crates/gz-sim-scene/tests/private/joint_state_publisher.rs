@@ -435,3 +435,36 @@ fn nonidentity_child_frame_and_expressed_axis_metadata_do_not_alias_model_frame(
     let model_relative = sim.world().get::<LocalPose>(joint).unwrap().0;
     assert!((model_relative.translation[0] - tip.pose.translation[0]).abs() > 0.7);
 }
+
+#[test]
+fn joint_state_publication_requires_a_live_measurement_on_either_physical_owner() {
+    let sdf = dom();
+    let model = &sdf.worlds[0].models[0];
+    let plan = parse(model).unwrap().unwrap();
+    let mut sim = load(XML);
+    let entity = model_entity(&sim);
+    let joint = named(
+        &sim,
+        &format!(
+            "{}::{}",
+            model.scoped_name,
+            plan.names.iter().next().unwrap()
+        ),
+    )
+    .0;
+    let backend = sim.world_mut().remove_resource::<PhysicsBackend>().unwrap();
+    sim.world_mut().entity_mut(joint).remove::<JointHandle>();
+    assert!(
+        build(&sdf, &mut sim, model, entity, Some(&backend), &plan)
+            .unwrap_err()
+            .to_string()
+            .contains("missing joint-state binding")
+    );
+    sim.world_mut().entity_mut(joint).remove::<JointSample>();
+    assert!(
+        build(&sdf, &mut sim, model, entity, None, &plan)
+            .unwrap_err()
+            .to_string()
+            .contains("missing joint-state value")
+    );
+}

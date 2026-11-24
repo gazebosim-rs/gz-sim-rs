@@ -27,6 +27,8 @@ fn sample() -> PlanarToolLane {
         first_normal_impulse: 0.,
         first_tangent_impulse: 0.,
         turns: [0.; 2],
+        velocity_mode: [0.; 2],
+        velocity_target: [0.; 2],
     }
 }
 fn advance(mut v: PlanarToolLane) -> PlanarToolLane {
@@ -197,4 +199,38 @@ fn device_tracks_opposite_fast_revolutions_across_public_ticks() {
         assert!((arm.joint_angles()[0] - expected).abs() < 1e-11);
         assert_eq!(arm.joint_angles()[1], 0.);
     }
+}
+
+#[test]
+#[ignore = "requires GZ_GPU_ADAPTER selecting a hardware f64 Vulkan device"]
+fn velocity_drives_are_axis_owned_finite_and_clear_at_reset() {
+    let mut lane = sample();
+    for (mode, speed) in [([2., 0.], [0., 0.]), ([1., 0.], [f64::NAN, 0.])] {
+        lane.velocity_mode = mode;
+        lane.velocity_target = speed;
+        assert!(PlanarToolBatch::new("absent adapter", vec![lane]).is_err());
+    }
+    lane.velocity_mode = [1., 0.];
+    lane.velocity_target = [0.; 2];
+    let mut sim = crate::simulation::planar_tool_simulation(
+        &std::env::var("GZ_GPU_ADAPTER").unwrap(),
+        vec![lane],
+    )
+    .unwrap();
+    let mut batch = sim.world_mut().resource_mut::<PlanarToolBatch>();
+    for (row, axis, speed) in [(1, 0, 1.), (0, 1, 1.), (0, 2, 1.), (0, 0, f64::NAN)] {
+        assert!(batch.set_motor_speed(row, axis, speed).is_err());
+    }
+    batch.set_motor_speed(0, 0, 2.).unwrap();
+    batch.set_motor_speed(0, 0, 2.).unwrap();
+    sim.step_exact(1).unwrap();
+    assert_eq!(
+        sim.world().resource::<PlanarToolBatch>().lanes()[0].velocity_target,
+        [2., 0.]
+    );
+    sim.reset().unwrap();
+    assert_eq!(
+        sim.world().resource::<PlanarToolBatch>().lanes()[0].velocity_target,
+        [0., 0.]
+    );
 }

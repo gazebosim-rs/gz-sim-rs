@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! An inelastic round tool on a planar articulated arm, touching a horizontal floor.
 use crate::arithmetic::{Condition, Scalar};
-use crate::planar_arm::{ArmInertia, tick};
+use crate::planar_arm::{ArmInertia, tick_with_velocity};
 use crate::{GpuError, PlanarArmLane, ResidentBatch, STEP, kernel};
 use bytemuck::{Pod, Zeroable};
 
@@ -24,8 +24,11 @@ pub struct PlanarToolLane {
     pub first_tangent_impulse: f64,
     /// Signed complete turns about each initial principal-angle branch, initially zero.
     pub turns: [f64; 2],
+    /// Per-axis velocity motor selection (0 or 1) and demand in rad/s.
+    pub velocity_mode: [f64; 2],
+    pub velocity_target: [f64; 2],
 }
-const WIDTH: usize = 38;
+const WIDTH: usize = 42;
 const _: () = assert!(size_of::<PlanarToolLane>() == 8 * WIDTH);
 pub type PlanarToolBatch = ResidentBatch<PlanarToolLane>;
 impl PlanarToolLane {
@@ -56,11 +59,33 @@ impl PlanarToolLane {
             && self.first_normal_impulse == 0.
             && self.first_tangent_impulse == 0.
             && self.turns == [0.; 2]
+            && self.velocity_mode.iter().all(|v| matches!(*v, 0. | 1.))
+            && self.velocity_target.iter().all(|v| v.is_finite())
     }
 }
 impl PlanarToolBatch {
     pub fn new(adapter_name: &str, initial: Vec<PlanarToolLane>) -> Result<Self, GpuError> {
         Self::new_profile(adapter_name, initial, PlanarToolLane::valid, module, None)
+    }
+    /// Change the demand of an enabled velocity motor at a public boundary.
+    pub fn set_motor_speed(
+        &mut self,
+        lane: usize,
+        axis: usize,
+        speed: f64,
+    ) -> Result<(), GpuError> {
+        let row = self
+            .committed
+            .get_mut(lane)
+            .ok_or(GpuError::InvalidArmTarget(lane))?;
+        if !speed.is_finite() || row.velocity_mode.get(axis) != Some(&1.) {
+            return Err(GpuError::InvalidArmTarget(lane));
+        }
+        if row.velocity_target[axis] != speed {
+            row.velocity_target[axis] = speed;
+            self.upload_needed = true;
+        }
+        Ok(())
     }
     pub fn set_target_angles(&mut self, lane: usize, radians: [f64; 2]) -> Result<(), GpuError> {
         crate::planar_arm::set_target(
@@ -136,7 +161,8 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 15] {
     for offset in [z, dt] {
         let (start, _, _) = geometry(&v);
         let before = [[v[0], v[1]], [v[2], v[3]]];
-        for (i, value) in tick(&v, constants) {
+        for (i, value) in tick_with_velocity(&v, constants, Some(([v[38], v[39]], [v[40], v[41]])))
+        {
             v[i] = value;
         }
         for (i, from) in before.into_iter().enumerate() {

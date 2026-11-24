@@ -81,12 +81,26 @@ impl Native {
         }
     }
     pub fn step_once(&mut self, l: &Lane) {
+        self.step_with_motor(l, [0.; 2], [0.; 2]);
+    }
+    pub fn angles(&self) -> [f64; 2] {
         let abs = self.links.map(|id| {
             let x = *self.world.bodies[id].rotation() * Vector::X;
             x.z.atan2(x.x)
         });
+        [abs[0], abs[1] - abs[0]]
+    }
+    pub fn step_with_motor(&mut self, l: &Lane, velocity_mode: [f64; 2], demand: [f64; 2]) {
         let rate = self.links.map(|id| -self.world.bodies[id].angvel().y);
-        let [a, b] = servo(l, [abs[0], abs[1] - abs[0]], [rate[0], rate[1] - rate[0]]);
+        let relative = [rate[0], rate[1] - rate[0]];
+        let mut torque = servo(l, self.angles(), relative);
+        for i in 0..2 {
+            if velocity_mode[i] == 1. {
+                torque[i] = (l.damping[i] * (demand[i] - relative[i]))
+                    .clamp(-l.effort_limit[i], l.effort_limit[i]);
+            }
+        }
+        let [a, b] = torque;
         for (id, t) in self.links.into_iter().zip([a - b, b]) {
             let rb = &mut self.world.bodies[id];
             rb.reset_torques(true);

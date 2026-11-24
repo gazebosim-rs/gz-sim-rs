@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Fixed-base planar two-revolute arms carrying rigid point payloads at their tips.
-use crate::arithmetic::Scalar;
+use crate::arithmetic::{Condition, Scalar};
 use crate::{GpuError, ResidentBatch, STEP, kernel};
 use bytemuck::{Pod, Zeroable};
 
@@ -161,6 +161,14 @@ impl<T: Scalar> ArmInertia<T> {
     }
 }
 pub(super) fn tick<T: Scalar>(v: &[T], constants: &[T]) -> [(usize, T); 8] {
+    tick_with_velocity(v, constants, None)
+}
+
+pub(super) fn tick_with_velocity<T: Scalar>(
+    v: &[T],
+    constants: &[T],
+    motor: Option<([T; 2], [T; 2])>,
+) -> [(usize, T); 8] {
     let [dt, zero, one, half] = *constants else {
         unreachable!()
     };
@@ -168,7 +176,13 @@ pub(super) fn tick<T: Scalar>(v: &[T], constants: &[T]) -> [(usize, T); 8] {
     let (w1, w2) = (v[4], v[5]);
     let torque = |i: usize, c: T, s: T, w: T| {
         let err = v[17 + 2 * i] * c - v[16 + 2 * i] * s;
-        (v[20 + i] * err - v[22 + i] * w)
+        let proportional = v[20 + i] * err;
+        let drive = motor.map_or(proportional, |(enabled, speed)| {
+            enabled[i]
+                .greater(zero)
+                .select(v[22 + i] * speed[i], proportional)
+        });
+        (drive - v[22 + i] * w)
             .maximum(zero - v[24 + i])
             .minimum(v[24 + i])
     };

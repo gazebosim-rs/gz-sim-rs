@@ -34,6 +34,7 @@ gz-sensors = { path = "../gz-sensors" }
 gz-assets = { path = "../gz-assets" }
 
 [dev-dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
 rapier3d-f64.workspace = true
 gz-fuel-tools.workspace = true
 tempfile = "=3.25.0"

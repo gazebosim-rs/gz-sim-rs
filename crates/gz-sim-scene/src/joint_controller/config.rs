@@ -10,7 +10,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use super::{Actuation, JointControllerConfiguration, JointControllerMode};
 
 #[derive(Clone)]
-pub(super) struct Parameters {
+pub(crate) struct Parameters {
     pub actuation: Actuation,
     pub joint: String,
     pub max_velocity: f64,
@@ -199,6 +199,12 @@ fn chain(model: &Model) -> Result<(), LoadError> {
 }
 
 pub(super) fn parse(model: &Model) -> Result<Option<Vec<Parameters>>, LoadError> {
+    parse_fields(model, false)
+}
+pub(super) fn parse_fields(
+    model: &Model,
+    validated_planar_chain: bool,
+) -> Result<Option<Vec<Parameters>>, LoadError> {
     let mut plugins = model.plugins.iter().filter(|plugin| is_plugin(plugin));
     let Some(first) = plugins.next() else {
         return Ok(None);
@@ -221,7 +227,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Vec<Parameters>>, LoadError>
             &model.scoped_name,
             "joint controller model domain",
         )?;
-    } else {
+    } else if !validated_planar_chain {
         chain(model)?;
     }
     let mut names = BTreeSet::new();

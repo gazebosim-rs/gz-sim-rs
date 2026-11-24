@@ -14,6 +14,7 @@ pub(super) struct Arm {
     pub origin: [f64; 2],
     pub lane: PlanarToolLane,
     pub commands: BTreeMap<u64, [f64; 2]>,
+    pub controllers: [Option<joint_controller::Parameters>; 2],
 }
 pub(crate) struct Plan {
     pub(super) adapter: String,
@@ -118,7 +119,10 @@ fn load_arm(
         !m.is_static
             && m.links.len() == 2
             && m.models.is_empty()
-            && m.plugins.is_empty()
+            && m.plugins
+                .iter()
+                .all(|p| joint_controller::is_plugin(p) || joint_state_publisher::is_plugin(p))
+            && m.raw_namespace.is_none()
             && !m.self_collide
             && !m.enable_wind
             && joints[0].parent == "world"
@@ -176,6 +180,14 @@ fn load_arm(
         effort_limit: [0.; 2],
         effort: [0.; 2],
     };
+    let mut controllers = [None, None];
+    for controller in joint_controller::planar_parameters(m)? {
+        let index = joints
+            .iter()
+            .position(|j| j.name == controller.joint)
+            .expect("parsed joint");
+        controllers[index] = Some(controller);
+    }
     let mut poses = [(Transform::default(), Transform::default()); 2];
     for i in 0..2 {
         let l = links[i];
@@ -196,7 +208,7 @@ fn load_arm(
                 && identity(sdf.pose_of(&name, &ids[i])?)
                 && a.lower == f64::NEG_INFINITY
                 && a.upper == f64::INFINITY
-                && a.velocity == f64::INFINITY
+                && (controllers[i].is_some() || a.velocity == f64::INFINITY)
                 && a.effort.is_finite()
                 && a.effort > 0.
                 && a.dynamics.damping == 0.
@@ -244,16 +256,21 @@ fn load_arm(
                     .iter()
                     .position(|j| j.name == joint)
                     .ok_or_else(|| err("unknown tool drive joint"))?;
-                let k = num(item, "stiffness")?;
+                require(driven.insert(i), joint, "one drive per tool joint")?;
                 let d = num(item, "damping")?;
-                require(
-                    driven.insert(i) && k >= 0. && d >= 0.,
-                    joint,
-                    "one nonnegative servo per tool joint",
-                )?;
-                arm.stiffness[i] = k;
+                if controllers[i].is_some() {
+                    require(
+                        d > 0. && config::shape(item, &["joint", "damping"], false),
+                        joint,
+                        "controlled tool drives require only a positive motor damping",
+                    )?;
+                } else {
+                    let k = num(item, "stiffness")?;
+                    require(k >= 0. && d >= 0., joint, "nonnegative tool drive gains")?;
+                    arm.stiffness[i] = k;
+                    arm.target[i] = turn(origin[i] + num(item, "target")?);
+                }
                 arm.damping[i] = d;
-                arm.target[i] = turn(origin[i] + num(item, "target")?);
             }
             "target" if config::shape(item, &["tick", "shoulder", "elbow"], false) => {
                 let tick = attr(item, "tick")?
@@ -277,6 +294,11 @@ fn load_arm(
             _ => return Err(err("unsupported planar-tool drive or target")),
         }
     }
+    require(
+        commands.is_empty() || controllers.iter().all(Option::is_none),
+        &m.name,
+        "scripted targets conflict with standard joint controllers",
+    )?;
     require(driven.len() == 2, &m.name, "both joints require a drive")?;
     let lane = PlanarToolLane {
         arm,
@@ -289,6 +311,8 @@ fn load_arm(
         first_normal_impulse: 0.,
         first_tangent_impulse: 0.,
         turns: [0.; 2],
+        velocity_mode: controllers.each_ref().map(|p| f64::from(p.is_some())),
+        velocity_target: [0.; 2],
     };
     require(lane.gap() >= 0., &m.name, "tool starts below the floor")?;
     Ok(Arm {
@@ -301,6 +325,7 @@ fn load_arm(
         joints: joints.map(Clone::clone),
         joint_poses: poses,
         lane,
+        controllers,
         commands,
     })
 }
@@ -360,6 +385,22 @@ impl Plan {
             "every dynamic model needs a tool environment",
         )?;
         let arms: Vec<Arm> = arms.into_values().collect();
+        require(
+            arms.iter()
+                .filter(|a| a.controllers.iter().any(Option::is_some))
+                .count()
+                <= joint_controller::MAX_CONTROLLER_OWNERS,
+            &w.name,
+            "multiple joint-controller chains",
+        )?;
+        let mut topics = BTreeSet::new();
+        require(
+            arms.iter()
+                .flat_map(|a| a.controllers.iter().flatten())
+                .all(|c| topics.insert(&c.publication.topic)),
+            &w.name,
+            "duplicate tool joint-controller topics",
+        )?;
         // Each sphere remains in its arm's fixed Y plane. Refuse independent
         // lanes whose swept tool discs can overlap physically.
         for (i, a) in arms.iter().enumerate() {

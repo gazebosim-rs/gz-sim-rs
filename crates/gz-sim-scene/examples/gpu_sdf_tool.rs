@@ -47,6 +47,8 @@ fn reference_fixture() -> PlanarToolLane {
         first_normal_impulse: 0.,
         first_tangent_impulse: 0.,
         turns: [0.; 2],
+        velocity_mode: [0.; 2],
+        velocity_target: [0.; 2],
     }
 }
 fn run(adapter: &str, out: &Path) -> Result<(), Box<dyn Error>> {
@@ -154,8 +156,63 @@ fn run(adapter: &str, out: &Path) -> Result<(), Box<dyn Error>> {
     )?;
     Ok(())
 }
+#[derive(serde::Deserialize)]
+struct Published {
+    tick_ms: usize,
+    position_rad: [f64; 2],
+    command_rad: [f64; 2],
+    normal_impulse_ns: f64,
+}
+fn compare_commands(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
+    let frames: Vec<Published> = serde_json::from_slice(&fs::read(trace)?)?;
+    if frames.len() != 600 {
+        return Err("expected 600 consecutive transport observations".into());
+    }
+    let mut l = reference_fixture();
+    l.arm.damping = [6., 1.5];
+    l.velocity_mode = [1.; 2];
+    let mut native = native_tool::NativeTool::new(&l);
+    let mut total = [0_f64; 2];
+    let mut first = [None; 2];
+    let mut last = [0; 2];
+    let mut max_tip = 0_f64;
+    let origin = [0.48, -0.62];
+    for (i, frame) in frames.iter().enumerate() {
+        if frame.tick_ms != i + 1 {
+            return Err("incomplete transport clock".into());
+        }
+        let q = native.arm.angles();
+        for axis in 0..2 {
+            let cap = [2.4, 3.2][axis];
+            l.velocity_target[axis] =
+                ((frame.command_rad[axis] - (q[axis] - origin[axis])) / 0.001).clamp(-cap, cap);
+        }
+        let n = native.step(&l);
+        let a = frame.position_rad[0] + origin[0];
+        let b = a + frame.position_rad[1] + origin[1];
+        let x = 0.30 * a.cos() + 0.21 * b.cos();
+        let z = 0.30 * a.sin() + 0.21 * b.sin();
+        max_tip = max_tip.max((x - n.tip[0]).hypot(z - n.tip[1]));
+        for (axis, impulse) in [frame.normal_impulse_ns, n.n].into_iter().enumerate() {
+            total[axis] += impulse;
+            if impulse > 0. {
+                first[axis].get_or_insert((frame.tick_ms, impulse));
+                last[axis] = frame.tick_ms;
+            }
+        }
+    }
+    let result = json!({"order":["published_gpu_trace","independent_native_rapier"],"first_loaded_public_tick_and_impulse_ns":first,"last_loaded_public_tick":last,"total_normal_impulse_ns":total,"max_tip_error_m":max_tip,"native_seconds_per_substep":0.001/16.});
+    fs::write(out, serde_json::to_vec_pretty(&result)?)?;
+    println!("{result}");
+    Ok(())
+}
 fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
+    if let [mode, trace, out] = args.as_slice()
+        && mode == "--commands"
+    {
+        return compare_commands(Path::new(trace), Path::new(out));
+    }
     let [adapter, out] = args.as_slice() else {
         return Err("expected ADAPTER NEW_OUTPUT_DIRECTORY".into());
     };

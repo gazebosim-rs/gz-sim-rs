@@ -5,8 +5,16 @@ use super::*;
 use std::collections::{BTreeMap, BTreeSet};
 mod config;
 mod model;
+#[cfg(feature = "gpu-batch")]
+pub(crate) use config::Parameters;
+#[cfg(feature = "gpu-batch")]
+pub(crate) fn planar_parameters(model: &Model) -> Result<Vec<Parameters>, LoadError> {
+    Ok(config::parse_fields(model, true)?.unwrap_or_default())
+}
+#[cfg(feature = "gpu-batch")]
+pub(crate) use model::target_velocity;
 
-const MAX_CONTROLLER_OWNERS: usize = 8;
+pub(crate) const MAX_CONTROLLER_OWNERS: usize = 8;
 const MAX_CONTROLLER_INPUTS: usize = MAX_CONTROLLER_OWNERS * 2;
 
 /// Position targets use a damped servo for reduced revolutes. Local screw and
@@ -303,6 +311,10 @@ pub fn set_joint_controller_command(
     }
     let entity = gz_sim_core::entity_by_id(world, id)
         .ok_or(JointControllerCommandError::MissingController(id))?;
+    #[cfg(feature = "gpu-batch")]
+    if world.contains_resource::<gpu_scene::planar_tool::ToolBindings>() {
+        return gpu_scene::planar_tool::set_joint_command(sim, id, entity, target);
+    }
     let controller = world
         .get::<Controller>(entity)
         .ok_or(JointControllerCommandError::MissingController(id))?;
@@ -374,6 +386,10 @@ pub fn joint_controller_binding_matches_configuration(
     let Some(entity) = gz_sim_core::entity_by_id(world, id) else {
         return false;
     };
+    #[cfg(feature = "gpu-batch")]
+    if world.contains_resource::<gpu_scene::planar_tool::ToolBindings>() {
+        return gpu_scene::planar_tool::binding_matches(sim, id, configuration);
+    }
     let Some(controller) = world.get::<Controller>(entity) else {
         return false;
     };

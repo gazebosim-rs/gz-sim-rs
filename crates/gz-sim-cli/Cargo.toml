@@ -151,3 +151,7 @@ required-features = ["distributed-physics"]
 [[example]]
 name = "convoy_capsule_plot"
 required-features = ["distributed-physics"]
+
+[[example]]
+name = "gpu_joint_probe"
+required-features = ["gpu-batch"]

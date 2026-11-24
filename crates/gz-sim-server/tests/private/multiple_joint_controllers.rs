@@ -186,14 +186,14 @@ struct JointSnapshot {
     native: Option<[u64; 2]>,
     sample: Option<(Duration, u64, [u64; 2])>,
 }
-fn physical(sim: &Simulation, owners: &[(Entity, JointHandle)]) -> Vec<JointSnapshot> {
+fn physical(sim: &Simulation, owners: &[(Entity, PhysicalJoint)]) -> Vec<JointSnapshot> {
     owners
         .iter()
         .map(|(entity, joint)| JointSnapshot {
             native: sim
                 .world()
                 .resource::<gz_physics::PhysicsBackend>()
-                .joint_state(joint.id())
+                .joint_state(joint.native.expect("Rapier fixture"))
                 .map(|state| [state.position.to_bits(), state.velocity.to_bits()]),
             sample: sim.world().get::<JointSample>(*entity).map(|sample| {
                 (
@@ -1240,6 +1240,11 @@ fn all_sixteen_original_controller_bindings_preflight_before_queue_or_lease_chan
         .world()
         .get::<JointHandle>(entity)
         .unwrap();
+    let foreign_handle = *server
+        .simulation
+        .world()
+        .get::<JointHandle>(owners[0].entity)
+        .unwrap();
     for fault in 0..3 {
         match fault {
             0 => {
@@ -1261,7 +1266,7 @@ fn all_sixteen_original_controller_bindings_preflight_before_queue_or_lease_chan
                     .simulation
                     .world_mut()
                     .entity_mut(entity)
-                    .insert(owners[0].joint);
+                    .insert(foreign_handle);
             }
         }
         let before = snapshot(&server);
@@ -1912,7 +1917,9 @@ fn maximum_drive_and_controller_fleets_keep_disjoint_ingress_and_loaded_reset() 
         .world()
         .resource::<gz_physics::PhysicsBackend>();
     for stream in &server.joint_controllers.as_ref().unwrap().streams {
-        let state = backend.joint_state(stream.joint.id()).unwrap();
+        let state = backend
+            .joint_state(stream.joint.native.expect("Rapier fixture"))
+            .unwrap();
         assert!(
             state.position.is_finite()
                 && state.position.abs() < 1e-12
@@ -1926,4 +1933,29 @@ fn maximum_drive_and_controller_fleets_keep_disjoint_ingress_and_loaded_reset() 
         ),
         before_reset
     );
+}
+
+#[test]
+fn absent_native_joint_body_and_world_reject_controller_registration() {
+    let (mut server, _observer) = build(&fleet_xml(1, 2));
+    let owner = &candidates(&server.simulation, &server.network_config).unwrap()[0];
+    let (id, entity) = (owner.identity, owner.entity);
+    let child = entity_by_id(server.simulation.world(), owner.joint.child).unwrap();
+    let world = server.simulation.world_mut();
+    let body = world.entity_mut(child).take::<BodyHandle>().unwrap();
+    assert!(PhysicalJoint::resolve(&server.simulation, entity, id).is_none());
+    server.simulation.world_mut().entity_mut(child).insert(body);
+    let backend = server
+        .simulation
+        .world_mut()
+        .remove_resource::<gz_physics::PhysicsBackend>()
+        .unwrap();
+    assert!(PhysicalJoint::resolve(&server.simulation, entity, id).is_none());
+    server.simulation.world_mut().insert_resource(backend);
+    server
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .remove::<JointHandle>();
+    assert!(PhysicalJoint::resolve(&server.simulation, entity, id).is_none());
 }

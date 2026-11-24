@@ -4,6 +4,10 @@
 use super::*;
 use gz_physics_gpu::{PlanarToolBatch, PlanarToolLane, simulation::install_planar_tool};
 use std::collections::BTreeMap;
+struct Motor {
+    configuration: joint_controller::Parameters,
+    target: f64,
+}
 struct Binding {
     id: u64,
     links: [u64; 2],
@@ -11,6 +15,7 @@ struct Binding {
     base: [f64; 3],
     origin: [f64; 2],
     commands: BTreeMap<u64, [f64; 2]>,
+    motors: [Option<Motor>; 2],
 }
 #[derive(Resource)]
 pub struct ToolBindings {
@@ -52,6 +57,73 @@ fn index(sim: &Simulation, id: u64) -> Result<usize, GpuError> {
         .binary_search_by_key(&id, |r| r.id)
         .map_err(|_| GpuError::UnknownEnvironment(id))
 }
+fn motor_index(bindings: &ToolBindings, id: u64) -> Option<(usize, usize)> {
+    bindings.rows.iter().enumerate().find_map(|(row, r)| {
+        let axis = r.joints.iter().position(|&j| j == id)?;
+        r.motors[axis].as_ref().map(|_| (row, axis))
+    })
+}
+/// Resolve a controller's physical GPU axis to its stable loaded child link.
+pub fn controlled_child(sim: &Simulation, id: u64) -> Option<u64> {
+    checked(sim)?;
+    let bindings = sim.world().resource::<ToolBindings>();
+    let (row, axis) = motor_index(bindings, id)?;
+    Some(bindings.rows[row].links[axis])
+}
+pub(crate) fn binding_matches(
+    sim: &Simulation,
+    id: u64,
+    cfg: &JointControllerConfiguration,
+) -> bool {
+    let bindings = sim.world().resource::<ToolBindings>();
+    checked(sim).is_some()
+        && motor_index(bindings, id).is_some_and(|(row, axis)| {
+            &bindings.rows[row].motors[axis]
+                .as_ref()
+                .unwrap()
+                .configuration
+                .publication
+                == cfg
+        })
+}
+pub(crate) fn set_joint_command(
+    sim: &mut Simulation,
+    id: u64,
+    entity: Entity,
+    target: f64,
+) -> Result<(), JointControllerCommandError> {
+    let bindings = sim.world().resource::<ToolBindings>();
+    let (row, axis) =
+        motor_index(bindings, id).ok_or(JointControllerCommandError::MissingController(id))?;
+    let cfg = &bindings.rows[row].motors[axis]
+        .as_ref()
+        .unwrap()
+        .configuration;
+    if sim.is_faulted()
+        || sim.world().get::<JointControllerConfiguration>(entity) != Some(&cfg.publication)
+    {
+        return Err(JointControllerCommandError::InvalidPhysics);
+    }
+    let coordinate = sim
+        .world()
+        .get::<JointSample>(entity)
+        .ok_or(JointControllerCommandError::InvalidPhysics)?
+        .state
+        .position;
+    joint_controller::target_velocity(
+        cfg.publication.mode,
+        target,
+        coordinate,
+        cfg.max_velocity,
+        sim.step_duration(),
+    )
+    .map_err(|_| JointControllerCommandError::InvalidCommand)?;
+    sim.world_mut().resource_mut::<ToolBindings>().rows[row].motors[axis]
+        .as_mut()
+        .unwrap()
+        .target = target;
+    Ok(())
+}
 /// Observe the most recent committed arm state and signed N s contact impulses.
 pub fn observe(sim: &Simulation, id: u64) -> Result<&PlanarToolLane, GpuError> {
     let i = index(sim, id)?;
@@ -64,7 +136,11 @@ pub fn set_targets(sim: &mut Simulation, id: u64, radians: [f64; 2]) -> Result<(
     if sim.is_faulted() || !joints::bindings_valid(sim.world()) {
         return Err(GpuError::StaleBoundary);
     }
-    let origin = sim.world().resource::<ToolBindings>().rows[i].origin;
+    let row = &sim.world().resource::<ToolBindings>().rows[i];
+    if row.motors.iter().any(Option::is_some) {
+        return Err(GpuError::InvalidArmTarget(i));
+    }
+    let origin = row.origin;
     let mut batch = sim.world_mut().resource_mut::<PlanarToolBatch>();
     batch.set_target_angles(i, [radians[0] + origin[0], radians[1] + origin[1]])
 }
@@ -101,6 +177,9 @@ pub(super) fn install(
                     epoch: 0,
                 },
             ));
+            if let Some(c) = &a.controllers[i] {
+                sim.world_mut().entity_mut(e).insert(c.publication.clone());
+            }
             ids[i] = sim.world().get::<EntityId>(e).unwrap().get();
         }
         rows.push(Binding {
@@ -110,6 +189,12 @@ pub(super) fn install(
             base: a.base,
             origin: a.origin,
             commands: a.commands,
+            motors: a.controllers.map(|c| {
+                c.map(|configuration| Motor {
+                    target: configuration.initial_target,
+                    configuration,
+                })
+            }),
         });
     }
     let plane = links[&plan.plane];
@@ -122,6 +207,7 @@ pub(super) fn install(
     });
     install_planar_tool(sim, batch)?;
     sim.add_systems(Phase::PhysicsPrepare, prepare);
+    sim.add_systems(Phase::Reset, reset_targets);
     sim.add_systems(Phase::PhysicsCommit, sync.before(sync_models));
     sim.add_systems(Phase::Reset, sync.after(GpuReset).before(sync_models));
     Ok(())
@@ -134,6 +220,7 @@ type BoundNodes<'w, 's> = Query<
         &'static WorldPose,
         Has<Velocity>,
         Has<JointSample>,
+        Option<&'static JointControllerConfiguration>,
     ),
 >;
 fn prepare(
@@ -153,7 +240,7 @@ fn prepare(
         && batch.lanes().len() == binding.rows.len()
         && lookup(binding.plane.0)
             .and_then(|e| nodes.get(e).ok())
-            .is_some_and(|(k, p, _, _)| {
+            .is_some_and(|(k, p, _, _, _)| {
                 *k == EntityKind::Link
                     && p.translation == binding.plane.1.translation
                     && p.rotation == binding.plane.1.rotation
@@ -162,11 +249,17 @@ fn prepare(
             r.links.iter().all(|id| {
                 lookup(*id)
                     .and_then(|e| nodes.get(e).ok())
-                    .is_some_and(|(k, _, v, _)| *k == EntityKind::Link && v)
-            }) && r.joints.iter().all(|id| {
+                    .is_some_and(|(k, _, v, _, _)| *k == EntityKind::Link && v)
+            }) && r.joints.iter().enumerate().all(|(axis, id)| {
                 lookup(*id)
                     .and_then(|e| nodes.get(e).ok())
-                    .is_some_and(|(k, _, _, j)| *k == EntityKind::Joint && j)
+                    .is_some_and(|(k, _, _, j, c)| {
+                        *k == EntityKind::Joint
+                            && j
+                            && c == r.motors[axis]
+                                .as_ref()
+                                .map(|m| &m.configuration.publication)
+                    })
             })
         });
     if !valid {
@@ -177,6 +270,30 @@ fn prepare(
     }
     if !info.paused {
         for (i, r) in binding.rows.iter().enumerate() {
+            let angles = batch.lanes()[i].joint_angles();
+            for (axis, motor) in r.motors.iter().enumerate() {
+                if let Some(m) = motor {
+                    let cfg = &m.configuration;
+                    match joint_controller::target_velocity(
+                        cfg.publication.mode,
+                        m.target,
+                        angles[axis] - r.origin[axis],
+                        cfg.max_velocity,
+                        info.dt,
+                    ) {
+                        Ok(speed) => {
+                            if let Err(e) = batch.set_motor_speed(i, axis, speed) {
+                                fault.report(e);
+                                return;
+                            }
+                        }
+                        Err(e) => {
+                            fault.report(e);
+                            return;
+                        }
+                    }
+                }
+            }
             if let Some(target) = r.commands.get(&info.iteration)
                 && let Err(e) = batch.set_target_angles(i, *target)
             {
@@ -184,6 +301,15 @@ fn prepare(
                 return;
             }
         }
+    }
+}
+fn reset_targets(mut bindings: ResMut<ToolBindings>) {
+    for m in bindings
+        .rows
+        .iter_mut()
+        .flat_map(|r| r.motors.iter_mut().flatten())
+    {
+        m.target = m.configuration.initial_target;
     }
 }
 #[allow(clippy::type_complexity)]

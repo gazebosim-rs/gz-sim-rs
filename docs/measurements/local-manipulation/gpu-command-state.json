@@ -1,0 +1,81 @@
+{
+  "adapter": "NVIDIA GeForce RTX 5090",
+  "after_transport_reset": false,
+  "first_loaded_tick": 65,
+  "frames": 600,
+  "last_loaded_tick": 311,
+  "max_joint_transport_residual_si": 2.220446049250313e-16,
+  "max_measured_speed_rad_s": [
+    2.7591009661769896,
+    5.699718411887083
+  ],
+  "max_motor_demand_rad_s": [
+    2.4,
+    3.2
+  ],
+  "max_torque_nm": [
+    8.0,
+    2.8
+  ],
+  "normal_impulse_ns": 4.2651040961430295,
+  "native_reference": {
+    "first_loaded_public_tick_and_impulse_ns": [
+      [
+        65,
+        0.2977096847603386
+      ],
+      [
+        65,
+        0.3163788899653445
+      ]
+    ],
+    "last_loaded_public_tick": [
+      311,
+      311
+    ],
+    "max_tip_error_m": 0.0005354770215477004,
+    "native_seconds_per_substep": 6.25e-05,
+    "order": [
+      "published_gpu_trace",
+      "independent_native_rapier"
+    ],
+    "total_normal_impulse_ns": [
+      4.2651040961430295,
+      4.2700234727170825
+    ]
+  },
+  "reset": {
+    "pre_reset_loaded_steps": 100,
+    "opposite_pending_position_rad": 8.0,
+    "comparison_samples": 600,
+    "sha256_each_trace": "85c33f10e0e8eaa1ce840f4b20cbf1441fc4359d8e97f2c5fd63ca263bfb9e6d"
+  },
+  "coverage": {
+    "implementation": {
+      "lines": [
+        266,
+        272
+      ],
+      "regions": [
+        493,
+        513
+      ]
+    },
+    "including_qualification_examples": {
+      "lines": [
+        609,
+        626
+      ],
+      "regions": [
+        1140,
+        1230
+      ]
+    }
+  },
+  "viewer": {
+    "native_frames": 36,
+    "poses_and_shapes": 180,
+    "final_frame_ms": 601,
+    "terminal_reference": "matched local hardware"
+  }
+}

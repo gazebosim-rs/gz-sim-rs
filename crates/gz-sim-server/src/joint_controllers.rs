@@ -20,6 +20,37 @@ fn valid(metadata: &JointControllerConfiguration) -> bool {
         && metadata.topic.starts_with('/')
         && options::as_valid_topic(&metadata.topic) == metadata.topic
 }
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct PhysicalJoint {
+    native: Option<gz_physics::JointId>,
+    child: u64,
+}
+impl PhysicalJoint {
+    fn resolve(sim: &Simulation, entity: Entity, _id: u64) -> Option<Self> {
+        let world = sim.world();
+        if let Some(joint) = world.get::<JointHandle>(entity) {
+            let body = world.get::<BodyHandle>(entity_by_id(world, joint.child())?)?;
+            let backend = world.get_resource::<gz_physics::PhysicsBackend>()?;
+            return (backend.joint_child(joint.id()) == Some(body.id())
+                && backend.joint_state(joint.id()).is_some())
+            .then_some(Self {
+                native: Some(joint.id()),
+                child: joint.child(),
+            });
+        }
+        #[cfg(feature = "gpu-batch")]
+        if let Some(child) = gz_sim_scene::gpu_scene::planar_tool::controlled_child(sim, _id) {
+            return Some(Self {
+                native: None,
+                child,
+            });
+        }
+        None
+    }
+    fn conflicts(self, other: Self) -> bool {
+        self.child == other.child || self.native.is_some() && self.native == other.native
+    }
+}
 struct Original {
     identity: u64,
     name: String,
@@ -33,7 +64,7 @@ struct Candidate {
     parent: u64,
     model: Entity,
     metadata: JointControllerConfiguration,
-    joint: JointHandle,
+    joint: PhysicalJoint,
     endpoint: String,
 }
 fn group(
@@ -192,14 +223,12 @@ fn candidates_for(
         let parent_name = parent_node
             .get::<Name>()
             .ok_or(Error::JointControllerIdentity)?;
-        let joint = *node
-            .get::<JointHandle>()
-            .ok_or(Error::JointControllerIdentity)?;
+        let joint =
+            PhysicalJoint::resolve(sim, entity, identity).ok_or(Error::JointControllerIdentity)?;
         let definition = node
             .get::<JointDefinition>()
             .ok_or(Error::JointControllerIdentity)?;
-        let child =
-            entity_by_id(sim.world(), joint.child()).ok_or(Error::JointControllerIdentity)?;
+        let child = entity_by_id(sim.world(), joint.child).ok_or(Error::JointControllerIdentity)?;
         let child_node = sim.world().entity(child);
         let binding_matches = if let Some(original) = trusted {
             original.get(&identity).is_some_and(|configuration| {
@@ -224,22 +253,12 @@ fn candidates_for(
             || definition.0.name != metadata.joint_name
             || child_node.get::<EntityKind>() != Some(&EntityKind::Link)
             || child_node.get::<ChildOf>().map(ChildOf::parent) != Some(model)
-            || !child_node.get::<BodyHandle>().is_some_and(|body| {
-                sim.world()
-                    .get_resource::<gz_physics::PhysicsBackend>()
-                    .is_some_and(|backend| {
-                        backend.joint_child(joint.id()) == Some(body.id())
-                            && backend.joint_state(joint.id()).is_some()
-                    })
-            })
             || !child_node.get::<Name>().is_some_and(|child_name| {
                 child_name.0 == format!("{}::{}", parent_name.0, definition.0.child)
             })
             || !ids.insert(identity)
             || !names.insert(name.0.clone())
-            || result
-                .iter()
-                .any(|prior| prior.joint.id() == joint.id() || prior.joint.child() == joint.child())
+            || result.iter().any(|prior| prior.joint.conflicts(joint))
         {
             return Err(Error::JointControllerIdentity);
         }
@@ -268,7 +287,7 @@ struct Stream {
     entity: Entity,
     identity: u64,
     metadata: JointControllerConfiguration,
-    joint: JointHandle,
+    joint: PhysicalJoint,
     _lease: Arc<Lease>,
     receiver: mpsc::Receiver<crate::joint_controller_io::Command>,
     name: String,
@@ -297,9 +316,7 @@ impl Stream {
             && world.get::<ChildOf>(self.entity).map(ChildOf::parent) == Some(self.model)
             && entity_by_id(world, self.parent) == Some(self.model)
             && world.get::<EntityKind>(self.model) == Some(&EntityKind::Model)
-            && world.get::<JointHandle>(self.entity).is_some_and(|joint| {
-                joint.id() == self.joint.id() && joint.child() == self.joint.child()
-            })
+            && PhysicalJoint::resolve(sim, self.entity, self.identity) == Some(self.joint)
             && world.get::<Name>(self.model).is_some_and(|name| {
                 self.name == format!("{}::{}", name.0, self.metadata.joint_name)
             })
@@ -315,18 +332,10 @@ impl Stream {
                 .get::<JointDefinition>(self.entity)
                 .is_some_and(|definition| {
                     definition.0.name == self.metadata.joint_name
-                        && entity_by_id(world, self.joint.child()).is_some_and(|child| {
+                        && entity_by_id(world, self.joint.child).is_some_and(|child| {
                             world.get::<EntityKind>(child) == Some(&EntityKind::Link)
                                 && world.get::<ChildOf>(child).map(ChildOf::parent)
                                     == Some(self.model)
-                                && world.get::<BodyHandle>(child).is_some_and(|body| {
-                                    world
-                                        .get_resource::<gz_physics::PhysicsBackend>()
-                                        .is_some_and(|backend| {
-                                            backend.joint_child(self.joint.id()) == Some(body.id())
-                                                && backend.joint_state(self.joint.id()).is_some()
-                                        })
-                                })
                                 && world.get::<Name>(child).is_some_and(|name| {
                                     world.get::<Name>(self.model).is_some_and(|model| {
                                         name.0 == format!("{}::{}", model.0, definition.0.child)
@@ -361,7 +370,7 @@ fn retained(
                 prior.identity == stream.identity
                     || prior.entity == stream.entity
                     || prior.endpoint == stream.endpoint
-                    || prior.joint.id() == stream.joint.id()
+                    || prior.joint.conflicts(stream.joint)
                     || Arc::ptr_eq(&prior._lease, &stream._lease)
             })
         {

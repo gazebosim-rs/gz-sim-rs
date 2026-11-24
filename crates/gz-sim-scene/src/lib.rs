@@ -1103,6 +1103,20 @@ fn load_world_with_automatic_owner(
     #[cfg(feature = "gpu-batch")]
     if let Some(plan) = gpu_plan {
         gpu_scene::install_loaded(&mut sim, plan, &context.links, distributed_worker)?;
+        if gpu_tool_scene {
+            for model in &world.models {
+                if let Some(plan) = joint_state_publisher::parse(model)? {
+                    let model_entity = sim
+                        .world()
+                        .iter_entities()
+                        .find(|e| e.get::<Name>().is_some_and(|n| n.0 == model.scoped_name))
+                        .expect("loaded model")
+                        .id();
+                    plan.validate(model, &sim, Some("gpu-planar"), (true, model.is_static))?;
+                    joint_state_publisher::build(&sdf, &mut sim, model, model_entity, None, &plan)?;
+                }
+            }
+        }
     }
     let mut visuals = context.visuals.into_iter();
     retain_visual_geometry(
@@ -1392,7 +1406,12 @@ fn build_model(
     } else {
         None
     };
-    let controller_plan = joint_controller::parse(model)?;
+    let gpu_arm = context.gpu_tool_scene && !model.joints.is_empty();
+    let controller_plan = if gpu_arm {
+        None
+    } else {
+        joint_controller::parse(model)?
+    };
     if let Some(plan) = &controller_plan {
         plan.validate(
             model,
@@ -1419,7 +1438,11 @@ fn build_model(
             (top_level, parent.is_static || model.is_static),
         )?;
     }
-    let joint_state_plan = joint_state_publisher::parse(model)?;
+    let joint_state_plan = if gpu_arm {
+        None
+    } else {
+        joint_state_publisher::parse(model)?
+    };
     if let Some(plan) = &joint_state_plan {
         plan.validate(
             model,
@@ -1461,7 +1484,6 @@ fn build_model(
         "conflicting joint actuator ownership",
     )?;
     // GPU tool admission validates the complete joint graph and both axes before scene construction.
-    let gpu_arm = context.gpu_tool_scene && !model.joints.is_empty();
     let reduced_plan = if gpu_arm {
         None
     } else {
@@ -2259,7 +2281,7 @@ fn build_model(
             pose_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
         }
         if let Some(plan) = &joint_state_plan {
-            joint_state_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
+            joint_state_publisher::build(sdf, sim, model, model_entity, Some(backend), plan)?;
         }
         joint_forces::install(sim, model, model_entity, backend, &force_configurations)?;
         if let Some(plan) = &drive_plan {
