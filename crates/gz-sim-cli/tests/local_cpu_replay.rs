@@ -1232,3 +1232,61 @@ fn axial_delivery_centers_the_first_impulse_and_preserves_the_tilted_run_across_
     let fallback = success(run(&world, &tilted, &[switch, "--threads", "8"]));
     assert_eq!(baseline[1..], fallback[1..]);
 }
+
+#[test]
+fn held_joint_force_survives_pause_adds_to_one_tick_effort_and_clears_on_reset() {
+    let dir = tempfile::tempdir().unwrap();
+    let rotor = include_str!("../../gz-sim-server/tests/fixtures/joint_force.sdf");
+    let plugin = r#"<plugin name="gz::sim::systems::ApplyJointForce" filename="gz-sim-apply-joint-force-system"><joint_name>hinge</joint_name></plugin>"#;
+    let xml = rotor.replace("</model>", &format!("{plugin}</model>"));
+    let world = file(dir.path(), "rotor.sdf", &xml);
+    let hinge = "default::rotor::hinge";
+    let commands = json!({"seed":"drive","commands":[
+        {"op":"set_joint_force","joint":hinge,"force":2.0},
+        {"op":"paused_tick"},
+        {"op":"step","count":2},
+        {"op":"joint_effort","joint":hinge,"effort":-1.0},
+        {"op":"step","count":1},
+        {"op":"set_joint_force","joint":hinge,"force":-2.0},
+        {"op":"step","count":2},
+        {"op":"reset"},
+        {"op":"step","count":1}
+    ]});
+    let journal = file(dir.path(), "drive.json", &commands.to_string());
+    let rows = success(run(&world, &journal, &[]));
+    let armed = record(&rows, 1, 0);
+    let id = &armed["scalar_joints"][0]["id"];
+    assert_eq!(armed["held_joint_forces"], json!([[id, 2.0]]));
+    shared(armed, record(&rows, 2, 0), STATE);
+    assert_ne!(armed["inputs"], record(&rows, 0, 0)["inputs"]);
+    assert_eq!(
+        record(&rows, 4, 2)["scalar_joints"][0]["pending_effort"],
+        -1.0
+    );
+    // I = 0.016 kg m², dt = 1 ms. A held 2 N m adds 0.125 rad/s each tick.
+    for (command, step, rate) in [
+        (3, 1, 0.125),
+        (3, 2, 0.25),
+        (5, 3, 0.3125),
+        (7, 5, 0.0625),
+        (9, 1, 0.0),
+    ] {
+        let row = record(&rows, command, step);
+        assert!((row["scalar_joints"][0]["velocity"].as_f64().unwrap() - rate).abs() < 1e-12);
+        assert!(row["scalar_joints"][0]["pending_effort"].is_null());
+    }
+    shared(record(&rows, 0, 0), record(&rows, 8, 0), STATE);
+    assert_eq!(record(&rows, 9, 1)["held_joint_forces"], json!([[id, 0.0]]));
+    for name in ["default::rotor::missing", "default::rotor::body"] {
+        let bad = altered(dir.path(), &commands, "bad.json", |j| {
+            j["commands"][0]["joint"] = name.into()
+        });
+        assert!(!run(&world, &bad, &[]).status.success());
+    }
+    let wrong = file(
+        dir.path(),
+        "wrong.sdf",
+        &xml.replace("systems::ApplyJointForce", "systems::Other"),
+    );
+    assert!(!run(&wrong, &journal, &[]).status.success());
+}
