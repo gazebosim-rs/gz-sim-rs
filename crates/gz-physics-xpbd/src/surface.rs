@@ -17,7 +17,7 @@ mod friction;
 pub(super) mod geometry;
 mod interval;
 mod loads;
-pub use loads::{SelfContactLoad, SelfContactParticleImpulse};
+pub use loads::{SelfContactLoad, SelfContactParticleImpulse, ShellConstraintImpulse};
 mod position;
 use super::{Particle, XpbdError};
 use geometry::{Witness, edge_edge, vertex_face};

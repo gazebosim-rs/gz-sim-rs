@@ -41,7 +41,7 @@ pub use pad_samples::PadSample;
 /// Maximum simultaneous finite spherical pads on a triangulated shell.
 pub const MAX_SURFACE_PADS: usize = 4;
 mod surface;
-pub use surface::{SelfContactLoad, SelfContactParticleImpulse};
+pub use surface::{SelfContactLoad, SelfContactParticleImpulse, ShellConstraintImpulse};
 mod tensor;
 pub use coupled::{
     ReceiverMotion, RigidMobility, SphereMobility, step_coupled, step_coupled_rigid,
@@ -627,6 +627,10 @@ impl SoftBody {
         let h = ticks as f64 * 1e-9;
         let t0 = elapsed as f64 * 1e-9;
         let t1 = (elapsed + ticks) as f64 * 1e-9;
+        let mut shell_loads = self
+            .surface
+            .as_mut()
+            .and_then(surface::Surface::constraint_loads);
         for (i, ((&spec, &rest_direction), lambda)) in self
             .constraints
             .iter()
@@ -644,6 +648,7 @@ impl SoftBody {
                 lambda,
                 h,
                 self.momentum_rows.as_ref().map(|rows| rows.distance[i]),
+                shell_loads.as_deref_mut(),
             )?;
         }
         for (i, (hinge, lambda)) in self
@@ -658,6 +663,7 @@ impl SoftBody {
                 lambda,
                 h,
                 self.momentum_rows.as_ref().map(|rows| rows.bending[i]),
+                shell_loads.as_deref_mut(),
             )?;
         }
         if let Some(surface) = &mut self.surface {
@@ -895,6 +901,7 @@ impl Distance {
         lambda: &mut f64,
         h: f64,
         reference: Option<DVec3>,
+        loads: Option<&mut [ShellConstraintImpulse]>,
     ) -> Result<(), XpbdError> {
         let c = self.spec;
         let (wa, wb) = (particles[c.a].inverse_mass, particles[c.b].inverse_mass);
@@ -927,6 +934,14 @@ impl Distance {
         }
         let dl = (c.rest_length - len - alpha * *lambda) / denominator;
         *lambda += dl;
+        if let Some(loads) = loads {
+            let impulse = n * (dl / h);
+            loads[c.a].distance += impulse;
+            loads[c.b].distance -= impulse;
+            if !loads[c.a].distance.is_finite() || !loads[c.b].distance.is_finite() {
+                return Err(XpbdError::Numerical);
+            }
+        }
         correct(&mut x[c.a], &mut particles[c.a], n * (wa * dl), h);
         correct(&mut x[c.b], &mut particles[c.b], -n * (wb * dl), h);
         Ok(())

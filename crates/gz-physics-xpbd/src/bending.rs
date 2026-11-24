@@ -40,6 +40,7 @@ impl DihedralConstraint {
         lambda: &mut f64,
         h: f64,
         reference: Option<[DVec3; 4]>,
+        loads: Option<&mut [super::ShellConstraintImpulse]>,
     ) -> Result<(), XpbdError> {
         let weights = self.vertices.map(|i| particles[i].inverse_mass);
         if weights == [0.0; 4] {
@@ -79,6 +80,14 @@ impl DihedralConstraint {
         }
         let dl = (-angle_difference(angle, self.rest_angle) - alpha * *lambda) / denominator;
         *lambda += dl;
+        if let Some(loads) = loads {
+            for (id, g) in self.vertices.into_iter().zip(gradient) {
+                loads[id].bending += (dl / h) * g;
+                if !loads[id].bending.is_finite() {
+                    return Err(XpbdError::Numerical);
+                }
+            }
+        }
         for ((i, g), w) in self.vertices.into_iter().zip(gradient).zip(weights) {
             correct(&mut x[i], &mut particles[i], (dl * w) * g, h);
         }

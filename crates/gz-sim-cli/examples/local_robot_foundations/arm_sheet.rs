@@ -216,6 +216,8 @@ pub(super) struct PanelBalance {
     elastic_distance_up_n: [f64; 2],
     elastic_bending_up_n: [f64; 2],
     elastic_samples: usize,
+    applied_distance_up_n: [f64; 2],
+    applied_bending_up_n: [f64; 2],
 }
 
 impl Metrics {
@@ -388,6 +390,16 @@ pub(super) fn simulate_with_jaw_damping(
         let points = b.particles();
         if let Some(balance) = &mut m.panel_balance {
             if HOLD.contains(&tick) {
+                let structural =
+                    gz_sim_scene::deformable::shell_constraint_impulses(&r.sim, "sheet")
+                        .ok_or("missing committed shell impulses")?;
+                if structural.len() != COUNT {
+                    return Err("missing nodal constraint impulses".into());
+                }
+                for (id, j) in structural.iter().enumerate() {
+                    balance.applied_distance_up_n[panel(id)] += j.distance.z / hold_duration;
+                    balance.applied_bending_up_n[panel(id)] += j.bending.z / hold_duration;
+                }
                 if native_tick.is_multiple_of(exchanges) {
                     let forces = gz_sim_scene::deformable::material_elastic_forces(&r.sim, "sheet")
                         .ok_or("missing committed folded sheet")??;

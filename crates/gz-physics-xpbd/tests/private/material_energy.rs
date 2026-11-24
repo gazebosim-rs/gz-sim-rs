@@ -152,3 +152,65 @@ fn ideal_constraints_and_undefined_hinge_gradients_are_explicit() {
     stretched.particles[1].position[1] = f64::MAX;
     assert_eq!(stretched.elastic_node_forces(), Err(XpbdError::Numerical));
 }
+
+#[test]
+fn accepted_shell_constraint_impulses_balance_free_and_fixed_nodes() {
+    for fixed_corner in [false, true] {
+        let nodes =
+            [[0., 0., 0.], [0.3, 0., 0.], [0., 0.3, 0.], [0.3, 0.3, 0.04]].map(|position| {
+                Particle {
+                    position,
+                    velocity: [0.; 3],
+                    inverse_mass: 1.25,
+                }
+            });
+        let mut body = SoftBody::cloth(
+            nodes.to_vec(),
+            2,
+            0.001,
+            0.002,
+            0.04,
+            SolverConfig {
+                gravity: [0.; 3],
+                self_contact: true,
+                substeps: 4,
+                ..Default::default()
+            },
+        )
+        .unwrap()
+        .with_self_contact_friction(0.2)
+        .unwrap();
+        body.particles[1].position = [0.322, -0.001, 0.039];
+        if fixed_corner {
+            body.particles[0].inverse_mass = 0.;
+        }
+        let mut observed = body.clone().with_self_contact_loads().unwrap();
+        let dt = std::time::Duration::from_millis(2);
+        for _ in 0..2 {
+            let before = body.particles().to_vec();
+            body.step(dt, &[]).unwrap();
+            observed.step(dt, &[]).unwrap();
+            assert_eq!(observed.particles(), body.particles());
+            assert!(body.last_shell_constraint_impulses().is_empty());
+            assert!(observed.last_self_contact_particle_impulses().is_empty());
+            let rows = observed.last_shell_constraint_impulses().to_vec();
+            assert_eq!(rows.len(), before.len());
+            assert!(
+                rows.iter()
+                    .any(|j| j.distance.length() > 1e-5 && j.bending.length() > 1e-5)
+            );
+            assert!(rows.iter().map(|j| j.distance).sum::<DVec3>().length() < 1e-13);
+            assert!(rows.iter().map(|j| j.bending).sum::<DVec3>().length() < 1e-13);
+            for ((old, new), j) in before.iter().zip(observed.particles()).zip(&rows) {
+                let actual = DVec3::from(new.velocity) - DVec3::from(old.velocity);
+                assert!(actual.distance((j.distance + j.bending) * old.inverse_mass) < 1e-12);
+            }
+            assert!(
+                observed
+                    .step(std::time::Duration::from_nanos(1), &[])
+                    .is_err()
+            );
+            assert_eq!(observed.last_shell_constraint_impulses(), rows);
+        }
+    }
+}

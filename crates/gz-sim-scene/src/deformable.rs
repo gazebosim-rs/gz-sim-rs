@@ -330,6 +330,21 @@ pub fn material_energy(
         .map(SoftBody::mechanical_energy)
 }
 
+/// Accepted distance and bending impulses in node order for an observed shell.
+pub fn shell_constraint_impulses<'a>(
+    sim: &'a Simulation,
+    name: &str,
+) -> Option<&'a [gz_physics_xpbd::ShellConstraintImpulse]> {
+    if sim.is_faulted() {
+        return None;
+    }
+    sim.world()
+        .get_resource::<Deformables>()?
+        .current
+        .get(name)
+        .map(SoftBody::last_shell_constraint_impulses)
+}
+
 /// Query spring restoring forces on the committed nodes of one named material.
 pub fn material_elastic_forces(
     sim: &Simulation,
