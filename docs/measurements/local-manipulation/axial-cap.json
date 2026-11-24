@@ -21,7 +21,7 @@
       "epochs": 2,
       "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
       "input_sha256": "a73ca1d6b6c96d9b3fbf70e477f5296a74d3bbce3894da283907749b337062fb",
-      "opt_in_trace_sha256": "6fb9a9d9d2df2d1e378052947ce0b366b9e8a471cd5e842e3a40eca167412e03",
+      "opt_in_trace_sha256": "9066c12ba64cb249d4b88bce289410abc96beb08ed2cf9daa82b068a06991e46",
       "opt_in_verified_threads": [
         1,
         8
@@ -65,7 +65,7 @@
       "epochs": 2,
       "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
       "input_sha256": "8809a34793758a9ebf3df3d0fadc3fc8fe590cb019db8b10e1be33ca9dedaac7",
-      "opt_in_trace_sha256": "f84103672c967c27e3d92ef752d93f3364beb581721057d56911cc4b9a937d94",
+      "opt_in_trace_sha256": "75c4cce8b375fd1de820343ad96e45d0037316cab3fed8c8714f2861bfea8043",
       "opt_in_verified_threads": [
         1,
         8
@@ -109,7 +109,7 @@
       "epochs": 1,
       "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
       "input_sha256": "cf0b801f567f26bd78dbdb2a4095c1ae6a91bc1c73c464b3cd139aee1a92e008",
-      "opt_in_trace_sha256": "bece735fb36a5311d83c87b3692d9ec14922bcc6874713b922fb0c6684eaca8b",
+      "opt_in_trace_sha256": "899f66408cf0e264de23d84fe9567975acc01c89e608c0f0c06b47d8ab559ab9",
       "opt_in_verified_threads": [
         1,
         8
@@ -142,7 +142,7 @@
         },
         "cylinder_spin_after_first_rad_s": 0.0,
         "first_apex_z_m": 0.16545706799999954,
-        "final_mean_floor_reaction_n": 2.4525
+        "final_mean_floor_reaction_n": 2.45249967140323
       },
       "all_observations_equal": false,
       "all_visual_poses_equal": false,
@@ -153,7 +153,7 @@
       "epochs": 2,
       "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
       "input_sha256": "402f7521c9eba352160966df347a403e477ee2dade2344064043e47596a57539",
-      "opt_in_trace_sha256": "1370875130b39cc14cb2db3c5182c812534b3e88bdd5271c9fb7f086cc01b3a2",
+      "opt_in_trace_sha256": "10cde969a99e022dbceb8a320397f92b082c67c78623ad070b8d068f2e2bd947",
       "opt_in_verified_threads": [
         1,
         8
@@ -185,7 +185,7 @@
           ]
         },
         "cylinder_spin_after_first_rad_s": 0.0,
-        "first_apex_z_m": 0.1654570679999996,
+        "first_apex_z_m": 0.16545706799999957,
         "final_mean_floor_reaction_n": null
       },
       "all_observations_equal": false,
@@ -197,7 +197,7 @@
       "epochs": 2,
       "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
       "input_sha256": "8054952f902ccc88112f7b9730cfa368d0132bd1ffbac1fe82abf7bf01e1951f",
-      "opt_in_trace_sha256": "2b8a881c1074d229d1858d8aa026fb7aa6a16b9e5c2d50956402f7cda6e9695d",
+      "opt_in_trace_sha256": "631e85adc0ae8bd78103b0e6fe2f0fb8e89c47519f98d5b63344d7a01f5e0512",
       "opt_in_verified_threads": [
         1,
         8
@@ -229,7 +229,7 @@
           ]
         },
         "cylinder_spin_after_first_rad_s": 0.0,
-        "first_apex_z_m": 0.1654570679999995,
+        "first_apex_z_m": 0.16545706799999954,
         "final_mean_floor_reaction_n": null
       },
       "all_observations_equal": false,
@@ -241,7 +241,7 @@
       "epochs": 2,
       "sdf_sha256": "80167d153261e9158f43964d5eefc210c1fc83bf76a7891a5d695f56848c5f03",
       "input_sha256": "9cddfded69e40165d68e49b8e7c48a764e398483c7cbaa30d10c54ea89c90a4c",
-      "opt_in_trace_sha256": "54e0207553158284d7e65441b9f79e412b7f6b8bbd0272e2cab0eef0fe071926",
+      "opt_in_trace_sha256": "b77a81e6d6b5b7dcc44e7217c2a3aa256cf6abe226f427ee28f8576a2642ffbc",
       "opt_in_verified_threads": [
         1,
         8
@@ -272,7 +272,7 @@
             0.778300874999996
           ]
         },
-        "cylinder_spin_after_first_rad_s": 4.586371971879574e-34,
+        "cylinder_spin_after_first_rad_s": 2.1918401684953513e-33,
         "first_apex_z_m": 0.1654570679999997,
         "final_mean_floor_reaction_n": null
       },
@@ -285,7 +285,7 @@
       "epochs": 2,
       "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
       "input_sha256": "5fc7ade99d3bbbf8b9e323543d5eaa628a1f0ef87c9be48d41083a81dc5d3b46",
-      "opt_in_trace_sha256": "1631dd91d68b7199b4f90a22bb1d19531a507f9909c451a0918325edb493bf99",
+      "opt_in_trace_sha256": "918a2e6ccf0bebfbb590c55999e068811491fcc3fc88dd8dbea7d32531245bb3",
       "opt_in_verified_threads": [
         1,
         8
@@ -329,7 +329,7 @@
       "epochs": 2,
       "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
       "input_sha256": "9f3ebbc9c022c4f062064b06fcb47b6b11ec9e22e8c4ee30e259a249d644e1a0",
-      "opt_in_trace_sha256": "12c1fa52952e5591df56e9e8511db327ab6aa4249aa3fa4a7a7d59e2c810d22c",
+      "opt_in_trace_sha256": "43a60f2a119b77d5cc113d3fdd262c05eaf93374653c0a4d142a61cd62f1e1fe",
       "opt_in_verified_threads": [
         1,
         8
@@ -373,7 +373,7 @@
       "epochs": 1,
       "sdf_sha256": "7d90a4a8089ca99a35242cc72ce14ba0d58da856d9bcefec839b4a1762e28032",
       "input_sha256": "3f78c4800d753b219f25811329ed79620bfec315ab39c7da44f3eb645dc6a953",
-      "opt_in_trace_sha256": "2cc6b3d7a0967bbc8d2c2b0954a309a4e39ccb70cef132b001fbeacb14992aa9",
+      "opt_in_trace_sha256": "da4019d2a3c087ba008ba1000ec34f406e68c29f7f9b1675bec617e29e7a715b",
       "opt_in_verified_threads": [
         1,
         8
@@ -417,7 +417,7 @@
       "epochs": 1,
       "sdf_sha256": "2794a502ae10da0821f9a39965938dd9468b4d8c58b0f3c86b9809a8f1094b96",
       "input_sha256": "358cf2bf4304ac3c082264c387491e6bc81a5c5a2defe930cc16a4a91cc2c1cf",
-      "opt_in_trace_sha256": "6d1e8f02c44e99ebda4aec3c05d6195a85ba54822b0e0447638afe2bbd512a82",
+      "opt_in_trace_sha256": "c15cfd475dea33658d28a66607f305fb8d79030a775e5edd9482d651ff0399d1",
       "opt_in_verified_threads": [
         1,
         8
@@ -461,7 +461,7 @@
       "epochs": 1,
       "sdf_sha256": "bb262407c8fd05318de6de2afbe0c7610b9499f4a3b8977b67557a62f48d0d62",
       "input_sha256": "cf0b801f567f26bd78dbdb2a4095c1ae6a91bc1c73c464b3cd139aee1a92e008",
-      "opt_in_trace_sha256": "f5f8ba3366bf9ab702f423779ae0d19ce90a2e17cc78e4add6b387955a100a59",
+      "opt_in_trace_sha256": "5f8de76338611b2216edf1d7b64a94daf1563adcf15e19d1a2b006f36c9a7113",
       "opt_in_verified_threads": [
         1,
         8
@@ -505,7 +505,7 @@
       "epochs": 1,
       "sdf_sha256": "770f89fbe7cc505ca6593fb0500272c4d2c427b6530b102b72830b886281c595",
       "input_sha256": "d29d0ca44c564c7b03c30d9c3c346a97b1baf2c777d1c341c05dd8d6a45dc0cc",
-      "opt_in_trace_sha256": "c921c0e6ba544974d609728f3fd3b28b20599a488c7e10c62b251a438b9e6861",
+      "opt_in_trace_sha256": "5e68001835acd51eb002e3ccaa8563c16b36eb2fd416b6466ee3ff00e9f59dea",
       "opt_in_verified_threads": [
         1,
         8
@@ -549,7 +549,7 @@
       "epochs": 1,
       "sdf_sha256": "0840ad1f5f31e64de0a8a3cc3a6177f737474d813ae06c076ab3699effda7a88",
       "input_sha256": "7e64e52533aeb4dc8c029a29fac8ddfba477ec2a8a202979ef0016c4254b706d",
-      "opt_in_trace_sha256": "8858b6909581d31af26aec36848d2997ca0155387b71314516ed6c6b721832d2",
+      "opt_in_trace_sha256": "4c2368926214449530ccb481ee1cde0ab51134f44d3f994cfcd923e40ecb6db6",
       "opt_in_verified_threads": [
         1,
         8
@@ -593,7 +593,7 @@
       "epochs": 1,
       "sdf_sha256": "164be1bff8dfb3936d6831ad9d0f92bc6c94a0e40eb1125a493ca51cb059a0d3",
       "input_sha256": "e195181ad5402125ddf79583b38506c534a29be705628fa17f0ff7ef5c89851a",
-      "opt_in_trace_sha256": "eada9b2e06223c99b7506826741d860e5f4e7968363aa14f9bfc3fcdeb668e1b",
+      "opt_in_trace_sha256": "de643ad359d5b07ef219b678927714e06a290b91bc75da4f946a41129248e95a",
       "opt_in_verified_threads": [
         1,
         8
@@ -625,7 +625,7 @@
           ]
         },
         "cylinder_spin_after_first_rad_s": 0.0,
-        "first_apex_z_m": 0.16618970707001277,
+        "first_apex_z_m": 0.1661897070700128,
         "final_mean_floor_reaction_n": null
       },
       "all_observations_equal": false,
@@ -637,7 +637,7 @@
       "epochs": 1,
       "sdf_sha256": "e9128ba213ccfd46b2b4f6a3a4315070d8b5b19b40a37a9eb27941f4f04ff6e6",
       "input_sha256": "e3e6b20d9653cf999b5290e57022bbc9d205776115ac79a080337a4e6eefe9b4",
-      "opt_in_trace_sha256": "f271e88fdfe9645229c8f7d6202aa53fdc1f8ab07b8fb9d97a94fb3de75eaa86",
+      "opt_in_trace_sha256": "c70dbdc21ca2b45f6c2a09c5078a2a92c284a9f98606e30c76634f231f6ea709",
       "opt_in_verified_threads": [
         1,
         8
@@ -1467,21 +1467,298 @@
     },
     {
       "since_delivery_s": 0.748,
-      "impulse_ns": 0.04581702369427126
+      "impulse_ns": 0.045817023694271264
     },
     {
       "since_delivery_s": 0.762,
-      "impulse_ns": 0.02687168459872371
+      "impulse_ns": 0.02926286731845211
     },
     {
       "since_delivery_s": 0.77,
-      "impulse_ns": 0.014906405010829592
+      "impulse_ns": 0.01101635330798132
     },
     {
       "since_delivery_s": 0.774,
-      "impulse_ns": 0.006497336742960765
+      "impulse_ns": 0.006425180724145862
+    },
+    {
+      "since_delivery_s": 0.785,
+      "impulse_ns": 0.0030994022501536302
     }
   ],
+  "settle_tilt_deg": {
+    "peak_sampled": 0.0932899090463863,
+    "final": 2.9735356220296884e-05,
+    "sample_interval_ms": 2
+  },
+  "physics_commit": "3436952",
+  "timing": {
+    "cpu": "Ryzen 9 9950X3D, logical CPU 21",
+    "every_step_ms": 1,
+    "each_pair_repeats": 21,
+    "flight_ticks_inclusive": [
+      10,
+      95
+    ],
+    "physical_controls": "0.25 kg bodies, 145 mm gap, fixed floor per body. No other CPU affinity or frequency isolation.",
+    "counts": {
+      "1": {
+        "False": {
+          "flight_p50_p95_us": [
+            2.27,
+            3.29
+          ],
+          "impact_p50_p95_us": [
+            14.26,
+            17.72
+          ],
+          "actual_axial_rebounds": 0,
+          "impact_tick": 172
+        },
+        "True": {
+          "flight_p50_p95_us": [
+            2.27,
+            3.25
+          ],
+          "impact_p50_p95_us": [
+            6.07,
+            8.52
+          ],
+          "actual_axial_rebounds": 1,
+          "impact_tick": 172
+        }
+      },
+      "128": {
+        "False": {
+          "flight_p50_p95_us": [
+            70.32,
+            87.09
+          ],
+          "impact_p50_p95_us": [
+            438.512,
+            555.181
+          ],
+          "actual_axial_rebounds": 0,
+          "impact_tick": 172
+        },
+        "True": {
+          "flight_p50_p95_us": [
+            71.61,
+            87.13
+          ],
+          "impact_p50_p95_us": [
+            380.691,
+            418.842
+          ],
+          "actual_axial_rebounds": 128,
+          "impact_tick": 172
+        }
+      },
+      "512": {
+        "False": {
+          "flight_p50_p95_us": [
+            287.921,
+            374.011
+          ],
+          "impact_p50_p95_us": [
+            2157.897,
+            3135.341
+          ],
+          "actual_axial_rebounds": 0,
+          "impact_tick": 172
+        },
+        "True": {
+          "flight_p50_p95_us": [
+            290.811,
+            382.611
+          ],
+          "impact_p50_p95_us": [
+            1695.515,
+            2264.637
+          ],
+          "actual_axial_rebounds": 512,
+          "impact_tick": 172
+        }
+      }
+    },
+    "candidate": "9a733a5ea1baf06f9e7a5dedcb2c9e213e2aa95c",
+    "benchmark_sha256": "edf1878a7c6c79a248ac7644fb73b923a082c94ba180d4594df4a763829de5b7"
+  },
+  "native_changed_coverage": {
+    "base": "1155dda",
+    "method": "Distinct changed executable lines and code region coordinates covered by the exact binaries, excluding cfg(test) sections and test definitions.",
+    "bins": {
+      "cli-exact": "fb7b9d87672c7be83c38ac737dfdac1c5f0bf17e70b989b43938445596034c3f",
+      "unit-exact": "691d90d0d50ad8304ef51aaaf703944ab452bf1f6afdbb41e9ef49c63d92ede2",
+      "perf-exact": "81f72724d8339b81f1b4bb2ba3d976d868e9cebb3f686676eb81a39cceebffc8",
+      "native-exact": "984494778366abfef2851005d6b62b9f088cdbfd3355d5212e1f29bd2b3df8de"
+    },
+    "profile": "300edee1fb7c7fd9cf950decd47f2ba7b72ec3d0ae4edfb70cb15f3bbbbe07d1",
+    "by_crate": {
+      "gz-physics-rapier": {
+        "lines": [
+          387,
+          395
+        ],
+        "regions": [
+          775,
+          798
+        ]
+      },
+      "gz-physics-multifidelity": {
+        "lines": [
+          3,
+          3
+        ],
+        "regions": [
+          5,
+          5
+        ]
+      },
+      "gz-sim-scene": {
+        "lines": [
+          103,
+          108
+        ],
+        "regions": [
+          188,
+          194
+        ]
+      },
+      "gz-sim-cli": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          1,
+          1
+        ]
+      }
+    },
+    "by_path": {
+      "crates/gz-physics-multifidelity/src/lib.rs": {
+        "lines": [
+          3,
+          3
+        ],
+        "regions": [
+          5,
+          5
+        ]
+      },
+      "crates/gz-physics-rapier/src/articulation_support.rs": {
+        "lines": [
+          4,
+          4
+        ],
+        "regions": [
+          9,
+          9
+        ]
+      },
+      "crates/gz-physics-rapier/src/axial_cap.rs": {
+        "lines": [
+          205,
+          213
+        ],
+        "regions": [
+          440,
+          461
+        ]
+      },
+      "crates/gz-physics-rapier/src/axial_cap/index.rs": {
+        "lines": [
+          142,
+          142
+        ],
+        "regions": [
+          274,
+          275
+        ]
+      },
+      "crates/gz-physics-rapier/src/collision.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          3,
+          3
+        ]
+      },
+      "crates/gz-physics-rapier/src/contact_prediction.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-rapier/src/contact_prediction/dynamic.rs": {
+        "lines": [
+          3,
+          3
+        ],
+        "regions": [
+          3,
+          3
+        ]
+      },
+      "crates/gz-physics-rapier/src/initial.rs": {
+        "lines": [
+          3,
+          3
+        ],
+        "regions": [
+          4,
+          4
+        ]
+      },
+      "crates/gz-physics-rapier/src/lib.rs": {
+        "lines": [
+          29,
+          29
+        ],
+        "regions": [
+          42,
+          43
+        ]
+      },
+      "crates/gz-sim-cli/src/main.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          1,
+          1
+        ]
+      },
+      "crates/gz-sim-scene/examples/axial_cap_cost.rs": {
+        "lines": [
+          87,
+          92
+        ],
+        "regions": [
+          167,
+          173
+        ]
+      },
+      "crates/gz-sim-scene/src/lib.rs": {
+        "lines": [
+          16,
+          16
+        ],
+        "regions": [
+          21,
+          21
+        ]
+      }
+    }
+  },
   "probe_and_journal_changed_coverage": {
     "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs": {
       "lines": {
@@ -1515,5 +1792,5 @@
       }
     }
   },
-  "portable_archive_sha256": "cd187adfd4f26f00a10ce7ca9b77b015917c32ead7d1d0f63a79b30280a13f00"
+  "portable_archive_sha256": "84613c6f3b73b6cdb749993923c234e97fa08febe34a99a185c7ee887a92bc56"
 }

@@ -9,7 +9,7 @@ Each new development phase includes visual output from the measured simulation a
 
 ## 2026-11-24 — Keep a cylinder upright on a centered landing
 
-The 250 g cylinder now lands with 0.694425 N·s at 1 ms, within 0.20% of the independent prediction. Across ten bounces it stays upright and settles with 2.4525 N on the slab. Tilted, sideways, partially supported and low-bounce controls retained their original native observations and trajectories. Fifteen trials reproduced 50,132 state observations in separate one- and eight-thread processes. They include a reset with live spawned parts. Three native replays verified 11,338 displayed poses and shapes. [Measurements, recordings and commands](measurements/local-manipulation/axial-cap.md)
+The 250 g cylinder now lands with 0.694425 N·s at 1 ms, within 0.20% of the independent prediction. The first seven bounces keep the cylinder upright. The eighth resumes ordinary rim contact, reaches less than 0.094° of tilt and settles with 2.4525 N on the slab. The solver discards the centered impulse before an oblique return. Tilted, sideways, partially supported and low-bounce controls retained their original native observations and trajectories. Fifteen trials reproduced 50,132 state observations in separate one- and eight-thread processes. They include a reset with live spawned parts. Three native replays verified 11,338 displayed poses and shapes. With 512 cylinders the landing p95 dropped from 3.135 to 2.265 ms, while flight p95 rose by 0.009 ms. Each affected crate exceeded both 95% changed-code thresholds. [Measurements, recordings and commands](measurements/local-manipulation/axial-cap.md)
 
 ## 2026-11-24 — Deliver curved parcels with their physical material and correct the cloth endpoint solve
 
