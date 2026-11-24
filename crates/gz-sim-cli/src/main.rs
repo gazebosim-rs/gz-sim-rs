@@ -41,6 +41,9 @@ struct Args {
     /// Resolve friction at each contact point in local Rapier, local multi-fidelity or a three- to eight-worker pool.
     #[arg(long, conflicts_with = "replay")]
     rapier_per_point_friction: bool,
+    /// Resolve cold isolated cylinder-cap impacts against fixed finite box faces in local Rapier.
+    #[arg(long)]
+    rapier_axial_cap_impact: bool,
     /// Number of local authoritative processes in the distributed engine.
     #[arg(long,conflicts_with="replay",value_parser=clap::value_parser!(u8).range(2..=8))]
     physics_workers: Option<u8>,
@@ -71,7 +74,7 @@ struct Args {
     gpu_adapter: Option<String>,
     /// Create or resume a floating revolute tree, or a two-link hinge with supported contacts.
     #[arg(long, visible_alias="articulation-session", conflicts_with_all=["replay","adaptive_contacts","native_64","canonical_reference","contact_placement",
-        "packed_handoffs","rapier_per_point_friction","gpu_adapter","physics_worker_helpers","save_pool_checkpoint",
+        "packed_handoffs","rapier_per_point_friction","rapier_axial_cap_impact","gpu_adapter","physics_worker_helpers","save_pool_checkpoint",
         "resume_pool_checkpoint","live_pool_checkpoint","web_lifecycle"])]
     #[cfg_attr(
         feature = "distributed-physics",
@@ -81,7 +84,7 @@ struct Args {
     /// Reopen an ordinary local-owner humanoid cut using the original SDF and no worker.
     #[arg(long, conflicts_with_all = ["replay", "hinge_session", "physics_worker", "physics_workers",
         "adaptive_contacts", "contact_placement", "native_64", "canonical_reference",
-        "physics_worker_helpers", "packed_handoffs", "rapier_per_point_friction", "gpu_adapter",
+        "physics_worker_helpers", "packed_handoffs", "rapier_per_point_friction", "rapier_axial_cap_impact", "gpu_adapter",
         "save_pool_checkpoint", "resume_pool_checkpoint", "live_pool_checkpoint", "camera_worker", "web_lifecycle"])]
     #[cfg_attr(
         feature = "distributed-physics",
@@ -253,6 +256,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         #[allow(clippy::needless_update)]
         let runtime = gz_sim_scene::WorldRuntimeOptions {
             rapier_per_point_friction: args.rapier_per_point_friction,
+            rapier_axial_cap_impact: args.rapier_axial_cap_impact,
             distributed_packed_handoffs: args.packed_handoffs,
             gpu_adapter: args.gpu_adapter.as_deref(),
             distributed_contact_placement: args.contact_placement,

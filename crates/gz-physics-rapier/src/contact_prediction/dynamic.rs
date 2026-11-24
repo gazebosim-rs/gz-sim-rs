@@ -8,7 +8,7 @@ use rapier3d_f64::parry::{
 
 /// A free body's linear velocity is at its COM. The force is already staged
 /// by PhysicsPrepare, whereas Rapier derives effective gravity during step.
-pub(super) fn free_sweep(
+pub(crate) fn free_sweep(
     body: &RigidBody,
     shape: &dyn Shape,
     pose: &Pose,
@@ -59,7 +59,7 @@ pub(super) fn free_sweep(
     (linear, margin)
 }
 
-pub(super) fn swept_aabb(
+pub(crate) fn swept_aabb(
     shape: &dyn Shape,
     pose: &Pose,
     velocity: Vector,

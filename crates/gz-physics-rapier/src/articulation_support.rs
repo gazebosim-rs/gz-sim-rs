@@ -457,15 +457,18 @@ impl RapierBackend {
         self.joints
             .prepare_speed_caps(&mut self.world, &self.bodies, &self.parked_speed);
         self.joints.prepare_screws(&mut self.world, &self.bodies);
+        let caps = self.begin_axial_cap_impacts();
         self.world.step_with_events(
             &collision::SupportedGroups(
                 &self.held_supports,
                 rows,
+                &caps,
                 #[cfg(feature = "landing-audit")]
                 self.landing_rows.as_ref(),
             ),
             &(),
         );
+        self.end_axial_cap_impacts(&caps);
     }
 
     /// The single captured support, when the link has exactly one.

@@ -704,6 +704,8 @@ pub use gz_physics_distributed::pool::PeriodicPlacement;
 pub struct WorldRuntimeOptions<'a> {
     /// Select one Coulomb constraint per rigid contact point in local Rapier, local multi-fidelity or a three- to eight-worker pool.
     pub rapier_per_point_friction: bool,
+    /// Resolve cold, fully supported free cylinder cap impacts with a centered native row.
+    pub rapier_axial_cap_impact: bool,
     /// Select packed warm handoff payloads on supporting distributed workers.
     pub distributed_packed_handoffs: bool,
     /// Optional explicit adapter for GPU batches.
@@ -769,6 +771,15 @@ fn load_world_with_automatic_owner(
         deformable::managed_impact::MaterialOwner,
     >,
 ) -> Result<Simulation, LoadError> {
+    require(
+        !runtime.rapier_axial_cap_impact
+            || matches!(
+                options.engine,
+                PhysicsEngine::Rapier | PhysicsEngine::MultiFidelity
+            ),
+        world_name,
+        "axial-cap impacts require local Rapier or multi-fidelity physics",
+    )?;
     require(
         !runtime.rapier_per_point_friction || options.engine.supports_per_point_friction(),
         world_name,
@@ -1036,6 +1047,17 @@ fn load_world_with_automatic_owner(
             .into(),
         ),
     };
+    if runtime.rapier_axial_cap_impact
+        && let Some(native) = backend.as_mut()
+    {
+        let native: &mut PhysicsBackend = native;
+        if let Some(r) = native.downcast_mut::<RapierBackend>() {
+            r.set_axial_cap_impact(true);
+        }
+        if let Some(r) = native.downcast_mut::<MultiFidelityBackend>() {
+            r.set_axial_cap_impact(true);
+        }
+    }
     #[cfg(feature = "gpu-batch")]
     let gpu_tool_scene = matches!(
         gpu_plan,

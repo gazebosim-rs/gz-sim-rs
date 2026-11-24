@@ -47,6 +47,7 @@ pub use sole_receiver::SoleFoot;
 mod box_join;
 #[cfg(feature = "partition-checkpoint")]
 pub use box_join::NativeBoxMaps;
+mod axial_cap;
 mod collision;
 #[cfg(feature = "landing-audit")]
 mod landing_row_order;
@@ -179,6 +180,7 @@ pub struct RapierBackend {
     exchange_epoch: Arc<()>,
     world: PhysicsWorld,
     bodies: BTreeMap<BodyId, BodyEntry>,
+    axial_caps: Option<BTreeSet<BodyId>>,
     joints: joints::Joints,
     welded_projection: Option<Box<joints::WeldedProjection>>,
     welded_exclusion: Option<(usize, usize, usize)>,
@@ -425,6 +427,7 @@ impl RapierBackend {
                 ..PhysicsWorld::new()
             },
             bodies: BTreeMap::new(),
+            axial_caps: None,
             joints: joints::Joints::default(),
             next_id: 0,
             pending_wrenches: BTreeSet::new(),
@@ -767,6 +770,12 @@ impl RapierBackend {
             spec.collider.clone(),
             properties,
         );
+        if let Some(ids) = &mut self.axial_caps
+            && axial_cap::primitive(&spec.collider)
+                .is_some_and(|(_, shape)| shape.as_cylinder().is_some())
+        {
+            ids.insert(id);
+        }
         self.bodies
             .insert(id, (handle, spec, rotational, inertia, None));
         self.next_id = next;
@@ -925,6 +934,9 @@ impl DynamicBackend for RapierBackend {
             self.rejoin_fleet();
         }
         if let Some((handle, ..)) = self.bodies.remove(&id) {
+            if let Some(ids) = &mut self.axial_caps {
+                ids.remove(&id);
+            }
             if let Some(rows) = &mut self.exchange_reactions {
                 rows.retain(|&(a, b), _| a != id && b != id);
             }

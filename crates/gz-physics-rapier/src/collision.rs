@@ -27,6 +27,7 @@ pub(crate) struct SuppressedRows {
 pub(super) struct SupportedGroups<'a>(
     pub(super) &'a BTreeMap<BodyId, Vec<articulation_support::SupportHold>>,
     pub(super) &'a [SuppressedRows],
+    pub(super) &'a [axial_cap::Impact],
     #[cfg(feature = "landing-audit")] pub(super) Option<&'a landing_row_order::LandingRows>,
 );
 impl PhysicsHooks for SupportedGroups<'_> {
@@ -60,8 +61,11 @@ impl PhysicsHooks for SupportedGroups<'_> {
         if held && let Some(m) = ctx.rigid_mut() {
             m.solver_contacts.clear();
         }
+        for hit in self.2 {
+            hit.apply(ctx);
+        }
         #[cfg(feature = "landing-audit")]
-        if !held && let Some(rows) = self.2 {
+        if !held && let Some(rows) = self.3 {
             rows.apply(ctx);
         }
     }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Contact promotion queries use the admitted native shapes and their current body frames.
 use super::*;
-mod dynamic;
+pub(super) mod dynamic;
 #[cfg(test)]
 mod pair_tests;
 mod support;

@@ -745,6 +745,11 @@ impl MultiFidelityBackend {
         })
     }
 
+    /// Enable the isolated local native axial cap impact constraint.
+    pub fn set_axial_cap_impact(&mut self, enabled: bool) {
+        self.solver.set_axial_cap_impact(enabled);
+    }
+
     /// Select a Coulomb constraint per point on local rigid contacts.
     pub fn new_per_point_coulomb(gravity: [f64; 3]) -> Result<Self, PhysicsError> {
         Ok(Self {
