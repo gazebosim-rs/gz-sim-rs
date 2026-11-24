@@ -1,0 +1,118 @@
+{
+  "frozen_build": "84569c948e66",
+  "adapter": "NVIDIA GeForce RTX 5090",
+  "current_cases": 62,
+  "current_cargo_targets": 14,
+  "frozen_hardware_profiles_matched_to_elf": 66,
+  "frozen_hardware_executables": 16,
+  "crate_totals_renderer_method": {
+    "lines": [
+      5115,
+      5320
+    ],
+    "regions": [
+      8447,
+      8867
+    ]
+  },
+  "exact_executable_union": {
+    "maps": 444,
+    "files": 29,
+    "lines": [
+      4906,
+      5066
+    ],
+    "regions": [
+      8480,
+      8867
+    ]
+  },
+  "original_profiles_unmatched_and_excluded_from_union": 1,
+  "fresh_arm": {
+    "authored_stops": true,
+    "first_loaded_public_tick_and_impulse_ns": [
+      [
+        65,
+        0.2977096847603386
+      ],
+      [
+        65,
+        0.3163788899653445
+      ]
+    ],
+    "first_stop_tick_and_signed_impulse_nms": [
+      [
+        [
+          211,
+          0.05918695614841234,
+          0.05821781747921718
+        ],
+        [
+          510,
+          -0.07518456240672591,
+          -0.08021697756469963
+        ]
+      ],
+      [
+        null,
+        null
+      ]
+    ],
+    "floor_and_stop_loaded_ticks": 90,
+    "last_loaded_public_tick": [
+      307,
+      307
+    ],
+    "limits_rad": [
+      [
+        -0.36,
+        0.02
+      ],
+      [
+        -0.15,
+        1.2
+      ]
+    ],
+    "max_abs_stop_impulse_nms": [
+      0.07518456240672591,
+      0.0
+    ],
+    "max_joint_difference_rad": [
+      0.0009129935184077342,
+      0.003998580197146717
+    ],
+    "max_native_free_elbow_residual_nms": 0.00010766988893536389,
+    "max_tip_error_m": 0.0008397012813004502,
+    "max_travel_violation_rad": [
+      1.734723475976807e-17,
+      9.227413971801823e-12
+    ],
+    "native_lower_upper_departure_tick": [
+      211,
+      510
+    ],
+    "native_seconds_per_substep": 6.25e-05,
+    "native_signed_limit_residual_nms": [
+      -0.3778562079694794,
+      -0.00067672836564469
+    ],
+    "order": [
+      "published_gpu_trace",
+      "independent_native_rapier"
+    ],
+    "total_normal_impulse_ns": [
+      4.111969277246921,
+      4.093258410659024
+    ],
+    "total_signed_stop_impulses_nms": [
+      -0.37483325521437755,
+      0.0
+    ]
+  },
+  "browser": {
+    "renderer": "WebGPU",
+    "frames": 34,
+    "body_poses_and_shapes_checked": 170,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9936%2F"
+  }
+}

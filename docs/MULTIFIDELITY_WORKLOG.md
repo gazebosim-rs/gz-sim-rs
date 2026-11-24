@@ -2074,3 +2074,7 @@ The new corner spring and the loaded sole now act on the same floating foot. The
 ## 2026-11-23 — Checking stiff cloth grasps against both jaw loads
 
 Two 2.8125 g fingers lifted an 8.4 g folded sheet with mass-scaled damping. With the stiffest qualified pads, eight native exchanges per controller update put the correct total weight on the jaws while the two individual forces pointed in opposite directions. Sixteen exchanges resolved both jaw loads to about 0.0412 N and the full recorded trajectory to 23 µm against 32 exchanges, at 5.12 versus 9.61 ms p95. All completed runs used the same 1 ms actuator clock. The solver also reports its actual accepted material intervals after uneven local subdivision. Exact native tests and examples at 238c269 exercised 171/173 changed production lines and 313/327 regions. [Measurements, reproduction and four native replays](measurements/local-manipulation/sheet-jaw-convergence.md)
+
+## 2026-11-23 — Physical GPU release tests and independent coverage
+
+The RTX 5090 passed 62 physics tests across 14 Cargo targets. Frozen build 84569c9 reached 95.26% GPU crate region coverage after exercising real hardware and capturing the resident worker's last contact on normal exit. An independent, build-ID-matched calculation also exceeded 95%. A new stock server recording matched all 600 earlier robot observations, and gz-web-rs verified 34 frames. Shared scene and CLI qualification remains underway. [Hardware evidence and new replay](measurements/local-manipulation/gpu-hardware-qualification.md)
