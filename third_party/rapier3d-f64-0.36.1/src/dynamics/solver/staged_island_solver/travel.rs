@@ -10,7 +10,9 @@ pub(super) fn project(
     if contacts.generic_velocity_constraints.is_empty() {
         return;
     }
-    for row in &mut joints.generic_velocity_constraints {
+    let rows = &mut joints.generic_velocity_constraints;
+    for index in 0..rows.len() {
+        let row = &rows[index];
         let joint_jac = &joints.generic_jacobians;
         if !row.travel_binds(joint_jac, &vs.generic_solver_vels) {
             continue;
@@ -34,6 +36,12 @@ pub(super) fn project(
         if attached.next().is_some() {
             continue;
         }
+        if rows.iter().enumerate().any(|(j, other)| {
+            j != index && other.solver_vel2 == row.solver_vel2 && other.travel_velocities.is_some()
+        }) {
+            continue;
+        }
+        let row = &mut rows[index];
         let contact = &mut contacts.generic_velocity_constraints[i];
         if contact.generic_constraint_mask == 3
             || contact.num_contacts != 1
