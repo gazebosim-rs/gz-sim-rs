@@ -36,6 +36,9 @@ struct Args {
     /// Write ordinary gz-web recordings into separate epoch directories.
     #[arg(long)]
     record: Option<PathBuf>,
+    /// Save every Nth advancing step (default 10). Lifecycle and final frames are always saved.
+    #[arg(long, requires = "record", value_parser = clap::value_parser!(u64).range(1..))]
+    record_every: Option<u64>,
     /// Host compute-pool size; the authoritative local CPU solve is serial.
     #[arg(long, default_value_t=1, value_parser=clap::value_parser!(u8).range(1..=64))]
     threads: u8,
@@ -311,6 +314,7 @@ fn run(args: Args) -> Result<()> {
         "compiled_distributed": cfg!(feature="distributed-physics"), "world_sha256": digest(&xml), "journal_sha256": digest(&bytes),
         "seed": journal.seed, "step_ns": sim.step_duration().as_nanos()
     }))?;
+    let record_every = args.record_every.unwrap_or(10);
     let mut capture = if let Some(path) = args.record {
         Some(Capture {
             path,
@@ -388,7 +392,10 @@ fn run(args: Args) -> Result<()> {
                         .map_err(|e| gz_sim_cli::with_fault(&sim, e))?;
                     sink.emit(&observation::state(&sim, index + 1)?)?;
                     if let Some(c) = &mut capture
-                        && sim.committed_update_info()?.iteration.is_multiple_of(10)
+                        && sim
+                            .committed_update_info()?
+                            .iteration
+                            .is_multiple_of(record_every)
                     {
                         c.sample(&sim, &sdf, &world.name)?;
                     }
@@ -520,6 +527,32 @@ mod tests {
             cpu_signature(&format!("{cpu}\n\n{cpu}")).unwrap()
         );
     }
+    #[test]
+    fn stale_and_non_template_alias_bindings_cannot_redirect_an_input() {
+        let xml = include_str!("../../../../examples/worlds/local_robot_replay.sdf");
+        let sim =
+            gz_sim_scene::load_local_replay_world(xml, "robot.sdf", "default", [0; 32]).unwrap();
+        let sdf = sdformat::load_str(xml, "robot.sdf", &sdformat::NoResources).unwrap();
+        let alias = LoadLink::Spawned {
+            alias: "parcel".into(),
+        };
+        for (id, message) in [
+            (u64::MAX, "spawned model missing"),
+            (
+                entity_id(&sim, "default::gripper").unwrap(),
+                "spawned template must own exactly one link",
+            ),
+        ] {
+            let aliases = BTreeMap::from([("parcel".into(), id)]);
+            assert_eq!(
+                wrench_link(&sim, &sdf.worlds[0], &aliases, &alias)
+                    .unwrap_err()
+                    .to_string(),
+                message
+            );
+        }
+    }
+
     #[test]
     fn full_display_epoch_refuses_an_additional_frame() {
         let xml = include_str!("../../../../examples/worlds/local_robot_replay.sdf");

@@ -840,3 +840,81 @@ fn removing_or_resetting_a_loaded_clone_clears_its_alias_and_pending_input() {
         assert!(String::from_utf8_lossy(&stale.stderr).contains("unknown live alias delivery"));
     }
 }
+
+#[test]
+fn changing_the_display_interval_keeps_every_solve_and_paused_lifecycle_event() {
+    let scratch = tempfile::tempdir().unwrap();
+    let dir = scratch.path();
+    let world = file(dir, "bench.sdf", XML);
+    let journal = file(dir, "two_lifetimes.json", &json!({"seed":"clocks","commands":[
+        {"op":"step","count":3},
+        {"op":"spawn","template":"default::parcel","alias":"p","position":[0.15,0.1,0.64]},
+        {"op":"step","count":2},{"op":"remove","alias":"p"},{"op":"step","count":2},{"op":"reset"},
+        {"op":"step","count":3}
+    ]}).to_string());
+    let baseline = success(run(&world, &journal, &[]));
+    for (stride, times) in [
+        ("1", vec![0, 1, 2, 3, 3, 4, 5, 5, 6, 7]),
+        ("4", vec![0, 3, 4, 5, 7]),
+        ("4294967296", vec![0, 3, 5, 7]),
+    ] {
+        let archive = dir.join(stride);
+        let result = success(run(
+            &world,
+            &journal,
+            &[
+                "--record",
+                archive.to_str().unwrap(),
+                "--record-every",
+                stride,
+            ],
+        ));
+        assert_eq!(result, baseline);
+        for (epoch, expected) in [
+            (0, times),
+            (
+                1,
+                if stride == "1" {
+                    vec![0, 1, 2, 3]
+                } else {
+                    vec![0, 3]
+                },
+            ),
+        ] {
+            let path = archive.join(format!("epoch-{epoch}/frames.jsonl"));
+            let frames = fs::read_to_string(path)
+                .unwrap()
+                .lines()
+                .map(|line| serde_json::from_str::<Value>(line).unwrap())
+                .filter_map(|r| {
+                    r["scene"]
+                        .as_str()
+                        .map(|s| serde_json::from_str::<Value>(s).unwrap())
+                })
+                .collect::<Vec<_>>();
+            assert_eq!(
+                frames
+                    .iter()
+                    .map(|s| s["nanoseconds"].as_u64().unwrap() / 1_000_000)
+                    .collect::<Vec<_>>(),
+                expected
+            );
+            if epoch == 0 {
+                let counts = frames
+                    .iter()
+                    .map(|s| s["visuals"].as_array().unwrap().len())
+                    .collect::<Vec<_>>();
+                assert_eq!(counts[0], *counts.last().unwrap());
+                assert_eq!(counts.iter().max(), Some(&(counts[0] + 1)));
+            }
+        }
+    }
+    let refused = dir.join("invalid");
+    for args in [
+        vec!["--record-every", "1"],
+        vec!["--record", refused.to_str().unwrap(), "--record-every", "0"],
+    ] {
+        assert!(!run(&world, &journal, &args).status.success());
+    }
+    assert!(!refused.exists());
+}
