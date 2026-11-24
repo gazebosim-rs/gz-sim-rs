@@ -2115,3 +2115,7 @@ The stiff spring jaws now continue past the 640 ms pickup state where a closing 
 ## 2026-11-23 — Restoring the rigid gripper's tactile readings
 
 Rigid fingertips now report the normal and friction impulse on each cloth particle. Both jaws measured 0.825 N of squeeze and shared the sheet weight, and the existing motion and replay stayed byte-identical. A twelve-rate comparison against 1,000 exchanges per millisecond needed 500 to place every recorded node within 0.1 mm. At that setting each simulated millisecond cost 131 ms p95 on the shared host. This is a measured accuracy limit for the light, rigid jaws. [Forces, timings, coverage and replays](measurements/local-manipulation/hard-jaw-tactile.md)
+
+## 2026-11-23 — Recovering a cable snag during serial transport
+
+A 0.447 N contact triggered braking on the next 1 ms tick. The robot reversed 103 mm, raised the held cable, cleared the original snag by 7.15 mm, and placed it on the shelf. A taller barrier snagged the cable again at the safe lift limit, so the robot returned it to the pickup table and opened after the table took its weight. All 52,659 ticks matched after reset, and the unchanged clear-route trajectory matched both obstructed runs until impact. Eleven release tests passed with 367/374 changed production lines and 647/678 regions covered. [Measurements and three native replays](measurements/local-manipulation/serial-cable-snag.md)

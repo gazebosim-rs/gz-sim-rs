@@ -6,6 +6,8 @@
 mod geometry;
 #[path = "serial_cable/measure.rs"]
 mod measure;
+#[path = "serial_cable/snag.rs"]
+mod snag;
 use bevy_ecs::entity::Entity;
 use geometry::BoxShape;
 use glam::{DQuat, DVec3};
@@ -338,6 +340,12 @@ fn main() -> Result<()> {
     let out = std::env::args_os()
         .nth(1)
         .ok_or("supply fresh output directory")?;
+    if out == "--snag" {
+        let output = std::env::args_os()
+            .nth(2)
+            .ok_or("supply fresh snag output directory")?;
+        return snag::record(Path::new(&output));
+    }
     let d = Path::new(&out);
     std::fs::create_dir(d)?;
     let sdf = sdformat::load_str(SDF, "serial-cable.sdf", &sdformat::NoResources)?;
