@@ -236,3 +236,35 @@ fn an_edge_under_the_sheet_or_an_extra_receiver_keeps_the_original_refusal() {
         assert!(b.last_boundary_impulses().is_empty());
     }
 }
+
+#[test]
+fn restored_material_rejoins_every_published_position_and_velocity_at_3346_ms() {
+    let mut body = material();
+    // The rigid jaws remain clear during these 817 microseconds. Keeping their
+    // incoming motion at the captured cut must reproduce the full robot state.
+    for _ in 0..817 {
+        step_coupled_damped_pads(
+            &mut [&mut body],
+            Duration::from_nanos(1_000),
+            &cut::SURFACES,
+            &cut::MOBILITIES,
+            &[(0, 4.), (1, 4.)],
+        )
+        .unwrap();
+        assert!(
+            body.last_boundary_impulses()[..2]
+                .iter()
+                .all(|j| j.linear == [0.; 3] && j.angular == [0.; 3])
+        );
+    }
+    let committed: Vec<_> = body
+        .particles()
+        .iter()
+        .flat_map(|p| p.position.into_iter().chain(p.velocity))
+        .flat_map(f64::to_le_bytes)
+        .collect();
+    assert_eq!(
+        committed,
+        include_bytes!("fixtures/released_sheet_3346000.bin")
+    );
+}
