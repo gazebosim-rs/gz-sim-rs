@@ -70,39 +70,28 @@ impl Recorder {
         let worker = thread::Builder::new()
             .name("gz-scene-record".into())
             .spawn(move || {
-                let prepared = prepare(&path, &files);
-                match prepared {
-                    Ok((mut stream, assets)) => {
-                        stream.write_all(&header)?;
-                        let _ = ready.send(Ok(()));
-                        run(&path, &mut stream, receiver, prefix, files, assets)
-                    }
-                    Err(error) => {
-                        let _ = ready.send(Err(io::Error::new(error.kind(), error.to_string())));
-                        Err(error)
-                    }
-                }
+                let (mut stream, assets) = prepare(&path, &files)?;
+                stream.write_all(&header)?;
+                let _ = ready.send(());
+                run(&path, &mut stream, receiver, prefix, files, assets)
             })?;
-        match readiness.recv() {
-            Ok(Ok(())) => Ok(Self {
-                sender: Some(sender),
-                worker: Some(worker),
-                frames: 0,
-                bytes,
-                failed: false,
-            }),
-            result => {
-                drop(sender);
-                let _ = worker.join();
-                match result {
-                    Ok(Err(error)) => Err(error),
-                    _ => Err(io::Error::new(
-                        io::ErrorKind::BrokenPipe,
-                        "recording worker failed during startup",
-                    )),
-                }
-            }
+        if readiness.recv().is_err() {
+            drop(sender);
+            return match worker.join() {
+                Ok(Err(error)) => Err(error),
+                _ => Err(io::Error::new(
+                    io::ErrorKind::BrokenPipe,
+                    "recording worker failed during startup",
+                )),
+            };
         }
+        Ok(Self {
+            sender: Some(sender),
+            worker: Some(worker),
+            frames: 0,
+            bytes,
+            failed: false,
+        })
     }
 
     pub fn healthy(&self) -> bool {

@@ -19,7 +19,10 @@ fn real_writer_finalizes_only_complete_admitted_capture_and_refuses_existing_out
     let archive = Archive::open(&path).unwrap();
     assert_eq!(archive.frame(0).unwrap().scene.world_name(), "default");
     assert!(archive.frame(1).is_err());
-    assert!(Recorder::start(&path, None).is_err());
+    let expected = std::fs::create_dir(&path).unwrap_err();
+    let actual = Recorder::start(&path, None).err().unwrap();
+    assert_eq!(actual.kind(), io::ErrorKind::AlreadyExists);
+    assert_eq!(actual.raw_os_error(), expected.raw_os_error());
     assert!(!path.join("manifest.pending").exists());
     assert_eq!(archive.stamps.len(), 1);
 }
