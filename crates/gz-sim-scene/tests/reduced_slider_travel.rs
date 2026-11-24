@@ -251,7 +251,17 @@ fn exchanging_the_point_and_face_keeps_the_spherical_wrist_response() {
             "<sphere><radius>0.015</radius></sphere>",
         )
         .replace("INCOMING_FACE", "<box><size>0.018 0.067 0.10</size></box>");
-    for sdf in [&box_on_wrist, &sphere_on_wrist] {
+    let wrist = box_on_wrist.find("<model name=\"wrist_rig\">").unwrap();
+    let parcel = box_on_wrist.find("<model name=\"parcel\">").unwrap();
+    let end = box_on_wrist.find("</world>").unwrap();
+    let swapped_order = format!(
+        "{}{}{}{}",
+        &box_on_wrist[..wrist],
+        &box_on_wrist[parcel..end],
+        &box_on_wrist[wrist..parcel],
+        &box_on_wrist[end..]
+    );
+    for sdf in [&box_on_wrist, &sphere_on_wrist, &swapped_order] {
         let (normal, tangent) = first_patch(sdf);
         let inertia = 0.0004266666666666667 + 0.00003208666666666667 + 0.08 * 0.1 * 0.1;
         let expected = 1.6 * 0.75 / (5.0 + 0.1 * 0.1 / inertia);
