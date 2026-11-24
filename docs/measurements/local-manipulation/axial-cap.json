@@ -1,0 +1,1519 @@
+{
+  "units": {
+    "impulse": "N s",
+    "angular_impulse": "N m s",
+    "height": "m",
+    "time": "s",
+    "angle_rate": "rad/s"
+  },
+  "ideal": {
+    "drop_m": 0.145,
+    "mass_kg": 0.25,
+    "restitution": 0.65,
+    "gravity_m_s2": 9.81,
+    "first_impulse_ns": 0.6957567934450946,
+    "first_rebound_center_height_m": 0.1662625,
+    "static_support_n": 2.4525
+  },
+  "public_routes": {
+    "level": {
+      "state_rows_per_thread_count": 1530,
+      "epochs": 2,
+      "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
+      "input_sha256": "a73ca1d6b6c96d9b3fbf70e477f5296a74d3bbce3894da283907749b337062fb",
+      "opt_in_trace_sha256": "6fb9a9d9d2df2d1e378052947ce0b366b9e8a471cd5e842e3a40eca167412e03",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.7686100834833525
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 6.725059841259167,
+        "first_apex_z_m": 0.20292996579355166,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.6944253749999947
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.0,
+        "first_apex_z_m": 0.16545706799999954,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    },
+    "tilted": {
+      "state_rows_per_thread_count": 1526,
+      "epochs": 2,
+      "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
+      "input_sha256": "8809a34793758a9ebf3df3d0fadc3fc8fe590cb019db8b10e1be33ca9dedaac7",
+      "opt_in_trace_sha256": "f84103672c967c27e3d92ef752d93f3364beb581721057d56911cc4b9a937d94",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.17800000000000002,
+            0.6089747509914823
+          ],
+          "capsule": [
+            0.18300000000000002,
+            0.7682685034820254
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 10.621985599837766,
+        "first_apex_z_m": 0.14289069031727575,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.17800000000000002,
+            0.6089747509914823
+          ],
+          "capsule": [
+            0.18300000000000002,
+            0.7682685034820254
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 10.621985599837766,
+        "first_apex_z_m": 0.14289069031727575,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": true,
+      "all_visual_poses_equal": true,
+      "other_visual_poses_equal": true
+    },
+    "settle": {
+      "state_rows_per_thread_count": 3013,
+      "epochs": 1,
+      "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
+      "input_sha256": "cf0b801f567f26bd78dbdb2a4095c1ae6a91bc1c73c464b3cd139aee1a92e008",
+      "opt_in_trace_sha256": "bece735fb36a5311d83c87b3692d9ec14922bcc6874713b922fb0c6684eaca8b",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.7686100834833525
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 6.725059841259167,
+        "first_apex_z_m": 0.20292996579355166,
+        "final_mean_floor_reaction_n": 2.4525000331032736
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.6944253749999947
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.0,
+        "first_apex_z_m": 0.16545706799999954,
+        "final_mean_floor_reaction_n": 2.4525
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    },
+    "yaw": {
+      "state_rows_per_thread_count": 1530,
+      "epochs": 2,
+      "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
+      "input_sha256": "402f7521c9eba352160966df347a403e477ee2dade2344064043e47596a57539",
+      "opt_in_trace_sha256": "1370875130b39cc14cb2db3c5182c812534b3e88bdd5271c9fb7f086cc01b3a2",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.7686100834833574
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 6.7250598412585445,
+        "first_apex_z_m": 0.20292996579355388,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.6944253749999947
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.0,
+        "first_apex_z_m": 0.1654570679999996,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    },
+    "inverted": {
+      "state_rows_per_thread_count": 1530,
+      "epochs": 2,
+      "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
+      "input_sha256": "8054952f902ccc88112f7b9730cfa368d0132bd1ffbac1fe82abf7bf01e1951f",
+      "opt_in_trace_sha256": "2b8a881c1074d229d1858d8aa026fb7aa6a16b9e5c2d50956402f7cda6e9695d",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.7686100834833538
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 6.725059841259291,
+        "first_apex_z_m": 0.2029299657935525,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.6944253749999947
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.0,
+        "first_apex_z_m": 0.1654570679999995,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    },
+    "inclined": {
+      "state_rows_per_thread_count": 1530,
+      "epochs": 2,
+      "sdf_sha256": "80167d153261e9158f43964d5eefc210c1fc83bf76a7891a5d695f56848c5f03",
+      "input_sha256": "9cddfded69e40165d68e49b8e7c48a764e398483c7cbaa30d10c54ea89c90a4c",
+      "opt_in_trace_sha256": "54e0207553158284d7e65441b9f79e412b7f6b8bbd0272e2cab0eef0fe071926",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.7686100834833681
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.778300874999996
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 6.7250598412589895,
+        "first_apex_z_m": 0.2029299657935578,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.6944253749999965
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.778300874999996
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 4.586371971879574e-34,
+        "first_apex_z_m": 0.1654570679999997,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    },
+    "lateral": {
+      "state_rows_per_thread_count": 1532,
+      "epochs": 2,
+      "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
+      "input_sha256": "5fc7ade99d3bbbf8b9e323543d5eaa628a1f0ef87c9be48d41083a81dc5d3b46",
+      "opt_in_trace_sha256": "1631dd91d68b7199b4f90a22bb1d19531a507f9909c451a0918325edb493bf99",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.7762924758171493
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 7.436568586699215,
+        "first_apex_z_m": 0.20732115194568468,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.7762924758171493
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 7.436568586699215,
+        "first_apex_z_m": 0.20732115194568468,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": true,
+      "all_visual_poses_equal": true,
+      "other_visual_poses_equal": true
+    },
+    "rim": {
+      "state_rows_per_thread_count": 1530,
+      "epochs": 2,
+      "sdf_sha256": "873c2379dc6daef4378c5966514c99629d13ada1879af0c04803f97bd6c0d887",
+      "input_sha256": "9f3ebbc9c022c4f062064b06fcb47b6b11ec9e22e8c4ee30e259a249d644e1a0",
+      "opt_in_trace_sha256": "12c1fa52952e5591df56e9e8511db327ab6aa4249aa3fa4a7a7d59e2c810d22c",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.733068886582138
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 4.18985488270341,
+        "first_apex_z_m": 0.18385578662998459,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.733068886582138
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 4.18985488270341,
+        "first_apex_z_m": 0.18385578662998459,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": true,
+      "all_visual_poses_equal": true,
+      "other_visual_poses_equal": true
+    },
+    "gentle": {
+      "state_rows_per_thread_count": 3013,
+      "epochs": 1,
+      "sdf_sha256": "7d90a4a8089ca99a35242cc72ce14ba0d58da856d9bcefec839b4a1762e28032",
+      "input_sha256": "3f78c4800d753b219f25811329ed79620bfec315ab39c7da44f3eb645dc6a953",
+      "opt_in_trace_sha256": "2cc6b3d7a0967bbc8d2c2b0954a309a4e39ccb70cef132b001fbeacb14992aa9",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.012,
+            0.004978864240929533
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 7.701606213651983e-05,
+        "first_apex_z_m": 0.10499889665166919,
+        "final_mean_floor_reaction_n": 2.452499896068207
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.012,
+            0.004978864240929533
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 7.701606213651983e-05,
+        "first_apex_z_m": 0.10499889665166919,
+        "final_mean_floor_reaction_n": 2.452499896068207
+      },
+      "all_observations_equal": true,
+      "all_visual_poses_equal": true,
+      "other_visual_poses_equal": true
+    },
+    "soft-drop": {
+      "state_rows_per_thread_count": 3013,
+      "epochs": 1,
+      "sdf_sha256": "2794a502ae10da0821f9a39965938dd9468b4d8c58b0f3c86b9809a8f1094b96",
+      "input_sha256": "358cf2bf4304ac3c082264c387491e6bc81a5c5a2defe930cc16a4a91cc2c1cf",
+      "opt_in_trace_sha256": "6d1e8f02c44e99ebda4aec3c05d6195a85ba54822b0e0447638afe2bbd512a82",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.055,
+            0.11879398930797447
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.2885648838805752,
+        "first_apex_z_m": 0.10512356290912481,
+        "final_mean_floor_reaction_n": 2.456428348781025
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.055,
+            0.11879398930797447
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.2885648838805752,
+        "first_apex_z_m": 0.10512356290912481,
+        "final_mean_floor_reaction_n": 2.456428348781025
+      },
+      "all_observations_equal": true,
+      "all_visual_poses_equal": true,
+      "other_visual_poses_equal": true
+    },
+    "zero": {
+      "state_rows_per_thread_count": 3013,
+      "epochs": 1,
+      "sdf_sha256": "bb262407c8fd05318de6de2afbe0c7610b9499f4a3b8977b67557a62f48d0d62",
+      "input_sha256": "cf0b801f567f26bd78dbdb2a4095c1ae6a91bc1c73c464b3cd139aee1a92e008",
+      "opt_in_trace_sha256": "f5f8ba3366bf9ab702f423779ae0d19ce90a2e17cc78e4add6b387955a100a59",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.40709701852108227
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 1.441657864694043,
+        "first_apex_z_m": 0.10668991496640547,
+        "final_mean_floor_reaction_n": 2.4524993069348695
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.40709701852108227
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7783008749999941
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 1.441657864694043,
+        "first_apex_z_m": 0.10668991496640547,
+        "final_mean_floor_reaction_n": 2.4524993069348695
+      },
+      "all_observations_equal": true,
+      "all_visual_poses_equal": true,
+      "other_visual_poses_equal": true
+    },
+    "fine-500": {
+      "state_rows_per_thread_count": 1523,
+      "epochs": 1,
+      "sdf_sha256": "770f89fbe7cc505ca6593fb0500272c4d2c427b6530b102b72830b886281c595",
+      "input_sha256": "d29d0ca44c564c7b03c30d9c3c346a97b1baf2c777d1c341c05dd8d6a45dc0cc",
+      "opt_in_trace_sha256": "c921c0e6ba544974d609728f3fd3b28b20599a488c7e10c62b251a438b9e6861",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.755051653744646
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7793431874999923
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 5.433615116193676,
+        "first_apex_z_m": 0.19549045928811828,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.6952224374999929
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7793431874999923
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.0,
+        "first_apex_z_m": 0.1658828219999994,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    },
+    "fine-250": {
+      "state_rows_per_thread_count": 3043,
+      "epochs": 1,
+      "sdf_sha256": "0840ad1f5f31e64de0a8a3cc3a6177f737474d813ae06c076ab3699effda7a88",
+      "input_sha256": "7e64e52533aeb4dc8c029a29fac8ddfba477ec2a8a202979ef0016c4254b706d",
+      "opt_in_trace_sha256": "8858b6909581d31af26aec36848d2997ca0155387b71314516ed6c6b721832d2",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.7681526892829099
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7798643437500484
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 6.588422403141582,
+        "first_apex_z_m": 0.20276560411135713,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18200000000000002,
+            0.6956209687500432
+          ],
+          "capsule": [
+            0.18200000000000002,
+            0.7798643437500484
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.0,
+        "first_apex_z_m": 0.16609569900000654,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    },
+    "fine-100": {
+      "state_rows_per_thread_count": 7603,
+      "epochs": 1,
+      "sdf_sha256": "164be1bff8dfb3936d6831ad9d0f92bc6c94a0e40eb1125a493ca51cb059a0d3",
+      "input_sha256": "e195181ad5402125ddf79583b38506c534a29be705628fa17f0ff7ef5c89851a",
+      "opt_in_trace_sha256": "eada9b2e06223c99b7506826741d860e5f4e7968363aa14f9bfc3fcdeb668e1b",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.1819,
+            0.846868893659814
+          ],
+          "capsule": [
+            0.1819,
+            0.779723325000076
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 13.63314316430289,
+        "first_apex_z_m": 0.25251008929463636,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.1819,
+            0.6954554250000677
+          ],
+          "capsule": [
+            0.1819,
+            0.779723325000076
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.0,
+        "first_apex_z_m": 0.16618970707001277,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    },
+    "fine-50": {
+      "state_rows_per_thread_count": 15203,
+      "epochs": 1,
+      "sdf_sha256": "e9128ba213ccfd46b2b4f6a3a4315070d8b5b19b40a37a9eb27941f4f04ff6e6",
+      "input_sha256": "e3e6b20d9653cf999b5290e57022bbc9d205776115ac79a080337a4e6eefe9b4",
+      "opt_in_trace_sha256": "f271e88fdfe9645229c8f7d6202aa53fdc1f8ab07b8fb9d97a94fb3de75eaa86",
+      "opt_in_verified_threads": [
+        1,
+        8
+      ],
+      "ordinary": {
+        "first_impulses": {
+          "cylinder": [
+            0.18195,
+            0.7686965698785486
+          ],
+          "capsule": [
+            0.18195,
+            0.7800544124998868
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 6.620422551284429,
+        "first_apex_z_m": 0.20317723207386346,
+        "final_mean_floor_reaction_n": null
+      },
+      "opt_in": {
+        "first_impulses": {
+          "cylinder": [
+            0.18195,
+            0.6957374624998991
+          ],
+          "capsule": [
+            0.18195,
+            0.7800544124998868
+          ]
+        },
+        "cylinder_spin_after_first_rad_s": 0.0,
+        "first_apex_z_m": 0.16623014688935073,
+        "final_mean_floor_reaction_n": null
+      },
+      "all_observations_equal": false,
+      "all_visual_poses_equal": false,
+      "other_visual_poses_equal": true
+    }
+  },
+  "native_browser": {
+    "level": {
+      "body_poses_and_shapes_checked": 1909,
+      "captured_ms": {
+        "birth": 10.0,
+        "impact": 182.0,
+        "last_bounce": 756.0,
+        "rebound": 292.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 385,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 385,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10077%2F"
+    },
+    "tilted": {
+      "body_poses_and_shapes_checked": 1902,
+      "captured_ms": {
+        "before_removal": 754.0,
+        "birth": 10.0,
+        "rebound": 266.0,
+        "rim_impact": 178.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 383,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 383,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10079%2F"
+    },
+    "settle": {
+      "body_poses_and_shapes_checked": 7527,
+      "captured_ms": {
+        "before_removal": 3004.0,
+        "impact": 182.0,
+        "rebound": 292.0,
+        "settled": 1206.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 1508,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 1508,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10078%2F"
+    }
+  },
+  "solver_passes": [
+    {
+      "pgs_passes": 1,
+      "per_point_friction": false,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.5261569184056646e-14,
+        -5.819581179559947e-14,
+        0.7686100834833525
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.002374241204174476,
+        0.011067401810961018,
+        6.672721960249262e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.5261569184056646e-14,
+        5.819581179559947e-14,
+        -0.7686100834833525
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09460745122217055,
+        -0.126358914333458,
+        -2.7652556632780495e-15
+      ],
+      "applied_rows": [
+        0.10952551361209897,
+        0.10779599545295161,
+        0.3377638841239392,
+        0.21352469029436258
+      ]
+    },
+    {
+      "pgs_passes": 1,
+      "per_point_friction": false,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 1,
+      "per_point_friction": true,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.512148322258584e-14,
+        -5.80482876414842e-14,
+        0.7666616863579957
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.00227374006012115,
+        0.011091630697166881,
+        6.763325385529249e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.512148322258584e-14,
+        5.80482876414842e-14,
+        -0.7666616863579957
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09427314242307445,
+        -0.12609088365086035,
+        -2.768997698065254e-15
+      ],
+      "applied_rows": [
+        0.10744633280851704,
+        0.1083032086745879,
+        0.3347719870696159,
+        0.21614015780527485
+      ]
+    },
+    {
+      "pgs_passes": 1,
+      "per_point_friction": true,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 2,
+      "per_point_friction": false,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.5261569184056646e-14,
+        -5.819581179559947e-14,
+        0.7686100834833525
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.002374241204174476,
+        0.011067401810961018,
+        6.672721960249262e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.5261569184056646e-14,
+        5.819581179559947e-14,
+        -0.7686100834833525
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09460745122217055,
+        -0.126358914333458,
+        -2.7652556632780495e-15
+      ],
+      "applied_rows": [
+        0.10952551361209897,
+        0.10779599545295161,
+        0.3377638841239392,
+        0.21352469029436258
+      ]
+    },
+    {
+      "pgs_passes": 2,
+      "per_point_friction": false,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 2,
+      "per_point_friction": true,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.512148322258584e-14,
+        -5.80482876414842e-14,
+        0.7666616863579957
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.00227374006012115,
+        0.011091630697166881,
+        6.763325385529249e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.512148322258584e-14,
+        5.80482876414842e-14,
+        -0.7666616863579957
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09427314242307445,
+        -0.12609088365086035,
+        -2.768997698065254e-15
+      ],
+      "applied_rows": [
+        0.10744633280851704,
+        0.1083032086745879,
+        0.3347719870696159,
+        0.21614015780527485
+      ]
+    },
+    {
+      "pgs_passes": 2,
+      "per_point_friction": true,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 4,
+      "per_point_friction": false,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.5261569184056646e-14,
+        -5.819581179559947e-14,
+        0.7686100834833525
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.002374241204174476,
+        0.011067401810961018,
+        6.672721960249262e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.5261569184056646e-14,
+        5.819581179559947e-14,
+        -0.7686100834833525
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09460745122217055,
+        -0.126358914333458,
+        -2.7652556632780495e-15
+      ],
+      "applied_rows": [
+        0.10952551361209897,
+        0.10779599545295161,
+        0.3377638841239392,
+        0.21352469029436258
+      ]
+    },
+    {
+      "pgs_passes": 4,
+      "per_point_friction": false,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 4,
+      "per_point_friction": true,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.512148322258584e-14,
+        -5.80482876414842e-14,
+        0.7666616863579957
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.00227374006012115,
+        0.011091630697166881,
+        6.763325385529249e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.512148322258584e-14,
+        5.80482876414842e-14,
+        -0.7666616863579957
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09427314242307445,
+        -0.12609088365086035,
+        -2.768997698065254e-15
+      ],
+      "applied_rows": [
+        0.10744633280851704,
+        0.1083032086745879,
+        0.3347719870696159,
+        0.21614015780527485
+      ]
+    },
+    {
+      "pgs_passes": 4,
+      "per_point_friction": true,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 8,
+      "per_point_friction": false,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.5261569184056646e-14,
+        -5.819581179559947e-14,
+        0.7686100834833525
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.002374241204174476,
+        0.011067401810961018,
+        6.672721960249262e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.5261569184056646e-14,
+        5.819581179559947e-14,
+        -0.7686100834833525
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09460745122217055,
+        -0.126358914333458,
+        -2.7652556632780495e-15
+      ],
+      "applied_rows": [
+        0.10952551361209897,
+        0.10779599545295161,
+        0.3377638841239392,
+        0.21352469029436258
+      ]
+    },
+    {
+      "pgs_passes": 8,
+      "per_point_friction": false,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 8,
+      "per_point_friction": true,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.512148322258584e-14,
+        -5.80482876414842e-14,
+        0.7666616863579957
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.00227374006012115,
+        0.011091630697166881,
+        6.763325385529249e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.512148322258584e-14,
+        5.80482876414842e-14,
+        -0.7666616863579957
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09427314242307445,
+        -0.12609088365086035,
+        -2.768997698065254e-15
+      ],
+      "applied_rows": [
+        0.10744633280851704,
+        0.1083032086745879,
+        0.3347719870696159,
+        0.21614015780527485
+      ]
+    },
+    {
+      "pgs_passes": 8,
+      "per_point_friction": true,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 16,
+      "per_point_friction": false,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.5261569184056646e-14,
+        -5.819581179559947e-14,
+        0.7686100834833525
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.002374241204174476,
+        0.011067401810961018,
+        6.672721960249262e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.5261569184056646e-14,
+        5.819581179559947e-14,
+        -0.7686100834833525
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09460745122217055,
+        -0.126358914333458,
+        -2.7652556632780495e-15
+      ],
+      "applied_rows": [
+        0.10952551361209897,
+        0.10779599545295161,
+        0.3377638841239392,
+        0.21352469029436258
+      ]
+    },
+    {
+      "pgs_passes": 16,
+      "per_point_friction": false,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 16,
+      "per_point_friction": true,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.512148322258584e-14,
+        -5.80482876414842e-14,
+        0.7666616863579957
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.00227374006012115,
+        0.011091630697166881,
+        6.763325385529249e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.512148322258584e-14,
+        5.80482876414842e-14,
+        -0.7666616863579957
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09427314242307445,
+        -0.12609088365086035,
+        -2.768997698065254e-15
+      ],
+      "applied_rows": [
+        0.10744633280851704,
+        0.1083032086745879,
+        0.3347719870696159,
+        0.21614015780527485
+      ]
+    },
+    {
+      "pgs_passes": 16,
+      "per_point_friction": true,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 32,
+      "per_point_friction": false,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.5261569184056646e-14,
+        -5.819581179559947e-14,
+        0.7686100834833525
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.002374241204174476,
+        0.011067401810961018,
+        6.672721960249262e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.5261569184056646e-14,
+        5.819581179559947e-14,
+        -0.7686100834833525
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09460745122217055,
+        -0.126358914333458,
+        -2.7652556632780495e-15
+      ],
+      "applied_rows": [
+        0.10952551361209897,
+        0.10779599545295161,
+        0.3377638841239392,
+        0.21352469029436258
+      ]
+    },
+    {
+      "pgs_passes": 32,
+      "per_point_friction": false,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    },
+    {
+      "pgs_passes": 32,
+      "per_point_friction": true,
+      "axial_cap_impact": false,
+      "normal_impulse_world_ns": [
+        -5.512148322258584e-14,
+        -5.80482876414842e-14,
+        0.7666616863579957
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        -0.00227374006012115,
+        0.011091630697166881,
+        6.763325385529249e-16
+      ],
+      "floor_normal_impulse_world_ns": [
+        5.512148322258584e-14,
+        5.80482876414842e-14,
+        -0.7666616863579957
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.09427314242307445,
+        -0.12609088365086035,
+        -2.768997698065254e-15
+      ],
+      "applied_rows": [
+        0.10744633280851704,
+        0.1083032086745879,
+        0.3347719870696159,
+        0.21614015780527485
+      ]
+    },
+    {
+      "pgs_passes": 32,
+      "per_point_friction": true,
+      "axial_cap_impact": true,
+      "normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        0.6944253749999947
+      ],
+      "angular_normal_impulse_at_com_nms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_normal_impulse_world_ns": [
+        0.0,
+        0.0,
+        -0.6944253749999947
+      ],
+      "floor_angular_normal_impulse_at_origin_nms": [
+        0.08333104499999935,
+        -0.1041638062499992,
+        0.0
+      ],
+      "applied_rows": [
+        0.6944253749999947
+      ]
+    }
+  ],
+  "settle_distinct_arrivals": [
+    {
+      "since_delivery_s": 0.172,
+      "impulse_ns": 0.6944253749999947
+    },
+    {
+      "since_delivery_s": 0.394,
+      "impulse_ns": 0.446974256249999
+    },
+    {
+      "since_delivery_s": 0.537,
+      "impulse_ns": 0.2881341084375004
+    },
+    {
+      "since_delivery_s": 0.629,
+      "impulse_ns": 0.18500232951562612
+    },
+    {
+      "since_delivery_s": 0.688,
+      "impulse_ns": 0.11849936081484314
+    },
+    {
+      "since_delivery_s": 0.725,
+      "impulse_ns": 0.07270054047035186
+    },
+    {
+      "since_delivery_s": 0.748,
+      "impulse_ns": 0.04581702369427126
+    },
+    {
+      "since_delivery_s": 0.762,
+      "impulse_ns": 0.02687168459872371
+    },
+    {
+      "since_delivery_s": 0.77,
+      "impulse_ns": 0.014906405010829592
+    },
+    {
+      "since_delivery_s": 0.774,
+      "impulse_ns": 0.006497336742960765
+    }
+  ],
+  "probe_and_journal_changed_coverage": {
+    "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs": {
+      "lines": {
+        "hit": 4,
+        "total": 4,
+        "missing": []
+      },
+      "regions": {
+        "hit": 3,
+        "total": 3,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-scene/examples/cylinder_cap_rebound.rs": {
+      "lines": {
+        "hit": 45,
+        "total": 45,
+        "missing": []
+      },
+      "regions": {
+        "hit": 118,
+        "total": 119,
+        "missing": [
+          [
+            141,
+            68,
+            141,
+            69
+          ]
+        ]
+      }
+    }
+  },
+  "portable_archive_sha256": "cd187adfd4f26f00a10ce7ca9b77b015917c32ead7d1d0f63a79b30280a13f00"
+}

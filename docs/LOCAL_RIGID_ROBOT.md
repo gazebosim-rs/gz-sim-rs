@@ -64,7 +64,7 @@ The qualification records describe restitution and friction configuration, inert
 
 ## Add parts while the robot world is running
 
-Spawn a cylinder and capsule, watch them hit a slab, remove them and repeat from reset. Both parts use the same physical material and generated mesh as their source model. The command and live viewer paths accept the same local templates. [Run the curved deliveries and compare the two native replays](measurements/local-manipulation/curved-delivery.md)
+Spawn a cylinder and capsule, watch them hit a slab, remove them and repeat from reset. Both parts use the same physical material and generated mesh as their source model. The command and live viewer paths accept the same local templates. [Run the curved deliveries and compare the two native replays](measurements/local-manipulation/curved-delivery.md) · [Watch the corrected cylinder bounce and settle](measurements/local-manipulation/axial-cap.md)
 
 ## Pick up and place a free parcel
 
