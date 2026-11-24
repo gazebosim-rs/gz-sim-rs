@@ -2083,3 +2083,7 @@ The RTX 5090 passed 62 physics tests across 14 Cargo targets. Frozen build 84569
 ## 2026-11-23 — Ground load through a freely moving ankle
 
 The native ankle bent 19.973° under a 0.55 N·m shank moment while the same robot with a locked ankle held zero. The independently integrated trajectory predicted 19.968°, and the sole stayed loaded throughout both runs. Halving the internal step reduced the free ankle’s maximum transmitted impulse error from 1.328 to 0.660 µN·s. Reset, finite-edge refusal, held joint effort and zero duplicate rigid impulse passed with 97.48% changed line coverage and 95.47% region coverage. Rigid frictional multi-point shank contact remains open. [Measurements and gz-web-rs replays](measurements/local-manipulation/compliant-ankle.md)
+
+## 2026-11-23 — The GPU tool's first impact and the rest of its landing tick
+
+Matching the incoming arm state at 64 ms showed that the first impact and the remaining supported interval made separate contributions to the reaction. Resolving touchdown inside the existing public tick reduced the 1 ms impulse error against independent Cartesian dynamics from 5.51 to 0.030 mN·s. Across 2,048 arms the complete step cost rose from 446 to 451 µs p95. The independent native Rapier landing still differs by 4.17% for the live arm. Reset reproduced its 600 hardware samples. [Matched-state experiment, costs and native gz-web-rs replay](measurements/local-manipulation/gpu-tool-impact.md)

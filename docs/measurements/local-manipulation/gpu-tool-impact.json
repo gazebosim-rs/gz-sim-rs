@@ -1,0 +1,763 @@
+{
+  "source": "4e03563",
+  "device": "NVIDIA GeForce RTX 5090",
+  "sdf": "examples/gpu_stopped_tool_world.sdf",
+  "baseline_native_comparison": {
+    "authored_stops": true,
+    "first_loaded_public_tick_and_impulse_ns": [
+      [
+        65,
+        0.2977096847603386
+      ],
+      [
+        65,
+        0.3163788899653445
+      ]
+    ],
+    "first_stop_tick_and_signed_impulse_nms": [
+      [
+        [
+          211,
+          0.05918695614841234,
+          0.05821781747921718
+        ],
+        [
+          510,
+          -0.07518456240672591,
+          -0.08021697756469963
+        ]
+      ],
+      [
+        null,
+        null
+      ]
+    ],
+    "floor_and_stop_loaded_ticks": 90,
+    "last_loaded_public_tick": [
+      307,
+      307
+    ],
+    "limits_rad": [
+      [
+        -0.36,
+        0.02
+      ],
+      [
+        -0.15,
+        1.2
+      ]
+    ],
+    "max_abs_stop_impulse_nms": [
+      0.07518456240672591,
+      0.0
+    ],
+    "max_joint_difference_rad": [
+      0.0009129935184077342,
+      0.003998580197146717
+    ],
+    "max_native_free_elbow_residual_nms": 0.00010766988893536389,
+    "max_tip_error_m": 0.0008397012813004502,
+    "max_travel_violation_rad": [
+      1.734723475976807e-17,
+      9.227413971801823e-12
+    ],
+    "native_lower_upper_departure_tick": [
+      211,
+      510
+    ],
+    "native_seconds_per_substep": 6.25e-05,
+    "native_signed_limit_residual_nms": [
+      -0.3778562079694794,
+      -0.00067672836564469
+    ],
+    "order": [
+      "published_gpu_trace",
+      "independent_native_rapier"
+    ],
+    "total_normal_impulse_ns": [
+      4.111969277246921,
+      4.093258410659024
+    ],
+    "total_signed_stop_impulses_nms": [
+      -0.37483325521437755,
+      0.0
+    ]
+  },
+  "updated_native_comparison": {
+    "authored_stops": true,
+    "first_loaded_public_tick_and_impulse_ns": [
+      [
+        65,
+        0.3031895983290952
+      ],
+      [
+        65,
+        0.3163788899653445
+      ]
+    ],
+    "first_stop_tick_and_signed_impulse_nms": [
+      [
+        [
+          211,
+          0.059181290227721665,
+          0.05821781747921718
+        ],
+        [
+          510,
+          -0.07518456240672591,
+          -0.08021697756469963
+        ]
+      ],
+      [
+        null,
+        null
+      ]
+    ],
+    "floor_and_stop_loaded_ticks": 90,
+    "last_loaded_public_tick": [
+      307,
+      307
+    ],
+    "limits_rad": [
+      [
+        -0.36,
+        0.02
+      ],
+      [
+        -0.15,
+        1.2
+      ]
+    ],
+    "max_abs_stop_impulse_nms": [
+      0.07518456240672591,
+      0.0
+    ],
+    "max_joint_difference_rad": [
+      0.0008299085933822781,
+      0.0039985801971479384
+    ],
+    "max_native_free_elbow_residual_nms": 0.00010766988893536389,
+    "max_tip_error_m": 0.0008397012813006968,
+    "max_travel_violation_rad": [
+      1.734723475976807e-17,
+      9.227413971801823e-12
+    ],
+    "native_lower_upper_departure_tick": [
+      211,
+      510
+    ],
+    "native_seconds_per_substep": 6.25e-05,
+    "native_signed_limit_residual_nms": [
+      -0.3778562079694794,
+      -0.00067672836564469
+    ],
+    "order": [
+      "published_gpu_trace",
+      "independent_native_rapier"
+    ],
+    "total_normal_impulse_ns": [
+      4.117872190380404,
+      4.093258410659024
+    ],
+    "total_signed_stop_impulses_nms": [
+      -0.3748389211350584,
+      0.0
+    ]
+  },
+  "landing_study": {
+    "gpu_normal_impulse_ns": 0.3031895983290952,
+    "gpu_rates_after_rad_s": [
+      -2.364383715985766,
+      5.5854737181938985
+    ],
+    "incoming_angles_rad": [
+      0.3447792498446431,
+      -0.5004479749961324
+    ],
+    "incoming_rates_rad_s": [
+      -2.7371816473033457,
+      0.2431650870780966
+    ],
+    "native": [
+      {
+        "matched_cartesian_reference": {
+          "first_internal_normal_impulse_ns": 0.2974110979146498,
+          "landing_offset_s": 0.0006490891602489515,
+          "normal_impulse_ns": 0.3016327099968795,
+          "rates_after_rad_s": [
+            -2.3777173490827144,
+            5.616980131042557
+          ],
+          "tangent_impulse_ns": -0.09048981299906385,
+          "tip_m": [
+            0.4900603105266972,
+            0.06800000000012724
+          ]
+        },
+        "native_steps_per_ms": 8,
+        "runs": [
+          {
+            "first_internal_normal_impulse_ns": 0.31711636759348216,
+            "incoming_angles_rad": [
+              0.34456269541432766,
+              -0.5002609900436106
+            ],
+            "incoming_rates_rad_s": [
+              -2.7348893589107846,
+              0.237714828016375
+            ],
+            "landing_offset_s": 0.00075,
+            "matched": false,
+            "normal_impulse_ns": 0.31711636759348216,
+            "rates_after_rad_s": [
+              -2.3545873780032704,
+              5.8782568613203985
+            ],
+            "tangent_impulse_ns": -0.09513491027804451,
+            "tip_m": [
+              0.4900748673259117,
+              0.0679473737900265
+            ]
+          },
+          {
+            "first_internal_normal_impulse_ns": 0.3162669095917497,
+            "incoming_angles_rad": [
+              0.3447792498446431,
+              -0.5004479749961324
+            ],
+            "incoming_rates_rad_s": [
+              -2.7371816473033457,
+              0.2431650870780966
+            ],
+            "landing_offset_s": 0.000875,
+            "matched": true,
+            "normal_impulse_ns": 0.3162669095917497,
+            "rates_after_rad_s": [
+              -2.381387916779985,
+              5.9866928483578326
+            ],
+            "tangent_impulse_ns": -0.09488007287752466,
+            "tip_m": [
+              0.49003553577354814,
+              0.06784619799896344
+            ]
+          }
+        ]
+      },
+      {
+        "matched_cartesian_reference": {
+          "first_internal_normal_impulse_ns": 0.29733736018221646,
+          "landing_offset_s": 0.0006490909770597946,
+          "normal_impulse_ns": 0.3026280672610197,
+          "rates_after_rad_s": [
+            -2.369265112039936,
+            5.597000698406814
+          ],
+          "tangent_impulse_ns": -0.09078842017830588,
+          "tip_m": [
+            0.4900567225004324,
+            0.06800000000000797
+          ]
+        },
+        "native_steps_per_ms": 16,
+        "runs": [
+          {
+            "first_internal_normal_impulse_ns": 0.3163788899653445,
+            "incoming_angles_rad": [
+              0.3446763144450895,
+              -0.5003585109179127
+            ],
+            "incoming_rates_rad_s": [
+              -2.738559589984698,
+              0.25112499448352477
+            ],
+            "landing_offset_s": 0.0006875,
+            "matched": false,
+            "normal_impulse_ns": 0.3163788899653445,
+            "rates_after_rad_s": [
+              -2.353786023452805,
+              5.849345527713408
+            ],
+            "tangent_impulse_ns": -0.09491366698960316,
+            "tip_m": [
+              0.49006769560295965,
+              0.0680025897880424
+            ]
+          },
+          {
+            "first_internal_normal_impulse_ns": 0.3161953266057958,
+            "incoming_angles_rad": [
+              0.3447792498446431,
+              -0.5004479749961324
+            ],
+            "incoming_rates_rad_s": [
+              -2.7371816473033457,
+              0.2431650870780966
+            ],
+            "landing_offset_s": 0.00075,
+            "matched": true,
+            "normal_impulse_ns": 0.3161953266057958,
+            "rates_after_rad_s": [
+              -2.364458387547837,
+              5.897058771978639
+            ],
+            "tangent_impulse_ns": -0.09485859798173867,
+            "tip_m": [
+              0.4900482325945654,
+              0.06794995032333002
+            ]
+          }
+        ]
+      },
+      {
+        "matched_cartesian_reference": {
+          "first_internal_normal_impulse_ns": 0.2973005732672696,
+          "landing_offset_s": 0.0006490918836405449,
+          "normal_impulse_ns": 0.3031258775684855,
+          "rates_after_rad_s": [
+            -2.3650687029509063,
+            5.5870813577603515
+          ],
+          "tangent_impulse_ns": -0.09093776327054566,
+          "tip_m": [
+            0.49005489513762857,
+            0.06800000000000053
+          ]
+        },
+        "native_steps_per_ms": 32,
+        "runs": [
+          {
+            "first_internal_normal_impulse_ns": 0.3161148329641564,
+            "incoming_angles_rad": [
+              0.3447339794118858,
+              -0.5004114039458321
+            ],
+            "incoming_rates_rad_s": [
+              -2.7397015152165887,
+              0.25464564583884597
+            ],
+            "landing_offset_s": 0.0006875,
+            "matched": false,
+            "normal_impulse_ns": 0.3161148329641564,
+            "rates_after_rad_s": [
+              -2.3562718089540384,
+              5.8527575774721825
+            ],
+            "tangent_impulse_ns": -0.09483444988924677,
+            "tip_m": [
+              0.49005911655053397,
+              0.06798869157363038
+            ]
+          },
+          {
+            "first_internal_normal_impulse_ns": 0.316159611593693,
+            "incoming_angles_rad": [
+              0.3447792498446431,
+              -0.5004479749961324
+            ],
+            "incoming_rates_rad_s": [
+              -2.7371816473033457,
+              0.2431650870780966
+            ],
+            "landing_offset_s": 0.0006875,
+            "matched": true,
+            "normal_impulse_ns": 0.316159611593693,
+            "rates_after_rad_s": [
+              -2.3560937921185006,
+              5.852473141690449
+            ],
+            "tangent_impulse_ns": -0.0948478834781077,
+            "tip_m": [
+              0.4900546379884616,
+              0.06800286407718553
+            ]
+          }
+        ]
+      },
+      {
+        "matched_cartesian_reference": {
+          "first_internal_normal_impulse_ns": 0.29730057326723003,
+          "landing_offset_s": 0.0006490920181749911,
+          "normal_impulse_ns": 0.303125938759136,
+          "rates_after_rad_s": [
+            -2.3650753060544423,
+            5.587096866440339
+          ],
+          "tangent_impulse_ns": -0.09093778162774083,
+          "tip_m": [
+            0.49005488741971337,
+            0.06800000000000009
+          ]
+        },
+        "native_steps_per_ms": 64,
+        "runs": [
+          {
+            "first_internal_normal_impulse_ns": 0.31597856139880354,
+            "incoming_angles_rad": [
+              0.34476302786506463,
+              -0.500438677646327
+            ],
+            "incoming_rates_rad_s": [
+              -2.7400780820468853,
+              0.25552474350860344
+            ],
+            "landing_offset_s": 0.0006718750000000001,
+            "matched": false,
+            "normal_impulse_ns": 0.31597856139880354,
+            "rates_after_rad_s": [
+              -2.3555951471012593,
+              5.8442533720052845
+            ],
+            "tangent_impulse_ns": -0.09479356841964094,
+            "tip_m": [
+              0.49005725476760004,
+              0.06800314464907685
+            ]
+          },
+          {
+            "first_internal_normal_impulse_ns": 0.31615548289590234,
+            "incoming_angles_rad": [
+              0.3447792498446431,
+              -0.5004479749961324
+            ],
+            "incoming_rates_rad_s": [
+              -2.7371816473033457,
+              0.2431650870780966
+            ],
+            "landing_offset_s": 0.0006718750000000001,
+            "matched": true,
+            "normal_impulse_ns": 0.31615548289590234,
+            "rates_after_rad_s": [
+              -2.353773436554848,
+              5.840184531314917
+            ],
+            "tangent_impulse_ns": -0.09484664486877059,
+            "tip_m": [
+              0.49005544003924434,
+              0.0680085668272353
+            ]
+          }
+        ]
+      },
+      {
+        "matched_cartesian_reference": {
+          "first_internal_normal_impulse_ns": 0.2973005732672272,
+          "landing_offset_s": 0.0006490920854779849,
+          "normal_impulse_ns": 0.3031259702143743,
+          "rates_after_rad_s": [
+            -2.365078604954528,
+            5.587104630966196
+          ],
+          "tangent_impulse_ns": -0.09093779106431221,
+          "tip_m": [
+            0.49005488356287524,
+            0.06800000000000006
+          ]
+        },
+        "native_steps_per_ms": 128,
+        "runs": [
+          {
+            "first_internal_normal_impulse_ns": 0.3159084393890037,
+            "incoming_angles_rad": [
+              0.3447775918424418,
+              -0.5004525099465608
+            ],
+            "incoming_rates_rad_s": [
+              -2.740215817776427,
+              0.2557354766624327
+            ],
+            "landing_offset_s": 0.00065625,
+            "matched": false,
+            "normal_impulse_ns": 0.3159084393890037,
+            "rates_after_rad_s": [
+              -2.354304239437047,
+              5.83493238908651
+            ],
+            "tangent_impulse_ns": -0.09477253181670087,
+            "tip_m": [
+              0.49005753278473246,
+              0.06802097520830444
+            ]
+          },
+          {
+            "first_internal_normal_impulse_ns": 0.31615341750790693,
+            "incoming_angles_rad": [
+              0.3447792498446431,
+              -0.5004479749961324
+            ],
+            "incoming_rates_rad_s": [
+              -2.7371816473033457,
+              0.2431650870780966
+            ],
+            "landing_offset_s": 0.0006640625,
+            "matched": true,
+            "normal_impulse_ns": 0.31615341750790693,
+            "rates_after_rad_s": [
+              -2.3526192168091615,
+              5.8340543167185315
+            ],
+            "tangent_impulse_ns": -0.09484602525237192,
+            "tip_m": [
+              0.4900558574875797,
+              0.06801152920462868
+            ]
+          }
+        ]
+      },
+      {
+        "matched_cartesian_reference": {
+          "first_internal_normal_impulse_ns": 0.2972959788285227,
+          "landing_offset_s": 0.0006490920885559257,
+          "normal_impulse_ns": 0.3031882047535694,
+          "rates_after_rad_s": [
+            -2.364555548704516,
+            5.585868269841474
+          ],
+          "tangent_impulse_ns": -0.09095646142607089,
+          "tip_m": [
+            0.4900546534567827,
+            0.06800000000000005
+          ]
+        },
+        "native_steps_per_ms": 256,
+        "runs": [
+          {
+            "first_internal_normal_impulse_ns": 0.31588216285448456,
+            "incoming_angles_rad": [
+              0.34478488222870546,
+              -0.5004594682849296
+            ],
+            "incoming_rates_rad_s": [
+              -2.740271801341718,
+              0.2557828036239842
+            ],
+            "landing_offset_s": 0.00065625,
+            "matched": false,
+            "normal_impulse_ns": 0.31588216285448456,
+            "rates_after_rad_s": [
+              -2.3545423043345077,
+              5.83515918892099
+            ],
+            "tangent_impulse_ns": -0.09476464885634513,
+            "tip_m": [
+              0.49005645941644715,
+              0.06801937833161001
+            ]
+          },
+          {
+            "first_internal_normal_impulse_ns": 0.31614895597431014,
+            "incoming_angles_rad": [
+              0.3447792498446431,
+              -0.5004479749961324
+            ],
+            "incoming_rates_rad_s": [
+              -2.7371816473033457,
+              0.2431650870780966
+            ],
+            "landing_offset_s": 0.00065625,
+            "matched": true,
+            "normal_impulse_ns": 0.31614895597431014,
+            "rates_after_rad_s": [
+              -2.351592473842838,
+              5.828525381862529
+            ],
+            "tangent_impulse_ns": -0.09484468679229295,
+            "tip_m": [
+              0.4900566767069647,
+              0.06801830901918038
+            ]
+          }
+        ]
+      },
+      {
+        "matched_cartesian_reference": {
+          "first_internal_normal_impulse_ns": 0.297293681939004,
+          "landing_offset_s": 0.0006490920900952593,
+          "normal_impulse_ns": 0.3032193225501675,
+          "rates_after_rad_s": [
+            -2.364294135733546,
+            5.585250362056678
+          ],
+          "tangent_impulse_ns": -0.09096579676505025,
+          "tip_m": [
+            0.4900545382742812,
+            0.06800000000000003
+          ]
+        },
+        "native_steps_per_ms": 512,
+        "runs": [
+          {
+            "first_internal_normal_impulse_ns": 0.3158675647424022,
+            "incoming_angles_rad": [
+              0.34478853003868853,
+              -0.5004629572907152
+            ],
+            "incoming_rates_rad_s": [
+              -2.740296526373934,
+              0.25579179290786014
+            ],
+            "landing_offset_s": 0.000654296875,
+            "matched": false,
+            "normal_impulse_ns": 0.3158675647424022,
+            "rates_after_rad_s": [
+              -2.3544329742131653,
+              5.834031200924356
+            ],
+            "tangent_impulse_ns": -0.09476026942272049,
+            "tip_m": [
+              0.49005622548153327,
+              0.06802121808123546
+            ]
+          },
+          {
+            "first_internal_normal_impulse_ns": 0.3161467255108891,
+            "incoming_angles_rad": [
+              0.3447792498446431,
+              -0.5004479749961324
+            ],
+            "incoming_rates_rad_s": [
+              -2.7371816473033457,
+              0.2431650870780966
+            ],
+            "landing_offset_s": 0.00065234375,
+            "matched": true,
+            "normal_impulse_ns": 0.3161467255108891,
+            "rates_after_rad_s": [
+              -2.3510799050192808,
+              5.8257627974393635
+            ],
+            "tangent_impulse_ns": -0.09484401765326651,
+            "tip_m": [
+              0.4900570869131478,
+              0.06802170526238457
+            ]
+          }
+        ]
+      }
+    ],
+    "public_tick_ms": 65
+  },
+  "fleet": {
+    "baseline": {
+      "p95_gpu_ns": [
+        31200,
+        31232,
+        31200,
+        31232,
+        31232
+      ],
+      "p95_step_ns": [
+        486792,
+        329641,
+        512072,
+        395091,
+        446452
+      ],
+      "worst_cartesian": [
+        2.1674656693823624e-06,
+        0.009293809024631505,
+        0.015248885104399035,
+        0.0010000000000000009
+      ],
+      "worst_rapier": [
+        0.00011502237495453205,
+        0.07732923465027253,
+        0.01424598655867304,
+        0.0
+      ],
+      "lanes": 2048,
+      "ticks": 600,
+      "repeat_digest": "9172d369c01b4d94a9b696c2d6f2129937ff9599da4dfa6bc3fdf76abd5ff5e8"
+    },
+    "adaptive": {
+      "p95_gpu_ns": [
+        39424,
+        39424,
+        39424,
+        39424,
+        39392
+      ],
+      "p95_step_ns": [
+        467081,
+        450551,
+        645672,
+        440011,
+        415642
+      ],
+      "worst_cartesian": [
+        1.909206991251855e-06,
+        0.000938512548474213,
+        0.001826622886868412,
+        0.0010000000000000009
+      ],
+      "worst_rapier": [
+        0.00011452684971689081,
+        0.08010494991230921,
+        0.0029956163287725435,
+        0.0
+      ],
+      "lanes": 2048,
+      "ticks": 600,
+      "repeat_digest": "0894b072141d9c5d325623d19551f1ef74b60daecf59c0de5940e28a51b2e5a7"
+    }
+  },
+  "viewer": {
+    "body_poses_and_shapes_checked": 185,
+    "captured_ms": {
+      "contact": 72.0,
+      "final": 601.0,
+      "lift": 341.0,
+      "lower_stop_and_floor": 222.0,
+      "start": 0.0,
+      "upper_stop": 516.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      1.0,
+      15.0,
+      32.0,
+      52.0,
+      72.0,
+      85.0,
+      102.0,
+      122.0,
+      142.0,
+      162.0,
+      182.0,
+      202.0,
+      222.0,
+      236.0,
+      252.0,
+      271.0,
+      282.0,
+      296.0,
+      301.0,
+      321.0,
+      341.0,
+      360.0,
+      375.0,
+      391.0,
+      411.0,
+      431.0,
+      451.0,
+      471.0,
+      491.0,
+      504.0,
+      516.0,
+      531.0,
+      551.0,
+      571.0,
+      584.0,
+      601.0
+    ],
+    "frames": 37,
+    "independent_visual_poses_checked": 185,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 37,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9939%2F"
+  }
+}
