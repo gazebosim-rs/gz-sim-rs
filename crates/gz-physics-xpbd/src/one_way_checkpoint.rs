@@ -11,7 +11,15 @@ enum ConstructionTopology {
     Particles,
     Cable,
     Cloth(usize),
-    DampedCloth { columns: usize, coefficient: f64 },
+    DampedCloth {
+        columns: usize,
+        coefficient: f64,
+    },
+    PlaneFriction {
+        material: MaterialTopology,
+        bend_damping: Option<f64>,
+        coefficient: f64,
+    },
 }
 #[derive(Clone, Serialize, Deserialize)]
 pub struct OneWayConstruction {
@@ -94,6 +102,10 @@ impl SoftBody {
                 h.update(b"dihedral-damping");
                 h.update(self.bending_damping.to_le_bytes());
             }
+            if let Some(coefficient) = self.contacts.static_plane_friction {
+                h.update(b"static-plane-friction");
+                h.update(coefficient.to_le_bytes());
+            }
             h.finalize().into()
         }))
     }
@@ -112,16 +124,24 @@ impl SoftBody {
             constraints: self.constraints.clone(),
             bending: self.bending.clone(),
             config: self.config,
-            topology: match self.topology {
-                MaterialTopology::Particles => ConstructionTopology::Particles,
-                MaterialTopology::Cable => ConstructionTopology::Cable,
-                MaterialTopology::Cloth(columns) if self.bending_damping > 0. => {
-                    ConstructionTopology::DampedCloth {
-                        columns,
-                        coefficient: self.bending_damping,
-                    }
+            topology: if let Some(coefficient) = self.contacts.static_plane_friction {
+                ConstructionTopology::PlaneFriction {
+                    material: self.topology,
+                    bend_damping: (self.bending_damping > 0.).then_some(self.bending_damping),
+                    coefficient,
                 }
-                MaterialTopology::Cloth(columns) => ConstructionTopology::Cloth(columns),
+            } else {
+                match self.topology {
+                    MaterialTopology::Particles => ConstructionTopology::Particles,
+                    MaterialTopology::Cable => ConstructionTopology::Cable,
+                    MaterialTopology::Cloth(columns) if self.bending_damping > 0. => {
+                        ConstructionTopology::DampedCloth {
+                            columns,
+                            coefficient: self.bending_damping,
+                        }
+                    }
+                    MaterialTopology::Cloth(columns) => ConstructionTopology::Cloth(columns),
+                }
             },
             conserve_momentum: self.momentum_rows.is_some(),
         };
@@ -140,14 +160,19 @@ impl SoftBody {
         {
             return Err(XpbdError::MaterialCheckpoint);
         }
-        let (topology, damping) = match seed.topology {
-            ConstructionTopology::Particles => (MaterialTopology::Particles, None),
-            ConstructionTopology::Cable => (MaterialTopology::Cable, None),
-            ConstructionTopology::Cloth(width) => (MaterialTopology::Cloth(width), None),
+        let (topology, damping, plane) = match seed.topology {
+            ConstructionTopology::Particles => (MaterialTopology::Particles, None, None),
+            ConstructionTopology::Cable => (MaterialTopology::Cable, None, None),
+            ConstructionTopology::Cloth(width) => (MaterialTopology::Cloth(width), None, None),
             ConstructionTopology::DampedCloth {
                 columns,
                 coefficient,
-            } => (MaterialTopology::Cloth(columns), Some(coefficient)),
+            } => (MaterialTopology::Cloth(columns), Some(coefficient), None),
+            ConstructionTopology::PlaneFriction {
+                material,
+                bend_damping,
+                coefficient,
+            } => (material, bend_damping, Some(coefficient)),
         };
         if let MaterialTopology::Cloth(width) = topology
             && (width < 2 || !n.is_multiple_of(width) || n / width < 2)
@@ -181,6 +206,14 @@ impl SoftBody {
             }
             body = body
                 .with_bending_damping(coefficient)
+                .map_err(|_| XpbdError::MaterialCheckpoint)?;
+        }
+        if let Some(coefficient) = plane {
+            if coefficient <= 0. {
+                return Err(XpbdError::MaterialCheckpoint);
+            }
+            body = body
+                .with_static_plane_friction(coefficient)
                 .map_err(|_| XpbdError::MaterialCheckpoint)?;
         }
         if seed.conserve_momentum {

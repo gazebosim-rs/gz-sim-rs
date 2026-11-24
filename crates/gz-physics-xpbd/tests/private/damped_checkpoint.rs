@@ -110,3 +110,44 @@ fn legacy_particle_and_cable_constructions_keep_their_exact_wire_format() {
         );
     }
 }
+
+#[test]
+fn static_plane_friction_survives_a_cold_reopen_with_hinge_damping() {
+    let base = cloth().with_bending_damping(0.08).unwrap();
+    let base_id = base.one_way_identity().unwrap();
+    let mut live = base.clone().with_static_plane_friction(0.8).unwrap();
+    let id = live.one_way_identity().unwrap();
+    assert_ne!(id, base_id);
+    let mut seed = live.one_way_construction().unwrap();
+    let bytes = bincode::serialize(&seed).unwrap();
+    let mut cold =
+        SoftBody::from_one_way_construction(&bincode::deserialize(&bytes).unwrap()).unwrap();
+    assert_eq!(cold.one_way_identity().unwrap(), id);
+    let floor = Boundary::Plane {
+        point: [0.; 3],
+        normal: [0., 0., 1.],
+        velocity: [0.; 3],
+    };
+    live.step(Duration::from_millis(1), &[floor]).unwrap();
+    cold.install_one_way_state(live.one_way_state().unwrap())
+        .unwrap();
+    live.step(Duration::from_millis(1), &[floor]).unwrap();
+    cold.step(Duration::from_millis(1), &[floor]).unwrap();
+    assert_eq!(cold.particles(), live.particles());
+    assert_eq!(cold.last_boundary_impulses(), live.last_boundary_impulses());
+    for bad in [-1., 0., f64::INFINITY] {
+        seed.topology = ConstructionTopology::PlaneFriction {
+            material: MaterialTopology::Cloth(2),
+            bend_damping: None,
+            coefficient: bad,
+        };
+        assert!(matches!(
+            SoftBody::from_one_way_construction(&seed),
+            Err(XpbdError::MaterialCheckpoint)
+        ));
+    }
+    assert!(matches!(
+        base.with_static_plane_friction(f64::NAN),
+        Err(XpbdError::InvalidConfig)
+    ));
+}

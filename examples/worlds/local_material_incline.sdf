@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="ten_ms" type="ignored"><max_step_size>0.01</max_step_size></physics>
+    <model name="incline"><static>true</static><link name="surface">
+      <collision name="board"><pose>0.09757464374963667 0 0.2852985749985467 0 0.2449786631268641 0</pose><geometry><box><size>1.45 0.70 0.02</size></box></geometry></collision>
+      <visual name="board"><pose>0.09757464374963667 0 0.2852985749985467 0 0.2449786631268641 0</pose><geometry><box><size>1.45 0.70 0.02</size></box></geometry><material><diffuse>0.25 0.31 0.37 1</diffuse></material></visual>
+      <visual name="gripping_0"><pose>-0.31621038085880732 -0.14000000000000001 0.41515847656477084 0 0 0</pose><geometry><sphere><radius>0.015625</radius></sphere></geometry><material><diffuse>0.15 0.85 0.55 1</diffuse></material></visual>
+      <visual name="gripping_1"><pose>-0.31621038085880732 -0.039999999999999994 0.41515847656477084 0 0 0</pose><geometry><sphere><radius>0.015625</radius></sphere></geometry><material><diffuse>0.15 0.85 0.55 1</diffuse></material></visual>
+      <visual name="sliding_0"><pose>0.0037896191411927026 0.039999999999999994 0.33515847656477082 0 0 0</pose><geometry><sphere><radius>0.015625</radius></sphere></geometry><material><diffuse>1 0.48 0.12 1</diffuse></material></visual>
+      <visual name="sliding_1"><pose>0.0037896191411927026 0.14000000000000001 0.33515847656477082 0 0 0</pose><geometry><sphere><radius>0.015625</radius></sphere></geometry><material><diffuse>1 0.48 0.12 1</diffuse></material></visual>
+    </link></model>
+    <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+      <cable name="gripping" substeps="1" iterations="8" radius="0.015625" self_contact="false" friction="0.1" static_plane_friction="0.55" stretch="0.000001" bend="0.0001">
+        <particle position="-0.31621038085880732 -0.14000000000000001 0.41515847656477084" mass="0.1"/>
+        <particle position="-0.31621038085880732 -0.039999999999999994 0.41515847656477084" mass="0.1"/>
+      </cable>
+      <particle_visual material="gripping" particle="0" visual="default::incline::surface::gripping_0"/>
+      <particle_visual material="gripping" particle="1" visual="default::incline::surface::gripping_1"/>
+      <cable name="sliding" substeps="1" iterations="8" radius="0.015625" self_contact="false" friction="0.1" static_plane_friction="0.1" stretch="0.000001" bend="0.0001">
+        <particle position="0.0037896191411927026 0.039999999999999994 0.33515847656477082" mass="0.1"/>
+        <particle position="0.0037896191411927026 0.14000000000000001 0.33515847656477082" mass="0.1"/>
+      </cable>
+      <particle_visual material="sliding" particle="0" visual="default::incline::surface::sliding_0"/>
+      <particle_visual material="sliding" particle="1" visual="default::incline::surface::sliding_1"/>
+      <plane point="0 0 0.32" normal="0.25 0 1"/>
+    </plugin>
+  </world>
+</sdf>

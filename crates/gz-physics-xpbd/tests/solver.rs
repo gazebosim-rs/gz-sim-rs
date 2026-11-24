@@ -522,3 +522,94 @@ fn approaching_a_plane_or_sphere_stops_on_the_exact_contact_tick() {
         }
     }
 }
+
+#[test]
+fn a_material_strip_holds_below_the_friction_limit_and_slides_above_it() {
+    for dt_ms in [1, 5, 10] {
+        for belt in [0., 0.125] {
+            for drive in [2., 3.5, 6.] {
+                let particles = [-0.125, 0.125]
+                    .map(|x| Particle {
+                        position: [x, 0., 0.125],
+                        velocity: [belt, 0., 0.],
+                        inverse_mass: 1.,
+                    })
+                    .to_vec();
+                let mut cloth = SoftBody::cable(
+                    particles,
+                    1e-6,
+                    1e-4,
+                    SolverConfig {
+                        substeps: 1,
+                        iterations: 8,
+                        friction: 0.3,
+                        gravity: [drive, 0., -10.],
+                        particle_radius: 0.125,
+                        ..isolated()
+                    },
+                )
+                .unwrap()
+                .with_static_plane_friction(0.4)
+                .unwrap();
+                let dt = Duration::from_millis(dt_ms);
+                let mut impulse = DVec3::ZERO;
+                for _ in 0..100 / dt_ms {
+                    cloth.step(dt, &[floor([belt, 0., 0.])]).unwrap();
+                    impulse += DVec3::from(cloth.last_boundary_impulses()[0].linear);
+                }
+                let moving = drive > 4.;
+                let ax = if moving { 3. } else { 0. };
+                for (i, node) in cloth.particles().iter().enumerate() {
+                    let travel = node.position[0] - [-0.125, 0.125][i] - 0.1 * belt;
+                    let bound = if moving {
+                        0.55 * dt.as_secs_f64()
+                    } else {
+                        1e-12
+                    };
+                    assert!(
+                        (travel - 0.005 * ax).abs() < bound,
+                        "travel {travel} at {dt_ms} ms, drive {drive}, belt {belt}"
+                    );
+                    near(node.velocity.into(), DVec3::X * (belt + 0.1 * ax), 1e-10);
+                }
+                near(
+                    impulse,
+                    DVec3::new(0.2 * if moving { 3. } else { drive }, 0., -2.),
+                    1e-10,
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn moving_material_uses_kinetic_friction_below_the_static_breakaway_load() {
+    let particle = Particle {
+        velocity: [0.25, 0., 0.],
+        ..p([0., 0., 0.125], 1.)
+    };
+    let make = || {
+        SoftBody::new(
+            vec![particle],
+            vec![],
+            SolverConfig {
+                friction: 0.3,
+                gravity: [3.5, 0., -10.],
+                substeps: 1,
+                particle_radius: 0.125,
+                ..isolated()
+            },
+        )
+        .unwrap()
+    };
+    assert!(matches!(
+        make().with_static_plane_friction(0.29),
+        Err(XpbdError::InvalidConfig)
+    ));
+    let mut body = make().with_static_plane_friction(0.55).unwrap();
+    for _ in 0..100 {
+        body.step(Duration::from_millis(1), &[floor([0.; 3])])
+            .unwrap();
+    }
+    near(body.particles()[0].velocity.into(), DVec3::X * 0.30, 1e-11);
+}

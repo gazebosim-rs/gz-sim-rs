@@ -31,6 +31,8 @@ mod gripper;
 mod hinge_damping;
 #[path = "local_robot_foundations/inertia.rs"]
 mod inertia;
+#[path = "local_robot_foundations/material_incline.rs"]
+mod material_incline;
 #[path = "local_robot_foundations/robot.rs"]
 mod robot;
 #[path = "local_robot_foundations/sheet_energy.rs"]
@@ -94,6 +96,8 @@ enum Study {
     FoldHold { output: PathBuf },
     /// Compare how quickly three cloth corners settle at different bending damping levels.
     HingeDamping { output: PathBuf },
+    /// Compare static holding and downhill sliding of two material strips.
+    MaterialIncline { output: PathBuf },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
     /// Measure the stability of a folded-sheet grasp with lighter jaws or stiffer pads.
@@ -291,6 +295,7 @@ fn main() -> Result<()> {
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),
         Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
+        Study::MaterialIncline { output } => write_new(&output, material_incline::run),
         Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
         Study::SheetJaws {
             output,

@@ -416,6 +416,18 @@ impl SoftBody {
             _ => Ok(self.config.substeps),
         }
     }
+    /// Specify the static Coulomb coefficient on prescribed planes. A sustained
+    /// contact may stick up to this limit. Sliding uses the configured friction.
+    pub fn with_static_plane_friction(mut self, coefficient: f64) -> Result<Self, XpbdError> {
+        if !coefficient.is_finite() || coefficient < self.config.friction {
+            return Err(XpbdError::InvalidConfig);
+        }
+        self.contacts.static_plane_friction = (coefficient > 0.).then_some(coefficient);
+        #[cfg(feature = "one-way-checkpoint")]
+        self.one_way_identity.take();
+        Ok(self)
+    }
+
     pub fn particles(&self) -> &[Particle] {
         &self.particles
     }
@@ -565,7 +577,7 @@ impl SoftBody {
                     None => ticks / count + u128::from(i < ticks % count),
                 };
                 let h = substep as f64 * 1e-9;
-                self.predict(h)?;
+                self.predict(h, &prepared)?;
                 for _ in 0..self.config.iterations {
                     self.project_iteration(elapsed, substep, &mut prepared, &mut reactions)?;
                 }
@@ -589,7 +601,9 @@ impl SoftBody {
         Ok(())
     }
 
-    fn predict(&mut self, h: f64) -> Result<(), XpbdError> {
+    fn predict(&mut self, h: f64, boundaries: &[PreparedBoundary]) -> Result<(), XpbdError> {
+        self.contacts
+            .begin_plane_friction(&self.scratch, boundaries);
         if self.bending_damping > 0. {
             self.damp_bending(h)?;
         }

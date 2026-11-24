@@ -493,16 +493,85 @@ struct Contact {
     initial_overlap: f64,
 }
 
+impl Contact {
+    /// Correct drift within the static friction cone during the normal solve.
+    /// A newly arriving point keeps the tangential travel preceding its impact.
+    fn stick_on_plane(
+        &mut self,
+        end: &mut DVec3,
+        (p, incoming): (&mut Particle, DVec3),
+        plane: &PreparedBoundary,
+        time: Interval,
+        friction: f64,
+        reaction: &mut BoundaryImpulse,
+    ) -> Result<(), XpbdError> {
+        let start = DVec3::from(p.position);
+        let (c0, c1) = plane.centers(time);
+        let normal = self.normal;
+        let tolerance = 64.
+            * f64::EPSILON
+            * start
+                .abs()
+                .max(c0.abs())
+                .max(end.abs())
+                .max(c1.abs())
+                .max_element()
+                .max(time.radius);
+        let gap = |relative: DVec3| (relative.dot(normal) - time.radius).abs();
+        if gap(start - c0) > tolerance || gap(*end - c1) > tolerance {
+            return Ok(());
+        }
+        let incoming_relative = incoming - (c1 - c0) / time.h;
+        let incoming_tangent = incoming_relative - normal * incoming_relative.dot(normal);
+        if incoming_tangent.length() * time.h > tolerance {
+            return Ok(());
+        }
+        let slip = (*end - start) - (c1 - c0);
+        let response = time.h * p.inverse_mass;
+        let target = self.tangent_impulse - (slip - normal * slip.dot(normal)) / response;
+        let cap = (friction * self.correction / time.h) / p.inverse_mass;
+        if !target.is_finite() || !cap.is_finite() {
+            return Err(XpbdError::Numerical);
+        }
+        let next = if target.length() <= cap {
+            target
+        } else {
+            DVec3::ZERO
+        };
+        let delta = next - self.tangent_impulse;
+        self.tangent_impulse = next;
+        if delta != DVec3::ZERO {
+            correct(end, p, response * delta, time.h);
+            reaction.react(start - plane.origin, delta)?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, Default)]
 pub(super) struct Contacts {
     pub(super) pad_samples: Vec<crate::PadSample>,
     pub(super) pad_loads: Option<Box<super::pad_loads::PadLoads>>,
     friction: f64,
+    pub(super) static_plane_friction: Option<f64>,
+    incoming_on_plane: Vec<DVec3>,
     items: Vec<Contact>,
     index: HashMap<(usize, usize), usize>,
 }
 
 impl Contacts {
+    pub(super) fn begin_plane_friction(&mut self, p: &[Particle], boundaries: &[PreparedBoundary]) {
+        self.incoming_on_plane.clear();
+        if self.static_plane_friction.is_some()
+            && boundaries
+                .iter()
+                .any(|b| matches!(b.shape, Shape::Plane(_)))
+        {
+            self.incoming_on_plane
+                .extend(p.iter().map(|p| DVec3::from(p.velocity)));
+        }
+    }
+
     pub(super) fn on_single_plane(&self, boundaries: &[PreparedBoundary]) -> bool {
         self.items.first().is_some_and(|first| {
             matches!(boundaries[first.boundary].shape, Shape::Plane(_))
@@ -750,6 +819,23 @@ fn project_points<const SPATIAL: bool>(
                     )?;
                     contacts.record(i, j, &hit, normal_impulse, remaining);
                 }
+                if let Some(coefficient) = contacts.static_plane_friction
+                    && matches!(boundary.shape, Shape::Plane(_))
+                    && let Some(&incoming) = contacts.incoming_on_plane.get(i)
+                    && let Some(&row) = contacts.index.get(&(i, j))
+                {
+                    contacts.items[row].stick_on_plane(
+                        x,
+                        (p, incoming),
+                        boundary,
+                        time,
+                        coefficient,
+                        &mut reactions[j],
+                    )?;
+                    if skip != 0 && !block.contains(*x) {
+                        skip = 0;
+                    }
+                }
             }
             if elastic && contacts.pad_samples.is_empty() {
                 contacts.project_compliant(
@@ -807,11 +893,20 @@ pub(super) fn finish_contacts(
         };
         let tangent = relative - c.normal * vn;
         let slip = tangent.length();
-        let cap = mu * (c.correction / h + normal_change).max(0.0);
+        let coefficient = if c.tangent_impulse != DVec3::ZERO {
+            contacts.static_plane_friction.unwrap_or(mu)
+        } else {
+            mu
+        };
+        let cap = coefficient * (c.correction / h + normal_change).max(0.0);
         if !slip.is_finite() || !cap.is_finite() {
             return Err(XpbdError::Numerical);
         }
-        let friction = if slip > 0.0 {
+        let friction = if c.tangent_impulse != DVec3::ZERO {
+            // Cap the total tangential impulse, including the position solve.
+            let prior = p.inverse_mass * c.tangent_impulse;
+            (prior - tangent).clamp_length_max(cap) - prior
+        } else if slip > 0.0 {
             -tangent * (cap.min(slip) / slip)
         } else {
             DVec3::ZERO

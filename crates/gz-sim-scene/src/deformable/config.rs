@@ -87,6 +87,7 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
         "self_contact",
         "pad_loads",
         "friction",
+        "static_plane_friction",
         "stretch",
         "bend",
     ];
@@ -157,6 +158,12 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
     let body = if node.attribute("bend_damping").is_some() {
         body.with_bending_damping(number(node, "bend_damping")?)
             .map_err(|e| e.to_string())?
+    } else {
+        body
+    };
+    let body = if node.attribute("static_plane_friction").is_some() {
+        body.with_static_plane_friction(number(node, "static_plane_friction")?)
+            .map_err(|e| format!("invalid static_plane_friction: {e}"))?
     } else {
         body
     };

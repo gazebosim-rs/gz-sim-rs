@@ -853,7 +853,7 @@ fn substep_interval(
         }
     }
     for body in bodies.iter_mut() {
-        body.predict(h)?;
+        body.predict(h, prepared)?;
     }
     let contact_boundaries = if free_flight { &mut [] } else { &mut *prepared };
     // A shared receiver can move during the projection of another body.
