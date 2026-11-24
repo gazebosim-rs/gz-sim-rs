@@ -75,6 +75,10 @@ struct Trial {
     /// Solver iterations per native call on a selected impact. The ordinary and comparison grids use their own default.
     #[arg(long, requires = "automatic", value_parser = clap::value_parser!(u32).range(1..=32))]
     impact_iterations: Option<u32>,
+    /// Set the carriage guide's native stabilization frequency (Hz) on all selected and reference grids.
+    #[arg(long)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    guide_hz: Option<f64>,
     /// Fixed-time projected Gauss–Seidel passes per selected solver iteration.
     #[arg(long, requires = "automatic", value_parser = clap::value_parser!(u32).range(1..=32))]
     impact_pgs: Option<u32>,
@@ -185,6 +189,9 @@ fn fixture(trial: &Trial) -> String {
           </plugin></world>"#
         );
         xml = xml.replace("</world>", &plugin);
+    }
+    if let Some(hz) = trial.guide_hz {
+        xml = xml.replace("</world>", &format!(r#"<plugin name="gz::sim::systems::MountedPrismaticGuide" filename="gz-sim-mounted-prismatic-guide-system"><natural_frequency_hz joint="default::gripper::travel">{hz}</natural_frequency_hz></plugin></world>"#));
     }
     for (name, mass, dims) in LINKS {
         let [ix, iy, iz] = tensor(mass, dims, trial.divisor);

@@ -15,6 +15,7 @@ mod flat_publication;
 mod free_rotation;
 mod grasp_fleet_sdf;
 pub mod grasp_guard;
+mod mounted_guide;
 pub mod sole_episodes;
 pub mod support_loss_promotion;
 pub use articulation::{
@@ -1127,6 +1128,13 @@ fn load_world_with_automatic_owner(
     #[cfg(feature = "distributed-physics")]
     grasp_fleet_sdf::install_observer(&sim, backend.as_mut(), world)?;
     continuous_collision::install(&sim, world, &context.links, backend.as_mut())?;
+    mounted_guide::install(
+        &sim,
+        world,
+        backend
+            .as_mut()
+            .filter(|_| distributed_worker.is_none() && engine == PhysicsEngine::MultiFidelity),
+    )?;
     free_rotation::install(&sim, world, &context.links, backend.as_mut())?;
     deformable::install(&mut sim, world, &context.links, backend.as_ref())?;
     let parent = Some(world_entity);

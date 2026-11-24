@@ -64,7 +64,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
             Box { .. } | Sphere { .. } | Cylinder { .. } | Capsule { .. }
         )
     };
-    let admitted = world.plugins.iter().all(primary_contact::sdf::is_plugin)
+    let admitted = world
+        .plugins
+        .iter()
+        .all(|p| primary_contact::sdf::is_plugin(p) || mounted_guide::is_plugin(p))
         && world.joints.is_empty()
         && world.extensions.is_empty()
         && world.models.iter().all(|model| {
@@ -110,6 +113,6 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     require(
         admitted,
         &world.name,
-        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, incoming-face and screw-stop refinement, native joint controllers and IMUs",
+        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, incoming-face and screw-stop refinement, mounted slider stabilization, native joint controllers and IMUs",
     )
 }

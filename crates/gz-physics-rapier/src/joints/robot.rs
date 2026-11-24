@@ -124,6 +124,55 @@ impl RapierBackend {
         Ok(id)
     }
 
+    /// Set the base constraint's natural frequency (Hz) for one world-mounted
+    /// slider, before stepping. This sets the stabilization for its locked axes
+    /// and any active positional stop, retaining the authored travel bounds.
+    /// The native damping ratio, motors and separate speed rows are preserved.
+    pub fn set_mounted_guide_frequency(
+        &mut self,
+        id: JointId,
+        hz: f64,
+    ) -> Result<(), PhysicsError> {
+        if !self.joints.open {
+            return Err(PhysicsError::JointConstructionClosed);
+        }
+        let defaults = SpringCoefficients::<f64>::joint_defaults();
+        let coefficients = SpringCoefficients::new(hz, defaults.damping_ratio);
+        // Native intervals are whole nanoseconds; Rapier may subdivide one
+        // interval across a usize iteration budget. Its CFM squares inverse ERP.
+        // Do not admit a frequency whose finite-step coefficients can overflow.
+        let shortest_substep = 1e-9 / usize::MAX as f64;
+        if !(hz > 0. && hz <= defaults.natural_frequency)
+            || !coefficients.erp(shortest_substep).is_normal()
+            || !coefficients.cfm_coeff(shortest_substep).is_finite()
+        {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let joint = self
+            .joints
+            .records
+            .get_mut(&id)
+            .ok_or(PhysicsError::MissingJoint)?;
+        let Handle::Impulse(h) = joint.handle else {
+            return Err(PhysicsError::InvalidJoint);
+        };
+        if !joint.initial.robot
+            || joint.initial.parent.is_some()
+            || !matches!(joint.initial.motion, JointMotion::Prismatic)
+        {
+            return Err(PhysicsError::InvalidJoint);
+        }
+        self.world
+            .impulse_joints
+            .get_mut(h, false)
+            .expect("registered slider")
+            .data
+            .softness
+            .natural_frequency = hz;
+        joint.initial.mounted_guide_hz = Some(hz);
+        Ok(())
+    }
+
     /// Set the native island's inner velocity-constraint iteration budget on a
     /// world-mounted rigid robot. Authored once, restored with the joint graph.
     pub fn set_robot_root_iterations(
@@ -252,3 +301,7 @@ impl Construction {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "../../tests/private/mounted_guide.rs"]
+mod mounted_guide_tests;

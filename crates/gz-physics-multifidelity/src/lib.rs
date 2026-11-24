@@ -1622,6 +1622,16 @@ impl MultiFidelityBackend {
             .set_robot_root_iterations(root, iterations)
             .map_err(engine_error)
     }
+    /// Configure the native base rows of one world-mounted robot slider before stepping.
+    pub fn set_mounted_guide_frequency(
+        &mut self,
+        joint: JointId,
+        hz: f64,
+    ) -> Result<(), PhysicsError> {
+        self.solver
+            .set_mounted_guide_frequency(joint, hz)
+            .map_err(engine_error)
+    }
     pub fn set_joint_angular_speed_limits(
         &mut self,
         id: JointId,

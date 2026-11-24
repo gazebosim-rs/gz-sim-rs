@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
-fn content<'a, 'input>(
+pub(super) fn content<'a, 'input>(
     node: roxmltree::Node<'a, 'input>,
 ) -> impl Iterator<Item = roxmltree::Node<'a, 'input>> {
     node.children().filter(|node| {
@@ -80,7 +80,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             continue;
         }
         // The caller preflights this configuration through its closed typed parser.
-        if crate::continuous_collision::is_plugin(plugin)
+        if crate::mounted_guide::is_plugin(plugin)
+            || crate::continuous_collision::is_plugin(plugin)
             || crate::damped_sole::is_plugin(plugin)
             || crate::apply_link_wrench::is_plugin(plugin)
             || crate::deformable::is_plugin(plugin)

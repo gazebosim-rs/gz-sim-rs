@@ -379,3 +379,52 @@ fn cold_contact_uses_the_short_solve_only_at_the_qualified_entry() -> Result<()>
     }
     Ok(())
 }
+
+#[test]
+fn mounted_guide_prevents_the_delayed_solver_switch_from_launching_the_unloaded_arm() -> Result<()>
+{
+    let args = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--automatic",
+        "--gap-um",
+        "1200",
+        "--substeps",
+        "64",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "8",
+        "--ticks",
+        "3",
+        "--guide-hz",
+        "100000",
+    ])?;
+    for right in [false, true] {
+        let r = run(Trial {
+            right,
+            ..args.trial.clone()
+        })?;
+        let before = &r.samples[1];
+        assert_eq!(r.samples[0].native_steps, 1);
+        assert_eq!(before.native_steps, 64);
+        assert_eq!(before.impact.first_end_ns, None);
+        for state in &before.bodies[..5] {
+            assert!(state.v.iter().map(|v| v * v).sum::<f64>().sqrt() < 0.35);
+        }
+        let strike = &r.samples[2].impact;
+        let (loaded, other) = if right {
+            (strike.right_ns, strike.left_ns)
+        } else {
+            (strike.left_ns, strike.right_ns)
+        };
+        assert!(
+            strike
+                .first_end_ns
+                .is_some_and(|n| (2_000_000..3_000_000).contains(&n))
+        );
+        assert!((0.024..0.029).contains(&loaded) && other == 0.);
+    }
+    Ok(())
+}

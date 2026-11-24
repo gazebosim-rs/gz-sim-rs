@@ -114,6 +114,7 @@ struct Construction {
     robot: bool,
     spring: Option<RobotSpring>,
     additional_pgs_iterations: u8,
+    mounted_guide_hz: Option<f64>,
 }
 impl Construction {
     fn admits_effort(self, effort: f64) -> bool {
@@ -144,10 +145,16 @@ impl Construction {
             JointMotion::Screw { .. } => JointAxesMask::LOCKED_REVOLUTE_AXES - JointAxesMask::LIN_X,
             JointMotion::Ball => JointAxesMask::LOCKED_SPHERICAL_AXES,
         };
-        let joint = GenericJointBuilder::new(mask)
+        let mut joint = GenericJointBuilder::new(mask)
             .local_frame1(self.frame1)
             .local_frame2(self.frame2)
             .contacts_enabled(false);
+        if let Some(hz) = self.mounted_guide_hz {
+            joint = joint.softness(SpringCoefficients {
+                natural_frequency: hz,
+                ..SpringCoefficients::joint_defaults()
+            });
+        }
         if let Some(limits) = self.limits {
             if let JointMotion::Screw { lead, .. } = self.motion {
                 // The axial travel remains continuous across any number of turns.
@@ -831,6 +838,7 @@ impl RapierBackend {
             robot: false,
             spring: None,
             additional_pgs_iterations: 0,
+            mounted_guide_hz: None,
             motion: match constraint {
                 AngularConstraint::Prismatic(_) => JointMotion::Prismatic,
                 AngularConstraint::Screw {
