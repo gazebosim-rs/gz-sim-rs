@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Resolve individual pressure pulses during a separated gripper strike
+
+Across five gaps on each jaw, the gripper study now measures each uninterrupted contact and its signed normal impulse and moment. At a 350 µm right-hand gap, the 25 ns reference found a 24.76 mN·s strike followed by a separate 17.55 mN·s strike. A 1.2 mm delayed arrival exposed a link accelerating before contact under an experimental solver setting. Both trajectories are recorded, including the stable 500-call control. All 20 Rust study tests passed. The measurement and its regressions covered 163/163 executable lines and 213/216 regions. [Pulse history, stable and failed replays](measurements/local-manipulation/jaw-gap-pulses.md)
+
 ## 2026-11-24 — Keep a cylinder upright on a centered landing
 
 The 250 g cylinder now lands with 0.694425 N·s at 1 ms, within 0.20% of the independent prediction. The first seven bounces keep the cylinder upright. The eighth resumes ordinary rim contact, reaches less than 0.094° of tilt and settles with 2.4525 N on the slab. The solver discards the centered impulse before an oblique return. Tilted, sideways, partially supported and low-bounce controls retained their original native observations and trajectories. Fifteen trials reproduced 50,132 state observations in separate one- and eight-thread processes. They include a reset with live spawned parts. Three native replays verified 11,338 displayed poses and shapes. With 512 cylinders the landing p95 dropped from 3.135 to 2.265 ms, while flight p95 rose by 0.009 ms. Each affected crate exceeded both 95% changed-code thresholds. [Measurements, recordings and commands](measurements/local-manipulation/axial-cap.md)
