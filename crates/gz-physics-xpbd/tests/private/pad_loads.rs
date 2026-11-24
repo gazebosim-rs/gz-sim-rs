@@ -27,3 +27,18 @@ fn unloading_and_overflow_do_not_publish_spurious_loads() {
     loads.publish();
     assert!(loads.committed.is_empty());
 }
+
+#[test]
+fn an_out_of_range_plane_reading_expires_with_its_successful_interval() {
+    let mut probe = super::PlaneImpulseProbe::default();
+    let loads = probe.loads.get_or_insert_with(Default::default);
+    loads.observe_plane(1, 2, DVec3::X * f64::MAX, DVec3::ZERO);
+    loads.observe_plane(1, 2, DVec3::X * f64::MAX, DVec3::ZERO);
+    loads.publish();
+    assert_eq!(probe.readings(), Err(XpbdError::Numerical));
+    let loads = probe.loads.as_mut().unwrap();
+    loads.begin();
+    loads.observe_plane(1, 2, DVec3::Z, DVec3::ZERO);
+    loads.publish();
+    assert_eq!(probe.readings().unwrap()[0].normal, [0., 0., -1.]);
+}

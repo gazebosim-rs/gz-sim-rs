@@ -56,7 +56,7 @@ fn individual_static_and_sliding_points_reproduce_both_weight_and_signed_frictio
             },
         ];
         let mut probe = PlaneImpulseProbe::default();
-        assert!(probe.readings().is_empty());
+        assert!(probe.readings().unwrap().is_empty());
         for _ in 0..5 {
             probe
                 .step(&mut material, dt, &boundary, &[None, None], &[])
@@ -68,7 +68,7 @@ fn individual_static_and_sliding_points_reproduce_both_weight_and_signed_frictio
                 material.last_boundary_impulses(),
                 unobserved.last_boundary_impulses()
             );
-            let [a, b] = probe.readings() else {
+            let [a, b] = probe.readings().unwrap() else {
                 panic!("expected the two supported particles")
             };
             assert_eq!(
@@ -85,10 +85,10 @@ fn individual_static_and_sliding_points_reproduce_both_weight_and_signed_frictio
                 + DVec3::from(b.tangent);
             assert!(sum.distance(material.last_boundary_impulses()[1].linear.into()) < 1e-12);
         }
-        let retained = probe.readings().to_vec();
+        let retained = probe.readings().unwrap().to_vec();
         assert!(probe.step(&mut material, dt, &boundary, &[], &[]).is_err());
-        assert_eq!(probe.readings(), retained.as_slice());
+        assert_eq!(probe.readings().unwrap(), retained.as_slice());
         probe.step(&mut material, dt, &[], &[], &[]).unwrap();
-        assert!(probe.readings().is_empty());
+        assert!(probe.readings().unwrap().is_empty());
     }
 }

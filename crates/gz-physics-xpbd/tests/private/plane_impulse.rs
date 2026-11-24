@@ -61,10 +61,10 @@ fn incremental_support_ignores_departed_nodes_and_obeys_its_own_friction_budget(
     loads.publish();
     // The departed and separating nodes supplied no incremental support.
     std::mem::swap(&mut probe.loads, &mut contacts.plane_loads);
-    assert_eq!(probe.readings().len(), 1);
-    assert_eq!(probe.readings()[0].particle, 0);
-    let measured =
-        DVec3::from(probe.readings()[0].normal) + DVec3::from(probe.readings()[0].tangent);
+    assert_eq!(probe.readings().unwrap().len(), 1);
+    assert_eq!(probe.readings().unwrap()[0].particle, 0);
+    let measured = DVec3::from(probe.readings().unwrap()[0].normal)
+        + DVec3::from(probe.readings().unwrap()[0].tangent);
     assert_eq!(measured.to_array(), reactions[0].linear);
 
     assert_eq!(p[1..], before[1..]);

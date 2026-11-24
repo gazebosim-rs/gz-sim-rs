@@ -51,6 +51,15 @@ fn jaw_states(sim: &Simulation, ids: [u64; 2]) -> Result<[BodyState; 2]> {
     Ok([state(sim, ids[0])?, state(sim, ids[1])?])
 }
 
+fn check_table_total(tick: usize, observed: DVec3, table: DVec3) -> Result<()> {
+    if !observed.is_finite() || observed.distance(table) > 1e-13 * (1. + table.length()) {
+        return Err(
+            format!("particle readings do not sum to the table impulse at tick {tick}").into(),
+        );
+    }
+    Ok(())
+}
+
 pub(super) fn run(
     out: &Path,
     xml: &str,
@@ -165,19 +174,14 @@ pub(super) fn run(
             if index == 0 {
                 let mut observed = DVec3::ZERO;
                 let mut nodes = Vec::new();
-                for load in probe.readings() {
+                for load in probe.readings()? {
                     let normal = -DVec3::from_array(load.normal);
                     let tangent = -DVec3::from_array(load.tangent);
                     observed += normal + tangent;
                     display_loads[load.particle] += normal.z;
                     nodes.push(json!({"node":load.particle,"normal_ns":normal.to_array(),"tangent_ns":tangent.to_array()}));
                 }
-                if observed.distance(table) > 1e-13 * (1. + table.length()) {
-                    return Err(format!(
-                        "particle readings do not sum to the table impulse at tick {tick}"
-                    )
-                    .into());
-                }
+                check_table_total(tick, observed, table)?;
                 if !nodes.is_empty() {
                     sample["table_particle_impulses"] = json!(nodes);
                 }
@@ -219,6 +223,13 @@ pub(super) fn run(
 mod tests {
     use super::*;
 
+    #[test]
+    fn a_missing_sideways_impulse_cannot_pass_the_independent_total() {
+        let normal = DVec3::Z * 0.0001;
+        for unreported in [DVec3::Y * 0.00001, DVec3::splat(f64::NAN)] {
+            assert!(check_table_total(11, normal + unreported, normal).is_err());
+        }
+    }
     #[test]
     fn replay_matches_the_world_with_loaded_moving_jaws_and_checks_duration() -> Result<()> {
         let dir = tempfile::tempdir()?;

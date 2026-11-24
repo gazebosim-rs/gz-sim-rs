@@ -22,6 +22,8 @@ pub type ParticlePadImpulse = ParticleBoundaryImpulse;
 pub(crate) struct PadLoads {
     pending: BTreeMap<(usize, usize), ParticlePadImpulse>,
     committed: Vec<ParticlePadImpulse>,
+    incomplete_probe: bool,
+    committed_incomplete_probe: bool,
 }
 
 impl PadLoads {
@@ -45,6 +47,7 @@ impl PadLoads {
 
     pub fn begin(&mut self) {
         self.pending.clear();
+        self.incomplete_probe = false;
     }
 
     pub fn react(
@@ -73,7 +76,19 @@ impl PadLoads {
         Ok(())
     }
 
+    // A diagnostic overflow must never alter native physics or its commit.
+    pub(crate) fn observe_plane(
+        &mut self,
+        boundary: usize,
+        node: usize,
+        normal: DVec3,
+        tangent: DVec3,
+    ) {
+        self.incomplete_probe |= self.react(boundary, node, normal, tangent).is_err();
+    }
+
     pub fn publish(&mut self) {
+        self.committed_incomplete_probe = self.incomplete_probe;
         self.committed.clear();
         self.committed.extend(
             self.pending
@@ -115,8 +130,12 @@ pub struct PlaneImpulseProbe {
 
 impl PlaneImpulseProbe {
     /// Last successful step, in boundary and particle order. Missing pairs had zero net impulse.
-    pub fn readings(&self) -> &[ParticleBoundaryImpulse] {
-        self.loads.as_ref().map_or(&[], |p| &p.committed)
+    pub fn readings(&self) -> Result<&[ParticleBoundaryImpulse], XpbdError> {
+        match &self.loads {
+            Some(p) if p.committed_incomplete_probe => Err(XpbdError::Numerical),
+            Some(p) => Ok(&p.committed),
+            None => Ok(&[]),
+        }
     }
 
     /// Advance one material using the usual coupled solver, including rigid or

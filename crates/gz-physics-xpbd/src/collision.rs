@@ -452,13 +452,12 @@ impl PreparedBoundary {
         particle: usize,
         normal: DVec3,
         tangent: DVec3,
-    ) -> Result<(), XpbdError> {
+    ) {
         if let Some(loads) = loads
             && matches!(self.shape, Shape::Plane(_))
         {
-            loads.react(boundary, particle, normal, tangent)?;
+            loads.observe_plane(boundary, particle, normal, tangent);
         }
-        Ok(())
     }
 
     fn has_planar_surface(&self) -> bool {
@@ -791,12 +790,12 @@ impl Contacts {
                 reactions[c.boundary]
                     .react(x[c.particle] - b.origin, dv / particle.inverse_mass)?;
                 if let Some(loads) = &mut self.plane_loads {
-                    loads.react(
+                    loads.observe_plane(
                         c.boundary,
                         c.particle,
                         -vn * c.normal / particle.inverse_mass,
                         -tangential_loss / particle.inverse_mass,
-                    )?;
+                    );
                 }
             }
         }
@@ -1001,7 +1000,7 @@ fn project_points<const SPATIAL: bool>(
                         i,
                         applied,
                         DVec3::ZERO,
-                    )?;
+                    );
                     contacts.record(i, j, &hit, normal_impulse, remaining);
                 }
                 if let Some(coefficient) = contacts.static_plane_friction
@@ -1028,7 +1027,7 @@ fn project_points<const SPATIAL: bool>(
                         i,
                         DVec3::ZERO,
                         tangent,
-                    )?;
+                    );
                     if skip != 0 && !block.contains(*x) {
                         skip = 0;
                     }
@@ -1124,7 +1123,7 @@ pub(super) fn finish_contacts(
             c.particle,
             c.normal * normal_change / p.inverse_mass,
             friction / p.inverse_mass,
-        )?;
+        );
     }
     Ok(())
 }
