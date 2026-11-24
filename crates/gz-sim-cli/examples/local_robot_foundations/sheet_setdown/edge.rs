@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+use gz_sim_scene::grasp_guard::FiniteDeckMargin;
 
 const MS: u64 = 1_000_000;
 
@@ -16,12 +17,15 @@ struct Sample {
     deck_moment_nms: [f64; 3],
     jaws_impulse_ns: [f64; 3],
     peak_speed_m_s: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    receiver_inside_margin: Option<bool>,
 }
 
 fn measure(
     r: &mut Recording,
     shift: u32,
     frames: &mut Option<Vec<arm_sheet::Frame>>,
+    margin: Option<FiniteDeckMargin>,
 ) -> Result<(Vec<Reading>, Vec<Sample>)> {
     let bench = entity_id(&r.sim, "default::source::body")?;
     let half = arm_cable::half_size(&r.sdf, "source", "body")?;
@@ -30,7 +34,7 @@ fn measure(
     let mut interval_origin = previous_center;
     let (mut receiver_impulse, mut receiver_moment, mut jaw_impulse) =
         (DVec3::ZERO, DVec3::ZERO, DVec3::ZERO);
-    let rows = episode_native(r, Mode::Finite, frames, |r, _, _| {
+    let rows = episode_with_release_check(r, Mode::Finite, frames, |r, _, _| {
         let t = r.sim.committed_update_info()?.sim_time.as_nanos() as u64;
         if t == 1500 * MS || t == 1900 * MS {
             let vy = if t == 1500 * MS {
@@ -51,8 +55,19 @@ fn measure(
             + (previous_center - interval_origin).cross(deck.linear.into());
         previous_center = DVec3::from(state(&r.sim, bench)?.position);
         jaw_impulse -= DVec3::from(a.linear) + DVec3::from(b.linear);
+        let mut permits_opening = true;
         if t.is_multiple_of(MS) {
             let center = previous_center;
+            // The native wrench is about the collision center at the public start.
+            // For pure translation the link and the collision center travel equally.
+            let inside = margin.map(|guard| {
+                guard.accepts(
+                    receiver_impulse.to_array(),
+                    receiver_moment.to_array(),
+                    (center - interval_origin).to_array(),
+                )
+            });
+            permits_opening = inside.unwrap_or(true);
             interval_origin = center;
             let edge = center.y - half.y;
             let p = cloth.particles();
@@ -82,13 +97,40 @@ fn measure(
                 deck_moment_nms: receiver_moment.to_array(),
                 jaws_impulse_ns: jaw_impulse.to_array(),
                 peak_speed_m_s: peak,
+                receiver_inside_margin: inside,
             });
             (receiver_impulse, receiver_moment, jaw_impulse) =
                 (DVec3::ZERO, DVec3::ZERO, DVec3::ZERO);
         }
-        Ok(())
+        Ok(permits_opening)
     })?;
     Ok((rows, trace))
+}
+
+fn receiver_margin(r: &Recording, half: DVec3, mm: f64) -> Result<FiniteDeckMargin> {
+    let model = r
+        .sdf
+        .worlds
+        .iter()
+        .flat_map(|w| &w.models)
+        .find(|m| m.name == "source")
+        .ok_or("missing receiver model")?;
+    let link = model
+        .links
+        .iter()
+        .find(|l| l.name == "body")
+        .ok_or("missing receiver link")?;
+    let [collision] = link.collisions.as_slice() else {
+        return Err("one finite receiver collision required".into());
+    };
+    let pose = r.sdf.resolve_pose(
+        &collision.pose,
+        &model.scoped_name,
+        &link.scoped_name,
+        &r.world,
+    )?;
+    FiniteDeckMargin::new(half.to_array(),mm*0.001,pose.rotation)
+       .ok_or_else(||"release margin requires a horizontal deck and a positive inset smaller than its top-face half extents".into())
 }
 
 pub(crate) fn run(
@@ -97,6 +139,7 @@ pub(crate) fn run(
     exchanges: usize,
     public: bool,
     reset: bool,
+    release_margin_mm: Option<f64>,
 ) -> Result<()> {
     if !(1..=1000).contains(&exchanges)
         || !1_000_000usize.is_multiple_of(exchanges)
@@ -110,8 +153,12 @@ pub(crate) fn run(
     }
     let xml = world(exchanges, true, public)?;
     let mut r = Recording::new(&xml, "sheet-edge.sdf", "default")?;
+    let half = arm_cable::half_size(&r.sdf, "source", "body")?;
+    let margin = release_margin_mm
+        .map(|mm| receiver_margin(&r, half, mm))
+        .transpose()?;
     let mut frames = Some(Vec::new());
-    let (rows, trace) = measure(&mut r, shift, &mut frames).map_err(|e| {
+    let (rows, trace) = measure(&mut r, shift, &mut frames, margin).map_err(|e| {
         format!(
             "after {} commits: {}",
             r.costs_ns.len(),
@@ -120,23 +167,23 @@ pub(crate) fn run(
     })?;
     if reset {
         gz_sim_scene::reset_loaded_world(&mut r.sim, |_| ())?;
-        let (b, s) = measure(&mut r, shift, &mut None)?;
+        let (b, s) = measure(&mut r, shift, &mut None, margin)?;
         if rows != b || trace != s {
             return Err("reset changed the sheet edge trajectory".into());
         }
         r.costs_ns
             .truncate(if public { END } else { END * exchanges });
     }
-    let half_z = arm_cable::half_size(&r.sdf, "source", "body")?.z;
-    let summary = summarize(
+    let mut summary = summarize(
         &rows,
         &trace,
         shift,
         exchanges,
-        half_z,
+        half.z,
         r.sim.step_duration().as_nanos() as u64,
         reset,
     )?;
+    summary.release_margin_mm = release_margin_mm;
     write_json(
         &out.join("comparison.json"),
         &serde_json::to_value(&summary)?,
@@ -170,6 +217,8 @@ struct Summary {
     bevy_step_ns: u64,
     #[serde(default)]
     reset_verified: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    release_margin_mm: Option<f64>,
     deck_shift_mm: u32,
     exchanges: usize,
     outcome: Outcome,
@@ -279,6 +328,7 @@ fn summarize(
         actuator_ns: MS,
         bevy_step_ns,
         reset_verified,
+        release_margin_mm: None,
         deck_shift_mm: shift,
         exchanges,
         outcome,
@@ -318,7 +368,8 @@ pub(crate) fn compare(recording: &Path, reference: &Path) -> Result<Value> {
     };
     let (a, coarse) = read(recording)?;
     let (b, fine) = read(reference)?;
-    if a.deck_shift_mm != b.deck_shift_mm
+    if a.release_margin_mm != b.release_margin_mm
+        || a.deck_shift_mm != b.deck_shift_mm
         || a.actuator_ns != b.actuator_ns
         || a.exchanges >= b.exchanges
         || coarse.len() != END
@@ -361,3 +412,7 @@ pub(crate) fn compare(recording: &Path, reference: &Path) -> Result<Value> {
 #[cfg(test)]
 #[path = "edge_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "margin_tests.rs"]
+mod margin_tests;

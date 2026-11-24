@@ -115,6 +115,9 @@ enum Study {
         output: PathBuf,
         #[arg(long, default_value_t = 70)]
         deck_shift_mm: u32,
+        /// Require this much distance from every finite top-face edge before opening (millimetres).
+        #[arg(long)]
+        release_margin_mm: Option<f64>,
         #[arg(long, default_value_t = 16)]
         exchanges: usize,
         /// Use one separate Bevy commit per exchange for an independent physical reference.
@@ -366,6 +369,7 @@ fn main() -> Result<()> {
         Study::SheetEdge {
             output,
             deck_shift_mm,
+            release_margin_mm,
             exchanges,
             separate_native_commits,
             verify_reset,
@@ -376,6 +380,7 @@ fn main() -> Result<()> {
                 exchanges,
                 !separate_native_commits,
                 verify_reset,
+                release_margin_mm,
             )
         }),
         Study::SheetEdgeCompare {

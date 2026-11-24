@@ -103,6 +103,19 @@ fn episode_native(
     frames: &mut Option<Vec<arm_sheet::Frame>>,
     mut committed: impl FnMut(&mut Recording, usize, Option<u64>) -> Result<()>,
 ) -> Result<Vec<Reading>> {
+    episode_with_release_check(r, mode, frames, |r, tick, t| {
+        committed(r, tick, t)?;
+        Ok(true)
+    })
+}
+
+fn episode_with_release_check(
+    r: &mut Recording,
+    mode: Mode,
+    frames: &mut Option<Vec<arm_sheet::Frame>>,
+    mut committed: impl FnMut(&mut Recording, usize, Option<u64>) -> Result<bool>,
+) -> Result<Vec<Reading>> {
+    let mut permits_opening = true;
     let native_per_command = usize::try_from(1_000_000 / r.sim.step_duration().as_nanos())?;
     let controller = Controller::with_jaw_damping(&r.sim, 1.5)?;
     let mut guard = SupportedSetdown::new(WEIGHT).unwrap();
@@ -142,7 +155,7 @@ fn episode_native(
         }
         if mode != Mode::Timed && tick > 2550 {
             cmd = guard
-                .advance_vertical_reaction(last_table_ns)
+                .advance_with_support_check(last_table_ns, permits_opening)
                 .ok_or("invalid table impulse")?;
         }
         drive(
@@ -178,7 +191,7 @@ fn episode_native(
                     ((tick - start - DROP_DURATION_MS) * 1_000_000
                         + substep * (1_000_000 / native_per_command)) as u64
                 });
-            committed(r, tick, since_stop)?;
+            permits_opening = committed(r, tick, since_stop)?;
         }
         let cloth = arm_sheet::cloth(&r.sim)?;
         use sha2::{Digest, Sha256};

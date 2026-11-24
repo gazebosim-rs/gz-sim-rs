@@ -143,7 +143,9 @@ impl GraspRetention {
     }
 }
 
+mod deck_margin;
 mod setdown;
+pub use deck_margin::FiniteDeckMargin;
 pub use setdown::{SetdownCommand, SupportedSetdown};
 
 #[cfg(test)]

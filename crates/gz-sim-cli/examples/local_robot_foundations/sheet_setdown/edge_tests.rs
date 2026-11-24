@@ -6,7 +6,7 @@ use super::*;
 fn reject_unresolvable_clocks_or_unreachable_offsets_before_capture() {
     let d = tempfile::tempdir().unwrap();
     for (shift, rate) in [(80, 0), (80, 3), (80, 1000), (80, 1001), (201, 16)] {
-        assert!(run(d.path(), shift, rate, true, false).is_err());
+        assert!(run(d.path(), shift, rate, true, false, None).is_err());
         assert!(d.path().read_dir().unwrap().next().is_none());
     }
     assert!(compare(d.path(), d.path()).is_err());
@@ -21,7 +21,7 @@ fn an_overhang_releases_onto_the_table_and_an_unbalanced_one_falls() -> Result<(
     ] {
         let xml = world(16, true, false)?;
         let mut rec = Recording::new(&xml, "edge-test.sdf", "default")?;
-        let (rows, mut samples) = measure(&mut rec, shift, &mut None)?;
+        let (rows, mut samples) = measure(&mut rec, shift, &mut None, None)?;
         let result = summarize(&rows, &samples, shift, 16, 0.06, MS / 16, false)?;
         assert_eq!(result.outcome, outcome);
         assert!(result.max_linear_balance_residual_ns < 1e-13);
@@ -69,8 +69,8 @@ fn resettable_native_recordings_compare_only_at_compatible_public_ticks() {
     let fine = tmp.path().join("fine");
     fs::create_dir(&coarse).unwrap();
     fs::create_dir(&fine).unwrap();
-    run(&coarse, 80, 16, true, true).expect("repeatable public recording");
-    run(&fine, 80, 32, false, false).expect("independent finer native recording");
+    run(&coarse, 80, 16, true, true, None).expect("repeatable public recording");
+    run(&fine, 80, 32, false, false, None).expect("independent finer native recording");
     let pair = compare(&coarse, &fine).expect("two compatible completed trajectories");
     assert_eq!(pair["outcomes"], json!(["Resting", "Resting"]));
     assert!(pair["max_release_aligned_com_error_m"].as_f64().unwrap() < 0.001);
@@ -161,12 +161,12 @@ fn sliding_loaded_receiver_preserves_resultant_about_the_public_start_origin() -
 fn a_coarse_contact_fault_or_failed_archive_cannot_publish_an_edge_trial() -> Result<()> {
     let temp = tempfile::tempdir()?;
     let path = temp.path().join("unresolved");
-    let error = write_new(&path, |out| run(out, 95, 1, true, false)).unwrap_err();
+    let error = write_new(&path, |out| run(out, 95, 1, true, false, None)).unwrap_err();
     assert!(error.to_string().contains("swept surface self-contact"));
     assert!(!path.exists());
     let error = write_new(&path, |out| {
         fs::create_dir(out.join("world.sdf"))?;
-        run(out, 80, 16, true, false)
+        run(out, 80, 16, true, false, None)
     })
     .unwrap_err();
     assert!(error.downcast_ref::<std::io::Error>().is_some());
@@ -186,14 +186,14 @@ fn reject_a_missing_receiver_and_a_round_receiver_before_recording_an_edge() -> 
         .entity_mut(ent)
         .remove::<BodyHandle>();
     assert!(
-        measure(&mut missing, 80, &mut None)
+        measure(&mut missing, 80, &mut None, None)
             .unwrap_err()
             .to_string()
             .contains("missing body")
     );
     missing.sim.world_mut().entity_mut(ent).remove::<Name>();
     assert!(
-        measure(&mut missing, 80, &mut None)
+        measure(&mut missing, 80, &mut None, None)
             .unwrap_err()
             .to_string()
             .contains("missing default::source::body")
@@ -206,7 +206,7 @@ fn reject_a_missing_receiver_and_a_round_receiver_before_recording_an_edge() -> 
     round.replace_range(start..end, "<sphere><radius>0.06</radius></sphere>");
     let mut r = Recording::new(&round, "round.sdf", "default")?;
     assert!(
-        measure(&mut r, 80, &mut None)
+        measure(&mut r, 80, &mut None, None)
             .unwrap_err()
             .to_string()
             .contains("missing box geometry")

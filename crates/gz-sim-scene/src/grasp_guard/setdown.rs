@@ -38,14 +38,33 @@ impl SupportedSetdown {
         &mut self,
         vertical_impulse_ns: f64,
     ) -> Option<SetdownCommand> {
+        self.advance_with_support_check(vertical_impulse_ns, true)
+    }
+
+    /// Apply the measured vertical impulse to the lift controller, and permit
+    /// the jaw confirmation window to advance only if the support check passes.
+    /// Failing it clears the whole confirmation window, including during opening.
+    pub fn advance_with_support_check(
+        &mut self,
+        vertical_impulse_ns: f64,
+        permits_opening: bool,
+    ) -> Option<SetdownCommand> {
         if !vertical_impulse_ns.is_finite() {
             return None;
         }
-        self.advance(vertical_impulse_ns.max(0.))
+        self.advance_pressure(vertical_impulse_ns.max(0.), permits_opening)
     }
 
     /// An invalid observation produces no new command and leaves state intact.
     pub fn advance(&mut self, upward_impulse_ns: f64) -> Option<SetdownCommand> {
+        self.advance_pressure(upward_impulse_ns, true)
+    }
+
+    fn advance_pressure(
+        &mut self,
+        upward_impulse_ns: f64,
+        permits_opening: bool,
+    ) -> Option<SetdownCommand> {
         let ratio = upward_impulse_ns / (0.001 * self.weight_n);
         if !ratio.is_finite() || ratio < 0. {
             return None;
@@ -63,7 +82,11 @@ impl SupportedSetdown {
 
         // An excessive preload breaks the confirmation window. A weak reading
         // pauses the jaw trajectory and requires renewed sustained weight.
-        let normal = if ratio <= 1.5 { upward_impulse_ns } else { 0. };
+        let normal = if permits_opening && ratio <= 1.5 {
+            upward_impulse_ns
+        } else {
+            0.
+        };
         c.advancing_opening =
             self.release
                 .observe(std::time::Duration::from_millis(1), normal, self.weight_n);
