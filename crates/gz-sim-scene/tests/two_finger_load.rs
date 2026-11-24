@@ -351,6 +351,9 @@ fn parcel_first_preserves_signed_weight_support_on_each_pad() {
     }
 }
 
+#[path = "support/pad_rocking_balance.rs"]
+mod pad_rocking_balance;
+
 #[path = "support/pad_patch.rs"]
 mod pad_patch;
 const STIFF_PADS: &str = include_str!("../../../examples/worlds/local_stiff_pad_grasp.sdf");
@@ -545,3 +548,6 @@ fn contact_material_validates_pad_ownership_and_independent_properties() {
 
 #[path = "support/pad_transient.rs"]
 mod pad_transient;
+
+#[path = "support/pad_rocking.rs"]
+mod pad_rocking;

@@ -1,0 +1,55 @@
+{
+  "seed": "tall-rocking-grip",
+  "commands": [
+    {
+      "op": "set_joint_force",
+      "joint": "default::gripper::left_slide",
+      "force": 3
+    },
+    {
+      "op": "set_joint_force",
+      "joint": "default::gripper::right_slide",
+      "force": 3
+    },
+    {
+      "op": "step",
+      "count": 2000
+    },
+    {
+      "op": "wrench",
+      "link": "default::parcel::body",
+      "force": [
+        0,
+        0,
+        0
+      ],
+      "torque": [
+        0,
+        75,
+        0
+      ]
+    },
+    {
+      "op": "step",
+      "count": 1
+    },
+    {
+      "op": "wrench",
+      "link": "default::parcel::body",
+      "force": [
+        0,
+        0,
+        0
+      ],
+      "torque": [
+        0,
+        75,
+        0
+      ]
+    },
+    {
+      "op": "step",
+      "count": 2499
+    }
+  ]
+}
