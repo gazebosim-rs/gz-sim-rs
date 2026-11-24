@@ -479,3 +479,46 @@ fn invalid_geometry_configuration_and_overflow_are_typed() {
         );
     }
 }
+
+#[test]
+fn approaching_a_plane_or_sphere_stops_on_the_exact_contact_tick() {
+    let dt = Duration::from_millis(125);
+    for (boundary, surface_z) in [(floor([0.; 3]), 0.), (ball(), 0.5)] {
+        for (offset, velocity, expected_v, expected_j) in [
+            (0.25, [0., 0., -1.], [0.; 3], -2.),
+            (0.125, [1., 0., 0.], [1., 0., 0.], 0.),
+            (0.125, [0., 0., 1.], [0., 0., 1.], 0.),
+            (0.251, [0., 0., -1.], [0., 0., -1.], 0.),
+        ] {
+            let particle = Particle {
+                velocity,
+                ..p([0., 0., surface_z + offset], 0.5)
+            };
+            let mut body = SoftBody::new(
+                vec![particle],
+                vec![],
+                SolverConfig {
+                    particle_radius: 0.125,
+                    substeps: 1,
+                    ..isolated()
+                },
+            )
+            .unwrap();
+            body.step(dt, &[boundary]).unwrap();
+            near(
+                body.particles()[0].velocity.into(),
+                expected_v.into(),
+                1e-12,
+            );
+            near(
+                body.last_boundary_impulses()[0].linear.into(),
+                DVec3::Z * expected_j,
+                1e-12,
+            );
+            if expected_j != 0. {
+                body.step(dt, &[boundary]).unwrap();
+                assert_eq!(body.last_boundary_impulses()[0].linear, [0.; 3]);
+            }
+        }
+    }
+}

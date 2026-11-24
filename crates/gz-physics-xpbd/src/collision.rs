@@ -339,7 +339,10 @@ impl PreparedBoundary {
         if !depth.is_finite() || !initial_overlap.is_finite() {
             return Err(XpbdError::Numerical);
         }
-        Ok((depth > 0.0).then_some(Projection {
+        // A closing sweep can land exactly on the plane or sphere skin. Its
+        // velocity impulse belongs to this interval even with zero penetration.
+        let closing_endpoint = depth == 0. && (a - b).dot(normal) > 0.;
+        Ok((depth > 0. || closing_endpoint).then_some(Projection {
             event: None,
             normal,
             depth,
