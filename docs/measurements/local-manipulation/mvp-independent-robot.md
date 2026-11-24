@@ -42,13 +42,19 @@ The solver and controller used the SDF's default 1 ms step. The original file ha
 | Ground friction | Apply a horizontal gravity component of 1 m/s² for 100 ms. Repeat with the assembly elevated and clear of the plane. | Grounded lateral speed was 0.00000355 m/s, compared with 0.100000 m/s in free flight. |
 | Added travel stops | Author ±0.25 rad stops. Hold torque into each stop for 250 ms. | Settled within 3 × 10⁻¹² rad of each stop, with speed below 1.1 × 10⁻⁸ rad/s. |
 
-These measurements qualify a single driven rotational degree of freedom on a moving base with plane contact. They are analytical and controlled comparisons. The upstream Gazebo integration test checks the received torque command and supplies no native trajectory reference.
+### Native Gazebo comparison
+
+A separate headless run of Gazebo 11.0.0~pre3 with DART used the original SDF, the same 1 ms step and the same positive, zero and negative torque commands. Eight samples at 0, 1, 50, 100, 200, 300, 400 and 500 ms matched the committed simulation clocks. A second native run added only an encoder publisher. Its link and model poses matched the original native state service at every sampled time, to the precision of that service. The Rust poses used for comparison matched the packaged CLI recording within `1e-12`.
+
+Both engines reached 10 rad/s after 100 ms and −10 rad/s after 500 ms. At 100 ms the native joint had turned 0.505000 radians and the Rust joint 0.501250 radians. Across the eight observations the largest angle discrepancy was 0.00375127 rad (0.215°), the largest speed discrepancy was 0.000002401 rad/s and the largest base height discrepancy was 0.1201 mm. These are sampled differences for this rotor and base. [Native and Rust samples](mvp-upstream-dart.json)
 
 ## Verification
 
 The release build passed all 22 tests across `joint_effort`, `joint_motor`, `joint_force_feedback` and `upstream_joint_force`. These include the standalone engine's existing floating-parent refusal, its rotated fixed-parent response, and preservation of admitted effort after invalid, nonfinite or overflowing replacements. The upstream journal verified all 610 profile and state records in a second process and recorded 51 frames before reset and 11 afterward. The new scene regression passed strict Clippy.
 
 On candidate `836bbcd`, relative to `1311332`, LLVM covered 16/16 changed executable Rapier lines (100%) and 23/24 changed regions (95.83%). The joint validator covered 6/6 lines and 11/12 regions. The backend entry points covered 10/10 lines and 12/12 regions. These are the four release test executables above, built with the repository's Rust coverage wrapper. Each executable was paired with its own LLVM profile. The counts take the union of mapped changed lines and distinct code-region coordinates starting on changed lines. The remaining region is the negative arm of the angular-motion check for an ordinary impulse hinge. [Full release coverage status](mvp-release-coverage.md)
+
+The clean CPU CLI tests ran all 25 journal cases and 160 library cases. The upstream journal checked forward drive, coasting and reverse speed, support impulse, all 100 post-reset states, the generated plane in both archives, and rejection of an unsupported world plugin or a dynamic plane collider. The live upstream transport regression also passed 15 consecutive process launches. Focused LLVM measurement on the changed plane, default material and replay admission code covered 89/89 executable lines and 163/164 distinct regions starting on changed production lines. The local control client reached all five changed executable lines and all nine changed regions in its separate live-server test. Repository-wide qualification uses its own denominators. [Release gate](mvp-release-coverage.md)
 
 ## Provenance
 

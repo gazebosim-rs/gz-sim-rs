@@ -49,3 +49,5 @@ To serve a fresh switched recording with the local frontend on port 8082, run th
 RUSTC_WRAPPER= cargo run --locked --release --no-default-features -p gz-sim-cli --bin gz-sim-rs -- \
   --server --replay --web-viewer 11547 target/mvp-robot/switched
 ```
+
+![Simulated gripper carrying the parcel at 1.8 seconds in gz-web-rs](mvp-gripper.jpg)

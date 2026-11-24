@@ -1,6 +1,19 @@
 # Run a robot with the local Rust physics engine
 
-Source candidate `836bbcd` includes published Gazebo port commit `dddf1f4` and runs rigid-body robots in a local Bevy world. The two starting points are an unchanged Gazebo motor on a free base and a screw-driven gripper that lifts a 200 g parcel. Start with the gripper to see a full task, or use the motor to test your own torque commands. The examples below use the locked Rust toolchain and an empty output directory.
+Source candidate `2e7d155` includes published Gazebo port commit `dddf1f4` and runs rigid-body robots in a local Bevy world. The two starting points are an unchanged Gazebo motor on a free base and a screw-driven gripper that lifts a 200 g parcel. Start with the gripper to see a full task, or use the motor to test your own torque commands. The examples below use the locked Rust toolchain and an empty output directory.
+
+## Install the command-line tools
+
+From a clean checkout, build all three tools into a directory you own. This uses the locked dependency graph and the local CPU feature set. The installation was exercised from a separate directory on Linux x86-64. A fresh process verified all 610 motor journal records using eight Bevy threads after recording them with one.
+
+```sh
+RUSTC_WRAPPER= cargo install --locked --path crates/gz-sim-cli --no-default-features \
+  --bin gz-sim-rs --bin gz-sim-control --bin gz-sim-local-replay --root "$PWD/target/cpu-tools"
+target/cpu-tools/bin/gz-sim-rs examples/worlds/upstream_joint_force.sdf \
+  --physics-engine multifidelity --iterations 250
+```
+
+The locally packaged Linux preview, `gz-sim-local-cpu-preview.tar.xz`, includes these binaries, the unmodified source world, its command journal, the gripper recording, licenses and a checksum manifest. Its SHA-256 is `2983b9af0ad1164cf118f0c8b2deca79e0ed5dc65228292ef8d898423e0b7dee`. The review branch includes the source and portable recordings.
 
 ## Watch the recordings
 
@@ -13,7 +26,7 @@ The links use replay servers on the development machine. On another machine, bui
 ```sh
 export RUSTC_WRAPPER=
 cargo build --release --locked --no-default-features -p gz-sim-cli \
-  --bin gz-sim-rs --bin gz-sim-local-replay
+  --bin gz-sim-rs --bin gz-sim-local-replay --bin gz-sim-control
 mkdir -p target/mvp-replays
 tar -xJf docs/measurements/local-manipulation/mvp-robot-replays.tar.xz -C target/mvp-replays
 (cd target/mvp-replays && sha256sum --quiet -c SHA256SUMS)
@@ -35,6 +48,17 @@ To launch your own, start the ordinary server paused. Its gz-web view supports p
 ```sh
 target/release/gz-sim-rs examples/worlds/upstream_joint_force.sdf \
   --physics-engine multifidelity --server --web-viewer 9003
+```
+
+The local control client talks to that same server. In a second terminal, start with a freshly launched paused world. A checked step requires its current epoch and tick. Reset restores the authored poses, clears held commands, pauses, and advances the epoch.
+
+```sh
+target/release/gz-sim-control --port 9003 status
+target/release/gz-sim-control --port 9003 step 0 0
+target/release/gz-sim-control --port 9003 play
+target/release/gz-sim-control --port 9003 pause
+target/release/gz-sim-control --port 9003 reset
+target/release/gz-sim-control --port 9003 step 1 0
 ```
 
 For repeatable controls on Linux x86-64, edit the ordered JSON journal. The shipped one applies torque for 100 ms, coasts for 200 ms, reverses torque for 200 ms, resets and repeats the first drive. The verification process checks the executable identity and every observation. The two epoch directories can each be served with the replay command above.
@@ -59,6 +83,6 @@ cargo run --release --locked --no-default-features -p gz-sim-cli --example parke
 
 ## What this build covers
 
-The CPU solver has physical regression tests for fixed, revolute, prismatic, ball, universal and screw joints. The independently authored model qualifies a free-base revolute joint, sustained effort, loaded inertia, plane contact, friction and reset. The full gripper task qualifies multiple joints, contact impulses and automatic tier changes against an always-dynamic run. The motor's reference is analytical. The gripper's reference uses the same dynamic solver. [Motor measurements and source](measurements/local-manipulation/mvp-independent-robot.md) · [Gripper accuracy, p95 and real-time factor](measurements/local-manipulation/mvp-local-performance.md)
+The CPU solver has physical regression tests for fixed, revolute, prismatic, ball, universal and screw joints. The independently authored model qualifies a free-base revolute joint, sustained effort, loaded inertia, plane contact, friction and reset. The full gripper task qualifies multiple joints, contact impulses and automatic tier changes against an always-dynamic run. The motor was checked against analytical acceleration and a native Gazebo DART run at eight matched times. The gripper's reference uses the same dynamic solver. [Motor measurements and source](measurements/local-manipulation/mvp-independent-robot.md) · [Gripper accuracy, p95 and real-time factor](measurements/local-manipulation/mvp-local-performance.md)
 
 Ordinary SDF support is still selective. On this candidate three unmodified Gazebo test worlds failed at load time. The differential-drive world requests joint-state axes for a ball caster, the double pendulum specifies an offset mass center in an unsupported inertial form, and the position-controller world requests a world plugin outside the admitted set. The loader reports the first unsupported feature in each file. Release-wide coverage is tracked independently for the CPU and renderer profiles. [Release qualification](measurements/local-manipulation/mvp-release-coverage.md)
