@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Hold and slip during an accelerating off-center carry
+
+A force-driven vertical gripper lifted a 200 g parcel with its center of mass 4.5 mm off center. The predicted grip threshold was 2.762 N per finger. Both adaptive and continuously fine runs showed sustained slip at 2.76 N and a hold at 2.77 N. A 4.2 N grip carried the parcel 39.21 mm. Changing to 2.3 N during the lift let it slide 10.090 mm in 80 ms, within 0.275 µm of the continuously fine run. Mirroring the offset swapped the fingers’ measured shares of the weight. [Force balance, thresholds and cost](measurements/local-manipulation/offset-carry.md) · [Measured gz-web-rs recordings](measurements/local-manipulation/offset-carry-view.md)
+
+A shove during the strong carry rocked the parcel onto its edges and left it seated 2.669 mm lower. The existing adaptive policy caught the return within 8 µs and 0.58% of the fine reference peak. Smooth carries required no extra solves. This phase added moving-robot fixtures, journals and regression tests. Changed test coverage reached 434/434 lines and 868/869 regions. Next, close the feedback loop and measure whether the fingers can arrest unexpected slip during the moving lift.
+
 ## 2026-11-24 — Correct the timing of the gripper’s returning edge
 
 The ordinary torque tick pushed the parcel 0.04075° ahead in pitch but left it turning 0.9202 rad/s too slowly. Fine stepping during that tick alone made the impact 166 µs early. Tracking the loaded, turning face through its approach cut the original 137 µs error to 22 µs and the maximum pitch error from 0.21125° to 0.03250°. The 200 µs gripper command clock stayed fixed. The corrected peak was 194.82 N against 193.91 N continuously fine, and the integrated normal impulse was within 0.065% on both fingers. [Measurements and step cost](measurements/local-manipulation/pad-approach.md) · [Watch the trajectory and impact in gz-web-rs](measurements/local-manipulation/pad-approach-view.md)

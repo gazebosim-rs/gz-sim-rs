@@ -1,0 +1,12 @@
+{
+  "seed": "offset-carry",
+  "commands": [
+    {"op":"set_joint_force","joint":"default::gripper::left_slide","force":4.2},
+    {"op":"set_joint_force","joint":"default::gripper::right_slide","force":4.2},
+    {"op":"step","count":750},
+    {"op":"set_joint_force","joint":"default::gripper::lift","force":10.4956},
+    {"op":"step","count":300},
+    {"op":"wrench","link":"default::parcel::body","force":[0.0,0.0,0.0],"torque":[0.0,7,0.0]},
+    {"op":"step","count":400}
+  ]
+}

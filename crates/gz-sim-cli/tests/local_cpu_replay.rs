@@ -1489,3 +1489,84 @@ fn rocking_refinement_follows_the_loaded_parcel_across_pause_and_reset() {
         assert_eq!(record(&rows, 13, step)["refinement"]["native_steps"], 8);
     }
 }
+
+#[test]
+fn accelerating_carry_crosses_the_predicted_friction_limit() {
+    let xml = include_str!("../../../examples/worlds/local_offset_gripper_carry.sdf");
+    let input = include_str!("../../../examples/replay/offset_carry_slip.json");
+    // 200 g of payload, 560 g of moving gripper. If both accelerate together,
+    // the pads must transmit the parcel's share of the external lift thrust.
+    let needed = 10.4956 * 0.2 / 0.76;
+    for (mu, squeeze) in [(0.5, 2.76), (0.5, 2.77), (0.4, 3.2), (0.4, 3.65)] {
+        let scratch = tempfile::tempdir().unwrap();
+        let world = file(
+            scratch.path(),
+            "carry.sdf",
+            &xml.replace(
+                "<mu>0.5</mu><mu2>0.5</mu2>",
+                &format!("<mu>{mu}</mu><mu2>{mu}</mu2>"),
+            ),
+        );
+        let mut journal: Value = serde_json::from_str(input).unwrap();
+        let commands = journal["commands"].as_array_mut().unwrap();
+        for command in commands.iter_mut().rev().skip(1).take(2) {
+            assert_eq!(command["op"], "set_joint_force");
+            command["force"] = json!(squeeze);
+        }
+        let archive = scratch.path().join("recording");
+        let source = file(scratch.path(), "carry.json", &journal.to_string());
+        let rows = success(run(
+            &world,
+            &source,
+            &[
+                "--record",
+                archive.to_str().unwrap(),
+                "--record-every",
+                "50",
+            ],
+        ));
+        let end = rows.last().unwrap();
+        let traction: f64 = end["pair_impulses"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|p| p["b"] == 3 && (p["a"] == 1 || p["a"] == 2))
+            .map(|p| -p["tangent_on_a_ns"][2].as_f64().unwrap() / 0.0002)
+            .sum();
+        let capacity: f64 = 2.0 * mu * squeeze;
+        assert!((traction - capacity.min(needed)).abs() < 0.001);
+
+        let mut last_heights = Vec::new();
+        for line in fs::read_to_string(archive.join("epoch-0/frames.jsonl"))
+            .unwrap()
+            .lines()
+        {
+            let row: Value = serde_json::from_str(line).unwrap();
+            if row["kind"] != "frame" {
+                continue;
+            }
+            let frame: Value = serde_json::from_str(row["scene"].as_str().unwrap()).unwrap();
+            if frame["nanoseconds"].as_u64().unwrap() < 280_000_000 {
+                continue;
+            }
+            let visuals = frame["visuals"].as_array().unwrap();
+            let visual = |name| visuals.iter().find(|v| v["name"] == name).unwrap();
+            let block = visual("default::parcel::body::block");
+            let left = visual("default::gripper::left::pad");
+            let q =
+                glam::DQuat::from_array(serde_json::from_value(block["rotation"].clone()).unwrap());
+            let dz = (q * glam::DVec3::new(0.0045, 0., 0.)).z;
+            last_heights.push(
+                block["translation"][2].as_f64().unwrap() + dz
+                    - left["translation"][2].as_f64().unwrap(),
+            );
+        }
+        assert_eq!(last_heights.len(), 2);
+        let down_speed = (last_heights[0] - last_heights[1]) / 0.010;
+        if capacity < needed {
+            assert!(down_speed > 0.001, "expected sustained slip at {squeeze} N");
+        } else {
+            assert!(down_speed.abs() < 0.0001, "expected hold at {squeeze} N");
+        }
+    }
+}

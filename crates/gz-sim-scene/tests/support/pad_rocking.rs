@@ -18,6 +18,7 @@ pub(super) struct Patch {
     pub(super) linear: DVec3,
     pub(super) angular: DVec3,
     pub(super) normal: f64,
+    pub(super) tangent: DVec3,
 }
 
 pub(super) fn pad_impulses(rig: &Rig) -> [Patch; 2] {
@@ -44,9 +45,8 @@ pub(super) fn sum_pad_impulses(
         let row = &mut result[side];
         let sign = if parcel_a { 1. } else { -1. };
         for point in patch.points {
-            let impulse = sign
-                * (DVec3::from(patch.normal_on_a) * point.normal_impulse
-                    + DVec3::from(point.tangent_impulse_on_a.unwrap()));
+            let tangent = sign * DVec3::from(point.tangent_impulse_on_a.unwrap());
+            let impulse = sign * DVec3::from(patch.normal_on_a) * point.normal_impulse + tangent;
             let lever = DVec3::from(if parcel_a {
                 point.lever_a
             } else {
@@ -54,6 +54,7 @@ pub(super) fn sum_pad_impulses(
             });
             assert!(point.normal_impulse >= 0.0);
             row.normal += point.normal_impulse;
+            row.tangent += tangent;
             row.linear += impulse;
             row.angular += lever.cross(impulse);
             row.selected += 1;

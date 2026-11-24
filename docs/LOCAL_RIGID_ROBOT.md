@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+A vertical gripper carries a parcel with its weight offset toward one finger. Compare the full-strength lift, the weakened grip and a shove that rocks the parcel during travel. [Open the carry recordings](measurements/local-manipulation/offset-carry-view.md) · [Grip threshold and measured slip](measurements/local-manipulation/offset-carry.md)
+
 The rocking-parcel replay follows the parcel from the shove through the return strike. The plot shows how the fingers’ contact during that motion changes the time of impact. [Watch in gz-web-rs](measurements/local-manipulation/pad-approach-view.md) · [Timing, impulse and step cost](measurements/local-manipulation/pad-approach.md)
 
 The returning-edge replay shows how three short bursts of fine stepping recover the force spike as the parcel rocks back into the gripper. The three traces compare ordinary, adaptive and continuously fine physics with the same gripper commands. [Replay and force curves](measurements/local-manipulation/pad-impact-refinement-view.md) · [Measured accuracy and cost](measurements/local-manipulation/pad-impact-refinement.md)

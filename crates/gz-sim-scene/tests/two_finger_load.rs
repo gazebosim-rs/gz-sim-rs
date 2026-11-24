@@ -554,3 +554,6 @@ mod pad_rocking;
 
 #[path = "support/pad_edge_impact.rs"]
 mod pad_edge_impact;
+
+#[path = "support/offset_carry.rs"]
+mod offset_carry;
