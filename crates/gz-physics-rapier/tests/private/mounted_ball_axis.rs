@@ -15,7 +15,7 @@ fn the_slider_stop_sees_the_actual_orientation_of_its_spherical_parent() {
             velocity: [0.; 3],
             mass: Some(1.),
         };
-        let palm = b.spawn(spec.clone()).unwrap();
+        let palm = b.spawn(spec).unwrap();
         let tool = b.spawn(spec).unwrap();
         b.add_robot_joint(
             None,
