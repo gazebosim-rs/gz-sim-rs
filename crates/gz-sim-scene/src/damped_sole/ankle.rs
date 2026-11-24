@@ -12,11 +12,13 @@ pub struct AnkleStep {
     pub panel: PanelStep,
     pub edge_margin_m: f64,
     pub shank_margin_m: f64,
+    pub shank_contact: gz_physics_multifidelity::ShankContact,
 }
 #[derive(Resource)]
 pub(super) struct Ankle {
     links: [(u64, BodyId); 3],
     material: CoatedAnkle,
+    edge: bool,
     last: Option<AnkleStep>,
 }
 pub fn ankle_step(sim: &Simulation) -> Option<&AnkleStep> {
@@ -42,9 +44,10 @@ pub(super) fn install(
     backend: PhysicsBackend,
     links: [(u64, BodyId); 3],
     material: SoleMaterial,
-    substeps: u32,
-    depth: u8,
+    grid: (u32, u8),
+    edge: bool,
 ) -> Result<(), LoadError> {
+    let (substeps, depth) = grid;
     let [foot, shank, floor] = links.map(|p| p.1);
     let coating = CoatedAnkle {
         foot,
@@ -54,14 +57,19 @@ pub(super) fn install(
         depth,
         material,
     };
-    backend
+    let native = backend
         .downcast_ref::<MultiFidelityBackend>()
-        .ok_or(PhysicsError::MissingBody)?
-        .validate_coated_ankle(coating, sim.step_duration())?;
+        .ok_or(PhysicsError::MissingBody)?;
+    if edge {
+        native.validate_coated_ankle_edge(coating, sim.step_duration())?;
+    } else {
+        native.validate_coated_ankle(coating, sim.step_duration())?;
+    }
     gz_physics::install_with_step(sim, backend, advance)?;
     sim.world_mut().insert_resource(Ankle {
         links,
         material: coating,
+        edge,
         last: None,
     });
     sim.add_systems(
@@ -94,7 +102,11 @@ fn advance(
             }
         }
         if complete {
-            let reaction = native.step_coated_ankle(ankle.material, time.dt)?;
+            let reaction = if ankle.edge {
+                native.step_coated_ankle_edge(ankle.material, time.dt)?
+            } else {
+                native.step_coated_ankle(ankle.material, time.dt)?
+            };
             let [foot, shank, floor] = ankle.links.map(|p| p.0);
             ankle.last = Some(AnkleStep {
                 time: *time,
@@ -110,6 +122,7 @@ fn advance(
                 },
                 edge_margin_m: reaction.edge_margin_m,
                 shank_margin_m: reaction.shank_margin_m,
+                shank_contact: reaction.shank,
             });
         } else {
             native.step(time.dt)?;

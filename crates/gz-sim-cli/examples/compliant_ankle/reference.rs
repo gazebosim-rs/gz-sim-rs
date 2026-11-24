@@ -13,7 +13,7 @@ pub struct State {
     pub work: f64,
 }
 impl State {
-    fn plus(self, rate: Self, dt: f64) -> Self {
+    pub(crate) fn plus(self, rate: Self, dt: f64) -> Self {
         Self {
             q: self.q + dt * rate.q,
             dq: self.dq + dt * rate.dq,
@@ -30,14 +30,14 @@ impl State {
         DVec2::new(self.q.x, self.q.y) + 0.045 * up(self.q.z) + 0.20 * up(self.q.w)
     }
 }
-fn up(a: f64) -> DVec2 {
+pub(crate) fn up(a: f64) -> DVec2 {
     DVec2::new(a.sin(), a.cos())
 }
-fn tangent(a: f64) -> DVec2 {
+pub(crate) fn tangent(a: f64) -> DVec2 {
     DVec2::new(a.cos(), -a.sin())
 }
 
-fn plantar(s: State) -> (DVec2, f64, f64) {
+fn plantar(s: State, deck: Option<[f64; 2]>) -> (DVec2, f64, f64) {
     let up = up(s.q.z);
     let along = tangent(s.q.z);
     let base = -0.025 * up;
@@ -58,6 +58,12 @@ fn plantar(s: State) -> (DVec2, f64, f64) {
         } else if offset <= 0. {
             return (Default::default(), 0., 0.);
         }
+    }
+    if let Some([left, right]) = deck {
+        // This planar fixture keeps the sole's forward vector directed along +X.
+        assert!(along.x > 0.);
+        lo = lo.max((left - s.q.x - base.x) / along.x);
+        hi = hi.min((right - s.q.x - base.x) / along.x);
     }
     if lo >= hi {
         return (Default::default(), 0., 0.);
@@ -85,9 +91,8 @@ fn plantar(s: State) -> (DVec2, f64, f64) {
     }
     (force, torque, work)
 }
-fn rhs(s: State, locked: bool, applied: f64) -> State {
-    let (floor, moment, work) = plantar(s);
-    let a = 0.045 * tangent(s.q.z);
+pub(crate) fn mass(s: State, locked: bool, anchor: f64) -> (DMat4, [DVec2; 4]) {
+    let a = anchor * tangent(s.q.z);
     let b = 0.20 * tangent(s.q.w);
     let cols = [
         DVec2::X,
@@ -104,9 +109,20 @@ fn rhs(s: State, locked: bool, applied: f64) -> State {
     let matrix = DMat4::from_cols_array_2d(&std::array::from_fn(|i| {
         std::array::from_fn(|j| cols[i].dot(cols[j]) + if i == j { inertias[i] } else { 0. })
     }));
+    (matrix, cols)
+}
+pub(crate) fn derivative(
+    s: State,
+    locked: bool,
+    applied: f64,
+    anchor: f64,
+    deck: Option<[f64; 2]>,
+) -> State {
+    let (floor, moment, work) = plantar(s, deck);
+    let (matrix, cols) = mass(s, locked, anchor);
     // Bias acceleration of the shank COM from the two rotating offsets.
     let effective = DVec2::new(0., -9.81)
-        + 0.045 * up(s.q.z) * s.dq.z.powi(2)
+        + anchor * up(s.q.z) * s.dq.z.powi(2)
         + 0.20 * up(s.q.w) * s.dq.w.powi(2);
     let generalized = DVec4::from_array(cols.map(|c| c.dot(effective)))
         + DVec4::new(
@@ -146,6 +162,7 @@ pub fn trajectory(
     for tick in 1..=ticks {
         let m = if driven { torque(tick) } else { 0. };
         for _ in 0..substeps {
+            let rhs = |s, locked, m| derivative(s, locked, m, 0.045, None);
             let a = rhs(s, locked, m);
             let b = rhs(s.plus(a, h * 0.5), locked, m);
             let c = rhs(s.plus(b, h * 0.5), locked, m);

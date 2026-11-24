@@ -2091,3 +2091,7 @@ Matching the incoming arm state at 64 ms showed that the first impact and the re
 ## 2026-11-23 — Whole-workspace release check on the fleet publication fix
 
 The 8c57ff6 headless build passed all 3,727 ordinary tests and 39 required physical worker cases, including the trajectory with 16 worker crashes. The release check then exited on insufficient CLI coverage. Region coverage was 88.933% for the CLI, 90.993% for the scene and 81.895% for the distributed crate. Rapier, multi-fidelity, XPBD and server all cleared 95% on this same headless build. The frozen renderer run and broader physical CLI and scene coverage are in progress. The later live universal-wrist fix and GPU qualification are on the integration review branch. [Local operator](measurements/local-manipulation/local-robot-operator.md) · [Headless physical checks](measurements/local-manipulation/headless-worker-coverage.md)
+
+## 2026-11-23 — Sliding a freely hinged foot off a deck edge
+
+The toe overhung the finite deck by 28.89 mm while its coated sole stayed loaded. The shank struck the deck at 32.375 ms, within 55 µs of an independent reference, and shortening the shank produced zero rigid impulse. The displayed trajectory stayed within 8.23 µm of the reference. Refining the native contact steps reduced the trajectory error to 2.06 µm, although the peak cumulative impulse error increased on the finest grid. Frictional shank strikes and inward sidewall crossings remain open. [Measurements, coverage and three native replays](measurements/local-manipulation/compliant-ankle-edge.md)

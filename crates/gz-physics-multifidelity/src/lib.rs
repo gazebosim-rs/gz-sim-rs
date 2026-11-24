@@ -27,7 +27,7 @@ use gz_physics::{
     PreparedPhysicsReset, RotationSpec,
 };
 use gz_physics_rapier::RapierBackend;
-pub use gz_physics_rapier::{CoatedAnkle, CoatedAnkleStep};
+pub use gz_physics_rapier::{CoatedAnkle, CoatedAnkleStep, ShankContact};
 mod contact_window;
 pub use contact_window::ContactWindow;
 pub use gz_physics::NormalApproach;
@@ -278,6 +278,24 @@ pub struct MultiFidelityBackend {
 }
 
 impl MultiFidelityBackend {
+    pub fn validate_coated_ankle_edge(
+        &self,
+        ankle: CoatedAnkle,
+        dt: Duration,
+    ) -> Result<(), PhysicsError> {
+        self.solver
+            .validate_coated_ankle_edge(ankle, dt)
+            .map_err(engine_error)
+    }
+    pub fn step_coated_ankle_edge(
+        &mut self,
+        ankle: CoatedAnkle,
+        dt: Duration,
+    ) -> Result<CoatedAnkleStep, PhysicsError> {
+        self.solver
+            .step_coated_ankle_edge(ankle, dt)
+            .map_err(engine_error)
+    }
     pub fn validate_coated_ankle(
         &self,
         ankle: CoatedAnkle,

@@ -24,6 +24,7 @@ pub(crate) struct Plan {
     pub(super) upper: Option<(Option<String>, GuardBox)>,
     pub(super) side: Option<(String, f64)>,
     pub(super) ankle: bool,
+    pub(super) ankle_edge: bool,
     pub(super) substeps: u32,
     pub(super) depth: u8,
     pub(super) flat_elastic_fast_path: bool,
@@ -188,6 +189,10 @@ pub(crate) fn parse(
         _ => Err(err(&format!("{name} must be true or false"))),
     };
     let ankle = enabled("native_ankle")?;
+    let ankle_edge = enabled("ankle_positive_x_edge")?;
+    if ankle_edge && !ankle {
+        return Err(err("ankle_positive_x_edge requires native_ankle"));
+    }
     let flat_elastic_fast_path = enabled("flat_elastic_fast_path")?;
     let flat_damped_fast_path = enabled("flat_damped_fast_path")?;
     let side = match (
@@ -395,6 +400,7 @@ pub(crate) fn parse(
         upper,
         side,
         ankle,
+        ankle_edge,
         supports,
         body: SoleBody {
             half_extents,

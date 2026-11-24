@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Native revolute (or fixed control) carrying an independently integrated lower-face traction.
 use super::*;
+mod edge;
+pub use edge::ShankContact;
 use gz_physics::{
     NativeStepGrid,
     sole_contact::{SoleBody, SoleContact, SoleDeck, SoleMaterial, SoleState, SoleStep},
@@ -25,6 +27,8 @@ pub struct CoatedAnkleStep {
     pub edge_margin_m: f64,
     /// Smallest verified separation of the upper box above the deck.
     pub shank_margin_m: f64,
+    /// Solved upper-link rows, independent of the plantar coating.
+    pub shank: ShankContact,
 }
 fn unsupported(capability: &'static str) -> PhysicsError {
     PhysicsError::Unsupported {
@@ -41,6 +45,7 @@ struct Shapes {
     rows: collision::SuppressedRows,
     hinge_radius: f64,
     root_radius: f64,
+    shank_collider: ColliderHandle,
 }
 impl RapierBackend {
     fn ankle_shapes(&self, c: CoatedAnkle) -> Result<Shapes, PhysicsError> {
@@ -89,7 +94,7 @@ impl RapierBackend {
             Ok((rb, *ch, b.half_extents))
         };
         let (lower, foot, half) = geometry(c.foot)?;
-        let (upper, _, shank_half) = geometry(c.shank)?;
+        let (upper, shank_collider, shank_half) = geometry(c.shank)?;
         let (floor, pad, deck_half) = geometry(c.floor)?;
         if c.floor == c.foot
             || c.floor == c.shank
@@ -124,6 +129,7 @@ impl RapierBackend {
                 velocity: Default::default(),
             },
             shank_half,
+            shank_collider,
             rows: collision::SuppressedRows {
                 foot,
                 pad,
@@ -146,12 +152,42 @@ impl RapierBackend {
         }
         Ok(())
     }
+    pub fn validate_coated_ankle_edge(
+        &self,
+        c: CoatedAnkle,
+        dt: Duration,
+    ) -> Result<(), PhysicsError> {
+        NativeStepGrid::new(dt, c.substeps)?;
+        let shape = self.ankle_shapes(c)?;
+        let sample = shape.sample(self, c)?;
+        let edge = shape.edge_geometry(self, &sample);
+        edge.validate_start()?;
+        if sample.height <= 0. {
+            return Err(unsupported("edge trial needs a clear incoming shank"));
+        }
+        Ok(())
+    }
+    pub fn step_coated_ankle_edge(
+        &mut self,
+        c: CoatedAnkle,
+        dt: Duration,
+    ) -> Result<CoatedAnkleStep, PhysicsError> {
+        self.step_ankle_domain(c, dt, true)
+    }
     /// Stage the entire active multibody and native contact caches. Upon success
     /// publish the candidate and consume its public forces/efforts exactly once.
     pub fn step_coated_ankle(
         &mut self,
         c: CoatedAnkle,
         dt: Duration,
+    ) -> Result<CoatedAnkleStep, PhysicsError> {
+        self.step_ankle_domain(c, dt, false)
+    }
+    fn step_ankle_domain(
+        &mut self,
+        c: CoatedAnkle,
+        dt: Duration,
+        edge_domain: bool,
     ) -> Result<CoatedAnkleStep, PhysicsError> {
         let grid = NativeStepGrid::new(dt, c.substeps)?;
         let shape = self.ankle_shapes(c)?;
@@ -163,6 +199,7 @@ impl RapierBackend {
         });
         let mut receipt = CoatedAnkleStep {
             deck: shape.deck,
+            shank: Default::default(),
             lower: Default::default(),
             edge_margin_m: f64::INFINITY,
             shank_margin_m: f64::INFINITY,
@@ -171,7 +208,34 @@ impl RapierBackend {
         // hinge the root translation and each angular coordinate follow one native drift.
         let parameters = trial.world.integration_parameters;
         trial.world.integration_parameters.num_solver_iterations = 1;
+        if edge_domain {
+            // An articulating distal edge can rotate from a line to a single vertex
+            // within the broad-phase recycling tolerance. Rebuild its true witnesses.
+            trial.world.integration_parameters.contact_recycling = false;
+            // The stage rejects sweeps able to traverse the deck or shank thickness.
+            // Admit only overlapping witnesses and converge both velocity passes
+            // for a two-point line contact on the same native multibody.
+            trial
+                .world
+                .integration_parameters
+                .normalized_prediction_distance = 0.;
+            trial
+                .world
+                .integration_parameters
+                .num_internal_pgs_iterations = parameters.num_internal_pgs_iterations.max(8);
+            trial
+                .world
+                .integration_parameters
+                .num_internal_stabilization_iterations =
+                parameters.num_internal_stabilization_iterations.max(8);
+            // The shank is a rigid stop. Use the native rigid-constraint
+            // coefficients instead of introducing a second compliant layer.
+            trial.world.integration_parameters.static_contact_softness =
+                SpringCoefficients::joint_defaults();
+        }
         let mut current = shape.sample(&trial, c)?;
+        let mut edge_shape = edge_domain.then(|| shape.edge_geometry(&trial, &current));
+        let mut elapsed = 0.;
         for (i, h) in grid.intervals().enumerate() {
             if i > 0 {
                 for (id, f, t) in wrenches {
@@ -186,7 +250,30 @@ impl RapierBackend {
             let reach = h.as_secs_f64() * (current.speed.max(next.speed));
             let edge = current.edge.min(next.edge) - reach;
             let shank = current.height.min(next.height) - reach;
-            if edge <= 0. || shank <= 0. || !reach.is_finite() {
+            if let Some(before) = edge_shape {
+                let after = shape.edge_geometry(&trial, &next);
+                let spin = |s: &Sample| Vector::from(s.lo.angular_velocity).length();
+                let angular_travel = h.as_secs_f64() * spin(&current).max(spin(&next));
+                before.validate_sweep(after, reach, angular_travel, edge)?;
+                if shank <= 0. {
+                    shape.read_shank(
+                        &trial,
+                        c,
+                        [before, after],
+                        reach,
+                        elapsed + h.as_secs_f64(),
+                        &mut receipt.shank,
+                    )?;
+                } else if trial
+                    .normal_reaction_on(c.shank, c.floor)?
+                    .is_some_and(|r| r.magnitude > 0.)
+                {
+                    return Err(unsupported(
+                        "native shank reaction outside the reachable deck",
+                    ));
+                }
+                edge_shape = Some(after);
+            } else if edge <= 0. || shank <= 0. || !reach.is_finite() {
                 return Err(unsupported(
                     "coated ankle sweep reaches the deck rim or unresolved shank contact",
                 ));
@@ -199,11 +286,13 @@ impl RapierBackend {
             step.angular_impulse += contact.torque * t;
             step.normal_impulse += contact.normal_force * t;
             step.sliding_work += contact.sliding_power * t;
+            step.boundary_work += contact.boundary_power * t;
             step.dissipated_energy += contact.heat_power * t;
             step.peak_normal_force = step
                 .peak_normal_force
                 .max(contact.normal_force)
                 .max(next.contact.normal_force);
+            elapsed += t;
             current = next;
         }
         receipt.lower.contact = current.contact;
@@ -223,6 +312,8 @@ struct Sample {
     edge: f64,
     height: f64,
     speed: f64,
+    lo: BodyState,
+    hi: BodyState,
 }
 impl Shapes {
     fn sample(self, solver: &RapierBackend, c: CoatedAnkle) -> Result<Sample, PhysicsError> {
@@ -263,6 +354,8 @@ impl Shapes {
             edge,
             height,
             speed,
+            lo,
+            hi,
         })
     }
 }

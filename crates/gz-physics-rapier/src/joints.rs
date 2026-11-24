@@ -20,7 +20,7 @@ pub use landing_audit::{
     RestartPairHistory,
 };
 mod coated_ankle;
-pub use coated_ankle::{CoatedAnkle, CoatedAnkleStep};
+pub use coated_ankle::{CoatedAnkle, CoatedAnkleStep, ShankContact};
 mod exact_lock;
 mod parked_robot;
 pub(crate) mod parked_speed;

@@ -246,8 +246,8 @@ pub(crate) fn install(
             backend,
             [(foot, f), high, floor],
             *material,
-            controls.substeps,
-            controls.depth,
+            (controls.substeps, controls.depth),
+            controls.ankle_edge,
         );
     }
     let binding = match &controls.upper {
