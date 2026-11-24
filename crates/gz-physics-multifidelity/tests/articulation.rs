@@ -88,6 +88,10 @@ fn prescribed_articulation_drives_dynamic_contact_and_transfers_one_queued_force
     world
         .add_world_wrench(root, [0.0, 0.0, 20.0], [0.0; 3])
         .unwrap();
+    assert_eq!(
+        world.pending_world_wrench(root),
+        Some(([0., 0., 20.], [0.; 3]))
+    );
     for _ in 0..400 {
         world.step(DT).unwrap();
     }

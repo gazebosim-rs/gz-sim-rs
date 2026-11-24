@@ -45,6 +45,13 @@ struct Encoder<T> {
 }
 
 #[derive(Serialize)]
+struct LinkLoad {
+    id: u64,
+    world_force_n: [f64; 3],
+    world_torque_nm: [f64; 3],
+}
+
+#[derive(Serialize)]
 pub(super) struct State {
     command: usize,
     epoch: u64,
@@ -59,12 +66,16 @@ pub(super) struct State {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     wrists: Vec<Wrist>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    model_tiers: Vec<(u64, &'static str)>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     scalar_joints: Vec<Encoder<f64>>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     universal_joints: Vec<Encoder<[f64; 2]>>,
     /// Aggregate physical checks for qualification and fault isolation.
     pub(crate) held_targets: usize,
     pub(crate) pending_wrenches: usize,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    link_loads: Vec<LinkLoad>,
     imu_samples: usize,
     /// Native body IDs in ascending pair order, with summed normal impulse in N·s.
     pair_reactions_ns: Vec<(u64, u64, f64)>,
@@ -88,11 +99,12 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
     let mut physics = Signature::default();
     let mut inputs = Signature::default();
     let mut imu = Signature::default();
+    let mut model_tiers = Vec::new();
     let mut wrists = Vec::new();
     let mut scalar_joints = Vec::new();
     let mut universal_joints = Vec::new();
     let mut held_targets = 0;
-    let mut pending_wrenches = 0;
+    let mut link_loads = Vec::new();
     let mut imu_samples = 0;
     for &(id, e) in &entities {
         let bits = f64::to_bits;
@@ -103,7 +115,11 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         if e.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::Model) {
             use gz_sim_scene::{ArticulationTier, FidelityError, model_fidelity};
             match model_fidelity(sim, id) {
-                Ok(tier) => physics.item((id, "dynamic", tier == ArticulationTier::Dynamic)),
+                Ok(tier) => {
+                    let dynamic = tier == ArticulationTier::Dynamic;
+                    physics.item((id, "dynamic", dynamic));
+                    model_tiers.push((id, if dynamic { "dynamic" } else { "prescribed" }));
+                }
                 Err(FidelityError::NotSwitchable(_)) => {}
                 Err(error) => return Err(error.into()),
             }
@@ -171,8 +187,14 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
             held_targets += 1;
             inputs.item((id, bits(target)));
         }
-        if let Some((f, t)) = gz_sim_scene::pending_free_link_wrench(sim, id) {
-            pending_wrenches += 1;
+        if e.contains::<BodyHandle>()
+            && let Some((f, t)) = gz_sim_scene::pending_link_world_wrench(sim, id)
+        {
+            link_loads.push(LinkLoad {
+                id,
+                world_force_n: f,
+                world_torque_nm: t,
+            });
             inputs.item((id, f.map(bits), t.map(bits)));
         }
         if let Some(s) = e.get::<ImuSample>() {
@@ -246,11 +268,13 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         contacts: contacts.finish(),
         inputs: inputs.finish(),
         imu: imu.finish(),
+        model_tiers,
         wrists,
         scalar_joints,
         universal_joints,
         held_targets,
-        pending_wrenches,
+        pending_wrenches: link_loads.len(),
+        link_loads,
         imu_samples,
         pair_reactions_ns: reactions
             .into_iter()

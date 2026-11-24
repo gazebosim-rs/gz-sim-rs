@@ -48,6 +48,13 @@ struct Journal {
     commands: Vec<Command>,
 }
 
+#[derive(Clone, Copy, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum ReplayTier {
+    Prescribed,
+    Dynamic,
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 enum Command {
@@ -70,6 +77,15 @@ enum Command {
     BallTorque {
         joint: String,
         torque_nm: [f64; 3],
+    },
+    SetTier {
+        model: String,
+        tier: ReplayTier,
+    },
+    PointForce {
+        link: String,
+        point_in_link_m: [f64; 3],
+        world_force_n: [f64; 3],
     },
     Wrench {
         link: String,
@@ -197,6 +213,17 @@ impl Capture {
     }
 }
 
+fn original_wrench_link(sim: &Simulation, world: &sdformat::World, link: &str) -> Result<u64> {
+    if !world
+        .models
+        .iter()
+        .any(|model| !model.is_static && model.links.iter().any(|body| body.scoped_name == link))
+    {
+        return Err("one-step loads require a link of an original dynamic model".into());
+    }
+    entity_id(sim, link)
+}
+
 fn run(args: Args) -> Result<()> {
     let pool = ComputeTaskPool::get_or_init(|| {
         TaskPoolBuilder::new()
@@ -307,23 +334,34 @@ fn run(args: Args) -> Result<()> {
                 let id = entity_id(&sim, joint)?;
                 gz_sim_scene::queue_ball_joint_effort(&mut sim, id, *torque_nm)?;
             }
+            Command::SetTier { model, tier } => {
+                use gz_sim_scene::ArticulationTier;
+                let id = entity_id(&sim, model)?;
+                let tier = match tier {
+                    ReplayTier::Prescribed => ArticulationTier::Prescribed,
+                    ReplayTier::Dynamic => ArticulationTier::Dynamic,
+                };
+                gz_sim_scene::set_model_fidelity(&mut sim, id, tier)?;
+            }
+            Command::PointForce {
+                link,
+                point_in_link_m,
+                world_force_n,
+            } => {
+                let id = original_wrench_link(&sim, world, link)?;
+                gz_sim_scene::queue_link_force_at_point(
+                    &mut sim,
+                    id,
+                    *point_in_link_m,
+                    *world_force_n,
+                )?;
+            }
             Command::Wrench {
                 link,
                 force,
                 torque,
             } => {
-                let free =
-                    world.models.iter().any(|model| {
-                        !model.is_static
-                            && model.joints.is_empty()
-                            && model.links.as_slice().first().is_some_and(|body| {
-                                model.links.len() == 1 && body.scoped_name == *link
-                            })
-                    });
-                if !free {
-                    return Err("the profile supports one-shot wrenches only on ordinary free links in the original world".into());
-                }
-                let id = entity_id(&sim, link)?;
+                let id = original_wrench_link(&sim, world, link)?;
                 gz_sim_scene::queue_link_world_wrench(&mut sim, id, *force, *torque)?;
             }
             Command::Spawn {

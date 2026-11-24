@@ -144,6 +144,19 @@ impl RapierBackend {
         Ok(())
     }
 
+    /// Queued force at the center of mass and torque in world axes. A parked
+    /// articulation holds these until promotion. Zero still denotes a queued input.
+    pub fn pending_world_wrench(&self, id: BodyId) -> Option<([f64; 3], [f64; 3])> {
+        if let Some((force, torque)) = self.held_wrenches.get(&id) {
+            return Some((force.to_array(), torque.to_array()));
+        }
+        if !self.pending_wrenches.contains(&id) {
+            return None;
+        }
+        let body = &self.world.bodies[self.bodies.get(&id)?.0];
+        Some((body.user_force().to_array(), body.user_torque().to_array()))
+    }
+
     pub(super) fn hold_wrench(
         &mut self,
         id: BodyId,

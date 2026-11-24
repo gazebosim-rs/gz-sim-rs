@@ -51,6 +51,23 @@ pub fn pending_free_link_wrench(sim: &Simulation, id: u64) -> Option<([f64; 3], 
         .wrench
 }
 
+/// Accumulated force and torque for a local link's next advancing solve, in world axes.
+pub fn pending_link_world_wrench(sim: &Simulation, id: u64) -> Option<([f64; 3], [f64; 3])> {
+    let world = sim.world();
+    let entity = entity_by_id(world, id)?;
+    if let Some(wrench) = world
+        .get::<PendingInput>(entity)
+        .and_then(|pending| pending.wrench)
+    {
+        return Some(wrench);
+    }
+    let handle = world.get::<BodyHandle>(entity)?;
+    world
+        .get_resource::<PhysicsBackend>()?
+        .downcast_ref::<gz_physics_multifidelity::MultiFidelityBackend>()?
+        .pending_world_wrench(handle.id())
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum InputError {
     #[error("input contains a nonfinite value or accumulated wrench overflow")]

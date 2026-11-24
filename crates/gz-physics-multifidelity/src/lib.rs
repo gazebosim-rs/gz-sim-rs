@@ -570,6 +570,11 @@ impl MultiFidelityBackend {
         RapierBackend::moving_solver_substeps()
     }
 
+    /// A link's queued world-frame wrench, including one held for a parked articulation.
+    pub fn pending_world_wrench(&self, id: BodyId) -> Option<([f64; 3], [f64; 3])> {
+        self.solver.pending_world_wrench(id)
+    }
+
     /// Accumulated one-step torque on a resident native joint.
     pub fn pending_joint_effort(&self, id: JointId) -> Option<f64> {
         self.solver.pending_joint_effort(id)

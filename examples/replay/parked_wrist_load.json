@@ -1,0 +1,86 @@
+{
+  "seed": "parked-load-v1",
+  "commands": [
+    {
+      "op": "step",
+      "count": 1
+    },
+    {
+      "op": "set_tier",
+      "model": "default::wrist",
+      "tier": "prescribed"
+    },
+    {
+      "op": "step",
+      "count": 250
+    },
+    {
+      "op": "point_force",
+      "link": "default::wrist::tool",
+      "point_in_link_m": [
+        0.1,
+        0,
+        0
+      ],
+      "world_force_n": [
+        0,
+        120,
+        0
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "set_tier",
+      "model": "default::wrist",
+      "tier": "dynamic"
+    },
+    {
+      "op": "step",
+      "count": 180
+    },
+    {
+      "op": "reset"
+    },
+    {
+      "op": "step",
+      "count": 1
+    },
+    {
+      "op": "set_tier",
+      "model": "default::wrist",
+      "tier": "prescribed"
+    },
+    {
+      "op": "step",
+      "count": 250
+    },
+    {
+      "op": "point_force",
+      "link": "default::wrist::tool",
+      "point_in_link_m": [
+        0.1,
+        0,
+        0
+      ],
+      "world_force_n": [
+        0,
+        120,
+        0
+      ]
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "set_tier",
+      "model": "default::wrist",
+      "tier": "dynamic"
+    },
+    {
+      "op": "step",
+      "count": 180
+    }
+  ]
+}

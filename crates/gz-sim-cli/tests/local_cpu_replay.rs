@@ -247,8 +247,8 @@ fn unsupported_profiles_and_invalid_lifecycle_requests_fail() {
         (json!([spawn, spawn]), "duplicate live"),
         (json!([{"op":"remove","alias":"absent"}]), "unknown live"),
         (
-            json!([{"op":"wrench","link":"default::gripper::palm","force":[0,0,1],"torque":[0,0,0]}]),
-            "only on ordinary free links",
+            json!([{"op":"wrench","link":"default::stand::post","force":[0,0,1],"torque":[0,0,0]}]),
+            "original dynamic model",
         ),
     ] {
         let j = file(
@@ -536,5 +536,119 @@ fn tilted_curved_shapes_hit_at_their_own_support_height_and_bundle_their_surface
             bytes,
             fs::read(archive.join("epoch-1").join(route)).unwrap()
         );
+    }
+}
+
+#[test]
+fn a_point_load_uses_the_live_link_frame_and_is_retained_through_pause() {
+    let tmp = tempfile::tempdir().unwrap();
+    let d = tmp.path();
+    let xml = file(
+        d,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/gravity_wrist.sdf"),
+    );
+    let source = include_str!("../../../examples/replay/off_center_wrist_load.json");
+    let cmd = file(d, "loads.json", source);
+    let rec = d.join("take");
+    let rows = success(run(&xml, &cmd, &["--record", rec.to_str().unwrap()]));
+    assert_eq!(rows, success(run(&xml, &cmd, &["--threads", "8"])));
+    let frames: Vec<Value> = fs::read_to_string(rec.join("epoch-0/frames.jsonl"))
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str::<Value>(line).unwrap())
+        .filter(|line| line["kind"] == "frame")
+        .map(|line| serde_json::from_str(line["scene"].as_str().unwrap()).unwrap())
+        .collect();
+    let mut converted: Value = serde_json::from_str(source).unwrap();
+    for (command, step) in [(1usize, 0u64), (4, 160), (6, 320), (9, 0)] {
+        let sample = record(&rows, command as u64, step);
+        let load = &sample["link_loads"][0];
+        let force: [f64; 3] = serde_json::from_value(load["world_force_n"].clone()).unwrap();
+        let torque: [f64; 3] = serde_json::from_value(load["world_torque_nm"].clone()).unwrap();
+        let scene = frames
+            .iter()
+            .find(|frame| frame["nanoseconds"] == step * 1_000_000)
+            .unwrap();
+        let weight = scene["visuals"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|v| v["name"] == "default::held::payload::weight")
+            .unwrap();
+        let q =
+            glam::DQuat::from_array(serde_json::from_value(weight["rotation"].clone()).unwrap());
+        let lever = glam::DVec3::new(0.1, -0.1, 0.05);
+        assert!(((q * lever).cross(force.into()) - glam::DVec3::from(torque)).length() < 1e-12);
+        converted["commands"][command - 1] =
+            json!({"op":"wrench","link":"default::held::payload","force":force,"torque":torque});
+    }
+    let reference = file(d, "world-loads.json", &converted.to_string());
+    let explicit = success(run(&xml, &reference, &[]));
+    for (a, b) in rows[1..].iter().zip(&explicit[1..]) {
+        shared(a, b, STATE);
+    }
+    shared(record(&rows, 1, 0), record(&rows, 2, 0), STATE);
+    assert_eq!(record(&rows, 1, 0)["pending_wrenches"], 1);
+    assert_eq!(record(&rows, 3, 1)["pending_wrenches"], 0);
+    assert_ne!(
+        record(&rows, 1, 0)["link_loads"][0]["world_torque_nm"],
+        record(&rows, 4, 160)["link_loads"][0]["world_torque_nm"]
+    );
+    assert_eq!(
+        record(&rows, 7, 320)["link_loads"][0]["world_force_n"],
+        json!([0., 0., 0.])
+    );
+    assert_eq!(record(&rows, 8, 0)["pending_wrenches"], 0);
+    for i in 1..=160 {
+        shared(record(&rows, 3, i), record(&rows, 11, i), STATE);
+    }
+}
+
+#[test]
+fn a_load_wakes_the_parked_wrist_and_reaches_its_first_dynamic_solve() {
+    let tmp = tempfile::tempdir().unwrap();
+    let d = tmp.path();
+    let xml = file(
+        d,
+        "hanging.sdf",
+        include_str!("../../../examples/worlds/local_hanging_ball_wrist.sdf"),
+    );
+    let source = include_str!("../../../examples/replay/parked_wrist_load.json");
+    let normal = file(d, "parked.json", source);
+    let rows = success(run(&xml, &normal, &[]));
+    let mut control: Value = serde_json::from_str(source).unwrap();
+    control["commands"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|c| c["op"] != "set_tier");
+    let free = success(run(
+        &xml,
+        &file(d, "dynamic.json", &control.to_string()),
+        &[],
+    ));
+    assert_eq!(record(&rows, 3, 251)["model_tiers"][0][1], "prescribed");
+    let queued = record(&rows, 4, 251);
+    assert_eq!(queued["model_tiers"][0][1], "dynamic");
+    shared(queued, record(&rows, 5, 251), STATE);
+    assert_eq!(
+        queued["link_loads"][0]["world_force_n"],
+        json!([0., 120., 0.])
+    );
+    let initial = record(&rows, 7, 252);
+    assert_eq!(initial["pending_wrenches"], 0);
+    let expected = record(&free, 5, 252);
+    for i in 0..3 {
+        let velocity = |s: &Value| {
+            s["wrists"][0]["angular_velocity_rad_s"][i]
+                .as_f64()
+                .unwrap()
+        };
+        assert!(
+            (velocity(initial) - velocity(expected)).abs() < 1e-12 && velocity(initial).abs() > 0.1
+        );
+    }
+    for i in 252..=431 {
+        shared(record(&rows, 7, i), record(&rows, 15, i), STATE);
     }
 }
