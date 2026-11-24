@@ -11,6 +11,7 @@ mod continuous_collision;
 pub mod damped_sole;
 pub mod deformable;
 pub mod fidelity_zone;
+mod flat_publication;
 mod free_rotation;
 mod grasp_fleet_sdf;
 pub mod grasp_guard;
@@ -1063,6 +1064,9 @@ fn load_world_with_automatic_owner(
         is_static: false,
         topic: format!("/world/{world_name}"),
     };
+    let dense_local_fleet = engine == PhysicsEngine::MultiFidelity
+        && distributed_worker.is_none()
+        && world.models.len() >= PARALLEL_POSE_ROWS;
     for model in &world.models {
         build_model(&sdf, model, &mut context, &parent, &mut sim, &mut backend)?;
     }
@@ -1246,16 +1250,20 @@ fn load_world_with_automatic_owner(
         None if engine == PhysicsEngine::Tpe => tpe::install(&mut sim)?,
         None => {}
     }
-    sim.add_systems(
-        Phase::PhysicsCommit,
-        (sync_models, sync_local_poses, sync_attached_poses).chain(),
-    );
-    sim.add_systems(
-        Phase::Reset,
-        (sync_models, sync_local_poses, sync_attached_poses)
-            .chain()
-            .after(PhysicsReset),
-    );
+    if dense_local_fleet {
+        flat_publication::install(&mut sim);
+    } else {
+        sim.add_systems(
+            Phase::PhysicsCommit,
+            (sync_models, sync_local_poses, sync_attached_poses).chain(),
+        );
+        sim.add_systems(
+            Phase::Reset,
+            (sync_models, sync_local_poses, sync_attached_poses)
+                .chain()
+                .after(PhysicsReset),
+        );
+    }
     imu_lifecycle::install(&mut sim);
     lidar::install(&mut sim);
     altimeter::install(&mut sim);
@@ -2389,8 +2397,10 @@ fn spawn_node(
 
 // These queries have only archetypal filters. Counting their matching tables
 // avoids starting a task pool or dispatching small scenes on worker threads.
+const PARALLEL_POSE_ROWS: usize = 8192;
+
 fn parallel_pose_updates(rows: usize) -> bool {
-    rows >= 8192
+    rows >= PARALLEL_POSE_ROWS
         && bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::new).thread_num() > 1
 }
 
