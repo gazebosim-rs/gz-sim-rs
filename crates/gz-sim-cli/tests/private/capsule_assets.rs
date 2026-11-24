@@ -85,3 +85,32 @@ fn capsule_resource_limits_and_invalid_geometry_are_enforced_before_serving() {
     assert!(Assets::new(&scene(&visual("invalid", 1e-20, 1., palette))).is_err());
     assert!(Assets::new(&scene(&visual("glass", 0.02, 0.1, "1 1 1 0.4"))).is_err());
 }
+
+#[test]
+fn snapshot_rejects_a_capsule_that_changed_after_resource_capture() {
+    let mut sim = scene(&visual("tip", 0.02, 0.10, "0.3 0.2 0.1 1"));
+    let admitted = Assets::new(&sim).unwrap().unwrap();
+    let visual = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.contains::<VisualGeometry>())
+        .unwrap()
+        .id();
+    sim.world_mut()
+        .entity_mut(visual)
+        .insert(VisualGeometry(Arc::new(sdformat::Geometry::Capsule {
+            radius: 0.03,
+            length: 0.10,
+        })));
+    let error = extract_with_assets(&sim, "default", 0, Some(&admitted))
+        .err()
+        .unwrap();
+    assert!(
+        error
+            .to_string()
+            .contains("outside the admitted asset snapshot")
+    );
+    assert_eq!(admitted.snapshot().files().len(), 1);
+    let updated = Assets::new(&sim).unwrap().unwrap();
+    assert!(extract_with_assets(&sim, "default", 0, Some(&updated)).is_ok());
+}
