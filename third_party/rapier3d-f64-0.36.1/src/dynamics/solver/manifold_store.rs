@@ -2,7 +2,9 @@
 
 use crate::data::graph::Edge;
 use crate::dynamics::solver::solver_contact_graph::ContactRef;
-use crate::geometry::{ContactManifold, ContactPair, PairContacts, RigidPairContacts};
+use crate::geometry::{
+    ColliderHandle, ContactManifold, ContactPair, PairContacts, RigidPairContacts,
+};
 
 /// The contact graph's edge-array pointer and length, type-erased (the pointer is held as a
 /// `usize` so the value stays `Send` and holdable across a later exclusive narrow-phase borrow)
@@ -120,6 +122,15 @@ impl<'a> ManifoldStore<'a> {
             );
             (*vec).as_mut_ptr().add(r.manifold as usize)
         }
+    }
+
+    /// The colliders of this contact, including on bodies with multiple colliders.
+    #[inline]
+    pub(crate) fn collider_handles(&self, r: ContactRef) -> [ColliderHandle; 2] {
+        let pair = self.pair_ptr(r.edge);
+        // SAFETY: the handles are immutable in the solver scope. Copying these
+        // two fields does not borrow the pair's independently writable manifolds.
+        unsafe { [(*pair).collider1, (*pair).collider2] }
     }
 
     /// Resolves a manifold for reading.

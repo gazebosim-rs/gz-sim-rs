@@ -370,3 +370,7 @@ impl Construction {
 #[cfg(test)]
 #[path = "../../tests/private/mounted_guide.rs"]
 mod mounted_guide_tests;
+
+#[cfg(test)]
+#[path = "../../tests/private/tilted_pad.rs"]
+mod tilted_pad;

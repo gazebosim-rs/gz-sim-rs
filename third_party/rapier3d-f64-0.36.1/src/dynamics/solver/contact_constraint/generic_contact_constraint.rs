@@ -1,6 +1,6 @@
 use crate::dynamics::solver::GenericRhs;
 use crate::dynamics::{IntegrationParameters, MultibodyJointSet, RigidBodySet};
-use crate::geometry::ContactManifold;
+use crate::geometry::{ColliderHandle, ColliderSet, ContactManifold};
 #[cfg(feature = "dim3")]
 use crate::math::TangentImpulse;
 use crate::math::{DIM, DVector, MAX_MANIFOLD_POINTS, Real};
@@ -19,6 +19,7 @@ use parry::math::Vector;
 #[derive(Copy, Clone)]
 pub(crate) struct GenericContactConstraintBuilder {
     infos: [CoulombContactPointInfos<Real>; MAX_MANIFOLD_POINTS],
+    pad_sites: u8,
     handle1: RigidBodyHandle,
     handle2: RigidBodyHandle,
 }
@@ -27,6 +28,7 @@ impl GenericContactConstraintBuilder {
     pub fn invalid() -> Self {
         Self {
             infos: [CoulombContactPointInfos::default(); MAX_MANIFOLD_POINTS],
+            pad_sites: 0,
             handle1: RigidBodyHandle::invalid(),
             handle2: RigidBodyHandle::invalid(),
         }
@@ -34,8 +36,10 @@ impl GenericContactConstraintBuilder {
 
     pub fn generate(
         manifold_id: ContactRef,
-        manifold: &ContactManifold,
+        manifold: &mut ContactManifold,
+        collider_handles: [ColliderHandle; 2],
         bodies: &RigidBodySet,
+        colliders: &ColliderSet,
         multibodies: &MultibodyJointSet,
         out_builder: &mut GenericContactConstraintBuilder,
         out_constraint: &mut GenericContactConstraint,
@@ -157,6 +161,25 @@ impl GenericContactConstraintBuilder {
         out_constraint.solver_vel2 = solver_vel2;
         out_constraint.manifold_id = manifold_id;
         out_constraint.num_contacts = manifold_points.len() as u8;
+        // A whole clipped box face supplies four material sites. Dropping an
+        // unloaded corner outside the narrow-phase prediction margin must not
+        // redistribute its spring or dashpot onto the remaining corners.
+        // Other geometries, reduced polygons and custom contact sets retain
+        // their solver-selected quadrature.
+        let box_face = out_constraint.sqrt_pad_stiffness.is_some()
+            && manifold.points.len() == 4
+            && collider_handles.iter().all(|handle| {
+                let collider = &colliders[*handle];
+                collider.shape().as_cuboid().is_some()
+                    && !collider
+                        .active_hooks()
+                        .contains(crate::pipeline::ActiveHooks::MODIFY_SOLVER_CONTACTS)
+            });
+        out_builder.pad_sites = if box_face {
+            4
+        } else {
+            out_constraint.num_contacts
+        };
         #[cfg(feature = "dim3")]
         {
             out_constraint.tangent1 = tangents1[0];
@@ -173,7 +196,37 @@ impl GenericContactConstraintBuilder {
             let dist = (p1 - p2).dot(force_dir1);
 
             let cid = (manifold_point.contact_id[0] & !crate::geometry::NEW_CONTACT_BIT) as usize;
-            let pt_data = &manifold.points[cid].data;
+            let site = &mut manifold.points[cid];
+            if box_face && manifold.data.friction == 0.0 {
+                // A tracked vertex slides along its opposing face. Use the
+                // vertex's current line of action, even when the face witness
+                // was retained from an earlier tilt. Keep the native normal
+                // midpoint and the same applied arms for impulse readout.
+                let surface_point = if site.fid1.is_vertex() && site.fid2.is_face() {
+                    Some(p1 - force_dir1 * (dist * 0.5))
+                } else if site.fid2.is_vertex() && site.fid1.is_face() {
+                    Some(p2 + force_dir1 * (dist * 0.5))
+                } else {
+                    None
+                };
+                if let Some(point) = surface_point {
+                    site.data.solver_dp1 = if manifold.data.relative_dominance > 0
+                        || manifold.data.rigid_body1.is_none()
+                    {
+                        point
+                    } else {
+                        point - mprops1.world_com
+                    };
+                    site.data.solver_dp2 = if manifold.data.relative_dominance < 0
+                        || manifold.data.rigid_body2.is_none()
+                    {
+                        point
+                    } else {
+                        point - mprops2.world_com
+                    };
+                }
+            }
+            let pt_data = &site.data;
 
             // World-space lever arms frozen at the pair's last full narrow-phase update
             // (anchor freezing, `ContactData::solver_dp1`); a world-attached side's
@@ -493,11 +546,11 @@ impl GenericContactConstraintBuilder {
                 if let Some(sqrt_k) = constraint.sqrt_pad_stiffness {
                     // Split both the spring and damper equally among the manifold
                     // points. Their ratio (ERP) is unchanged, while each row has
-                    // num_contacts times the full pad's compliance.
+                    // one quadrature site's share of the full pad stiffness.
                     let dt_omega = (sqrt_k * params.dt) / normal_part.r.sqrt();
                     let twice_zeta = 2.0 * softness.damping_ratio;
                     normal_erp = inv_dt / (1.0 + twice_zeta / dt_omega.max(Real::MIN_POSITIVE));
-                    let rows = Real::from(constraint.num_contacts);
+                    let rows = Real::from(self.pad_sites);
                     normal_part.cfm_factor =
                         1.0 / (1.0 + rows * dt_omega.recip() / (dt_omega + twice_zeta));
                 }

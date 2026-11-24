@@ -20,6 +20,7 @@ impl ContactConstraintsSet {
     pub(super) fn compute_generic_constraints(
         &mut self,
         bodies: &RigidBodySet,
+        colliders: &crate::geometry::ColliderSet,
         multibody_joints: &MultibodyJointSet,
         graph: &SolverContactGraph,
         store: &ManifoldStore,
@@ -35,11 +36,15 @@ impl ContactConstraintsSet {
             .resize(total_num_constraints, GenericContactConstraint::invalid());
 
         for (curr_id, r) in generic.iter().enumerate() {
-            let manifold = store.get(*r);
+            let collider_handles = store.collider_handles(*r);
+            // SAFETY: serial preparation visits each generic manifold once.
+            let manifold = unsafe { store.get_mut(*r) };
             GenericContactConstraintBuilder::generate(
                 *r,
                 manifold,
+                collider_handles,
                 bodies,
+                colliders,
                 multibody_joints,
                 &mut self.generic_velocity_constraints_builder[curr_id],
                 &mut self.generic_velocity_constraints[curr_id],
