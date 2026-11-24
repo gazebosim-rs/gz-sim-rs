@@ -55,6 +55,15 @@ enum ReplayTier {
     Dynamic,
 }
 
+/// Startup links use their scoped SDF name. A live alias identifies the single
+/// link belonging to that particular spawned instance.
+#[derive(Deserialize, Serialize)]
+#[serde(untagged, deny_unknown_fields)]
+enum LoadLink {
+    Authored(String),
+    Spawned { alias: String },
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 enum Command {
@@ -95,12 +104,12 @@ enum Command {
         tier: ReplayTier,
     },
     PointForce {
-        link: String,
+        link: LoadLink,
         point_in_link_m: [f64; 3],
         world_force_n: [f64; 3],
     },
     Wrench {
-        link: String,
+        link: LoadLink,
         force: [f64; 3],
         torque: [f64; 3],
     },
@@ -225,11 +234,35 @@ impl Capture {
     }
 }
 
-fn original_wrench_link(sim: &Simulation, world: &sdformat::World, link: &str) -> Result<u64> {
+fn wrench_link(
+    sim: &Simulation,
+    world: &sdformat::World,
+    aliases: &BTreeMap<String, u64>,
+    link: &LoadLink,
+) -> Result<u64> {
+    let link = match link {
+        LoadLink::Authored(name) => name,
+        LoadLink::Spawned { alias } => {
+            let id = aliases
+                .get(alias)
+                .ok_or_else(|| format!("unknown live alias {alias}"))?;
+            let world = sim.world();
+            let model = gz_sim_core::entity_by_id(world, *id).ok_or("spawned model missing")?;
+            let children = world.get::<bevy_ecs::hierarchy::Children>(model);
+            let Some([body]) = children.map(|nodes| &nodes[..]) else {
+                return Err("spawned template must own exactly one link".into());
+            };
+            return Ok(world
+                .entity(*body)
+                .get::<EntityId>()
+                .ok_or("spawned link missing")?
+                .get());
+        }
+    };
     if !world
         .models
         .iter()
-        .any(|model| !model.is_static && model.links.iter().any(|body| body.scoped_name == link))
+        .any(|model| !model.is_static && model.links.iter().any(|body| body.scoped_name == *link))
     {
         return Err("one-step loads require a link of an original dynamic model".into());
     }
@@ -395,7 +428,7 @@ fn run(args: Args) -> Result<()> {
                 point_in_link_m,
                 world_force_n,
             } => {
-                let id = original_wrench_link(&sim, world, link)?;
+                let id = wrench_link(&sim, world, &aliases, link)?;
                 gz_sim_scene::queue_link_force_at_point(
                     &mut sim,
                     id,
@@ -408,7 +441,7 @@ fn run(args: Args) -> Result<()> {
                 force,
                 torque,
             } => {
-                let id = original_wrench_link(&sim, world, link)?;
+                let id = wrench_link(&sim, world, &aliases, link)?;
                 gz_sim_scene::queue_link_world_wrench(&mut sim, id, *force, *torque)?;
             }
             Command::Spawn {

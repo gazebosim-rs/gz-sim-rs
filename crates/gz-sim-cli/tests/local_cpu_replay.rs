@@ -737,3 +737,106 @@ fn the_first_heading_command_wakes_a_hanging_wrist_before_the_native_solve() {
     let end = quaternion(&record(&parked, 5, 851)["wrists"][0]["orientation_xyzw"]);
     assert!(goal.angle_between(end).abs() < 1e-6);
 }
+
+#[test]
+fn live_parcel_alias_load_matches_a_wrench_and_leaves_its_twin_undisturbed() {
+    let scratch = tempfile::tempdir().unwrap();
+    let dir = scratch.path();
+    let world = file(dir, "bench.sdf", XML);
+    let input = include_str!("../../../examples/replay/spawned_parcel_load.json");
+    let journal = file(dir, "point.json", input);
+    let archive = dir.join("point");
+    let rows = success(run(
+        &world,
+        &journal,
+        &["--record", archive.to_str().unwrap()],
+    ));
+    let queued = record(&rows, 3, 0);
+    assert_eq!(queued["pending_wrenches"], 1);
+    assert_eq!(
+        queued["link_loads"][0]["world_torque_nm"],
+        json!([0., 0., -1.2])
+    );
+    shared(queued, record(&rows, 4, 0), STATE);
+    assert_eq!(record(&rows, 5, 1)["pending_wrenches"], 0);
+
+    let source: Value = serde_json::from_str(input).unwrap();
+    let wrench = altered(dir, &source, "wrench.json", |j| {
+        j["commands"][2] =
+            json!({"op":"wrench","link":{"alias":"pushed"},"force":[60,0,0],"torque":[0,0,-1.2]});
+    });
+    let equivalent = success(run(&world, &wrench, &["--threads", "8"]));
+    assert_eq!(rows[1..], equivalent[1..]);
+
+    let frames = fs::read_to_string(archive.join("epoch-0/frames.jsonl")).unwrap();
+    let frame = frames
+        .lines()
+        .map(|s| serde_json::from_str::<Value>(s).unwrap())
+        .filter_map(|r| serde_json::from_str::<Value>(r["scene"].as_str()?).ok())
+        .find(|s| s["nanoseconds"] == 100_000_000)
+        .unwrap();
+    let mut parcels = frame["visuals"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|v| v["name"].as_str().unwrap().contains("::runtime_"));
+    let pushed = parcels.next().unwrap();
+    let control = parcels.next().unwrap();
+    assert!(parcels.next().is_none());
+    assert_eq!(control["translation"][0], -0.15);
+    assert_eq!(control["rotation"], json!([0., 0., 0., 1.]));
+    assert_eq!(pushed["translation"][2], control["translation"][2]);
+    // One millisecond at 60 N on 0.2 kg gives 0.3 m/s. The finite
+    // impulse spans the first millisecond, followed by horizontal coasting.
+    let x = pushed["translation"][0].as_f64().unwrap();
+    assert!((x + 0.15 - 0.3 * 0.0995).abs() < 0.00005);
+    let yaw = 2.
+        * pushed["rotation"][2]
+            .as_f64()
+            .unwrap()
+            .atan2(pushed["rotation"][3].as_f64().unwrap());
+    let predicted = -1.2 * 0.001 / 0.00013 * 0.0995;
+    assert!((yaw - predicted).abs() < 0.001);
+}
+
+#[test]
+fn removing_or_resetting_a_loaded_clone_clears_its_alias_and_pending_input() {
+    let scratch = tempfile::tempdir().unwrap();
+    let dir = scratch.path();
+    let world = file(dir, "robot.sdf", XML);
+    let spawn = json!({"op":"spawn","template":"default::parcel","alias":"delivery","position":[0.15,0.1,0.62]});
+    let force = json!({"op":"point_force","link":{"alias":"delivery"},"point_in_link_m":[0,0,0],"world_force_n":[5,0,0]});
+    for retire in [
+        json!({"op":"remove","alias":"delivery"}),
+        json!({"op":"reset"}),
+    ] {
+        let journal = |ops: Vec<Value>| {
+            file(
+                dir,
+                "journal.json",
+                &json!({"seed":"reuse","commands":ops}).to_string(),
+            )
+        };
+        let commands = vec![
+            spawn.clone(),
+            force.clone(),
+            retire.clone(),
+            spawn.clone(),
+            json!({"op":"step","count":1}),
+        ];
+        let pushed = success(run(&world, &journal(commands.clone()), &[]));
+        let mut control = commands;
+        control[1] = json!({"op":"paused_tick"});
+        let untouched = success(run(&world, &journal(control), &[]));
+        assert_eq!(record(&pushed, 2, 0)["pending_wrenches"], 1);
+        assert_eq!(record(&pushed, 4, 0)["pending_wrenches"], 0);
+        shared(record(&pushed, 5, 1), record(&untouched, 5, 1), STATE);
+        let stale = run(
+            &world,
+            &journal(vec![spawn.clone(), retire, force.clone()]),
+            &[],
+        );
+        assert!(!stale.status.success());
+        assert!(String::from_utf8_lossy(&stale.stderr).contains("unknown live alias delivery"));
+    }
+}
