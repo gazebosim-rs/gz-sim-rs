@@ -197,3 +197,6 @@ mod mesh_payload;
 
 #[path = "contact_cohort_operator.rs"]
 mod contact_cohort;
+
+#[path = "recorded_parcel_state.rs"]
+mod recorded_parcel_state;

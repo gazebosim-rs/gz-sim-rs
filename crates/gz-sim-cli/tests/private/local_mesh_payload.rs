@@ -175,3 +175,115 @@ fn replay_serves_the_moving_robot_payload_after_source_retirement() {
         impact.0
     );
 }
+
+/// A local copy can arrive piecemeal. No replay listener or scene should be
+/// advertised until both the physics stream and all named shapes are intact.
+#[test]
+fn restoring_the_named_recording_files_reopens_the_original_robot_landing() {
+    let source = tempfile::tempdir().unwrap();
+    let work = tempfile::tempdir().unwrap();
+    let path = source.path().join("drop.sdf");
+    std::fs::write(&path, drop_world()).unwrap();
+    std::fs::write(source.path().join("marker.obj"), OBJ).unwrap();
+    let archive = work.path().join("capture");
+    record(&path, &archive, TICKS, 1_000_000);
+    source.close().unwrap();
+
+    let manifest_path = archive.join("manifest.json");
+    let manifest_bytes = std::fs::read(&manifest_path).unwrap();
+    let manifest: Value = serde_json::from_slice(&manifest_bytes).unwrap();
+    let route = manifest["assets"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|asset| asset["route"].as_str())
+        .find(|route| route.ends_with("/marker.obj.glb"))
+        .unwrap();
+    let name = route.strip_prefix('/').unwrap();
+    let mesh_path = archive.join(name);
+    let original = std::fs::read(&mesh_path).unwrap();
+    let stream_path = archive.join("frames.jsonl");
+    let stream = std::fs::read(&stream_path).unwrap();
+
+    // Holding the listener also makes checking that admission precedes the
+    // bind deterministic even if a partial archive is accidentally accepted.
+    let occupied = std::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+    let port = occupied.local_addr().unwrap().port().to_string();
+    let refuse = |file: &str, reason: &str| {
+        let result = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+            .arg(&archive)
+            .args(["--server", "--web-viewer", &port, "--replay"])
+            .output()
+            .unwrap();
+        let err = String::from_utf8(result.stderr).unwrap();
+        assert_eq!(result.status.code(), Some(1));
+        assert!(result.stdout.is_empty());
+        assert!(err.contains(file) && err.contains(reason), "{err}");
+        assert!(!err.contains("read-only playback"), "{err}");
+    };
+    std::fs::remove_file(&manifest_path).unwrap();
+    refuse("manifest.json", "No such file");
+    std::fs::write(&manifest_path, b"{").unwrap();
+    refuse("manifest.json", "EOF");
+    std::fs::write(&manifest_path, &manifest_bytes).unwrap();
+    std::fs::remove_file(&mesh_path).unwrap();
+    refuse(name, "No such file");
+    let mut changed = original.clone();
+    *changed.last_mut().unwrap() ^= 1;
+    std::fs::write(&mesh_path, changed).unwrap();
+    refuse(name, "SHA-256");
+    std::fs::write(&mesh_path, &original).unwrap();
+    std::fs::write(&stream_path, &stream[..stream.len() - 1]).unwrap();
+    refuse("frames.jsonl", "recorded bytes");
+    std::fs::write(&stream_path, &stream).unwrap();
+    assert_eq!(std::fs::read(&manifest_path).unwrap(), manifest_bytes);
+
+    let (mut process, mut socket) = player(&archive);
+    let mut frame = read_tuple(&mut socket, "publication_credit");
+    let origin = frame[0]["visuals"].clone();
+    let marker = |scene: &Value| {
+        scene["visuals"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|v| v["name"] == MARKER)
+            .unwrap()
+            .clone()
+    };
+    assert_eq!(
+        mesh_bytes(marker(&frame[0])["shape"]["uri"].as_str().unwrap()),
+        original
+    );
+    let command = |socket: &mut WebSocket<TcpStream>, id: u64, action: &str| {
+        socket
+            .send(Message::text(
+                json!({"version":1,"kind":"control","request_id":id,"action":action}).to_string(),
+            ))
+            .unwrap();
+        read_tuple(socket, "ack")
+    };
+    let start_z = marker(&frame[0])["translation"][2].as_f64().unwrap();
+    assert_eq!(command(&mut socket, 1, "resume")[3]["ok"], true);
+    while frame[2]["finished"] == false {
+        socket
+            .send(Message::text(
+                json!({"version":1,"kind":"publication_ready","token":frame[3]["token"]})
+                    .to_string(),
+            ))
+            .unwrap();
+        frame = read_tuple(&mut socket, "publication_credit");
+    }
+    assert_eq!(frame[2]["recorded_nanoseconds"], TICKS * 1_000_000);
+    assert!(start_z - marker(&frame[0])["translation"][2].as_f64().unwrap() > 0.055);
+    let eof = command(&mut socket, 2, "resume");
+    assert_eq!(eof[3]["ok"], false);
+    assert_eq!(eof[0]["visuals"], frame[0]["visuals"]);
+    let reset = command(&mut socket, 3, "reset");
+    assert_eq!(reset[3]["ok"], true);
+    assert_eq!(reset[2]["recorded_nanoseconds"], 0);
+    assert_eq!(reset[0]["visuals"], origin);
+    socket.close(None).unwrap();
+    let pid = rustix::process::Pid::from_child(process.0.as_ref().unwrap());
+    rustix::process::kill_process(pid, rustix::process::Signal::TERM).unwrap();
+    assert!(process.wait(TIMEOUT).status.success());
+}

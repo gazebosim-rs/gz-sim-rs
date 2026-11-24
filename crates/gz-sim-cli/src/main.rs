@@ -36,7 +36,7 @@ struct Args {
     /// Fail loading if resource warnings exceed this budget.
     #[arg(long, default_value_t = 1024)]
     max_resource_warnings: usize,
-    #[arg(long, default_value = "rapier", value_parser = parse_engine)]
+    #[arg(long, default_value = "rapier", value_parser = parse_engine, conflicts_with = "replay")]
     physics_engine: PhysicsEngine,
     /// Resolve friction at each contact point in local Rapier, local multi-fidelity or a three- to eight-worker pool.
     #[arg(long, conflicts_with = "replay")]
@@ -186,10 +186,8 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         return Err("--rapier-per-point-friction requires local Rapier, local multi-fidelity or three to eight distributed workers".into());
     }
     if args.replay {
-        if args.world != "default" || args.physics_engine != PhysicsEngine::Rapier {
-            return Err(
-                "--replay accepts the recorded default world and no backend selection".into(),
-            );
+        if args.world != "default" {
+            return Err("--replay accepts the recorded default world".into());
         }
         return live::replay(
             &args.file,

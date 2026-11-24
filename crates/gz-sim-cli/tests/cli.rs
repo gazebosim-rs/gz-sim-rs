@@ -672,3 +672,64 @@ fn local_worker_count_requires_a_distributed_engine_and_an_admitted_width() {
             .contains("--physics-workers requires --physics-engine distributed")
     );
 }
+
+#[test]
+fn recording_and_playback_refuse_unrecorded_worlds_and_solver_selections_before_io() {
+    let dir = tempfile::tempdir().unwrap();
+    let capture = dir.path().join("unused");
+    let name = capture.to_str().unwrap();
+    let wrong_world = command(&[
+        fixture(),
+        "--server",
+        "--web-viewer",
+        "9011",
+        "--web-lifecycle",
+        "--world",
+        "factory",
+        "--record-scene",
+        name,
+    ]);
+    assert_eq!(wrong_world.status.code(), Some(1));
+    assert!(
+        String::from_utf8(wrong_world.stderr)
+            .unwrap()
+            .contains("admitted default viewer world")
+    );
+    assert!(!capture.exists());
+
+    let play = |option: &str, value: &str| {
+        command(&[
+            name,
+            "--server",
+            "--web-viewer",
+            "9011",
+            "--replay",
+            option,
+            value,
+        ])
+    };
+    let wrong_world = play("--world", "factory");
+    assert_eq!(wrong_world.status.code(), Some(1));
+    assert!(
+        String::from_utf8(wrong_world.stderr)
+            .unwrap()
+            .contains("recorded default world")
+    );
+    for engine in ["rapier", "multifidelity"] {
+        let result = play("--physics-engine", engine);
+        assert_eq!(result.status.code(), Some(2));
+        let error = String::from_utf8(result.stderr).unwrap();
+        assert!(
+            error.contains("--physics-engine") && error.contains("--replay"),
+            "{error}"
+        );
+        assert!(result.stdout.is_empty());
+    }
+    let wrong_input = command(&[fixture(), "--server", "--web-viewer", "9011", "--replay"]);
+    assert_eq!(wrong_input.status.code(), Some(1));
+    assert!(
+        String::from_utf8(wrong_input.stderr)
+            .unwrap()
+            .contains("recording needs a local directory")
+    );
+}

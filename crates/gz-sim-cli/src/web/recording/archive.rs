@@ -271,8 +271,8 @@ pub(super) struct Archive {
     pub assets: BTreeMap<String, Bytes>,
 }
 
-fn invalid(message: &'static str) -> io::Error {
-    io::Error::new(io::ErrorKind::InvalidData, message)
+fn invalid(message: impl Into<String>) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidData, message.into())
 }
 
 pub(super) fn digest(bytes: &[u8]) -> [u8; 32] {
@@ -301,14 +301,35 @@ pub(super) fn asset_route(route: &str) -> bool {
 }
 
 fn file(root: &Path, name: &str, limit: u64) -> io::Result<Vec<u8>> {
-    let path = root.join(name).canonicalize()?;
+    let with_name = |error: io::Error| io::Error::new(error.kind(), format!("{name}: {error}"));
+    let path = root.join(name).canonicalize().map_err(with_name)?;
     if !path.starts_with(root) || !path.is_file() {
-        return Err(invalid("recording file escapes archive or is not regular"));
+        return Err(with_name(invalid(
+            "recording file escapes archive or is not regular",
+        )));
     }
     let mut bytes = Vec::with_capacity(limit as usize + 1);
-    File::open(path)?.take(limit + 1).read_to_end(&mut bytes)?;
+    File::open(path)
+        .and_then(|input| input.take(limit + 1).read_to_end(&mut bytes))
+        .map_err(with_name)?;
     if bytes.len() as u64 > limit {
-        return Err(invalid("recording file exceeds bound"));
+        return Err(with_name(invalid("recording file exceeds bound")));
+    }
+    Ok(bytes)
+}
+
+fn verified_file(root: &Path, name: &str, size: u64, sha256: [u8; 32]) -> io::Result<Vec<u8>> {
+    let bytes = file(root, name, size)?;
+    if bytes.len() as u64 != size {
+        return Err(invalid(format!(
+            "{name}: expected {size} recorded bytes, found {}",
+            bytes.len()
+        )));
+    }
+    if digest(&bytes) != sha256 {
+        return Err(invalid(format!(
+            "{name}: SHA-256 differs from recording manifest"
+        )));
     }
     Ok(bytes)
 }
@@ -321,7 +342,7 @@ impl Archive {
         }
         let manifest: Manifest =
             serde_json::from_slice(&file(&root, "manifest.json", lines::LINE_BYTES as u64)?)
-                .map_err(io::Error::other)?;
+                .map_err(|error| invalid(format!("manifest.json: {error}")))?;
         if !(1..=2).contains(&manifest.version)
             || !manifest.complete
             || !(1..=4096).contains(&manifest.frames)
@@ -357,18 +378,16 @@ impl Archive {
             {
                 return Err(invalid("recorded assets exceed admitted paths or bounds"));
             }
-            let bytes = file(&root, &asset.route[1..], asset.bytes as u64)?;
-            if bytes.len() != asset.bytes || digest(&bytes) != asset.sha256 {
-                return Err(invalid("captured asset changed"));
-            }
+            let bytes = verified_file(&root, &asset.route[1..], asset.bytes as u64, asset.sha256)?;
             total += bytes.len();
             assets.insert(asset.route.clone(), Bytes::from(bytes));
         }
-        let stream = file(&root, "frames.jsonl", manifest.stream_bytes)?;
-        if stream.len() as u64 != manifest.stream_bytes || digest(&stream) != manifest.stream_sha256
-        {
-            return Err(invalid("recorded stream changed"));
-        }
+        let stream = verified_file(
+            &root,
+            "frames.jsonl",
+            manifest.stream_bytes,
+            manifest.stream_sha256,
+        )?;
         let archive = Self::admit(
             stream.into(),
             manifest.frames,
