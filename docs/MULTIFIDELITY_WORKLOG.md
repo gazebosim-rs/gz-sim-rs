@@ -7,6 +7,10 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — Cloth on a moving finite deck
+
+A deck moving at 0.4 m/s carried one 100 g sheet while a second slid off and fell. The sliding sheet lost its last measured support after 230 ms. While fully supported, it tracked the analytical solution within 0.037 mm. Reset reproduced both trajectories and the signed deck loads. A rotating or accelerating deck remains outside this straight-line qualification. [Measurements, coverage and native gz-web-rs replay](measurements/local-manipulation/cloth-conveyor.md)
+
 ## 2026-11-23 — Native joint readings on the local CPU transfer robot
 
 The rail and both jaws publish real measurements on the standard joint-state topic at 100 Hz. A Zenoh subscriber verified the three prismatic joint types, timestamp and motion. The 200 g shelf transfer produced the same 451 visual frames as the run without the publisher. [Measurements, source coverage and gz-web-rs replay](measurements/local-manipulation/cpu-gripper-joint-state.md)
