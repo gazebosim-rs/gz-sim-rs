@@ -372,3 +372,48 @@ fn incomplete_observations_forget_the_previous_decision() {
     sim.world_mut().remove_resource::<gz_sim_core::UpdateInfo>();
     assert!(detector.sample(sim.world()).is_err());
 }
+
+#[test]
+fn an_adaptive_sorter_reports_the_whole_bounce_without_starting_a_support_dwell() {
+    let xml = include_str!("../../../examples/worlds/local_sorter_crossing.sdf")
+        .replace("<link name=\"deck\">", "<link name=\"body\">")
+        .replace("::deck</support>", "::body</support>")
+        .replace(r#"<model name="parcel">"#, r#"<model name="parcel"><plugin name="gz::sim::systems::ContactMaterial" filename="gz-sim-contact-material-system"><restitution link="body">0.8</restitution></plugin>"#);
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "sorter.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .unwrap();
+    let red = link(&sim, "parcel").0;
+    let pad = link(&sim, "pad").0;
+    let bypass = link(&sim, "bypass").0;
+    let mut receiving = ReceivingSupport::new(sim.world(), red, pad, criteria()).unwrap();
+    let mut opposite = ReceivingSupport::new(sim.world(), pad, red, criteria()).unwrap();
+    let mut free = ReceivingSupport::new(sim.world(), bypass, pad, criteria()).unwrap();
+    for _ in 0..2 {
+        sim.step_exact(1).unwrap();
+        let velocity = sim
+            .world()
+            .get::<Velocity>(link(&sim, "parcel").1)
+            .unwrap()
+            .linear[2];
+        let average = 0.01 * (velocity + 4.) / 0.02;
+        let r = receiving.sample(sim.world()).unwrap();
+        assert!(velocity > 2. && average > 3.);
+        assert!(
+            (r.normal_force_n - average).abs() < 1e-9,
+            "measured {r:?}, momentum predicts {average}"
+        );
+        assert!(!r.face_loaded && !r.ready && r.sustained.is_zero());
+        assert_eq!(receiving.sample(sim.world()).unwrap(), r);
+        assert!((opposite.sample(sim.world()).unwrap().normal_force_n + average).abs() < 1e-9);
+        assert_eq!(free.sample(sim.world()).unwrap().normal_force_n, 0.);
+        sim.step_exact(1).unwrap();
+        assert_eq!(receiving.sample(sim.world()).unwrap().normal_force_n, 0.);
+        sim.reset().unwrap();
+        assert!(!receiving.sample(sim.world()).unwrap().measurement_available);
+    }
+}

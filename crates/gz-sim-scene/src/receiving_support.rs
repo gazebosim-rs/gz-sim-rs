@@ -243,11 +243,26 @@ impl ReceivingSupport {
         if !normal_speed.is_finite() || !sq.is_normalized() || !sv.is_finite() || !sw.is_finite() {
             return Err(InputError::InvalidPhysics);
         }
-        let reaction = if clock.iteration != 0 && !clock.dt.is_zero() {
+        let mut reaction = if clock.iteration != 0 && !clock.dt.is_zero() {
             solver.normal_reaction_on(pid, sid)?
         } else {
             None
         };
+        if let Some(r) = &mut reaction
+            && let Some(interval) = crate::primary_contact::current_interval(world, clock)
+        {
+            let key = (pid.min(sid), pid.max(sid));
+            if let Ok(i) = interval.pairs.binary_search_by_key(&key, |p| (p.a, p.b)) {
+                let pair = &interval.pairs[i];
+                let sign = if pair.a == pid { 1. } else { -1. };
+                r.impulse = pair.normal_impulse_on_a.map(|v| sign * v);
+                r.magnitude = pair.normal_impulse;
+                // A transient impact can deliver impulse and already be unloaded at tick end.
+                r.loaded_at_end &= pair.active_at_end;
+            } else {
+                *r = Default::default();
+            }
+        }
         if same
             && !moving
             && normal_speed.abs() <= c.max_relative_normal_speed_m_s

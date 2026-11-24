@@ -100,6 +100,15 @@ pub fn last_refinement(sim: &Simulation) -> Option<&Refinement> {
     (!sim.is_faulted() && receipt.epoch == sim.epoch() && receipt.sim_time <= sim.elapsed())
         .then_some(receipt)
 }
+/// The current committed public step only. Sensor reads must not reuse an older impact.
+pub(crate) fn current_interval<'w>(
+    world: &'w World,
+    clock: &UpdateInfo,
+) -> Option<&'w ContactIntervalReceipt> {
+    let r = world.get_resource::<Policy>()?.last.as_ref()?;
+    (r.epoch == clock.epoch && r.iteration == clock.iteration && r.sim_time == clock.sim_time)
+        .then_some(&r.interval)
+}
 /// Geometry requests on the last advancing tick that used selected box features.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BoxFeatureRefresh {
