@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Refine the incoming strike on either serial gripper jaw
+
+A local SDF pair now recognizes closure through a chosen finite box face and spends extra native steps on that public tick. In the concentrated-inertia robot, the left jaw strike’s impulse error fell from 8.08% to 1.22%. Both jaw approaches stayed below 0.22 mm and 0.60° trajectory error, and the missed parcel used only ordinary ticks. With the spindle velocity motor removed, equal torque produced 0.803 rad/s against the physical 0.8 rad/s stop and 5.103 rad/s without it. The 1/256-inertia stress still exceeded the physical stop on later ordinary ticks. The scene change covered 99/100 lines and 171/172 regions. [Measurements, SDF and both native replays](measurements/local-manipulation/serial-incoming-impact.md)
+
 ## 2026-11-24 — Measuring actuator work and angular impulse on a loaded robot
 
 The robot now reports downstream linear momentum, angular momentum about a chosen world point and kinetic energy, including links moving independently. Running four native solves per unchanged 1 ms actuator tick reduced the disturbed wrist’s peak energy discrepancy from 2.071 to 0.517 mJ and its angular impulse discrepancy from 0.173 to 0.044 mN·m·s. Both controls repeated at all three physics rates. [Six comparisons, qualification and native playback](measurements/local-manipulation/wrist-work-balance.md)
