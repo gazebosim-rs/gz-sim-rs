@@ -236,25 +236,21 @@ fn a_loaded_or_just_touching_external_body_defers_even_without_a_drive() {
 }
 #[test]
 fn mounted_parking_rejects_unmodelled_coordinates_and_any_attached_foreign_constraint() {
-    for joint in [
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let r = body(&mut b, 0.);
+    let t = body(&mut b, 0.3);
+    b.add_robot_joint(None, r, [0.; 3], RobotJoint::Fixed)
+        .unwrap();
+    b.add_robot_joint(
+        Some(r),
+        t,
+        [0.3, 0., 0.],
         RobotJoint::Ball {
             orientation: [0., 0., 0., 1.],
         },
-        RobotJoint::Screw {
-            axis: [1., 0., 0.],
-            limits: None,
-            pitch: 0.2,
-            effort_limit: 1.,
-        },
-    ] {
-        let mut b = RapierBackend::new([0.; 3]).unwrap();
-        let r = body(&mut b, 0.);
-        let t = body(&mut b, 0.3);
-        b.add_robot_joint(None, r, [0.; 3], RobotJoint::Fixed)
-            .unwrap();
-        b.add_robot_joint(Some(r), t, [0.3, 0., 0.], joint).unwrap();
-        refused(&mut b, r, t, "unsupported mounted");
-    }
+    )
+    .unwrap();
+    refused(&mut b, r, t, "unsupported mounted");
     let (mut b, r, t, _) = fixture([0.; 3], [1., 0., 0.], None, None);
     let extra = body(&mut b, 0.6);
     b.add_revolute(t, extra, [0.6, 0., 0.], [0., 0., 1.])
@@ -301,4 +297,109 @@ fn removed_mount_releases_gravity_before_the_first_advancing_solve() {
         .map(|id| b.state(*id).unwrap().velocity[2])
         .sum();
     assert!((rebound + 2. * 9.81 * 0.001).abs() < 1e-6, "{rebound}");
+}
+
+#[test]
+fn screw_parking_uses_signed_pitch_and_the_physical_stop() {
+    for pitch in [-0.2, 0.2] {
+        for at_lower in [false, true] {
+            let mut b = RapierBackend::new([0., 0., -9.81]).unwrap();
+            let mount = body(&mut b, 0.);
+            b.add_robot_joint(
+                None,
+                mount,
+                [0.; 3],
+                RobotJoint::Screw {
+                    axis: [0., 0., 1.],
+                    pitch,
+                    effort_limit: 4.,
+                    limits: Some(if at_lower { [0., 1.] } else { [-1., 0.] }),
+                },
+            )
+            .unwrap();
+            if at_lower == (pitch > 0.) {
+                b.step(DT).unwrap();
+                b.switch_articulation(mount, Prescribed, DT).unwrap();
+            } else {
+                refused(&mut b, mount, mount, "gravity");
+            }
+        }
+    }
+}
+
+#[test]
+fn each_wrist_axis_needs_balance_and_active_inputs_keep_the_robot_dynamic() {
+    let wrist = |limits| RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits,
+        effort_limits: [2.; 2],
+    };
+    for (at, stops) in [
+        ([0., 0.2, 0.], [Some([-1., 0.]), None]),
+        ([0.2, 0., 0.], [None, Some([0., 1.])]),
+    ] {
+        let mut b = RapierBackend::new([0., 0., -9.81]).unwrap();
+        let r = b
+            .spawn(BodySpec {
+                position: at,
+                velocity: [0.; 3],
+                mass: Some(1.),
+                shape: Shape::Sphere { radius: 0.05 },
+            })
+            .unwrap();
+        b.add_robot_joint(None, r, [0.; 3], wrist(stops)).unwrap();
+        refused(&mut b, r, r, "gravity");
+    }
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let r = body(&mut b, 0.);
+    let j = b
+        .add_robot_joint(None, r, [0.; 3], wrist([None; 2]))
+        .unwrap();
+    b.step(DT).unwrap();
+    for axis in 0..2 {
+        b.set_universal_motor(
+            j,
+            axis,
+            Some(JointVelocityMotor {
+                target_velocity: 0.1,
+                max_force: 1.,
+            }),
+        )
+        .unwrap();
+        refused(&mut b, r, r, "motor");
+        b.set_universal_motor(j, axis, None).unwrap();
+    }
+    b.add_universal_effort(j, [0., 0.15]).unwrap();
+    refused(&mut b, r, r, "input");
+}
+
+#[test]
+fn moving_speed_references_prevent_partial_sleep_but_a_fixed_speed_stop_can_park() {
+    for cap in [0., 0.8] {
+        let mut b = RapierBackend::new([0.; 3]).unwrap();
+        let r = body(&mut b, 0.);
+        let j = b
+            .add_robot_joint(
+                None,
+                r,
+                [0.; 3],
+                RobotJoint::Screw {
+                    axis: [0., 0., 1.],
+                    pitch: 0.2,
+                    effort_limit: 2.,
+                    limits: None,
+                },
+            )
+            .unwrap();
+        b.set_world_joint_speed_limits(j, [Some(cap), None])
+            .unwrap();
+        b.step(DT).unwrap();
+        if cap > 0. {
+            refused(&mut b, r, r, "moving speed-limit references");
+        } else {
+            b.switch_articulation(r, Prescribed, DT).unwrap();
+            b.step(DT).unwrap();
+            assert_eq!(b.articulation_tier(r).unwrap(), Prescribed);
+        }
+    }
 }

@@ -14,6 +14,23 @@ fn defer(reason: &'static str) -> PhysicsError {
     PhysicsError::TransitionDeferred { reason }
 }
 
+// A stop supports only the signed load directed into its active face.
+fn supported_coordinate(
+    position: f64,
+    limits: Option<[f64; 2]>,
+    spring: Option<RobotSpring>,
+    gravity_effort: f64,
+    gravity_scale: f64,
+) -> bool {
+    let elastic = spring.map_or(0., |s| s.stiffness * (s.reference - position));
+    let load = gravity_effort + elastic;
+    load.is_finite()
+        && gravity_scale.is_finite()
+        && (load.abs() <= 1e-8 * gravity_scale + 1e-8 * elastic.abs()
+            || limits
+                .is_some_and(|[lo, hi]| (position - if load < 0. { lo } else { hi }).abs() <= 2e-5))
+}
+
 impl RapierBackend {
     fn robot_parent_joint(&self, link: BodyId) -> Option<(JointId, &Joint)> {
         self.joints
@@ -73,19 +90,23 @@ impl RapierBackend {
 
     // Evaluate free directions on the authored joint manifold. Solver pivot drift
     // can tilt a nominally horizontal unloaded slide by microradians.
-    fn mounted_axis(&self, joint: Construction) -> Vector {
-        let mut axis = joint.frame1.rotation * Vector::X;
+    fn mounted_axis(&self, joint: Construction, local_axis: Vector) -> Vector {
+        let mut axis = joint.frame1.rotation * local_axis;
         let mut parent = joint.parent;
         while let Some(id) = parent {
-            let (index, j) = self.robot_parent_joint(id).expect("mounted ancestor");
+            let (_, j) = self.robot_parent_joint(id).expect("mounted ancestor");
             let c = j.initial;
             axis = c.frame2.rotation.inverse() * axis;
-            if matches!(c.motion, JointMotion::Angular) && !c.authored_weld() {
-                axis = Rotation::from_rotation_x(
-                    self.world_joint_state(index)
-                        .expect("hinge coordinate")
-                        .position,
-                ) * axis;
+            match c.motion {
+                JointMotion::Angular | JointMotion::Screw { .. } if !c.authored_weld() => {
+                    axis = Rotation::from_rotation_x(j.position) * axis;
+                }
+                JointMotion::Universal(_) => {
+                    let [first, second] = j.universal_angles;
+                    axis = Rotation::from_rotation_x(first)
+                        * (Rotation::from_rotation_y(second) * axis);
+                }
+                _ => {}
             }
             axis = c.frame1.rotation * axis;
             parent = c.parent;
@@ -152,6 +173,16 @@ impl RapierBackend {
             let Handle::Impulse(handle) = joint.handle else {
                 return Err(defer("expected an impulse joint"));
             };
+            // Positive speed stops attach moving native reference bodies. Sleeping only
+            // the public links would split the active solver island and corrupt its wake.
+            if self
+                .joints
+                .speed_caps
+                .get(&joint_id)
+                .is_some_and(|caps| caps.iter().flatten().any(|cap| cap.limit() > 0.))
+            {
+                return Err(defer("mounted robot has moving speed-limit references"));
+            }
             if !self
                 .world
                 .impulse_joints
@@ -162,51 +193,65 @@ impl RapierBackend {
                 .is_empty()
                 || self.joints.efforts.contains_key(&joint_id)
                 || self.joints.universal_efforts.contains_key(&joint_id)
+                || (0..2).any(|axis| self.joints.universal_motors.contains_key(&(joint_id, axis)))
             {
                 return Err(defer("mounted robot has a pending input or active motor"));
             }
             if c.authored_weld() {
                 continue;
             }
-            let q = self
-                .world_joint_state(joint_id)
-                .ok_or_else(|| defer("unsupported mounted parking joint"))?
-                .position;
             let frame = c.parent.map_or(Pose::IDENTITY, |p| {
                 *self.world.bodies[self.bodies[&p].0].position()
             }) * c.frame1;
-            let axis = self.mounted_axis(c);
-            let spring = c.spring.map_or(0., |s| {
-                s.effort(JointState {
-                    position: q,
-                    velocity: 0.,
-                })
-            });
-            let mut generalized = spring;
-            let mut scale = spring.abs();
+            let (mut force, mut moment) = (Vector::ZERO, Vector::ZERO);
+            let (mut force_scale, mut moment_scale) = (0., 0.);
             for (&descendant, &dh) in members.iter().zip(&handles) {
-                if !self.robot_member(id, descendant) {
-                    continue;
+                if self.robot_member(id, descendant) {
+                    let rb = &self.world.bodies[dh];
+                    let weight = self.world.gravity * rb.mass();
+                    let torque = (rb.center_of_mass() - frame.translation).cross(weight);
+                    force += weight;
+                    moment += torque;
+                    force_scale += weight.length();
+                    moment_scale += torque.length();
                 }
-                let rb = &self.world.bodies[dh];
-                let force = self.world.gravity * rb.mass();
-                let arm = rb.center_of_mass() - frame.translation;
-                let load = match c.motion {
-                    JointMotion::Angular => arm.cross(force),
-                    JointMotion::Prismatic => force,
-                    _ => return Err(defer("unsupported mounted parking joint")),
-                };
-                generalized += load.dot(axis);
-                scale += load.length();
             }
-            // A free coordinate must do zero gravitational virtual work. A stop
-            // may support only the signed load directed into its active face.
-            if generalized.abs() > 1e-8 * scale
-                && !c.limits.is_some_and(|[lo, hi]| {
-                    let stop = if generalized < 0. { lo } else { hi };
-                    (q - stop).abs() <= 2e-5
-                })
-            {
+            let axis = self.mounted_axis(c, Vector::X);
+            let stable = match c.motion {
+                JointMotion::Universal(settings) => {
+                    let q = joint.universal_angles;
+                    let second = self.mounted_axis(c, Rotation::from_rotation_x(q[0]) * Vector::Y);
+                    let springs = self.joints.universal_springs.get(&joint_id);
+                    [axis, second].into_iter().enumerate().all(|(i, a)| {
+                        let law = springs.and_then(|rows| rows[i].map(|(law, _)| law));
+                        supported_coordinate(
+                            q[i],
+                            settings.range(i),
+                            law,
+                            moment.dot(a),
+                            moment_scale,
+                        )
+                    })
+                }
+                JointMotion::Ball => return Err(defer("unsupported mounted parking joint")),
+                _ => {
+                    let q = self
+                        .world_joint_state(joint_id)
+                        .expect("scalar joint")
+                        .position;
+                    let (load, scale) = match c.motion {
+                        JointMotion::Prismatic => (force, force_scale),
+                        // Helical virtual work per radian includes axial translation.
+                        JointMotion::Screw { lead, .. } => (
+                            moment + lead * force,
+                            moment_scale + lead.abs() * force_scale,
+                        ),
+                        _ => (moment, moment_scale),
+                    };
+                    supported_coordinate(q, c.limits, c.spring, load.dot(axis), scale)
+                }
+            };
+            if !stable {
                 return Err(defer(
                     "gravity or spring preload can move an unrestrained mounted coordinate",
                 ));
