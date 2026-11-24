@@ -1192,3 +1192,43 @@ fn tilted_deliveries_replay_the_supplied_pose_and_validate_it_before_spawn() {
     let broken = file(dir, "invalid.json", &raw.replace("0.9961946980917455", "2"));
     assert!(!run(&world, &broken, &[]).status.success());
 }
+
+#[test]
+fn axial_delivery_centers_the_first_impulse_and_preserves_the_tilted_run_across_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let world = file(
+        dir,
+        "parts.sdf",
+        include_str!("../../../examples/worlds/local_curved_delivery.sdf"),
+    );
+    let upright = file(
+        dir,
+        "level.json",
+        include_str!("../../../examples/replay/curved_delivery.json"),
+    );
+    let tilted = file(
+        dir,
+        "tilt.json",
+        include_str!("../../../examples/replay/curved_delivery_tilted.json"),
+    );
+    let switch = "--rapier-axial-cap-impact";
+    for flags in [vec![switch], vec![switch, "--rapier-per-point-friction"]] {
+        let rows = success(run(&world, &upright, &flags));
+        assert_eq!(rows[0]["rapier_axial_cap_impact"], true);
+        let hit = record(&rows, 4, 182);
+        let normal = hit["pair_reactions_ns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|p| p[0] == 0 && p[1] == 3)
+            .unwrap()[2]
+            .as_f64()
+            .unwrap();
+        let ideal = 0.25 * (1. + 0.65) * (2_f64 * 9.81 * 0.145).sqrt();
+        assert!((normal / ideal - 1.).abs() < 0.005);
+    }
+    let baseline = success(run(&world, &tilted, &[]));
+    let fallback = success(run(&world, &tilted, &[switch, "--threads", "8"]));
+    assert_eq!(baseline[1..], fallback[1..]);
+}

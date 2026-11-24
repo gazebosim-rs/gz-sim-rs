@@ -42,6 +42,9 @@ struct Args {
     /// Use one Coulomb friction constraint per rigid contact point.
     #[arg(long)]
     rapier_per_point_friction: bool,
+    /// Resolve qualified axial cylinder impacts with a centered normal reaction.
+    #[arg(long)]
+    rapier_axial_cap_impact: bool,
     /// Host compute-pool size; the authoritative local CPU solve is serial.
     #[arg(long, default_value_t=1, value_parser=clap::value_parser!(u8).range(1..=64))]
     threads: u8,
@@ -301,6 +304,7 @@ fn run(args: Args) -> Result<()> {
     let seed = Sha256::digest(journal.seed.as_bytes()).into();
     let runtime = gz_sim_scene::WorldRuntimeOptions {
         rapier_per_point_friction: args.rapier_per_point_friction,
+        rapier_axial_cap_impact: args.rapier_axial_cap_impact,
         ..Default::default()
     };
     let mut sim = gz_sim_scene::load_local_replay_world_with_runtime(
@@ -334,6 +338,9 @@ fn run(args: Args) -> Result<()> {
     });
     if args.rapier_per_point_friction {
         profile["rapier_per_point_friction"] = true.into();
+    }
+    if args.rapier_axial_cap_impact {
+        profile["rapier_axial_cap_impact"] = true.into();
     }
     sink.emit(&profile)?;
     let record_every = args.record_every.unwrap_or(10);

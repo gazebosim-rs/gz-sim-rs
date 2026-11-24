@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Drop the same cylinder and capsule at several native contact iteration budgets.
+use glam::DVec3;
 use gz_physics::PhysicsBackend;
 use gz_physics_multifidelity::MultiFidelityBackend;
 use gz_sim_core::entity_by_id;
@@ -14,7 +15,7 @@ use std::error::Error;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const WORLD: &str = include_str!("../../../examples/worlds/local_curved_delivery.sdf");
 
-fn drop_at(world: &str, passes: usize, per_point: bool) -> Result<Value> {
+fn drop_at(world: &str, passes: usize, per_point: bool, axial: bool) -> Result<Value> {
     let sdf = sdformat::load_str(world, "delivery.sdf", &sdformat::NoResources)?;
     let mut sim = load_world_with_runtime(
         world,
@@ -29,6 +30,7 @@ fn drop_at(world: &str, passes: usize, per_point: bool) -> Result<Value> {
         },
         WorldRuntimeOptions {
             rapier_per_point_friction: per_point,
+            rapier_axial_cap_impact: axial,
             ..Default::default()
         },
     )?;
@@ -90,20 +92,21 @@ fn drop_at(world: &str, passes: usize, per_point: bool) -> Result<Value> {
                 if impulse == 0. {
                     continue;
                 }
-                let points: Vec<_> = patch
-                    .points
-                    .iter()
-                    .map(|p| {
-                        json!({
-                            "lever_m":if patch.a==body {p.lever_a} else {p.lever_b},
-                            "normal_impulse_ns":p.normal_impulse
-                        })
-                    })
-                    .collect();
+                let on_a = patch.a == body;
+                let direction = DVec3::from_array(patch.normal_on_a) * if on_a { 1. } else { -1. };
+                let mut angular_normal_impulse = DVec3::ZERO;
+                let mut points = Vec::new();
+                for p in &patch.points {
+                    let lever = if on_a { p.lever_a } else { p.lever_b };
+                    let normal_impulse = direction * p.normal_impulse;
+                    angular_normal_impulse += DVec3::from_array(lever).cross(normal_impulse);
+                    points.push(json!({"lever_m": lever, "normal_impulse_ns": p.normal_impulse}));
+                }
                 records[i] = Some(json!({
                     "flight_steps": step, "normal_impulse_ns": impulse,
                     "linear_velocity": state.linear_velocity, "angular_velocity": state.angular_velocity,
-                    "points": points,
+                    "points": points, "normal_impulse_world_ns": (direction * impulse).to_array(),
+                    "angular_normal_impulse_at_com_nms": angular_normal_impulse.to_array(),
                 }));
             }
         }
@@ -112,7 +115,7 @@ fn drop_at(world: &str, passes: usize, per_point: bool) -> Result<Value> {
         return Err("both parcels must hit the slab during the drop".into());
     };
     Ok(json!({
-        "per_point_friction": per_point, "pgs_passes": passes,
+        "per_point_friction": per_point, "pgs_passes": passes, "axial_cap_impact": axial,
         "cylinder": cylinder, "capsule": capsule, "apex_height_m": peaks,
     }))
 }
@@ -121,7 +124,9 @@ fn main() -> Result<()> {
     let mut cases = Vec::new();
     for passes in [1, 2, 4, 8, 16, 32] {
         for per_point in [false, true] {
-            cases.push(drop_at(WORLD, passes, per_point)?);
+            for axial in [false, true] {
+                cases.push(drop_at(WORLD, passes, per_point, axial)?);
+            }
         }
     }
     println!("{}", serde_json::to_string_pretty(&cases)?);
@@ -134,12 +139,13 @@ mod tests {
 
     #[test]
     fn two_impacts_and_a_valid_native_budget_are_required_to_report_rebound() {
-        assert!(drop_at(WORLD, 0, false).is_err());
-        assert!(drop_at("<sdf", 1, false).is_err());
+        assert!(drop_at(WORLD, 0, false, false).is_err());
+        assert!(drop_at("<sdf", 1, false, false).is_err());
         assert!(
             drop_at(
                 &WORLD.replace("name=\"default\"", "name=\"different\""),
                 1,
+                false,
                 false
             )
             .is_err()
@@ -148,6 +154,7 @@ mod tests {
             drop_at(
                 &WORLD.replace("model name=\"capsule\"", "model name=\"other\""),
                 1,
+                false,
                 false
             )
             .is_err()
@@ -156,12 +163,12 @@ mod tests {
             "<model name=\"floor\">",
             "<model name=\"floor\"><pose>0 0 -2 0 0 0</pose>",
         );
-        assert!(drop_at(&absent_floor, 1, false).is_err());
+        assert!(drop_at(&absent_floor, 1, false, false).is_err());
         let with_sensor = WORLD.replacen(
             "<link name=\"body\">",
             "<link name=\"body\"><sensor name=\"imu\" type=\"imu\"><imu/></sensor>",
             1,
         );
-        assert!(drop_at(&with_sensor, 1, false).is_err());
+        assert!(drop_at(&with_sensor, 1, false, false).is_err());
     }
 }
