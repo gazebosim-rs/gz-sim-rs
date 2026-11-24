@@ -18,7 +18,23 @@ fn momentum_balance_preserves_all_three_signs_and_includes_the_other_finger() {
     hit[4].v = [-0.5, 0.25, 0.];
     hit[2].v = [0.25, -0.5, 0.];
     hit[1].w = [-1., 0., 1.];
-    let change = Transmission::from_motion(&hit, &empty, 3);
+    let trial = Args::try_parse_from(["study"]).unwrap().trial;
+    let sdf = sdformat::load_str(&fixture(&trial), "rig.sdf", &sdformat::NoResources).unwrap();
+    let basis = BalanceFrame::new(&sdf, &empty, &empty);
+    let change = Transmission::from_motion(&hit, &empty, 3, &basis, 0.);
+    let arm = DVec3::new(0., 0., -0.04);
+    assert!(
+        DVec3::from(change.hand_on_wrist_about_wrist_nms)
+            .distance(arm.cross(DVec3::from(change.hand_on_wrist_ns)))
+            < 1e-14
+    );
+    hit[5].w = [0., 0., 10.];
+    let spun = Transmission::from_motion(&hit, &empty, 3, &basis, 0.);
+    assert!(
+        (spun.hand_on_wrist_about_wrist_nms[2] - change.hand_on_wrist_about_wrist_nms[2] + 0.0013)
+            .abs()
+            < 1e-14
+    );
     for (a, b) in [
         (change.parcel_on_finger_ns, [0.2, -0.1, -0.05]),
         (change.finger_on_palm_ns, [0.12, -0.1, -0.01]),

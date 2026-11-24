@@ -1,29 +1,44 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+#[path = "load_path/momentum.rs"]
+mod momentum;
+use momentum::BalanceFrame;
 
 #[derive(Clone, Serialize)]
 pub(super) struct Transmission {
     parcel_on_finger_ns: [f64; 3],
     finger_on_palm_ns: [f64; 3],
     hand_on_wrist_ns: [f64; 3],
+    parcel_on_finger_about_wrist_nms: [f64; 3],
+    finger_on_palm_about_wrist_nms: [f64; 3],
+    hand_on_wrist_about_wrist_nms: [f64; 3],
     palm_relative_to_nut_delta_rad_s: [f64; 3],
 }
 
 impl Transmission {
-    fn from_motion(loaded: &[State], unloaded: &[State], finger: usize) -> Self {
-        // All origins in this fixture are mass centers. The free parcel receives only
-        // gravity and the selected contact. Subtracting an unloaded trajectory with
-        // the same controls and native clock cancels its gravitational impulse.
-        let delta_v = |i: usize| DVec3::from(loaded[i].v) - DVec3::from(unloaded[i].v);
-        let parcel = -0.2 * delta_v(5);
-        let finger_on_palm = parcel - LINKS[finger].1 * delta_v(finger);
-        let hand_momentum = (2..5).map(|i| LINKS[i].1 * delta_v(i)).sum::<DVec3>();
+    fn from_motion(
+        loaded: &[State],
+        unloaded: &[State],
+        finger: usize,
+        frame: &BalanceFrame,
+        t: f64,
+    ) -> Self {
+        let delta = |i: usize| frame.difference(i, &loaded[i], &unloaded[i], t);
+        let (parcel_change, parcel_spin) = delta(5);
+        let (finger_change, finger_spin) = delta(finger);
+        let (palm_change, palm_spin) = delta(2);
+        let (other_change, other_spin) = delta(if finger == 3 { 4 } else { 3 });
+        let finger_on_palm = -parcel_change - finger_change;
+        let finger_moment = -parcel_spin - finger_spin;
         let relative_w = |s: &[State]| DVec3::from(s[2].w) - DVec3::from(s[1].w);
         Self {
-            parcel_on_finger_ns: parcel.to_array(),
+            parcel_on_finger_ns: (-parcel_change).to_array(),
             finger_on_palm_ns: finger_on_palm.to_array(),
-            hand_on_wrist_ns: (parcel - hand_momentum).to_array(),
+            hand_on_wrist_ns: (finger_on_palm - palm_change - other_change).to_array(),
+            parcel_on_finger_about_wrist_nms: (-parcel_spin).to_array(),
+            finger_on_palm_about_wrist_nms: finger_moment.to_array(),
+            hand_on_wrist_about_wrist_nms: (finger_moment - palm_spin - other_spin).to_array(),
             palm_relative_to_nut_delta_rad_s: (relative_w(loaded) - relative_w(unloaded))
                 .to_array(),
         }
@@ -56,13 +71,19 @@ pub(super) fn measure(
     }
     let mut miss = trial.clone();
     miss.miss = true;
-    let (sim, bodies, _) = load_robot(&miss, &fixture(&miss))?;
+    let xml = fixture(&miss);
+    let (sim, bodies, _) = load_robot(&miss, &xml)?;
+    let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
     let finger = if trial.right { 4 } else { 3 };
     let mut frames = std::mem::take(&mut audit.samples);
+    let clear = states(&sim, &bodies);
+    let basis = BalanceFrame::new(&sdf, &frames[0].states, &clear);
     frames[0].transmitted = Some(Transmission::from_motion(
         &frames[0].states,
-        &states(&sim, &bodies),
+        &clear,
         finger,
+        &basis,
+        0.,
     ));
     let initial = Control {
         frames,
@@ -80,7 +101,13 @@ pub(super) fn measure(
                 .iter()
                 .map(|id| State::from(cut.state(*id).unwrap()))
                 .collect();
-            frame.transmitted = Some(Transmission::from_motion(&frame.states, &unloaded, finger));
+            frame.transmitted = Some(Transmission::from_motion(
+                &frame.states,
+                &unloaded,
+                finger,
+                &basis,
+                cut.elapsed.as_secs_f64(),
+            ));
             control.next += 1;
         }
     })?;
