@@ -51,7 +51,7 @@ The drive closes the initial 50 nm clearance at 38.18118 µs, before the sphere 
 
 The control uses the same authored force, finite stop, reduced wrist and slider, with the upstream Rapier 0.36.1 travel row. At 1 µs, 100 ns and 25 ns the control gave 66.53423, 65.67910 and 65.42266 mN·s for the initially seated 0.6-restitution strike. Corresponding outward slider speeds were 0.44739, 0.50662 and 0.52438 m/s. The measured sphere impulse approached the free-slider value as the grid narrowed. At 25 ns the inferred whole-step stop reaction was −0.23867 mN·s. The independent value including drive is −17.32430 mN·s.
 
-The local solver at `b393c7a` couples the loaded travel limit to the point contact in the native constraint solve. With the upper stop initially loaded, the measured 0.6-restitution strike delivered 72.99319 mN·s on each grid. The wrist left at −6.95862 rad/s and the slider stayed seated. The inferred whole-step stop impulse at 1 µs was −17.32625 mN·s, including −0.00200 mN·s from the drive held for that microsecond. Reversing the sphere with the drive still held let the finger leave the stop. Fully plastic and fully elastic initially seated strikes gave 45.62074 and 91.24148 mN·s, respectively. Both mirrors reproduced these results. [Paired measurements and independent solutions](powered-slider-impact.json)
+The local solver at `6b202dc` couples the loaded travel limit to the point contact in the native constraint solve. With the upper stop initially loaded, the measured 0.6-restitution strike delivered 72.99319 mN·s on each grid. The wrist left at −6.95862 rad/s and the slider stayed seated. The inferred whole-step stop impulse at 1 µs was −17.32625 mN·s, including −0.00200 mN·s from the drive held for that microsecond. Reversing the sphere with the drive still held let the finger leave the stop. Fully plastic and fully elastic initially seated strikes gave 45.62074 and 91.24148 mN·s, respectively. Both mirrors reproduced these results. [Paired measurements and independent solutions](powered-slider-impact.json)
 
 | 1 µs grid, restitution 0.6 | Native sphere impulse (mN·s) | Inferred whole-step stop impulse (mN·s) | Wrist at tick end (rad/s) | Slider at tick end (m/s) |
 | --- | ---: | ---: | ---: | ---: |
@@ -72,7 +72,7 @@ All 60 native trials check the first impulse, published time, both joint speeds 
 | 100 ns | 0.000109% | 85.03 ns | 0.296 | 25.16 | 15.52 |
 | 25 ns | 0.0000272% | 17.52 ns | 0.073 | 4.87 | 3.83 |
 
-The independent Rust oracle and ordinary SDF test passed strict Clippy. The instrumented run covered 371/371 lines and 771/772 regions (99.87%) in these two new test files and reproduced all 60 numerical records from the uninstrumented executable. The solver implementation carries its own production coverage receipt.
+The final multi-slider fallback at `6b202dc` reproduced all 60 measured rows and ten independent solutions from `b393c7a` byte for byte. The independent Rust oracle and ordinary SDF test passed strict Clippy. The instrumented run covered 371/371 lines and 771/772 regions (99.87%) in these two new test files and reproduced all 60 numerical records from the uninstrumented executable. The solver implementation carries its own production coverage receipt.
 
 ## Reproduction
 

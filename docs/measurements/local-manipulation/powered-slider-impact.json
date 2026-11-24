@@ -1,8 +1,8 @@
 {
-  "native_commit": "b393c7aa877619c4d1d3d1f69bce9ba1904b882e",
+  "native_commit": "6b202dcae0c3a0b5de4203378c495628725ffaff",
   "baseline": "13449df plus ordinary finite travel row/signed force admission, upstream unmodified solver",
   "baseline_sha256": "a990e1f76bf134ecc8f94b6b583b62dab3983c8868904d0220fcfd200fde2259",
-  "native_sha256": "c26feee3ecea89b57a20db03eaebb20bcc1206f1d14502b7ea07d57c81648d88",
+  "native_sha256": "a7a0acc6a2cbef2d4092fa35da0da998c5d416344ef3fd110270e8e0f6271e61",
   "coordinates": "X and angle reflected together to normalize toward upper stop",
   "state_order": [
     "theta_rad",
