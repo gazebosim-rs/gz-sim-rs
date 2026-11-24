@@ -33,7 +33,9 @@ world=examples/worlds/local_curved_delivery.sdf
 journal=examples/replay/curved_delivery.json
 target/release/gz-sim-local-replay "$world" "$journal" --rapier-axial-cap-impact --threads 1 --trace cap.jsonl --record cap-view --record-every 2
 target/release/gz-sim-local-replay "$world" "$journal" --rapier-axial-cap-impact --threads 8 --verify cap.jsonl
-target/release/gz-sim-rs --server --replay --web-viewer 10077 cap-view/epoch-0
+target/release/gz-sim-rs --server --replay --web-viewer 10177 cap-view/epoch-0
 ```
+
+With gz-web-rs running on port 8082, connect to the new recording on port 10177. [Open your local recording](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10177%2F)
 
 The portable bundle includes the 15 authored world and command pairs and three complete native recordings with their meshes. To replay the full settling sequence after extracting it, pass `settle/epoch-0` to the replay server. WebGPU checked 385 frames in the standard drop, 1,508 during settling and 383 in the tilted control, including 11,338 visual poses and shapes. [Portable inputs and recordings](axial-cap-replays.tar.xz) · [Open the standard drop](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10077%2F)

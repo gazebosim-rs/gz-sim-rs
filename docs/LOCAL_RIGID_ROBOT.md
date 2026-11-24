@@ -62,6 +62,10 @@ cargo test --release --locked --offline --no-default-features -p gz-sim-scene --
 
 The qualification records describe restitution and friction configuration, inertia checks, the selection of fast bodies for continuous collision checking, and the available slider and wrist controls. [Measurements and all phase replays](../artifacts/local-robot-foundations/README.md)
 
+## Inspect a gripper landing
+
+Follow a parcel across a 1.2 mm gap and step through the first jaw reaction. The two recorded approaches use the same rail setting with opposite incoming directions. A separate GPU replay shows an eccentric parcel rocking onto a second corner of a shelf. [Gripper and carriage rail](measurements/local-manipulation/mounted-rail.md) · [GPU shelf landing](measurements/local-manipulation/gpu-glancing-corner.md)
+
 ## Add parts while the robot world is running
 
 Spawn a cylinder and capsule, watch them hit a slab, remove them and repeat from reset. Both parts use the same physical material and generated mesh as their source model. The command and live viewer paths accept the same local templates. [Run the curved deliveries and compare the two native replays](measurements/local-manipulation/curved-delivery.md) · [Watch the corrected cylinder bounce and settle](measurements/local-manipulation/axial-cap.md)
