@@ -9,6 +9,8 @@ use parry::math::Pose;
 
 #[derive(Debug, Copy, Clone)]
 pub struct GenericJointConstraint {
+    /// Admissible generalized velocities over this substep for a hard travel row.
+    pub travel_velocities: Option<[Real; 2]>,
     pub is_rigid_body1: bool,
     pub is_rigid_body2: bool,
     pub solver_vel1: u32,
@@ -41,6 +43,7 @@ impl Default for GenericJointConstraint {
 impl GenericJointConstraint {
     pub fn invalid() -> Self {
         Self {
+            travel_velocities: None,
             is_rigid_body1: false,
             is_rigid_body2: false,
             solver_vel1: u32::MAX,
@@ -271,6 +274,16 @@ impl GenericJointConstraint {
         }
     }
 
+    /// Does this limit oppose the current generalized velocity, or already carry a load?
+    pub(crate) fn travel_binds(&self, jacobians: &DVector, velocities: &DVector) -> bool {
+        let Some([low, high]) = self.travel_velocities else {
+            return false;
+        };
+        let j = jacobians.rows(self.j_id2, self.ndofs2);
+        let v = j.dot(&velocities.rows(self.solver_vel2 as usize, self.ndofs2));
+        self.impulse != 0.0 || v < low || v > high
+    }
+
     pub fn solve(
         &mut self,
         jacobians: &DVector,
@@ -288,11 +301,20 @@ impl GenericJointConstraint {
         let vel2 = j2.dot(&solver_vel2);
 
         let dvel = self.rhs + (vel2 - vel1);
-        let total_impulse = na::clamp(
-            self.impulse + self.inv_lhs * (dvel - self.cfm_gain * self.impulse),
-            self.impulse_bounds[0],
-            self.impulse_bounds[1],
-        );
+        let total_impulse = if let Some([lower, upper]) = self.travel_velocities
+            && self.inv_lhs > 0.0
+        {
+            // Remove this row's previous contribution before projecting. At
+            // both stops an inward free velocity consequently needs no load.
+            let free = vel2 - vel1 + self.impulse / self.inv_lhs;
+            (free - free.clamp(lower, upper)) * self.inv_lhs
+        } else {
+            na::clamp(
+                self.impulse + self.inv_lhs * (dvel - self.cfm_gain * self.impulse),
+                self.impulse_bounds[0],
+                self.impulse_bounds[1],
+            )
+        };
         let delta_impulse = total_impulse - self.impulse;
         self.impulse = total_impulse;
 

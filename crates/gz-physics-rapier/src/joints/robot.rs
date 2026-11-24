@@ -51,7 +51,7 @@ impl RapierBackend {
         self.insert_robot_joint(parent, child, anchor, joint, Solver::Impulse)
     }
 
-    /// Build an unbounded scalar bearing in a native reduced-coordinate tree.
+    /// Build a scalar slider or unbounded revolute bearing in a native reduced-coordinate tree.
     /// The constraint removes locked degrees of freedom from the impact mass.
     pub fn add_reduced_scalar_robot_joint(
         &mut self,
@@ -62,7 +62,7 @@ impl RapierBackend {
     ) -> Result<JointId, PhysicsError> {
         if !matches!(
             joint,
-            RobotJoint::Prismatic { limits: None, .. } | RobotJoint::Revolute { limits: None, .. }
+            RobotJoint::Prismatic { .. } | RobotJoint::Revolute { limits: None, .. }
         ) {
             return Err(PhysicsError::InvalidJoint);
         }

@@ -1209,6 +1209,7 @@ impl Multibody {
             let drift = q2 - c.coeff * q1 - c.offset;
 
             out[i] = GenericJointConstraint {
+                travel_velocities: None,
                 is_rigid_body1: false,
                 solver_vel1: u32::MAX,
                 ndofs1: 0,

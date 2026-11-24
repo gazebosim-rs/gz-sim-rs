@@ -85,8 +85,7 @@ pub(super) fn is_scalar_tree_plugin(plugin: &sdformat::Plugin) -> bool {
         && plugin.filename == "gz-sim-reduced-scalar-joints-system"
 }
 
-/// This mode admits passive, unbounded scalar joints with public state readout.
-/// Model-local drives and other constraint owners need their own qualification.
+/// Scalar native joints can combine a bounded slider with a public effort command.
 fn scalar_tree(model: &Model, engine: Option<&str>) -> Result<bool, LoadError> {
     let mut markers = model
         .plugins
@@ -97,7 +96,7 @@ fn scalar_tree(model: &Model, engine: Option<&str>) -> Result<bool, LoadError> {
     };
     let invalid = || LoadError::Unsupported {
         entity: model.scoped_name.clone(),
-        feature: "ReducedScalarJoints requires one passive, world-mounted, unbounded revolute/prismatic tree",
+        feature: "ReducedScalarJoints requires one world-mounted prismatic/unbounded revolute tree without spring or motor ownership",
     };
     let xml = roxmltree::Document::parse(&marker.xml).map_err(|_| invalid())?;
     let root = xml.root_element();
@@ -109,8 +108,8 @@ fn scalar_tree(model: &Model, engine: Option<&str>) -> Result<bool, LoadError> {
                 joint.kind,
                 sdformat::JointKind::Prismatic | sdformat::JointKind::Revolute
             ) && joint.axis.as_ref().is_some_and(|axis| {
-                axis.lower == f64::NEG_INFINITY
-                    && axis.upper == f64::INFINITY
+                (joint.kind == sdformat::JointKind::Prismatic
+                    || axis.lower == f64::NEG_INFINITY && axis.upper == f64::INFINITY)
                     && axis.dynamics.damping == 0.
                     && axis.dynamics.spring_stiffness == 0.
             })
@@ -119,6 +118,7 @@ fn scalar_tree(model: &Model, engine: Option<&str>) -> Result<bool, LoadError> {
             is_scalar_tree_plugin(p)
                 || contact_material::is_plugin(p)
                 || joint_state_publisher::is_plugin(p)
+                || joint_forces::is_plugin(p)
         })
         || root.attributes().len() != 2
         || root.namespaces().next().is_some()

@@ -10,6 +10,7 @@ rust-version = "1.97.1"
 license = "Apache-2.0"
 
 [patch.crates-io]
+rapier3d-f64 = { path = "third_party/rapier3d-f64-0.36.1" }
 prost-derive = { path = "third_party/prost-derive-0.14.4" }
 
 [workspace.dependencies]

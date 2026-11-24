@@ -190,11 +190,11 @@ fn unsupported_ownership_and_joint_features_fail_before_a_world_is_returned() {
     let bad = [
         SDF.replace(MARKER,&MARKER.replace("/>", ">unexpected</plugin>")),
         SDF.replace("<parent>wrist</parent>","<parent>world</parent>"),
-        SDF.replace(MARKER,&format!(r#"{MARKER}<plugin name="gz::sim::systems::ApplyJointForce" filename="gz-sim-apply-joint-force-system"><joint_name>slider</joint_name></plugin>"#)),
+        SDF.replace(MARKER,&format!(r#"{MARKER}<plugin name="gz::sim::systems::ApplyJointForce" filename="gz-sim-apply-joint-force-system"><joint_name>hinge</joint_name></plugin>"#)),
         SDF.replace(MARKER,&format!("{MARKER}{MARKER}")),
         SDF.replace(MARKER,&MARKER.replace("/>","><unknown/></plugin>")),
         SDF.replace(MARKER,&MARKER.replace("/>"," extra=\"1\"/>")),
-        SDF.replace("<xyz>1 0 0</xyz>","<xyz>1 0 0</xyz><limit><upper>0.1</upper></limit>"),
+        SDF.replace("<xyz>0 0 1</xyz>","<xyz>0 0 1</xyz><limit><upper>0.1</upper></limit>"),
         SDF.replace("<xyz>1 0 0</xyz>","<xyz>1 0 0</xyz><dynamics><damping>0.1</damping></dynamics>"),
         SDF.replace("type=\"prismatic\"","type=\"revolute\""),
         SDF.replace("type=\"revolute\"","type=\"fixed\"").replace("<axis><xyz>0 0 1</xyz></axis>",""),
@@ -233,7 +233,7 @@ fn unsupported_ownership_and_joint_features_fail_before_a_world_is_returned() {
                 None,
                 rig.bodies[1],
                 [0.; 3],
-                RobotJoint::Prismatic {
+                RobotJoint::Revolute {
                     axis: [1., 0., 0.],
                     limits: Some([-1., 1.])
                 }

@@ -497,6 +497,21 @@ impl GenericContactConstraintBuilder {
         constraint.cfm_factor = cfm_factor;
     }
 
+    /// Set the velocity target for a loaded frictionless point after the native
+    /// integration. Speculative points that never carried impulse stay inactive.
+    pub(crate) fn prepare_travel_target(&self, contact: &mut GenericContactConstraint) -> bool {
+        if contact.num_contacts != 1
+            || contact.limit != 0.0
+            || contact.normal_part[0].total_impulse() <= 0.0
+            || contact.normal_part[0].r == 0.0
+        {
+            return false;
+        }
+        contact.normal_part[0].rhs = self.infos[0].restitution_seed.min(0.0);
+        contact.cfm_factor = 1.0;
+        true
+    }
+
     /// Does any active point of this constraint hold a restitution seed (an approaching
     /// bouncy contact captured at prepare time)? Cheap pre-check gating
     /// [`Self::apply_restitution`].
@@ -572,6 +587,11 @@ pub(crate) struct GenericContactConstraint {
 }
 
 impl GenericContactConstraint {
+    pub(crate) fn references_multibody(&self, id: u32) -> bool {
+        (self.generic_constraint_mask & 1 != 0 && self.solver_vel1 == id)
+            || (self.generic_constraint_mask & 2 != 0 && self.solver_vel2 == id)
+    }
+
     pub fn invalid() -> Self {
         Self {
             j_id: usize::MAX,

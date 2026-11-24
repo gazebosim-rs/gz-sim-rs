@@ -8,6 +8,7 @@ mod init;
 mod joints;
 mod solve;
 mod sync;
+mod travel;
 mod worker;
 
 use crate::alloc_prelude::*;

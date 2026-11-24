@@ -1581,6 +1581,17 @@ fn build_model(
         )?
     };
     let force_configurations = joint_forces::parse(model)?;
+    if reduced_plan.as_ref().is_some_and(|p| p.scalar_robot) {
+        require(
+            force_configurations.iter().all(|config| {
+                model.joints.iter().any(|j| {
+                    j.name == config.joint_name() && j.kind == sdformat::JointKind::Prismatic
+                })
+            }),
+            &model.scoped_name,
+            "ReducedScalarJoints ApplyJointForce requires a prismatic slider",
+        )?;
+    }
     require(
         force_configurations
             .iter()

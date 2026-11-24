@@ -333,6 +333,11 @@ impl Default for GenericJoint {
 }
 
 impl GenericJoint {
+    /// Opt a reduced prismatic joint into hard, velocity-level travel limits
+    /// solved together with restitution on its connected multibody contacts.
+    /// Stored in the existing user-data slot to preserve native snapshot layout.
+    pub const COUPLED_PRISMATIC_STOP: u128 = u128::from_be_bytes(*b"gz-hard-slide-v1");
+
     /// Creates a new generic joint that locks the specified degrees of freedom.
     #[must_use]
     pub fn new(locked_axes: JointAxesMask) -> Self {

@@ -413,6 +413,7 @@ impl JointConstraintHelper<Real> {
             );
 
             return GenericJointConstraint {
+                travel_velocities: None,
                 is_rigid_body1: true,
                 is_rigid_body2: false,
                 solver_vel1: u32::MAX,
@@ -462,6 +463,7 @@ impl JointConstraintHelper<Real> {
         let rhs_wo_bias = 0.0;
 
         GenericJointConstraint {
+            travel_velocities: None,
             is_rigid_body1,
             is_rigid_body2,
             solver_vel1,

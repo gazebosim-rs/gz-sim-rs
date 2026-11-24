@@ -165,6 +165,13 @@ impl Construction {
                 return joint.limits(JointAxis::LinX, [a.min(b), a.max(b)]).build();
             }
             let joint = joint.limits(self.motor_axis(), limits);
+            if matches!(self.solver, Solver::Reduced)
+                && matches!(self.motion, JointMotion::Prismatic)
+            {
+                return joint
+                    .user_data(GenericJoint::COUPLED_PRISMATIC_STOP)
+                    .build();
+            }
             if matches!(self.motion, JointMotion::Angular) {
                 joint.user_data(BOUNDED_REVOLUTE).build()
             } else {

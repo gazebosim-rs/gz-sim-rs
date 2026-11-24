@@ -21,13 +21,18 @@ pub fn unit_joint_limit_constraint(
     insert_at: &mut usize,
     softness: SpringCoefficients<Real>,
 ) {
+    let hard = link.joint.data.user_data == crate::dynamics::GenericJoint::COUPLED_PRISMATIC_STOP;
     let ndofs = multibody.ndofs();
     let min_enabled = curr_pos < limits[0];
     let max_enabled = limits[1] < curr_pos;
 
     // Compute per-joint ERP and CFM
     let erp_inv_dt = softness.erp_inv_dt(params.dt);
-    let cfm_coeff = softness.cfm_coeff(params.dt);
+    let cfm_coeff = if hard {
+        0.0
+    } else {
+        softness.cfm_coeff(params.dt)
+    };
 
     let rhs_bias = ((curr_pos - limits[1]).max(0.0) - (limits[0] - curr_pos).max(0.0)) * erp_inv_dt;
     let rhs_wo_bias = 0.0;
@@ -48,6 +53,7 @@ pub fn unit_joint_limit_constraint(
     let cfm_gain = lhs * cfm_coeff;
 
     let constraint = GenericJointConstraint {
+        travel_velocities: hard.then(|| limits.map(|end| (end - curr_pos) / params.dt)),
         is_rigid_body1: false,
         solver_vel1: u32::MAX,
         ndofs1: 0,
@@ -108,6 +114,7 @@ pub fn unit_joint_friction_constraint(
     let cfm_gain = lhs * cfm_coeff;
 
     let constraint = GenericJointConstraint {
+        travel_velocities: None,
         is_rigid_body1: false,
         solver_vel1: u32::MAX,
         ndofs1: 0,
@@ -180,6 +187,7 @@ pub fn unit_joint_motor_constraint(
     rhs_wo_bias += -target_vel;
 
     let constraint = GenericJointConstraint {
+        travel_velocities: None,
         is_rigid_body1: false,
         solver_vel1: u32::MAX,
         ndofs1: 0,
