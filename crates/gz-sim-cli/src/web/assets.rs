@@ -225,10 +225,42 @@ fn admit(
     Ok(entry)
 }
 
+#[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
+enum Primitive {
+    Cylinder,
+    Capsule { radius: u64, length: u64 },
+}
+impl Primitive {
+    fn capsule(radius: f64, length: f64) -> Self {
+        Self::Capsule {
+            radius: radius.to_bits(),
+            length: length.to_bits(),
+        }
+    }
+    fn from_geometry(geometry: &sdformat::Geometry) -> Option<Self> {
+        match geometry {
+            sdformat::Geometry::Cylinder { .. } => Some(Self::Cylinder),
+            sdformat::Geometry::Capsule { radius, length } => Some(Self::capsule(*radius, *length)),
+            _ => None,
+        }
+    }
+    fn generate(self, diffuse: [f32; 4]) -> io::Result<(&'static str, Vec<u8>)> {
+        use gz_assets::mesh::{capsule_visual_glb, cylinder_visual_glb};
+        match self {
+            Self::Cylinder => cylinder_visual_glb(diffuse).map(|b| ("cylinder.glb", b)),
+            Self::Capsule { radius, length } => {
+                capsule_visual_glb(f64::from_bits(radius), f64::from_bits(length), diffuse)
+                    .map(|b| ("capsule.glb", b))
+            }
+        }
+        .map_err(io::Error::other)
+    }
+}
+
 pub(super) struct Assets {
     files: Arc<Files>,
     entries: BTreeMap<u64, (sdformat::Mesh, String)>,
-    cylinders: BTreeMap<[u32; 4], String>,
+    primitives: BTreeMap<(Primitive, [u32; 4]), String>,
     aliases: Option<std::collections::BTreeSet<u64>>,
     port: u16,
     stop: Arc<AtomicBool>,
@@ -412,26 +444,25 @@ impl Assets {
     pub(super) fn offline(sim: &Simulation) -> io::Result<Option<Self>> {
         let mut entries: BTreeMap<u64, (sdformat::Mesh, String)> = BTreeMap::new();
         let mut files = Files::new();
-        let mut cylinders = BTreeMap::new();
+        let mut primitives = BTreeMap::new();
         let mut documents: BTreeMap<(PathBuf, PathBuf), String> = BTreeMap::new();
         let mut total = 0;
         for entity in sim.world().iter_entities() {
             let Some(geometry) = entity.get::<VisualGeometry>() else {
                 continue;
             };
-            if matches!(geometry.0.as_ref(), sdformat::Geometry::Cylinder { .. }) {
+            if let Some(primitive) = Primitive::from_geometry(&geometry.0) {
                 let diffuse = entity
                     .get::<VisualMaterial>()
                     .ok_or_else(|| invalid("gzweb visual has no material"))?
                     .0
                     .diffuse;
-                let scope = entries.len() + cylinders.len();
+                let scope = entries.len() + primitives.len();
                 if let std::collections::btree_map::Entry::Vacant(entry) =
-                    cylinders.entry(diffuse.map(f32::to_bits))
+                    primitives.entry((primitive, diffuse.map(f32::to_bits)))
                 {
-                    let route = format!("/assets/{scope}/cylinder.glb");
-                    let glb =
-                        gz_assets::mesh::cylinder_visual_glb(diffuse).map_err(io::Error::other)?;
+                    let (name, glb) = primitive.generate(diffuse)?;
+                    let route = format!("/assets/{scope}/{name}");
                     insert_file(&mut files, route.clone(), glb.into(), &mut total)?;
                     entry.insert(route);
                 }
@@ -455,7 +486,7 @@ impl Assets {
             } else {
                 let route = admit(
                     mesh,
-                    entries.len() + cylinders.len(),
+                    entries.len() + primitives.len(),
                     &mut files,
                     &mut total,
                 )?;
@@ -470,7 +501,7 @@ impl Assets {
         Ok(Some(Self {
             files: Arc::new(files),
             entries,
-            cylinders,
+            primitives,
             aliases: None,
             port: super::recording::EXPORT_ASSET_PORT,
             stop: Arc::new(AtomicBool::new(false)),
@@ -488,10 +519,25 @@ impl Assets {
     }
 
     pub(super) fn cylinder_uri(&self, color: [f32; 4]) -> io::Result<String> {
+        self.primitive_uri(Primitive::Cylinder, color)
+    }
+
+    pub(super) fn capsule_uri(
+        &self,
+        radius: f64,
+        length: f64,
+        color: [f32; 4],
+    ) -> io::Result<String> {
+        self.primitive_uri(Primitive::capsule(radius, length), color)
+    }
+
+    fn primitive_uri(&self, primitive: Primitive, color: [f32; 4]) -> io::Result<String> {
         let route = self
-            .cylinders
-            .get(&color.map(f32::to_bits))
-            .ok_or_else(|| invalid("cylinder material is outside the admitted asset snapshot"))?;
+            .primitives
+            .get(&(primitive, color.map(f32::to_bits)))
+            .ok_or_else(|| {
+                invalid("primitive dimensions or material are outside the admitted asset snapshot")
+            })?;
         Ok(format!("http://127.0.0.1:{}{route}", self.port))
     }
 
@@ -684,3 +730,7 @@ mod stl_tests;
 #[cfg(test)]
 #[path = "../../tests/private/obj_assets.rs"]
 mod obj_tests;
+
+#[cfg(test)]
+#[path = "../../tests/private/capsule_assets.rs"]
+mod capsule_tests;

@@ -168,6 +168,20 @@ pub(super) fn colored_visual_glb(
             sums[i] += cross;
         }
     }
+    let normals = sums
+        .into_iter()
+        .zip(first)
+        .map(|(sum, fallback)| if sum == DVec3::ZERO { fallback } else { sum }.normalize());
+    encode_visual_glb(mesh, normals, kind, diffuse)
+}
+
+/// Pack simulation-space positions and unit normals in the glTF Y-up basis.
+pub(super) fn encode_visual_glb(
+    mesh: &TriangleMesh,
+    normals: impl IntoIterator<Item = DVec3>,
+    kind: &str,
+    diffuse: Option<[f32; 4]>,
+) -> Result<Vec<u8>, MeshError> {
     let mut bin = Vec::new();
     let mut min = [f32::INFINITY; 3];
     let mut max = [f32::NEG_INFINITY; 3];
@@ -182,8 +196,7 @@ pub(super) fn colored_visual_glb(
         }
     }
     let normals_offset = bin.len();
-    for (sum, fallback) in sums.into_iter().zip(first) {
-        let normal = if sum == DVec3::ZERO { fallback } else { sum }.normalize();
+    for normal in normals {
         for value in [normal.x as f32, normal.z as f32, -normal.y as f32] {
             bin.extend(value.to_le_bytes());
         }

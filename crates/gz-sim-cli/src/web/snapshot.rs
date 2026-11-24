@@ -347,6 +347,16 @@ pub(super) fn visual_definition(
                 scale: [*radius, *radius, *length],
             }
         }
+        sdformat::Geometry::Capsule { radius, length }
+            if positive(*radius) && positive(*length) =>
+        {
+            Shape::Mesh {
+                uri: assets
+                    .ok_or_else(|| invalid("capsule visuals require generated glTF resources"))?
+                    .capsule_uri(*radius, *length, color.map(|v| v as f32))?,
+                scale: [1.; 3],
+            }
+        }
         sdformat::Geometry::Mesh(mesh) if mesh.scale.iter().copied().all(positive) => Shape::Mesh {
             uri: assets
                 .ok_or_else(|| invalid("mesh visuals require admitted local glTF resources"))?

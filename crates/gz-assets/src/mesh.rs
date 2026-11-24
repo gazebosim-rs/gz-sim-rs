@@ -16,9 +16,11 @@ const MAX_TRIANGLES: usize = 262144;
 const MAX_NODE_VISITS: usize = 1024;
 const MAX_DEPTH: usize = 32;
 
+mod capsule;
 mod cylinder;
 mod obj;
 mod stl;
+pub use capsule::capsule_visual_glb;
 pub use cylinder::cylinder_visual_glb;
 pub use obj::{decode as decode_obj, visual_glb as obj_visual_glb};
 pub use stl::{decode as decode_stl, visual_glb as stl_visual_glb};
