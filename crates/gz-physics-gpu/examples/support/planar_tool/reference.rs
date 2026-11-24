@@ -24,6 +24,8 @@ pub fn fixture(i: usize) -> Lane {
         turns: [0.; 2],
         velocity_mode: [0.; 2],
         velocity_target: [0.; 2],
+        stops: Default::default(),
+        stop_impulse: [0.; 2],
     }
 }
 pub fn lift(i: usize) -> [f64; 2] {

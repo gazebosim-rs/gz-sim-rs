@@ -208,12 +208,28 @@ fn all_displayed_arm_poses_follow_the_measured_sdf_links() -> Result<()> {
 #[test]
 #[ignore = "requires an ordinary transport-command replay and subscribed robot joint states"]
 fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Result<()> {
-    let root =
-        env::var_os("GZ_GPU_COMMAND_REPLAY_AUDIT").ok_or("set GZ_GPU_COMMAND_REPLAY_AUDIT")?;
+    audit_command(false)
+}
+#[test]
+#[ignore = "requires a bounded-arm command recording and subscribed states"]
+fn stopped_arm_replay_matches_joint_limits_and_continuous_tool_support() -> Result<()> {
+    audit_command(true)
+}
+fn audit_command(stopped: bool) -> Result<()> {
+    let var = if stopped {
+        "GZ_GPU_STOPPED_REPLAY_AUDIT"
+    } else {
+        "GZ_GPU_COMMAND_REPLAY_AUDIT"
+    };
+    let root = env::var_os(var).ok_or("command audit directory missing")?;
     let root = Path::new(&root);
     let capture =
         root.join(env::var_os("GZ_GPU_COMMAND_CAPTURE").unwrap_or_else(|| "qualified".into()));
-    let sdf = include_str!("../../../examples/gpu_commanded_tool_world.sdf");
+    let sdf = if stopped {
+        include_str!("../../../examples/gpu_stopped_tool_world.sdf")
+    } else {
+        include_str!("../../../examples/gpu_commanded_tool_world.sdf")
+    };
     let doc = roxmltree::Document::parse(sdf)?;
     let links = visual_bindings(sdf)?;
     let named = |tag, n| {
@@ -252,12 +268,34 @@ fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Res
     }
     let mut frames = vec![];
     let mut loaded = vec![];
+    let mut dual = vec![];
+    let mut upper = vec![];
     for tick in 0..=trace.len() {
         let mut a = [0.; 2];
         if tick > 0 {
             let row = &trace[tick - 1];
             assert_eq!(row["tick_ms"], tick);
             a = serde_json::from_value(row["position_rad"].clone())?;
+        }
+        if stopped && tick > 0 {
+            for (i, name) in ["shoulder", "elbow"].iter().enumerate() {
+                let limit = child(child(named("joint", name)?, "axis")?, "limit")?;
+                let lo = child(limit, "lower")?.text().unwrap().parse::<f64>()?;
+                let hi = child(limit, "upper")?.text().unwrap().parse::<f64>()?;
+                assert!(
+                    lo - 1e-12 <= a[i] && a[i] <= hi + 1e-12,
+                    "{name} crossed a stop at {tick}"
+                );
+            }
+            if tick <= 600 {
+                let p = trace[tick - 1]["stop_impulse_nms"][0].as_f64().unwrap();
+                if p > 0. && trace[tick - 1]["normal_impulse_ns"].as_f64().unwrap() > 0. {
+                    dual.push(tick);
+                }
+                if p < 0. {
+                    upper.push(tick);
+                }
+            }
         }
         let joint = |q, angle| Pose {
             xyz: DVec3::ZERO,
@@ -288,7 +326,8 @@ fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Res
         }
         frames.push(json!({"time_ns":tick*1_000_000,"poses":poses}));
     }
-    assert_eq!((loaded.first(), loaded.last()), (Some(&65), Some(&311)));
+    let last = if stopped { 307 } else { 311 };
+    assert_eq!((loaded.first(), loaded.last()), (Some(&65), Some(&last)));
     let mut captures = vec![];
     for line in fs::read_to_string(capture.join("replay/frames.jsonl"))?.lines() {
         let row: Value = serde_json::from_str(line)?;
@@ -304,7 +343,25 @@ fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Res
         captures.push(tick);
     }
     let on = captures.iter().position(|t| loaded.contains(t)).unwrap();
-    let off = captures.iter().position(|t| t > &311).unwrap();
+    let off = captures.iter().position(|t| t > &last).unwrap();
+    let mut selected = json!({"start":0,"contact":on,"lift":off,"final":captures.len()-1});
+    if stopped {
+        assert_eq!(dual.len(), 90);
+        for (name, target, ticks) in [
+            ("lower_stop_and_floor", 250, &dual),
+            ("upper_stop", 590, &upper),
+        ] {
+            selected[name] = json!(
+                captures
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, t)| ticks.contains(t))
+                    .min_by_key(|(_, t)| t.abs_diff(target))
+                    .unwrap()
+                    .0
+            );
+        }
+    }
     let out = root.join("viewer");
     fs::create_dir_all(&out)?;
     fs::write(out.join("expected.json"), serde_json::to_vec(&frames)?)?;
@@ -312,7 +369,7 @@ fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Res
     fs::write(
         out.join("index.json"),
         serde_json::to_vec_pretty(
-            &json!({"kind":"authored-archive-v1","camera":"perspective","dt_ns":1,"source_poses":"../../viewer/expected.json","source_visual_poses":names,"captures":{"start":0,"contact":on,"lift":off,"final":captures.len()-1}}),
+            &json!({"kind":"authored-archive-v1","camera":"perspective","dt_ns":1,"source_poses":"../../viewer/expected.json","source_visual_poses":names,"captures":selected}),
         )?,
     )?;
     Ok(())

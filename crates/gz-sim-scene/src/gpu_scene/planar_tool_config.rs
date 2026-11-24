@@ -188,12 +188,15 @@ fn load_arm(
             .expect("parsed joint");
         controllers[index] = Some(controller);
     }
+    let mut stops = [gz_physics_gpu::PlanarJointStops::default(); 2];
     let mut poses = [(Transform::default(), Transform::default()); 2];
     for i in 0..2 {
         let l = links[i];
         let j = joints[i];
         let name = format!("{}::{}", m.scoped_name, j.name);
         let a = j.axis.as_ref().ok_or_else(|| err("missing hinge axis"))?;
+        stops[i] = gz_physics_gpu::PlanarJointStops::from_relative(origin[i], a.lower, a.upper)
+            .ok_or_else(|| err("unrepresentable hinge stops or loaded hinge outside travel"))?;
         poses[i] = (
             sdf.pose_of(&name, &m.scoped_name)?,
             sdf.pose_of(&name, &w.name)?,
@@ -206,8 +209,6 @@ fn load_arm(
                 && a.mimic.is_none()
                 && near(sdf.resolve_axis(a, &name, &w.name)?, [0., -1., 0.])
                 && identity(sdf.pose_of(&name, &ids[i])?)
-                && a.lower == f64::NEG_INFINITY
-                && a.upper == f64::INFINITY
                 && (controllers[i].is_some() || a.velocity == f64::INFINITY)
                 && a.effort.is_finite()
                 && a.effort > 0.
@@ -216,7 +217,7 @@ fn load_arm(
                 && a.dynamics.spring_stiffness == 0.
                 && a.dynamics.spring_reference == 0.,
             &name,
-            "tool hinges require local pivots, parallel world -Y axes, finite effort and unlimited range/speed with free joint dynamics",
+            "tool hinges require local pivots, parallel world -Y axes, finite effort, supported speed settings and free joint dynamics",
         )?;
         let com = sdf.resolve_pose(&l.inertial.pose, &m.scoped_name, &ids[i], &ids[i])?;
         let [xx, yy, zz, xy, xz, yz] = l.inertial.inertia;
@@ -313,6 +314,8 @@ fn load_arm(
         turns: [0.; 2],
         velocity_mode: controllers.each_ref().map(|p| f64::from(p.is_some())),
         velocity_target: [0.; 2],
+        stops,
+        stop_impulse: [0.; 2],
     };
     require(lane.gap() >= 0., &m.name, "tool starts below the floor")?;
     Ok(Arm {

@@ -25,6 +25,7 @@ mod wire;
 
 type Result<T> = std::result::Result<T, Box<dyn Error + Send + Sync>>;
 const WAIT: Duration = Duration::from_secs(10);
+const STOPPED_WORLD: &str = include_str!("../../../examples/gpu_stopped_tool_world.sdf");
 const WORLD: &str = include_str!("../../../examples/gpu_commanded_tool_world.sdf");
 struct Server(Child);
 impl Drop for Server {
@@ -66,14 +67,19 @@ fn main() -> Result<()> {
     if after_reset {
         args.pop();
     }
+    let stopped = args.last().is_some_and(|a| a == "--stops");
+    if stopped {
+        args.pop();
+    }
+    let scene = if stopped { STOPPED_WORLD } else { WORLD };
     let [exe, adapter, path]: [String; 3] = args.try_into().map_err(
-        |_| "usage: gpu_joint_probe GZ_SIM_RS ADAPTER NEW_OUTPUT_DIRECTORY [--after-reset]",
+        |_| "usage: gpu_joint_probe GZ_SIM_RS ADAPTER NEW_OUTPUT_DIRECTORY [--stops] [--after-reset]",
     )?;
     let out = PathBuf::from(path);
     std::fs::create_dir(&out)?;
     let server_log = File::create_new(out.join("server.log"))?;
     let mut sim = load_world_on_adapter(
-        WORLD,
+        scene,
         "gpu_commanded_tool_world.sdf",
         "default",
         &sdformat::NoResources,
@@ -106,7 +112,7 @@ fn main() -> Result<()> {
         &json!({"mode":"client","listen":{"endpoints":[]},"connect":{"endpoints":endpoints,"timeout_ms":2000},"scouting":{"multicast":{"enabled":false},"gossip":{"enabled":false}},"transport":{"shared_memory":{"enabled":false}}}),
     )?;
     let world = scratch.path().join("world.sdf");
-    std::fs::write(&world, WORLD)?;
+    std::fs::write(&world, scene)?;
     let partition = format!("arm-command-{}", std::process::id());
     let prefix = format!("@/{partition}@");
     let state = session
@@ -206,7 +212,7 @@ fn main() -> Result<()> {
                 last = Some(tick);
                 impulse += lane.normal_impulse;
             }
-            trace.push(json!({"tick_ms":tick,"command_rad":target,"position_rad":position,"velocity_rad_s":velocity,"motor_demand_rad_s":lane.velocity_target,"motor_torque_nm":lane.arm.effort,"normal_impulse_ns":lane.normal_impulse,"gap_m":lane.gap()}));
+            trace.push(json!({"tick_ms":tick,"command_rad":target,"position_rad":position,"velocity_rad_s":velocity,"motor_demand_rad_s":lane.velocity_target,"motor_torque_nm":lane.arm.effort,"stop_impulse_nms":lane.stop_impulse,"normal_impulse_ns":lane.normal_impulse,"gap_m":lane.gap()}));
         }
     }
     advance(&session, &control_key, 1)?;
@@ -228,7 +234,7 @@ fn main() -> Result<()> {
         std::thread::sleep(Duration::from_millis(10));
     }
     assert!(max_residual < 1e-12 && first.is_some() && last.unwrap() < 600);
-    let summary = json!({"adapter":adapter,"after_transport_reset":after_reset,"frames":trace.len(),"first_loaded_tick":first,"last_loaded_tick":last,"normal_impulse_ns":impulse,"max_torque_nm":peak_effort,"max_measured_speed_rad_s":max_speed,"max_motor_demand_rad_s":max_target,"max_joint_transport_residual_si":max_residual});
+    let summary = json!({"adapter":adapter,"authored_stops":stopped,"after_transport_reset":after_reset,"frames":trace.len(),"first_loaded_tick":first,"last_loaded_tick":last,"normal_impulse_ns":impulse,"max_torque_nm":peak_effort,"max_measured_speed_rad_s":max_speed,"max_motor_demand_rad_s":max_target,"max_joint_transport_residual_si":max_residual});
     wire::save(&out.join("trace.json"), &serde_json::Value::Array(trace))?;
     wire::save(&out.join("comparison.json"), &summary)?;
     println!("{summary}");

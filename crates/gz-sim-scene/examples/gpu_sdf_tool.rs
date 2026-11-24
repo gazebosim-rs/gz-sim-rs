@@ -49,6 +49,8 @@ fn reference_fixture() -> PlanarToolLane {
         turns: [0.; 2],
         velocity_mode: [0.; 2],
         velocity_target: [0.; 2],
+        stops: Default::default(),
+        stop_impulse: [0.; 2],
     }
 }
 fn run(adapter: &str, out: &Path) -> Result<(), Box<dyn Error>> {
@@ -162,8 +164,10 @@ struct Published {
     position_rad: [f64; 2],
     command_rad: [f64; 2],
     normal_impulse_ns: f64,
+    #[serde(default)]
+    stop_impulse_nms: [f64; 2],
 }
-fn compare_commands(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
+fn compare_commands(trace: &Path, out: &Path, stopped: bool) -> Result<(), Box<dyn Error>> {
     let frames: Vec<Published> = serde_json::from_slice(&fs::read(trace)?)?;
     if frames.len() != 600 {
         return Err("expected 600 consecutive transport observations".into());
@@ -171,7 +175,30 @@ fn compare_commands(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
     let mut l = reference_fixture();
     l.arm.damping = [6., 1.5];
     l.velocity_mode = [1.; 2];
-    let mut native = native_tool::NativeTool::new(&l);
+    let limits = if stopped {
+        [Some([-0.36, 0.02]), Some([-0.15, 1.20])]
+    } else {
+        [None; 2]
+    };
+    let mut native = native_tool::NativeTool::new_with_limits(&l, limits);
+    let mut first_stop = [[None; 2]; 2];
+    let mut reference_residual = [0_f64; 2];
+    let mut max_free_elbow = 0_f64;
+    let mut controls = stopped.then(|| {
+        [
+            native_tool::NativeTool::new_with_limits(&l, [None, limits[1]]),
+            native_tool::NativeTool::new_with_limits(
+                &l,
+                [limits[0].map(|[lo, _]| [lo, f64::MAX]), limits[1]],
+            ),
+        ]
+    });
+    let mut native_departure = [None; 2];
+    let mut combined = 0;
+    let mut stop_impulse = [0_f64; 2];
+    let mut peak_stop = [0_f64; 2];
+    let mut travel_error = [0_f64; 2];
+    let mut coordinate_error = [0_f64; 2];
     let mut total = [0_f64; 2];
     let mut first = [None; 2];
     let mut last = [0; 2];
@@ -188,6 +215,51 @@ fn compare_commands(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
                 ((frame.command_rad[axis] - (q[axis] - origin[axis])) / 0.001).clamp(-cap, cap);
         }
         let n = native.step(&l);
+        let native_position = native.arm.angles();
+        if let Some(controls) = &mut controls {
+            for (k, control) in controls.iter_mut().enumerate() {
+                let mut control_lane = l;
+                for (i, q) in control.arm.angles().into_iter().enumerate() {
+                    let cap = [2.4, 3.2][i];
+                    control_lane.velocity_target[i] =
+                        ((frame.command_rad[i] - (q - origin[i])) / 0.001).clamp(-cap, cap);
+                }
+                control.step(&control_lane);
+                if control.arm.angles() != native_position
+                    || control.arm.rates() != native.arm.rates()
+                {
+                    native_departure[k].get_or_insert(frame.tick_ms);
+                }
+            }
+        }
+        for axis in 0..2 {
+            if let Some([lo, hi]) = limits[axis] {
+                travel_error[0] = travel_error[0]
+                    .max(lo - frame.position_rad[axis])
+                    .max(frame.position_rad[axis] - hi);
+                let native = native_position[axis] - origin[axis];
+                travel_error[1] = travel_error[1].max(lo - native).max(native - hi);
+                coordinate_error[axis] =
+                    coordinate_error[axis].max((frame.position_rad[axis] - native).abs());
+            }
+            let p = frame.stop_impulse_nms[axis];
+            if p != 0. {
+                first_stop[axis][usize::from(p < 0.)].get_or_insert((
+                    frame.tick_ms,
+                    p,
+                    native.limit_residual[axis],
+                ));
+            }
+            reference_residual[axis] += native.limit_residual[axis];
+            if axis == 1 {
+                max_free_elbow = max_free_elbow.max(native.limit_residual[axis].abs());
+            }
+            stop_impulse[axis] += p;
+            peak_stop[axis] = peak_stop[axis].max(p.abs());
+        }
+        if frame.normal_impulse_ns > 0. && frame.stop_impulse_nms.iter().any(|p| *p != 0.) {
+            combined += 1
+        }
         let a = frame.position_rad[0] + origin[0];
         let b = a + frame.position_rad[1] + origin[1];
         let x = 0.30 * a.cos() + 0.21 * b.cos();
@@ -201,7 +273,7 @@ fn compare_commands(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    let result = json!({"order":["published_gpu_trace","independent_native_rapier"],"first_loaded_public_tick_and_impulse_ns":first,"last_loaded_public_tick":last,"total_normal_impulse_ns":total,"max_tip_error_m":max_tip,"native_seconds_per_substep":0.001/16.});
+    let result = json!({"order":["published_gpu_trace","independent_native_rapier"],"first_loaded_public_tick_and_impulse_ns":first,"last_loaded_public_tick":last,"total_normal_impulse_ns":total,"max_tip_error_m":max_tip,"native_seconds_per_substep":0.001/16.,"authored_stops":stopped,"native_lower_upper_departure_tick":native_departure,"native_signed_limit_residual_nms":reference_residual,"max_native_free_elbow_residual_nms":max_free_elbow,"limits_rad":limits,"first_stop_tick_and_signed_impulse_nms":first_stop,"floor_and_stop_loaded_ticks":combined,"total_signed_stop_impulses_nms":stop_impulse,"max_abs_stop_impulse_nms":peak_stop,"max_travel_violation_rad":travel_error,"max_joint_difference_rad":coordinate_error});
     fs::write(out, serde_json::to_vec_pretty(&result)?)?;
     println!("{result}");
     Ok(())
@@ -209,9 +281,9 @@ fn compare_commands(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     if let [mode, trace, out] = args.as_slice()
-        && mode == "--commands"
+        && matches!(mode.as_str(), "--commands" | "--stops")
     {
-        return compare_commands(Path::new(trace), Path::new(out));
+        return compare_commands(Path::new(trace), Path::new(out), mode == "--stops");
     }
     let [adapter, out] = args.as_slice() else {
         return Err("expected ADAPTER NEW_OUTPUT_DIRECTORY".into());

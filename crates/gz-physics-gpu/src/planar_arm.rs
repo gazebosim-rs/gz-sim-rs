@@ -125,6 +125,11 @@ pub(super) struct ArmInertia<T> {
     distal_weight: T,
 }
 impl<T: Scalar> ArmInertia<T> {
+    pub(super) fn momentum(&self, c: T, w: [T; 2]) -> [T; 2] {
+        let m12 = self.b + self.k * c;
+        let m11 = self.a + self.b + self.k * c + self.k * c;
+        [m11 * w[0] + m12 * w[1], m12 * w[0] + self.b * w[1]]
+    }
     /// Generalized velocity produced by a unit spatial impulse with this joint Jacobian.
     pub(super) fn inverse(&self, c: T, s: T, j: [T; 2]) -> [T; 2] {
         let m12 = self.b + self.k * c;

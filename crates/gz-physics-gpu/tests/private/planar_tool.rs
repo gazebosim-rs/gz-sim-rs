@@ -29,11 +29,13 @@ fn sample() -> PlanarToolLane {
         turns: [0.; 2],
         velocity_mode: [0.; 2],
         velocity_target: [0.; 2],
+        stops: Default::default(),
+        stop_impulse: [0.; 2],
     }
 }
 fn advance(mut v: PlanarToolLane) -> PlanarToolLane {
     let words = bytemuck::cast_mut::<_, [f64; WIDTH]>(&mut v);
-    for (i, x) in solve(*words, &[0.0005, 0., 1., 0.5]) {
+    for (i, x) in solve::<_, true>(*words, &[0.0005, 0., 1., 0.5]) {
         words[i] = x;
     }
     v
@@ -233,4 +235,125 @@ fn velocity_drives_are_axis_owned_finite_and_clear_at_reset() {
         sim.world().resource::<PlanarToolBatch>().lanes()[0].velocity_target,
         [0., 0.]
     );
+}
+
+#[test]
+fn authored_limits_cover_both_sides_and_preserve_the_free_coordinate_momentum() {
+    for i in 0..2 {
+        for inward in [-1., 1.] {
+            let mut l = sample();
+            l.arm.angle = [[1., 0.]; 2];
+            l.ground_z = -10.;
+            l.arm.gravity = 0.;
+            l.arm.stiffness = [0.; 2];
+            l.arm.damping = [0.; 2];
+            l.arm.speed = [0.; 2];
+            l.arm.speed[i] = -inward;
+            let limits = if inward > 0. {
+                [0., f64::INFINITY]
+            } else {
+                [f64::NEG_INFINITY, 0.]
+            };
+            l.stops[i] = PlanarJointStops::from_relative(0., limits[0], limits[1]).unwrap();
+            let words: &[f64] = bytemuck::cast_slice(std::slice::from_ref(&l));
+            let mass = ArmInertia::from_lane(words);
+            let mut unit = [0.; 2];
+            unit[i] = 1.;
+            let col = mass.inverse(1., 0., unit);
+            let expected = inward / col[i];
+            let hit = advance(l);
+            assert!((hit.stop_impulse[i] - expected).abs() < 2e-6);
+            assert_eq!(hit.normal_impulse, 0.);
+            assert!(hit.joint_angles()[i].abs() < 1e-9);
+            assert!((hit.arm.speed[1 - i] - col[1 - i] * expected).abs() < 2e-5);
+            l.arm.speed[i] = inward;
+            let released = advance(l);
+            assert_eq!(released.stop_impulse, [0.; 2]);
+        }
+    }
+}
+#[test]
+fn paired_stops_and_floor_balance_generalized_momentum_and_respect_unilateral_directions() {
+    let l = sample();
+    let words: &[f64] = bytemuck::cast_slice(std::slice::from_ref(&l));
+    let m = ArmInertia::from_lane(words);
+    let (c, s) = (0.8, 0.6);
+    for normal in [[0.5, 0.16], [0.2, -0.11], [0.3, 0.]] {
+        let tangent = [0.06, -0.03];
+        let an = m.inverse(c, s, normal);
+        let at = m.inverse(c, s, tangent);
+        for side0 in [-1., 0., 1.] {
+            for side1 in [-1., 0., 1.] {
+                for w0 in [-2., -0.1, 0., 0.4, 1.2] {
+                    for w1 in [-1.1, -0.2, 0., 0.6, 1.7] {
+                        let speed = [w0, w1];
+                        let sides = [side0, side1];
+                        for floor in [false, true] {
+                            let floor_only = if floor {
+                                impact(
+                                    [dot(normal, speed), dot(tangent, speed)],
+                                    [dot(normal, an), dot(tangent, an), dot(tangent, at)],
+                                    0.3,
+                                    0.,
+                                    1.,
+                                )
+                            } else {
+                                [0.; 2]
+                            };
+                            let (w, [n, t], p) = planar_stops::solve(
+                                &m, c, s, speed, sides, [0.; 2], floor, normal, tangent, 0.3,
+                                floor_only, 0., 1.,
+                            );
+                            let delta = m.momentum(c, [w[0] - w0, w[1] - w1]);
+                            assert!(n >= 0. && t.abs() <= 0.3 * n + 1e-12);
+                            assert!(!floor || dot(normal, w) >= -1e-11);
+                            for i in 0..2 {
+                                assert!(
+                                    sides[i] * w[i] >= -1e-11,
+                                    "sides={sides:?}, sample={speed:?}, result={w:?}"
+                                );
+                                assert!(sides[i] * p[i] >= -1e-11);
+                                assert!(
+                                    (delta[i] - p[i] - normal[i] * n - tangent[i] * t).abs()
+                                        < 1e-11
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+#[test]
+fn finite_stops_reject_invalid_ranges_and_retain_multiturn_order() {
+    let tau = std::f64::consts::TAU;
+    for (origin, lo, hi) in [
+        (f64::NAN, 0., 0.),
+        (0., 0.1, 0.2),
+        (0., -1., -0.1),
+        (0., f64::NAN, 1.),
+        (0., 0., f64::MAX),
+    ] {
+        assert!(PlanarJointStops::from_relative(origin, lo, hi).is_none());
+    }
+    for dir in [-1., 1.] {
+        let mut l = sample();
+        l.arm.angle = [[1., 0.]; 2];
+        l.arm.speed = [dir * 1000., 0.];
+        l.ground_z = -10.;
+        l.arm.gravity = 0.;
+        l.arm.damping = [0.; 2];
+        l.arm.stiffness = [0.; 2];
+        let (lo, hi) = if dir > 0. {
+            (-tau, 1.25 * tau)
+        } else {
+            (-1.25 * tau, tau)
+        };
+        l.stops[0] = PlanarJointStops::from_relative(0., lo, hi).unwrap();
+        for _ in 0..30 {
+            l = advance(l);
+            assert!(l.joint_angles()[0] >= lo - 1e-12 && l.joint_angles()[0] <= hi + 1e-12);
+        }
+    }
 }

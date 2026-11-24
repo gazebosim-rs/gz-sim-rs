@@ -10,6 +10,9 @@ pub struct Native {
 }
 impl Native {
     pub fn new(l: &Lane) -> Self {
+        Self::new_with_limits(l, [None; 2])
+    }
+    pub fn new_with_limits(l: &Lane, limits: [Option<[f64; 2]>; 2]) -> Self {
         let mut world = PhysicsWorld::new();
         world.gravity = Vector::new(0., 0., -l.gravity);
         world.integration_parameters.dt = 0.001 / 8.;
@@ -53,10 +56,16 @@ impl Native {
             inertia,
         );
         // Fixed joint frames define the physical starting pose. Multibody coordinates start at zero.
-        for (parent, child, x, angle) in [(fixed, a, 0., q[0]), (a, b, l.length[0], q[1])] {
+        for ((parent, child, x, angle), limit) in [(fixed, a, 0., q[0]), (a, b, l.length[0], q[1])]
+            .into_iter()
+            .zip(limits)
+        {
             let mut hinge = RevoluteJointBuilder::new(-Vector::Y)
                 .local_anchor1(Vector::X * x)
                 .build();
+            if let Some(limit) = limit {
+                hinge.set_limits(limit);
+            }
             hinge.data.local_frame1.rotation =
                 Rotation::from_rotation_y(-angle) * hinge.data.local_frame1.rotation;
             let id = world.insert_multibody_joint(parent, child, hinge).unwrap();
@@ -90,9 +99,17 @@ impl Native {
         });
         [abs[0], abs[1] - abs[0]]
     }
-    pub fn step_with_motor(&mut self, l: &Lane, velocity_mode: [f64; 2], demand: [f64; 2]) {
+    pub fn rates(&self) -> [f64; 2] {
         let rate = self.links.map(|id| -self.world.bodies[id].angvel().y);
-        let relative = [rate[0], rate[1] - rate[0]];
+        [rate[0], rate[1] - rate[0]]
+    }
+    pub fn step_with_motor(
+        &mut self,
+        l: &Lane,
+        velocity_mode: [f64; 2],
+        demand: [f64; 2],
+    ) -> [f64; 2] {
+        let relative = self.rates();
         let mut torque = servo(l, self.angles(), relative);
         for i in 0..2 {
             if velocity_mode[i] == 1. {
@@ -107,6 +124,7 @@ impl Native {
             rb.add_torque(-Vector::Y * t, true);
         }
         self.world.step();
+        torque
     }
     pub fn tip(&self, l: &Lane) -> [f64; 2] {
         let link = &self.world.bodies[self.links[1]];

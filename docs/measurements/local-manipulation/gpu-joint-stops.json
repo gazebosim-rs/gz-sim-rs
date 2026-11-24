@@ -1,0 +1,220 @@
+{
+  "fixture": "examples/gpu_stopped_tool_world.sdf",
+  "transport": {
+    "adapter": "NVIDIA GeForce RTX 5090",
+    "after_transport_reset": false,
+    "authored_stops": true,
+    "first_loaded_tick": 65,
+    "frames": 600,
+    "last_loaded_tick": 307,
+    "max_joint_transport_residual_si": 2.220446049250313e-16,
+    "max_measured_speed_rad_s": [
+      2.7591009661769896,
+      5.699718411887083
+    ],
+    "max_motor_demand_rad_s": [
+      2.4,
+      3.2
+    ],
+    "max_torque_nm": [
+      8.0,
+      2.8
+    ],
+    "normal_impulse_ns": 4.111969277246921
+  },
+  "native_comparison": {
+    "authored_stops": true,
+    "first_loaded_public_tick_and_impulse_ns": [
+      [
+        65,
+        0.2977096847603386
+      ],
+      [
+        65,
+        0.3163788899653445
+      ]
+    ],
+    "first_stop_tick_and_signed_impulse_nms": [
+      [
+        [
+          211,
+          0.05918695614841234,
+          0.05821781747921718
+        ],
+        [
+          510,
+          -0.07518456240672591,
+          -0.08021697756469963
+        ]
+      ],
+      [
+        null,
+        null
+      ]
+    ],
+    "floor_and_stop_loaded_ticks": 90,
+    "last_loaded_public_tick": [
+      307,
+      307
+    ],
+    "limits_rad": [
+      [
+        -0.36,
+        0.02
+      ],
+      [
+        -0.15,
+        1.2
+      ]
+    ],
+    "max_abs_stop_impulse_nms": [
+      0.07518456240672591,
+      0.0
+    ],
+    "max_joint_difference_rad": [
+      0.0009129935184077342,
+      0.003998580197146717
+    ],
+    "max_native_free_elbow_residual_nms": 0.00010766988893536389,
+    "max_tip_error_m": 0.0008397012813004502,
+    "max_travel_violation_rad": [
+      1.734723475976807e-17,
+      9.227413971801823e-12
+    ],
+    "native_lower_upper_departure_tick": [
+      211,
+      510
+    ],
+    "native_seconds_per_substep": 6.25e-05,
+    "native_signed_limit_residual_nms": [
+      -0.3778562079694794,
+      -0.00067672836564469
+    ],
+    "order": [
+      "published_gpu_trace",
+      "independent_native_rapier"
+    ],
+    "total_normal_impulse_ns": [
+      4.111969277246921,
+      4.093258410659024
+    ],
+    "total_signed_stop_impulses_nms": [
+      -0.37483325521437755,
+      0.0
+    ]
+  },
+  "reset": {
+    "trace_sha256": "471518b45913750780ffb4c0680c59be6b23d95f503314c04081103210db875c",
+    "reset_trace_sha256": "471518b45913750780ffb4c0680c59be6b23d95f503314c04081103210db875c",
+    "terminal_sha256": "b661589ce5cbb64f01d42f7ce620fa6f0112c5b0b1a21ff6959b48c2f1c29459",
+    "reset_terminal_sha256": "b661589ce5cbb64f01d42f7ce620fa6f0112c5b0b1a21ff6959b48c2f1c29459"
+  },
+  "visual": {
+    "body_poses_and_shapes_checked": 165,
+    "captured_ms": {
+      "contact": 72.0,
+      "final": 591.0,
+      "lift": 321.0,
+      "lower_stop_and_floor": 252.0,
+      "start": 0.0,
+      "upper_stop": 591.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      1.0,
+      16.0,
+      32.0,
+      52.0,
+      72.0,
+      92.0,
+      112.0,
+      132.0,
+      152.0,
+      172.0,
+      192.0,
+      212.0,
+      232.0,
+      252.0,
+      272.0,
+      292.0,
+      301.0,
+      321.0,
+      341.0,
+      361.0,
+      381.0,
+      401.0,
+      421.0,
+      441.0,
+      461.0,
+      481.0,
+      501.0,
+      513.0,
+      531.0,
+      551.0,
+      571.0,
+      591.0
+    ],
+    "frames": 33,
+    "independent_visual_poses_checked": 165,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 33,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9887%2F"
+  },
+  "source_checks": {
+    "strict_clippy": "passed",
+    "gpu_solver_tests": 11,
+    "sdf_tests": 12,
+    "native_replay_audit": 1,
+    "baseline": "1b26b00",
+    "changed_source": {
+      "runtime": {
+        "lines": {
+          "covered": 265,
+          "mapped": 265,
+          "percent": 100.0
+        },
+        "regions": {
+          "covered": 650,
+          "mapped": 651,
+          "percent": 99.85
+        }
+      },
+      "qualification_programs": {
+        "lines": {
+          "covered": 157,
+          "mapped": 160,
+          "percent": 98.12
+        },
+        "regions": {
+          "covered": 343,
+          "mapped": 345,
+          "percent": 99.42
+        }
+      },
+      "combined": {
+        "lines": {
+          "covered": 422,
+          "mapped": 425,
+          "percent": 99.29
+        },
+        "regions": {
+          "covered": 993,
+          "mapped": 996,
+          "percent": 99.7
+        }
+      }
+    },
+    "llvm_objects_sha256": {
+      "gpu": "53ee4a14ef95bcd7e57ac1e223262f486b45ef6542bc6627e9ebb79455be2f8f",
+      "tests": "346a6b6621d8203ebc6c8248d73aabf9995ef060d8e70e1b199eb4e97353279d",
+      "cli": "a5b493c8a27c423ee0b853dbd198e7d02d42ce643fc3353caf8d5dd043a35138",
+      "probe": "fc14065f6f1926f098822a4f8b97c6574290fb77e7ce787e0764ef3fee1d2e6b",
+      "reference": "4b8da30bdb95287dc5131ce4870f515bb0a3aadc73b4935042aaacf93909ea3a",
+      "arm": "d5fc54f85456908661ad9a5c5ef7170daa8611cc7f1fca77c739ec9a1b50943e"
+    }
+  }
+}

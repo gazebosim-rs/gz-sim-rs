@@ -3,7 +3,7 @@
 //! An inelastic round tool on a planar articulated arm, touching a horizontal floor.
 use crate::arithmetic::{Condition, Scalar};
 use crate::planar_arm::{ArmInertia, tick_with_velocity};
-use crate::{GpuError, PlanarArmLane, ResidentBatch, STEP, kernel};
+use crate::{GpuError, PlanarArmLane, PlanarJointStops, ResidentBatch, STEP, kernel, planar_stops};
 use bytemuck::{Pod, Zeroable};
 
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
@@ -27,8 +27,11 @@ pub struct PlanarToolLane {
     /// Per-axis velocity motor selection (0 or 1) and demand in rad/s.
     pub velocity_mode: [f64; 2],
     pub velocity_target: [f64; 2],
+    pub stops: [PlanarJointStops; 2],
+    /// Signed angular impulse on each hinge from its travel limit during this tick (N m s).
+    pub stop_impulse: [f64; 2],
 }
-const WIDTH: usize = 42;
+const WIDTH: usize = 62;
 const _: () = assert!(size_of::<PlanarToolLane>() == 8 * WIDTH);
 pub type PlanarToolBatch = ResidentBatch<PlanarToolLane>;
 impl PlanarToolLane {
@@ -58,6 +61,12 @@ impl PlanarToolLane {
             && self.first_contact_offset == -1.
             && self.first_normal_impulse == 0.
             && self.first_tangent_impulse == 0.
+            && self.stop_impulse == [0.; 2]
+            && self
+                .stops
+                .iter()
+                .zip(self.arm.angle)
+                .all(|(limit, angle)| limit.admits(angle))
             && self.turns == [0.; 2]
             && self.velocity_mode.iter().all(|v| matches!(*v, 0. | 1.))
             && self.velocity_target.iter().all(|v| v.is_finite())
@@ -65,7 +74,12 @@ impl PlanarToolLane {
 }
 impl PlanarToolBatch {
     pub fn new(adapter_name: &str, initial: Vec<PlanarToolLane>) -> Result<Self, GpuError> {
-        Self::new_profile(adapter_name, initial, PlanarToolLane::valid, module, None)
+        let shader = if initial.iter().any(|l| l.stops.iter().any(|s| s.enabled())) {
+            module::<true>
+        } else {
+            module::<false>
+        };
+        Self::new_profile(adapter_name, initial, PlanarToolLane::valid, shader, None)
     }
     /// Change the demand of an enabled velocity motor at a public boundary.
     pub fn set_motor_speed(
@@ -97,8 +111,10 @@ impl PlanarToolBatch {
         Ok(())
     }
 }
-fn module() -> naga::Module {
-    kernel::build::<WIDTH, 15>(&[STEP.as_secs_f64() / 2., 0., 1., 0.5], |v, c| solve(v, c))
+fn module<const BOUNDED: bool>() -> naga::Module {
+    kernel::build::<WIDTH, 17>(&[STEP.as_secs_f64() / 2., 0., 1., 0.5], |v, c| {
+        solve::<_, BOUNDED>(v, c)
+    })
 }
 fn dot<T: Scalar>(a: [T; 2], b: [T; 2]) -> T {
     a[0] * b[0] + a[1] * b[1]
@@ -128,7 +144,7 @@ fn impact<T: Scalar>([vn, vt]: [T; 2], [nn, nt, tt]: [T; 3], mu: T, z: T, one: T
 }
 /// Every Cayley rotation is strictly less than half a turn. Count branch
 /// crossings after each free rotation and each independent position correction.
-fn crossing<T: Scalar>([c, s]: [T; 2], [x, y]: [T; 2], z: T, one: T) -> T {
+pub(super) fn crossing<T: Scalar>([c, s]: [T; 2], [x, y]: [T; 2], z: T, one: T) -> T {
     let cross = c * y - s * x;
     s.at_least(z).and(y.less(z)).and(cross.greater(z)).select(
         one,
@@ -138,7 +154,7 @@ fn crossing<T: Scalar>([c, s]: [T; 2], [x, y]: [T; 2], z: T, one: T) -> T {
             .select(z - one, z),
     )
 }
-fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 15] {
+fn solve<T: Scalar, const BOUNDED: bool>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 17] {
     let [dt, z, one, half] = *constants else {
         unreachable!()
     };
@@ -146,6 +162,8 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 15] {
     let (floor, radius, mu) = (v[28], v[29], v[30]);
     let mut normal = z;
     let mut tangent = z;
+    let mut stop_impulse = [z; 2];
+    let locked = [v[50], v[59]];
     let mut first = z - one;
     let mut first_n = z;
     let mut first_t = z;
@@ -168,6 +186,11 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 15] {
         for (i, from) in before.into_iter().enumerate() {
             v[36 + i] = v[36 + i] + crossing(from, [v[2 * i], v[2 * i + 1]], z, one);
         }
+        let side = if BOUNDED {
+            planar_stops::project(&mut v, &mass, z, one, half)
+        } else {
+            [z; 2]
+        };
         let (gap, jn, jt) = geometry(&v);
         let in_contact = gap.at_most(z);
         let an = mass.inverse(v[2], v[3], jn);
@@ -177,8 +200,32 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 15] {
         let [n, t] = impact([dot(jn, w), dot(jt, w)], [nn, nt, tt], mu, z, one);
         let n = in_contact.select(n, z);
         let t = in_contact.select(t, z);
+        let (next_w, [n, t], stop) = if BOUNDED {
+            planar_stops::solve(
+                &mass,
+                v[2],
+                v[3],
+                w,
+                side,
+                locked,
+                in_contact,
+                jn,
+                jt,
+                mu,
+                [n, t],
+                z,
+                one,
+            )
+        } else {
+            (
+                std::array::from_fn(|i| w[i] + an[i] * n + at[i] * t),
+                [n, t],
+                [z; 2],
+            )
+        };
         for i in 0..2 {
-            v[4 + i] = w[i] + an[i] * n + at[i] * t;
+            v[4 + i] = next_w[i];
+            stop_impulse[i] = stop_impulse[i] + stop[i];
         }
         let travel = start - gap;
         let fraction = (start / travel.greater(z).select(travel, one))
@@ -194,14 +241,23 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 15] {
         let correction = in_contact
             .and(nn.greater(z))
             .select((z - gap) / nn.greater(z).select(nn, one), z);
-        for (i, a) in an.into_iter().enumerate() {
-            let h = half * correction * a;
+        let delta = an.map(|a| correction * a);
+        let delta = if BOUNDED {
+            planar_stops::floor_correction(delta, jn, (z - gap).maximum(z), side, locked, z, one)
+        } else {
+            delta
+        };
+        for (i, a) in delta.into_iter().enumerate() {
+            let h = half * a;
             let co = (one - h * h) / (one + h * h);
             let si = (h + h) / (one + h * h);
             let (c, s) = (v[2 * i], v[2 * i + 1]);
             v[2 * i] = c * co - s * si;
             v[2 * i + 1] = s * co + c * si;
             v[36 + i] = v[36 + i] + crossing([c, s], [v[2 * i], v[2 * i + 1]], z, one);
+        }
+        if BOUNDED {
+            planar_stops::snap(&mut v, z, one);
         }
     }
     [
@@ -220,6 +276,8 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 15] {
         (35, first_t),
         (36, v[36]),
         (37, v[37]),
+        (60, stop_impulse[0]),
+        (61, stop_impulse[1]),
     ]
 }
 

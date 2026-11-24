@@ -509,3 +509,63 @@ fn controlled_tool_population_bounds_and_route_aliases_are_validated_before_adap
         assert!(error.contains(reason), "{error}");
     }
 }
+
+#[test]
+#[ignore = "requires GZ_GPU_ADAPTER with f64 Vulkan"]
+fn loaded_single_sided_shoulder_and_locked_elbow_survive_reset_without_floor_impulses() {
+    use gz_sim_scene::{initial_joint_controller_configurations, set_joint_controller_command};
+    let xml = include_str!("../../../examples/gpu_stopped_tool_world.sdf")
+        .replace("<upper>0.02</upper>", "")
+        .replace(
+            "<lower>-0.15</lower><upper>1.2</upper>",
+            "<lower>0</lower><upper>0</upper>",
+        )
+        .replace("<pose>0 0 0.65 0 0 0</pose>", "<pose>0 0 -2 0 0 0</pose>");
+    let mut sim = load(&xml, Some(&std::env::var("GZ_GPU_ADAPTER").unwrap())).unwrap();
+    let ids: Vec<_> = initial_joint_controller_configurations(&sim)
+        .unwrap()
+        .map(|(id, _)| id)
+        .collect();
+    let mut first = Vec::new();
+    for repeat in 0..2 {
+        if repeat == 1 {
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+        }
+        let mut lower = false;
+        let mut elbow = false;
+        for tick in 1..=400 {
+            if tick == 1 || tick == 220 {
+                set_joint_controller_command(&mut sim, ids[0], if tick == 1 { -1. } else { 2. })
+                    .unwrap();
+                set_joint_controller_command(&mut sim, ids[1], if tick == 1 { 0.8 } else { -0.8 })
+                    .unwrap();
+            }
+            sim.step_exact(1).unwrap();
+            let l = observe(&sim, 7).unwrap();
+            lower |= l.stop_impulse[0] > 0.;
+            elbow |= l.stop_impulse[1] != 0.;
+            assert_eq!(l.normal_impulse, 0.);
+            assert!(l.joint_angles()[0] - 0.48 >= -0.36 - 1e-12);
+            assert!((l.joint_angles()[1] + 0.62).abs() < 1e-12);
+            assert!(l.arm.speed[1].abs() < 1e-10);
+            if repeat == 0 {
+                first.push((l.arm.angle, l.arm.speed, l.stop_impulse));
+            } else {
+                assert_eq!(first[tick - 1], (l.arm.angle, l.arm.speed, l.stop_impulse));
+            }
+        }
+        assert!(lower && elbow);
+        assert_eq!(observe(&sim, 7).unwrap().stop_impulse[0], 0.);
+    }
+}
+
+#[test]
+fn loaded_hinge_must_start_within_its_authored_travel() {
+    let input = include_str!("../../../examples/gpu_stopped_tool_world.sdf")
+        .replace("<lower>-0.36</lower>", "<lower>0.01</lower>");
+    let reason = load(&input, Some("missing adapter"))
+        .err()
+        .unwrap()
+        .to_string();
+    assert!(reason.contains("outside travel"), "{reason}");
+}
