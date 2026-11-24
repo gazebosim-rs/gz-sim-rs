@@ -4,7 +4,7 @@ use super::*;
 
 // The canonical workcell has precisely three 0.85 surfaces (parcel and both pads).
 // Check this and all authored body/material values after the substitution.
-fn fixture(kg: f64, mu: f64) -> Result<String> {
+pub(crate) fn fixture(kg: f64, mu: f64) -> Result<String> {
     let xml = Trial::ClearObstacle.xml();
     let material = "<mu>0.85</mu><mu2>0.85</mu2>";
     let inertia = "<mass>0.2</mass><inertia><ixx>0.00016</ixx><iyy>0.00014</iyy><izz>0.00013</izz>";

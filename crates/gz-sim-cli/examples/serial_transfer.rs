@@ -16,10 +16,14 @@ use gz_sim_scene::{
 };
 use serde::Serialize;
 
+#[path = "serial_transfer/carry.rs"]
+mod carry;
 #[path = "serial_transfer/obstacle.rs"]
 mod obstacle;
 #[path = "serial_transfer/payload.rs"]
 mod payload;
+#[path = "support/rigid_tactile.rs"]
+mod rigid_tactile;
 use obstacle::{Passage, PassageOutcome};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -37,6 +41,8 @@ enum Trial {
     OpenJaws,
     MissedShelf,
     ClearObstacle,
+    GuardedCarry,
+    ObserveCarry,
     /// Keep the native recycled contact geometry as a comparison control.
     CachedObstacle,
     LowClearance,
@@ -46,7 +52,12 @@ impl Trial {
     fn obstacle(self) -> bool {
         matches!(
             self,
-            Self::ClearObstacle | Self::CachedObstacle | Self::LowClearance | Self::ContactStop
+            Self::ClearObstacle
+                | Self::GuardedCarry
+                | Self::ObserveCarry
+                | Self::CachedObstacle
+                | Self::LowClearance
+                | Self::ContactStop
         )
     }
     fn xml(self) -> &'static str {
@@ -65,6 +76,9 @@ struct Args {
     /// Load a self-contained serial-transfer workcell with the same named parts.
     #[arg(long)]
     world: Option<PathBuf>,
+    /// Time for the 460 mm quintic command in the two carry trials.
+    #[arg(long, default_value_t = 4000, value_parser=clap::value_parser!(u64).range(1..=4000))]
+    travel_ms: u64,
 }
 
 #[derive(Clone, Copy)]
@@ -105,6 +119,8 @@ struct Outcome {
     obstacle: Option<PassageOutcome>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload: Option<payload::Loads>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    carry: Option<carry::Measurements>,
     lift_mm: f64,
     lateral_payload_at_arrival_mm: f64,
     lateral_carriage_at_arrival_mm: f64,
@@ -126,9 +142,29 @@ struct Outcome {
 }
 /// A quintic move reaches each endpoint with zero commanded speed and acceleration.
 fn command_rail(sim: &mut Simulation, rail: Part, tick: usize, goal: f64, dt: f64) -> Result<()> {
-    let t = (tick.saturating_sub(MOVE_START) as f64 / (MOVE_END - MOVE_START) as f64).min(1.);
-    let travel_time = (MOVE_END - MOVE_START) as f64 * dt;
-    let target = goal * t * t * t * (10. + t * (-15. + 6. * t));
+    drive_rail(
+        sim,
+        rail,
+        0.,
+        goal,
+        tick.saturating_sub(MOVE_START),
+        MOVE_END - MOVE_START,
+        dt,
+    )
+}
+fn drive_rail(
+    sim: &mut Simulation,
+    rail: Part,
+    from: f64,
+    to: f64,
+    elapsed: usize,
+    duration: usize,
+    dt: f64,
+) -> Result<()> {
+    let t = (elapsed as f64 / duration as f64).min(1.);
+    let travel_time = duration as f64 * dt;
+    let goal = to - from;
+    let target = from + goal * t * t * t * (10. + t * (-15. + 6. * t));
     let speed = goal * 30. * t * t * (1. - t) * (1. - t) / travel_time;
     let state = sim
         .world()
@@ -177,6 +213,24 @@ fn drive(
     let c = SupportCriteria::for_weight(weight, Duration::from_millis(30));
     let mut receiver = ReceivingSupport::new(sim.world(), parcel.id, shelf.id, c)?;
     let mut pickup = ReceivingSupport::new(sim.world(), parcel.id, tray.id, c)?;
+    let mut carry = if matches!(trial, Trial::GuardedCarry | Trial::ObserveCarry) {
+        let bar = passage.as_ref().ok_or("missing monitored obstacle")?.body();
+        Some(carry::Supervisor::new(
+            sim,
+            trial,
+            weight,
+            carry::Links {
+                body,
+                pads: pad_bodies,
+                stations: [tray.body(sim)?, shelf.body(sim)?, bar],
+                jaws,
+                spindle,
+                rail,
+            },
+        )?)
+    } else {
+        None
+    };
     let mut out = Outcome {
         payload: measure_payload.then(|| payload::Loads::new(weight)),
         ..Default::default()
@@ -209,9 +263,14 @@ fn drive(
             } else {
                 goal
             };
-            command_rail(sim, rail, tick, goal, dt)?;
+            if let Some(active) = &carry {
+                active.command_rail(sim, rail, tick, goal, dt)?;
+            } else {
+                command_rail(sim, rail, tick, goal, dt)?;
+            }
         }
-        if tick == LOWER && !passage.as_ref().is_some_and(Passage::aborted) {
+        let returning = carry.as_ref().is_some_and(carry::Supervisor::recovering);
+        if !returning && tick == LOWER && !passage.as_ref().is_some_and(Passage::aborted) {
             set_joint_controller_command(sim, spindle.id, -0.018)?;
         }
         if trial != Trial::CachedObstacle
@@ -242,7 +301,12 @@ fn drive(
                 sim,
                 solver,
                 tick,
-                goal - (carriage - start_car),
+                match &carry {
+                    Some(active) => active.remaining(tick, carriage - start_car, goal),
+                    None => (MOVE_START..MOVE_END)
+                        .contains(&tick)
+                        .then_some((goal - (carriage - start_car)).max(0.)),
+                },
                 trial == Trial::ContactStop,
                 dt,
             )?;
@@ -278,7 +342,17 @@ fn drive(
             out.lateral_payload_at_arrival_mm = 1000. * (p[1] - initial[1]);
             out.lateral_carriage_at_arrival_mm = 1000. * (carriage - start_car);
         }
-        if tick >= LOWER
+        if let Some(active) = &mut carry {
+            active.update(
+                sim,
+                tick,
+                carriage - start_car,
+                [&source, &target],
+                passage.as_ref().is_some_and(Passage::aborted),
+            )?;
+        }
+        if !carry.as_ref().is_some_and(carry::Supervisor::recovering)
+            && tick >= LOWER
             && out.release_tick.is_none()
             && !passage.as_ref().is_some_and(Passage::aborted)
         {
@@ -325,10 +399,11 @@ fn drive(
         let event = passage
             .as_ref()
             .is_some_and(|g| g.outcome.abort_tick == Some(tick) || out.release_tick == Some(tick));
-        if tick % 40 == 0 || event {
+        if tick % 40 == 0 || event || carry.as_ref().is_some_and(|s| s.event(tick)) {
             capture(sim)?;
         }
     }
+    out.carry = carry.map(|active| active.report);
     out.obstacle = passage.map(|p| p.outcome);
     out.final_parcel_position_m = parcel.pose(sim)?.translation;
     out.final_palm_position_m = palm.pose(sim)?.translation;
@@ -343,6 +418,7 @@ fn record(args: Args, xml: &str) -> Result<Outcome> {
         &sdformat::NoResources,
         PhysicsEngine::MultiFidelity,
     )?;
+    carry::configure(&mut sim, args.trial, args.travel_ms)?;
     let mut frames = Vec::new();
     let passage = args
         .trial
@@ -633,6 +709,7 @@ mod tests {
             trial: Trial::Transfer,
             output: path.clone(),
             world: None,
+            travel_ms: 4000,
         };
         assert!(record(args(), "<sdf").is_err());
         assert!(

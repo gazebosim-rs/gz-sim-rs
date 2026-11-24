@@ -203,6 +203,7 @@ fn incompletely_observed_obstacle_routes_never_issue_the_next_rail_command() -> 
                 trial,
                 output: output.clone(),
                 world: None,
+                travel_ms: 4000,
             },
             XML
         )
@@ -236,7 +237,11 @@ fn incompletely_observed_obstacle_routes_never_issue_the_next_rail_command() -> 
         .resource::<PhysicsBackend>()
         .downcast_ref::<MultiFidelityBackend>()
         .unwrap();
-    assert!(route.observe(&sim, solver, 1, 0.46, false, 0.001).is_err());
+    assert!(
+        route
+            .observe(&sim, solver, 1, Some(0.46), false, 0.001)
+            .is_err()
+    );
 
     let mut sim = load(xml)?;
     let route = Passage::bind(&sim, &sdf)?;
@@ -273,5 +278,36 @@ fn stale_obstacle_body_binding_prevents_advancing_the_controller() -> Result<()>
     route.wall.body = BodyId::from_raw(u64::MAX);
     assert!(drive(&mut sim, trial, Some(route), WEIGHT, false, |_| Ok(())).is_err());
     assert_eq!(sim.elapsed(), Duration::ZERO);
+    Ok(())
+}
+
+#[test]
+fn return_projection_tests_only_the_remaining_signed_travel() -> Result<()> {
+    let xml = Trial::LowClearance
+        .xml()
+        .replace("<pose>0 0.23 0.5535", "<pose>0 -0.23 0.5535");
+    let sdf = sdformat::load_str(&xml, "return.sdf", &sdformat::NoResources)?;
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "return.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )?;
+    sim.step_exact(1)?;
+    let solver = sim
+        .world()
+        .resource::<PhysicsBackend>()
+        .downcast_ref::<MultiFidelityBackend>()
+        .unwrap();
+    let cast = |delta| -> Result<_> {
+        let mut route = Passage::bind(&sim, &sdf)?;
+        route.observe(&sim, solver, MOVE_START, Some(delta), false, 0.001)?;
+        Ok(route.outcome.first_sweep_hit)
+    };
+    assert!(cast(0.46)?.is_none());
+    assert!(cast(-0.05)?.is_none());
+    let hit = cast(-0.46)?.expect("obstacle on return to the pickup");
+    assert!((0.14..0.23).contains(&hit.travel_m), "{hit:?}");
     Ok(())
 }

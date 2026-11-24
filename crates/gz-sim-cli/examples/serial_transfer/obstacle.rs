@@ -77,6 +77,9 @@ pub(super) struct Passage {
     pub(super) outcome: PassageOutcome,
 }
 impl Passage {
+    pub(super) fn body(&self) -> BodyId {
+        self.wall.body
+    }
     pub(super) fn bind(sim: &Simulation, sdf: &sdformat::Sdf) -> Result<Self> {
         let world = sdf
             .worlds
@@ -193,12 +196,12 @@ impl Passage {
         sim: &Simulation,
         solver: &MultiFidelityBackend,
         tick: usize,
-        remaining: f64,
+        remaining: Option<f64>,
         contact_stop: bool,
         dt: f64,
     ) -> Result<()> {
         let wall = self.wall.pose(sim)?;
-        let sweep = (MOVE_START..MOVE_END).contains(&tick) && !self.aborted() && remaining > 0.;
+        let sweep = remaining.filter(|span| *span != 0. && !self.aborted());
         let mut first: Option<(&str, f64)> = None;
         for moving in &self.moving {
             let pose = moving.pose(sim)?;
@@ -231,15 +234,15 @@ impl Passage {
                     self.outcome.abort_on_measured_contact = true;
                 }
             }
-            if sweep
+            if let Some(span) = sweep
                 && let Some(hit) = query::cast_shapes(
                     &pose,
-                    Vector::Y,
+                    Vector::Y * span.signum(),
                     &moving.shape,
                     &wall,
                     Vector::ZERO,
                     &self.wall.shape,
-                    ShapeCastOptions::with_max_time_of_impact(remaining),
+                    ShapeCastOptions::with_max_time_of_impact(span.abs()),
                 )?
                 && first.is_none_or(|(_, d)| hit.time_of_impact < d)
             {

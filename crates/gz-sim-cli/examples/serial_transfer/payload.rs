@@ -55,4 +55,4 @@ impl Loads {
 
 #[cfg(test)]
 #[path = "payload/tests.rs"]
-mod tests;
+pub(super) mod tests;
