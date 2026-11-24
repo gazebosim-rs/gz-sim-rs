@@ -7,6 +7,10 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — Limit repeated cloth collision searches
+
+Bounded collision-search retries reduced CPU time for the damped and spring-only grippers in two paired campaigns. Damped p95 improved in both. Spring-only p95 was effectively unchanged in one and rose in the other. Discarding an expired reference immediately took more time in direct comparison, so the retained solver uses the bounded retry policy. All 64 follow-up runs reproduced the physical and viewer output byte for byte for each grasp. [Timings, coverage and replay](measurements/local-manipulation/cloth-clearance-cost.md)
+
 ## 2026-11-23 — Material sticks to a slope and a released sheet lands closer to its reference
 
 A strip stayed stationary on a 25% slope, while a lower-friction strip accelerated to its predicted speed. Giving the folded sheet a separately authored static friction coefficient reduced its 500-vs-1,000-exchange trajectory difference from 210.89 to 81.43 µm. The 16- and 250-exchange runs remained outside 100 µm. The public-clock gripper matched 54,400 short native steps through the full grasp and release. The incline also exposed a 13.324 mm sliding-distance error at a 10 ms step, which motivates the next contact check. [Measurements, replays and source coverage](measurements/local-manipulation/material-incline.md)
