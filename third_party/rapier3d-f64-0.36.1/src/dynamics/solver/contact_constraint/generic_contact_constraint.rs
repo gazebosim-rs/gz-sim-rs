@@ -19,7 +19,6 @@ use parry::math::Vector;
 #[derive(Copy, Clone)]
 pub(crate) struct GenericContactConstraintBuilder {
     infos: [CoulombContactPointInfos<Real>; MAX_MANIFOLD_POINTS],
-    sqrt_point_stiffness: Option<Real>,
     handle1: RigidBodyHandle,
     handle2: RigidBodyHandle,
 }
@@ -28,7 +27,6 @@ impl GenericContactConstraintBuilder {
     pub fn invalid() -> Self {
         Self {
             infos: [CoulombContactPointInfos::default(); MAX_MANIFOLD_POINTS],
-            sqrt_point_stiffness: None,
             handle1: RigidBodyHandle::invalid(),
             handle2: RigidBodyHandle::invalid(),
         }
@@ -137,13 +135,12 @@ impl GenericContactConstraintBuilder {
                 .data
                 .pad_stiffness()
         };
-        let rows = manifold_points.len() as Real;
-        out_builder.sqrt_point_stiffness = match (pad_stiffness(handle1), pad_stiffness(handle2)) {
+        out_constraint.sqrt_pad_stiffness = match (pad_stiffness(handle1), pad_stiffness(handle2)) {
             (Some(a), Some(b)) => {
                 let soft = a.min(b);
-                Some(soft.sqrt() / (rows * (1.0 + soft / a.max(b))).sqrt())
+                Some(soft.sqrt() / (1.0 + soft / a.max(b)).sqrt())
             }
-            (one, other) => one.or(other).map(|k| k.sqrt() / rows.sqrt()),
+            (one, other) => one.or(other).map(Real::sqrt),
         };
         out_constraint.dir1 = force_dir1;
         out_constraint.im1 = if type1.is_dynamic_or_kinematic() {
@@ -493,14 +490,16 @@ impl GenericContactConstraintBuilder {
                 // No slop deadzone on the bias (see the coulomb kernel).
                 let mut normal_erp = erp_inv_dt;
                 normal_part.cfm_factor = cfm_factor;
-                if let Some(sqrt_k) = self.sqrt_point_stiffness {
-                    // For a Kelvin-Voigt row, omega = sqrt(k/m_eff).
-                    // These reciprocal forms retain the soft and rigid limits.
+                if let Some(sqrt_k) = constraint.sqrt_pad_stiffness {
+                    // Split both the spring and damper equally among the manifold
+                    // points. Their ratio (ERP) is unchanged, while each row has
+                    // num_contacts times the full pad's compliance.
                     let dt_omega = (sqrt_k * params.dt) / normal_part.r.sqrt();
                     let twice_zeta = 2.0 * softness.damping_ratio;
                     normal_erp = inv_dt / (1.0 + twice_zeta / dt_omega.max(Real::MIN_POSITIVE));
+                    let rows = Real::from(constraint.num_contacts);
                     normal_part.cfm_factor =
-                        1.0 / (1.0 + dt_omega.recip() / (dt_omega + twice_zeta));
+                        1.0 / (1.0 + rows * dt_omega.recip() / (dt_omega + twice_zeta));
                 }
                 let rhs_bias = (normal_erp * dist).clamp(-params.max_corrective_velocity(), 0.0);
                 let new_rhs = rhs_wo_bias + rhs_bias;
@@ -588,6 +587,7 @@ pub(crate) struct GenericContactConstraint {
     pub ndofs1: usize,
     pub ndofs2: usize,
     pub generic_constraint_mask: u8,
+    sqrt_pad_stiffness: Option<Real>,
 
     /*
      * Fields similar to the rigid-body constraints.
@@ -619,6 +619,7 @@ impl GenericContactConstraint {
             ndofs1: usize::MAX,
             ndofs2: usize::MAX,
             generic_constraint_mask: u8::MAX,
+            sqrt_pad_stiffness: None,
             dir1: Vector::ZERO,
             #[cfg(feature = "dim3")]
             tangent1: Vector::ZERO,
@@ -770,9 +771,14 @@ impl GenericContactConstraint {
     }
 
     pub fn remove_cfm_and_bias_from_rhs(&mut self) {
-        for normal_part in &mut self.normal_part[..self.num_contacts as usize] {
-            normal_part.cfm_factor = 1.0;
-            normal_part.rhs = normal_part.rhs_wo_bias;
+        // A pad's velocity target and compliance are its implicit spring and
+        // damper. Replacing them with a rigid normal here would remove its
+        // physical compression velocity after positions have been integrated.
+        if self.sqrt_pad_stiffness.is_none() {
+            for normal_part in &mut self.normal_part[..self.num_contacts as usize] {
+                normal_part.cfm_factor = 1.0;
+                normal_part.rhs = normal_part.rhs_wo_bias;
+            }
         }
         for tangent_part in &mut self.tangent_part {
             tangent_part.rhs = tangent_part.rhs_wo_bias;

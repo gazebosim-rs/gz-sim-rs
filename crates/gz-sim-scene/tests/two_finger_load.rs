@@ -415,8 +415,28 @@ fn authored_pad_compression_tracks_force_and_stiffness_across_three_inertias() {
     }
 }
 
+/// Integrate vertical slip under the analytic time-varying normal force.
+/// A stationary sphere stays put while static friction can carry its weight.
+fn compliant_slip_reference() -> (f64, f64) {
+    let dt = 1e-6;
+    let mut drop = 0.0;
+    let mut downward_speed = 0.0;
+    for tick in 0..110_000 {
+        let t = (f64::from(tick) + 0.5) * dt;
+        // The 3 N squeeze started 50 ms before this 1.5 N reduction.
+        let normal = 3.0 * pad_transient::centered_squeeze_force(t + 0.050)
+            - 1.5 * pad_transient::centered_squeeze_force(t);
+        let accel = GRAVITY - 2.0 * MU * normal / MASS;
+        let next_speed = (downward_speed + accel * dt).max(0.0);
+        drop += 0.5 * (next_speed + downward_speed) * dt;
+        downward_speed = next_speed;
+    }
+    (drop, downward_speed)
+}
+
 #[test]
 fn stiffer_pads_preserve_slip_and_release_through_loaded_reset() {
+    let (expected_drop, expected_speed) = compliant_slip_reference();
     let mut rig = Rig::new(STIFF_PADS, STEP_US, -GRAVITY);
     let mut results = Vec::new();
     for _ in 0..2 {
@@ -427,11 +447,11 @@ fn stiffer_pads_preserve_slip_and_release_through_loaded_reset() {
         let slip = rig.advance(110_000);
         let end = rig.state();
         let drop = initial.position[2] - end.position[2];
-        near(
-            drop,
-            0.5 * (GRAVITY - 2. * MU * 1.5 / MASS) * 0.11_f64.powi(2),
-            1e-6,
-        );
+        near(initial.velocity[2], 0.0, 1e-8);
+        near(drop, expected_drop, 1e-6);
+        // Allow a quarter public tick of steady sliding acceleration at slip onset.
+        let slip_accel = GRAVITY - 2. * MU * 1.5 / MASS;
+        near(-end.velocity[2], expected_speed, slip_accel * 0.0001 / 4.0);
         near(end.angular_velocity[1], 0., 0.01);
         for f in slip.tangent_z {
             near(f / 0.11, 0.75, 0.002);
@@ -448,7 +468,7 @@ fn stiffer_pads_preserve_slip_and_release_through_loaded_reset() {
             1e-8,
         );
         println!(
-            "pad_slip_m={drop} pad_slip_spin_rad_s={} post_release_z_m={}",
+            "pad_slip_m={drop} predicted_m={expected_drop} predicted_speed_m_s={expected_speed} pad_slip_spin_rad_s={} post_release_z_m={}",
             end.angular_velocity[1], fall.position[2]
         );
         results.push((
@@ -522,3 +542,6 @@ fn contact_material_validates_pad_ownership_and_independent_properties() {
     }
     assert!(load(STIFF_PADS, PhysicsEngine::Rapier).is_err());
 }
+
+#[path = "support/pad_transient.rs"]
+mod pad_transient;
