@@ -362,7 +362,7 @@ fn spawn_template_body(
         orientation: pose.rotation,
         angular_velocity: [0.0; 3],
     };
-    let body = match &template.collider {
+    let result = match &template.collider {
         Collider::Primitive(shape) => {
             let spec = BodySpec {
                 shape: *shape,
@@ -380,7 +380,7 @@ fn spawn_template_body(
                         template.inertia,
                         template.friction.map(IsotropicFriction::new).transpose()?,
                         restitution,
-                    )?
+                    )
             } else {
                 super::spawn_surface_link(
                     backend,
@@ -389,7 +389,7 @@ fn spawn_template_body(
                     template.inertia,
                     false,
                     template.friction,
-                )?
+                )
             }
         }
         Collider::Mesh(mesh) => backend.spawn_mesh_link(
@@ -404,9 +404,9 @@ fn spawn_template_body(
             },
             rotation,
             Some(template.inertia),
-        )?,
+        ),
     };
-    Ok(body)
+    Ok(result?)
 }
 
 #[cfg(feature = "distributed-physics")]
