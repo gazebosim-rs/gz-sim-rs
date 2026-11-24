@@ -338,6 +338,24 @@ impl GenericJoint {
     /// Stored in the existing user-data slot to preserve native snapshot layout.
     pub const COUPLED_PRISMATIC_STOP: u128 = u128::from_be_bytes(*b"gz-hard-slide-v1");
 
+    const PAD_TAG: u128 = (u64::from_be_bytes(*b"gz-pad01") as u128) << 64;
+
+    /// Mark a hard slider with normal pad stiffness in N/m on its child link.
+    /// The user-data encoding keeps the native snapshot representation intact.
+    pub fn coupled_pad_tag(stiffness: Real) -> u128 {
+        Self::PAD_TAG | u128::from((stiffness as f64).to_bits())
+    }
+
+    pub(crate) fn pad_stiffness(&self) -> Option<Real> {
+        (self.user_data >> 64 == Self::PAD_TAG >> 64)
+            .then(|| f64::from_bits(self.user_data as u64) as Real)
+            .filter(|k| k.is_finite() && *k > 0.0)
+    }
+
+    pub(crate) fn has_coupled_stop(&self) -> bool {
+        self.user_data == Self::COUPLED_PRISMATIC_STOP || self.pad_stiffness().is_some()
+    }
+
     /// Creates a new generic joint that locks the specified degrees of freedom.
     #[must_use]
     pub fn new(locked_axes: JointAxesMask) -> Self {

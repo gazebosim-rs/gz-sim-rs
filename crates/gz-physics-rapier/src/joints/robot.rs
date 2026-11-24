@@ -69,6 +69,43 @@ impl RapierBackend {
         self.insert_robot_joint(parent, child, anchor, joint, Solver::Reduced)
     }
 
+    /// Configure a bounded reduced slider child's contact stiffness in N/m before
+    /// the first step. The reset recipe preserves the coating on this link.
+    pub fn set_initial_pad_stiffness(
+        &mut self,
+        child: BodyId,
+        stiffness_n_m: f64,
+    ) -> Result<(), PhysicsError> {
+        if !self.joints.construction_open() {
+            return Err(PhysicsError::JointConstructionClosed);
+        }
+        if !stiffness_n_m.is_finite() || stiffness_n_m <= 0. {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let joint = self
+            .joints
+            .records
+            .values_mut()
+            .find(|record| record.initial.child == child)
+            .ok_or(PhysicsError::InvalidJoint)?;
+        let Handle::Reduced(handle) = joint.handle else {
+            return Err(PhysicsError::InvalidJoint);
+        };
+        if !matches!(joint.initial.motion, JointMotion::Prismatic) || joint.initial.limits.is_none()
+        {
+            return Err(PhysicsError::InvalidJoint);
+        }
+        let (tree, index) = self
+            .world
+            .multibody_joints
+            .get_mut(handle)
+            .expect("registered reduced joint");
+        let link = tree.link_mut(index).expect("registered reduced link");
+        link.joint.data.user_data = GenericJoint::coupled_pad_tag(stiffness_n_m);
+        joint.initial.pad_stiffness_n_m = Some(stiffness_n_m);
+        Ok(())
+    }
+
     fn insert_robot_joint(
         &mut self,
         parent: Option<BodyId>,

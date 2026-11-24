@@ -21,7 +21,7 @@ pub fn unit_joint_limit_constraint(
     insert_at: &mut usize,
     softness: SpringCoefficients<Real>,
 ) {
-    let hard = link.joint.data.user_data == crate::dynamics::GenericJoint::COUPLED_PRISMATIC_STOP;
+    let hard = link.joint.data.has_coupled_stop();
     let ndofs = multibody.ndofs();
     let min_enabled = curr_pos < limits[0];
     let max_enabled = limits[1] < curr_pos;

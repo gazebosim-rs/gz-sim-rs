@@ -509,7 +509,6 @@ impl GenericContactConstraint {
 
     #[inline]
     pub fn generic_solve_group(
-        cfm_factor: Real,
         normal_parts: &mut [ContactConstraintNormalPart<Real>],
         tangent_parts: &mut [ContactConstraintTangentPart<Real>],
         jacobians: &DVector,
@@ -538,7 +537,7 @@ impl GenericContactConstraint {
 
             for normal_part in &mut *normal_parts {
                 normal_part.generic_solve(
-                    cfm_factor,
+                    normal_part.cfm_factor,
                     nrm_j_id,
                     jacobians,
                     dir1,

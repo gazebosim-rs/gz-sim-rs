@@ -93,11 +93,11 @@ pub(super) fn project(
             &mut vs.generic_solver_vels,
         );
         if row.impulse != 0.0 {
-            let cfm = contact.cfm_factor;
+            let cfm = contact.normal_part[0].cfm_factor;
             // For native normal compliance k, CFM = 1/(1 + k*r).
             // Keep k fixed when substituting the constrained effective mass.
             contact.normal_part[0].r = r / (1.0 - reduction);
-            contact.cfm_factor = cfm * (1.0 - reduction) / (1.0 - cfm * reduction);
+            contact.normal_part[0].cfm_factor = cfm * (1.0 - reduction) / (1.0 - cfm * reduction);
             contact.solve(
                 contact_jac,
                 &mut vs.solver_bodies,
@@ -106,7 +106,7 @@ pub(super) fn project(
                 false,
             );
             contact.normal_part[0].r = r;
-            contact.cfm_factor = cfm;
+            contact.normal_part[0].cfm_factor = cfm;
             row.solve(
                 joint_jac,
                 &mut vs.solver_bodies,

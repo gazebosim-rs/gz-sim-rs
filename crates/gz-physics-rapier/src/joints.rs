@@ -115,6 +115,7 @@ struct Construction {
     spring: Option<RobotSpring>,
     additional_pgs_iterations: u8,
     mounted_guide_hz: Option<f64>,
+    pad_stiffness_n_m: Option<f64>,
 }
 impl Construction {
     fn admits_effort(self, effort: f64) -> bool {
@@ -169,7 +170,10 @@ impl Construction {
                 && matches!(self.motion, JointMotion::Prismatic)
             {
                 return joint
-                    .user_data(GenericJoint::COUPLED_PRISMATIC_STOP)
+                    .user_data(self.pad_stiffness_n_m.map_or(
+                        GenericJoint::COUPLED_PRISMATIC_STOP,
+                        GenericJoint::coupled_pad_tag,
+                    ))
                     .build();
             }
             if matches!(self.motion, JointMotion::Angular) {
@@ -846,6 +850,7 @@ impl RapierBackend {
             spring: None,
             additional_pgs_iterations: 0,
             mounted_guide_hz: None,
+            pad_stiffness_n_m: None,
             motion: match constraint {
                 AngularConstraint::Prismatic(_) => JointMotion::Prismatic,
                 AngularConstraint::Screw {

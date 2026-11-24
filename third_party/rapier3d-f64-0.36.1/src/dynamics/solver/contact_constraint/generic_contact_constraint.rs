@@ -19,6 +19,7 @@ use parry::math::Vector;
 #[derive(Copy, Clone)]
 pub(crate) struct GenericContactConstraintBuilder {
     infos: [CoulombContactPointInfos<Real>; MAX_MANIFOLD_POINTS],
+    sqrt_point_stiffness: Option<Real>,
     handle1: RigidBodyHandle,
     handle2: RigidBodyHandle,
 }
@@ -27,6 +28,7 @@ impl GenericContactConstraintBuilder {
     pub fn invalid() -> Self {
         Self {
             infos: [CoulombContactPointInfos::default(); MAX_MANIFOLD_POINTS],
+            sqrt_point_stiffness: None,
             handle1: RigidBodyHandle::invalid(),
             handle2: RigidBodyHandle::invalid(),
         }
@@ -125,6 +127,24 @@ impl GenericContactConstraintBuilder {
         let chunk_j_id = *jacobian_id;
 
         let manifold_points = &manifold.data.solver_contacts;
+        // Two authored coatings compress in series. Equal point weights give a
+        // planar manifold its authored total stiffness when it is seated flat.
+        let pad_stiffness = |handle| {
+            let id = multibodies.rigid_body_link(handle)?;
+            multibodies[id.multibody]
+                .link(id.id)?
+                .joint
+                .data
+                .pad_stiffness()
+        };
+        let rows = manifold_points.len() as Real;
+        out_builder.sqrt_point_stiffness = match (pad_stiffness(handle1), pad_stiffness(handle2)) {
+            (Some(a), Some(b)) => {
+                let soft = a.min(b);
+                Some(soft.sqrt() / (rows * (1.0 + soft / a.max(b))).sqrt())
+            }
+            (one, other) => one.or(other).map(|k| k.sqrt() / rows.sqrt()),
+        };
         out_constraint.dir1 = force_dir1;
         out_constraint.im1 = if type1.is_dynamic_or_kinematic() {
             mprops1.effective_inv_mass
@@ -471,7 +491,18 @@ impl GenericContactConstraintBuilder {
                 // substeps, by `Self::apply_restitution`.
                 let rhs_wo_bias = dist.max(0.0) * inv_dt;
                 // No slop deadzone on the bias (see the coulomb kernel).
-                let rhs_bias = (erp_inv_dt * dist).clamp(-params.max_corrective_velocity(), 0.0);
+                let mut normal_erp = erp_inv_dt;
+                normal_part.cfm_factor = cfm_factor;
+                if let Some(sqrt_k) = self.sqrt_point_stiffness {
+                    // For a Kelvin-Voigt row, omega = sqrt(k/m_eff).
+                    // These reciprocal forms retain the soft and rigid limits.
+                    let dt_omega = (sqrt_k * params.dt) / normal_part.r.sqrt();
+                    let twice_zeta = 2.0 * softness.damping_ratio;
+                    normal_erp = inv_dt / (1.0 + twice_zeta / dt_omega.max(Real::MIN_POSITIVE));
+                    normal_part.cfm_factor =
+                        1.0 / (1.0 + dt_omega.recip() / (dt_omega + twice_zeta));
+                }
+                let rhs_bias = (normal_erp * dist).clamp(-params.max_corrective_velocity(), 0.0);
                 let new_rhs = rhs_wo_bias + rhs_bias;
 
                 normal_part.rhs_wo_bias = rhs_wo_bias;
@@ -493,14 +524,12 @@ impl GenericContactConstraintBuilder {
                 }
             }
         }
-
-        constraint.cfm_factor = cfm_factor;
     }
 
     /// Finish the native normal impulse using its original impact velocity.
     pub(crate) fn set_travel_target(&self, contact: &mut GenericContactConstraint) {
         contact.normal_part[0].rhs = self.infos[0].restitution_seed.min(0.0);
-        contact.cfm_factor = 1.0;
+        contact.normal_part[0].cfm_factor = 1.0;
     }
 
     /// Does any active point of this constraint hold a restitution seed (an approaching
@@ -542,7 +571,9 @@ impl GenericContactConstraintBuilder {
         }
 
         if any_gated {
-            constraint.cfm_factor = 1.0;
+            for part in &mut constraint.normal_part[..constraint.num_contacts as usize] {
+                part.cfm_factor = 1.0;
+            }
             constraint.solve(jacobians, bodies, generic_solver_vels, true, false);
         }
     }
@@ -566,7 +597,6 @@ pub(crate) struct GenericContactConstraint {
     pub tangent1: Vector, // One of the friction force directions.
     pub im1: Vector,
     pub im2: Vector,
-    pub cfm_factor: Real,
     pub limit: Real,
     pub solver_vel1: u32,
     pub solver_vel2: u32,
@@ -594,7 +624,6 @@ impl GenericContactConstraint {
             tangent1: Vector::ZERO,
             im1: Vector::ZERO,
             im2: Vector::ZERO,
-            cfm_factor: 0.0,
             limit: 0.0,
             solver_vel1: u32::MAX,
             solver_vel2: u32::MAX,
@@ -683,7 +712,6 @@ impl GenericContactConstraint {
         let normal_parts = &mut self.normal_part[..self.num_contacts as usize];
         let tangent_parts = &mut self.tangent_part[..self.num_contacts as usize];
         Self::generic_solve_group(
-            self.cfm_factor,
             normal_parts,
             tangent_parts,
             jacobians,
@@ -742,8 +770,8 @@ impl GenericContactConstraint {
     }
 
     pub fn remove_cfm_and_bias_from_rhs(&mut self) {
-        self.cfm_factor = 1.0;
-        for normal_part in &mut self.normal_part {
+        for normal_part in &mut self.normal_part[..self.num_contacts as usize] {
+            normal_part.cfm_factor = 1.0;
             normal_part.rhs = normal_part.rhs_wo_bias;
         }
         for tangent_part in &mut self.tangent_part {

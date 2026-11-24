@@ -1703,6 +1703,17 @@ impl MultiFidelityBackend {
             .add_robot_joint(parent, child, anchor, joint)
             .map_err(engine_error)
     }
+    /// Set the normal contact stiffness in N/m on a bounded reduced slider during construction.
+    pub fn set_initial_pad_stiffness(
+        &mut self,
+        child: BodyId,
+        stiffness_n_m: f64,
+    ) -> Result<(), PhysicsError> {
+        self.solver
+            .set_initial_pad_stiffness(child, stiffness_n_m)
+            .map_err(engine_error)
+    }
+
     /// Attach an unbounded revolute joint or a prismatic joint using native generalized coordinates.
     pub fn add_reduced_scalar_robot_joint(
         &mut self,
