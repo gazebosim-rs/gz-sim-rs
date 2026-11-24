@@ -154,9 +154,13 @@ impl Recorder {
             .ok_or_else(|| invalid("recording sender absent"))?;
         if offline {
             // No physics tick is waiting. Backpressure is safe and deterministic.
-            sender.send(Message::Frame(bytes)).map_err(|_| {
-                io::Error::new(io::ErrorKind::BrokenPipe, "recording writer stopped")
-            })?;
+            if sender.send(Message::Frame(bytes)).is_err() {
+                self.join_worker()?;
+                return Err(io::Error::new(
+                    io::ErrorKind::BrokenPipe,
+                    "recording writer stopped",
+                ));
+            }
         } else {
             sender
                 .try_send(Message::Frame(bytes))
@@ -184,16 +188,16 @@ impl Recorder {
             .ok_or_else(|| invalid("failed recording cannot finalize"))?
             .send(Message::Finish)
             .map_err(|_| io::Error::new(io::ErrorKind::BrokenPipe, "recording writer stopped"));
-        let result = self
-            .worker
-            .take()
-            .expect("owned recording worker")
-            .join()
-            .map_err(|_| io::Error::other("recording worker panicked"))?;
-        // If the writer stopped on a file error, its result explains why the
-        // Finish message could not be delivered.
-        result?;
+        self.join_worker()?;
         submitted
+    }
+
+    fn join_worker(&mut self) -> io::Result<()> {
+        self.worker
+            .take()
+            .ok_or_else(|| invalid("recording worker already joined"))?
+            .join()
+            .map_err(|_| io::Error::other("recording worker panicked"))?
     }
 }
 impl Drop for Recorder {

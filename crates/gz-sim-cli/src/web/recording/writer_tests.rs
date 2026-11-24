@@ -164,6 +164,26 @@ fn playback_session_preserves_the_worker_io_error_after_its_receiver_has_closed(
 }
 
 #[test]
+fn offline_export_reports_the_io_error_when_the_worker_stopped_between_frames() {
+    let (sender, receiver) = mpsc::sync_channel(8);
+    drop(receiver);
+    let worker = thread::spawn(|| Err(io::Error::from(io::ErrorKind::WriteZero)));
+    let mut recorder = Recorder {
+        sender: Some(sender),
+        worker: Some(worker),
+        frames: 0,
+        bytes: 0,
+        failed: false,
+    };
+    let (scene, catalog) = empty();
+    assert_eq!(
+        recorder.submit_offline(scene, catalog).unwrap_err().kind(),
+        io::ErrorKind::WriteZero
+    );
+    assert_eq!(recorder.frames, 0);
+}
+
+#[test]
 fn playback_session_rejects_out_of_scope_assets_before_creating_the_archive() {
     let temp = tempfile::tempdir().unwrap();
     let path = temp.path().join("capture");
