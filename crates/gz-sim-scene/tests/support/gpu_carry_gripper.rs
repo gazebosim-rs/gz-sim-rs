@@ -885,3 +885,107 @@ fn finite_shelf_rejects_a_side_strike_and_never_treats_the_unoccupied_top_as_an_
         }
     }
 }
+
+const SHELF_EDGE: &str = include_str!("../../../../examples/gpu_box_shelf_edge.sdf");
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn spatial_edge_uses_two_unilateral_witnesses_and_preserves_the_public_clock() {
+    use gz_physics_gpu::CarryGripperBatch;
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    for py in [
+        "0",
+        "0.000000000000001",
+        "-0.000000000000001",
+        "0.0000001",
+        "-0.0000001",
+    ] {
+        let src = SHELF_EDGE.replace(
+            "point=\"0.007 0 0.004\"",
+            &format!("point=\"0.007 {py} 0.004\""),
+        );
+        let mut sim = load(&src, Some(&adapter)).unwrap();
+        let mut found = None;
+        let stop = (1..2800)
+            .find(|_| {
+                if sim.step_exact(1).is_err() {
+                    return true;
+                }
+                let b = sim.world().resource::<CarryGripperBatch>();
+                if found.is_none()
+                    && let Some(h) = b.shelf_impact()
+                {
+                    assert_eq!(b.shelf_witnesses().len(), 2);
+                    assert!(b.shelf_witnesses().iter().all(|p| p.normal_impulse > 0.));
+                    found = Some((h, b.shelf_witnesses().to_vec()));
+                }
+                false
+            })
+            .unwrap();
+        let batch = sim.world().resource::<CarryGripperBatch>();
+        assert_eq!(batch.tick(), stop as u64 - 1);
+        if let Some((h, rows)) = &found {
+            assert_eq!(h.tick, 2173);
+            assert!(rows[0].point_m[1] < 0. && rows[1].point_m[1] > 0.);
+            assert!(
+                (rows[0].normal_impulse + rows[1].normal_impulse - h.linear_impulse[2]).abs()
+                    < 1e-15
+            );
+        } else {
+            assert!(batch.shelf_witnesses().is_empty());
+        }
+
+        assert_eq!(found.is_some(), py.parse::<f64>().unwrap().abs() < 1e-12);
+    }
+}
+
+#[test]
+fn only_an_explicit_restitution_pair_can_enable_the_spatial_shelf_edge() {
+    for (src, reason) in [
+        (
+            SHELF_EDGE.replace("shelf_restitution=\"0.65\"", ""),
+            "requires explicit shelf restitution",
+        ),
+        (
+            SHELF_EDGE.replace("shelf_manifold=\"edge\"", "shelf_manifold=\"face\""),
+            "unknown spatial shelf manifold",
+        ),
+    ] {
+        assert!(
+            load(&src, Some("absent"))
+                .err()
+                .unwrap()
+                .to_string()
+                .contains(reason)
+        );
+    }
+}
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn explicitly_selecting_one_shelf_corner_preserves_the_isolated_impact_and_rejects_an_edge() {
+    use gz_physics_gpu::CarryGripperBatch;
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let src = SHELF_FLIGHT.replace(
+        "shelf_restitution=",
+        "shelf_manifold=\"corner\" shelf_restitution=",
+    );
+    let mut sim = load(&src, Some(&adapter)).unwrap();
+    sim.step_exact(2176).unwrap();
+    let b = sim.world().resource::<CarryGripperBatch>();
+    let [point] = b.shelf_witnesses() else {
+        panic!("expected one accepted corner")
+    };
+    assert_eq!(
+        b.shelf_impact().unwrap().linear_impulse[2],
+        point.normal_impulse
+    );
+    let edge = SHELF_EDGE.replace("shelf_manifold=\"edge\"", "shelf_manifold=\"corner\"");
+    let mut sim = load(&edge, Some(&adapter)).unwrap();
+    sim.step_exact(2172).unwrap();
+    assert!(sim.step_exact(1).is_err());
+    assert!(
+        sim.world()
+            .resource::<CarryGripperBatch>()
+            .shelf_witnesses()
+            .is_empty()
+    );
+}

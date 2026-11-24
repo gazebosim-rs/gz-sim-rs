@@ -2338,3 +2338,7 @@ The local backend now finds moving bodies inside a requested volume using live c
 ## 2026-11-23 — Measure the cost of keeping every fleet pose directly readable
 
 Publishing 100,000 moving bodies took 2.63 ms at median, about 99% of a sparse tick. A write-only control updated the same 500,001 coordinates in 0.383 ms, compared with a 0.10 ms budget for the complete 100× step. Two experiments reduced dirty memory pages but gave mixed timings across readers and CPU core groups. The ordinary publisher remains in use, with a regression for direct edits and change notifications. [Stage timings, memory footprint, coverage, native replay and reproducible trials](measurements/local-manipulation/kinematic-publication-budget.md)
+
+## 2026-11-23 — Two corners share a GPU box landing
+
+The gripper released an 80 g box onto a finite shelf. A centered edge shared the impulse equally at 33.948 mN s per corner. An eccentric edge split it 62.590/41.007 mN s, and mirroring the release exchanged the two shares. Independent rigid-body dynamics agreed within 2.08 × 10⁻¹² N s at every accepted witness. Corner arrivals 6.373 ps apart qualified together. Arrivals 0.797 µs apart stopped at the preceding public state. Separately timed collisions and settling are the next contact phase. [Measured momentum balance, per-corner loads and native replays](measurements/local-manipulation/gpu-shelf-edge.md)

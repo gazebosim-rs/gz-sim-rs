@@ -4,7 +4,8 @@
 use super::*;
 use configuration::{attr, num, plain, reason};
 use gz_physics_gpu::{
-    BoxFlightMaterial, CarryGripperLane, SpatialShelf, simulation::install_carry_gripper,
+    BoxFlightMaterial, CarryGripperLane, ShelfManifold, SpatialShelf,
+    simulation::install_carry_gripper,
 };
 use roxmltree::Node;
 #[derive(Clone, Copy)]
@@ -50,7 +51,7 @@ pub(super) struct Plan {
     moves: BTreeMap<u64, Move>,
     policy: Policy,
     flight: Option<(BoxFlightMaterial, Launch)>,
-    spatial_shelf: Option<SpatialShelf>,
+    spatial_shelf: Option<(SpatialShelf, ShelfManifold)>,
 }
 #[derive(Resource)]
 pub(super) struct Binding {
@@ -389,6 +390,21 @@ impl Plan {
                 config::vector(Some(attr(node, name)?))
                     .ok_or_else(|| reason("finite three-component release input required"))
             };
+            let manifold = match node.attribute("shelf_manifold") {
+                None => ShelfManifold::SingleCorner,
+                Some(mode) => {
+                    require(
+                        node.attribute("shelf_restitution").is_some(),
+                        &object.name,
+                        "spatial shelf manifold requires explicit shelf restitution",
+                    )?;
+                    match mode {
+                        "corner" => ShelfManifold::SingleCorner,
+                        "edge" => ShelfManifold::CornerOrEdge,
+                        _ => return Err(reason("unknown spatial shelf manifold")),
+                    }
+                }
+            };
             if node.attribute("shelf_restitution").is_some() {
                 let restitution = num(node, "shelf_restitution")?;
                 require(
@@ -396,11 +412,14 @@ impl Plan {
                     &object.name,
                     "spatial shelf impact needs zero friction and restitution in [0,1]",
                 )?;
-                spatial_shelf = Some(SpatialShelf {
-                    center_y: shelf_pose.translation[1],
-                    half_depth: size[1] * 0.5,
-                    restitution,
-                });
+                spatial_shelf = Some((
+                    SpatialShelf {
+                        center_y: shelf_pose.translation[1],
+                        half_depth: size[1] * 0.5,
+                        restitution,
+                    },
+                    manifold,
+                ));
             }
             let impulse = vec("impulse")?;
             let point = vec("point")?;
@@ -419,6 +438,7 @@ impl Plan {
                             "impulse",
                             "point",
                             "shelf_restitution",
+                            "shelf_manifold",
                         ],
                         false,
                     )
@@ -485,8 +505,8 @@ pub(super) fn install(
     let mut batch = CarryGripperBatch::new(adapter, vec![p.lane])?;
     if let Some((material, _)) = p.flight {
         batch.enable_box_flight(material)?;
-        if let Some(surface) = p.spatial_shelf {
-            batch.enable_shelf_impact(surface)?;
+        if let Some((surface, manifold)) = p.spatial_shelf {
+            batch.enable_shelf_manifold(surface, manifold)?;
         }
     }
     let owner = batch.owner();

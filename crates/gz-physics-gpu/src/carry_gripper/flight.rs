@@ -5,8 +5,14 @@ use super::*;
 mod shelf;
 use crate::spatial::{cross, rotate};
 use glam::{DMat3, DQuat, DVec3};
-pub use shelf::{ShelfImpact, SpatialShelf};
+pub use shelf::{ShelfImpact, ShelfWitness, SpatialShelf};
 
+/// First-contact manifolds supported on the frictionless receiving shelf.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ShelfManifold {
+    SingleCorner,
+    CornerOrEdge,
+}
 #[derive(Clone, Copy, Debug)]
 pub struct BoxFlightMaterial {
     /// Principal moments at the mass center, in the collision box's local axes.
@@ -206,12 +212,26 @@ impl CarryGripperBatch {
     }
     /// Opt into a single frictionless corner impact on the finite shelf top.
     pub fn enable_shelf_impact(&mut self, surface: SpatialShelf) -> Result<(), GpuError> {
+        self.enable_shelf_manifold(surface, ShelfManifold::SingleCorner)
+    }
+    /// Individual world witnesses on the last accepted shelf manifold.
+    pub fn shelf_witnesses(&self) -> &[ShelfWitness] {
+        self.flight
+            .as_ref()
+            .and_then(|f| f.shelf.as_ref())
+            .map_or(&[], |s| &s.witnesses[..s.count])
+    }
+    pub fn enable_shelf_manifold(
+        &mut self,
+        surface: SpatialShelf,
+        manifold: ShelfManifold,
+    ) -> Result<(), GpuError> {
         let f = self
             .flight
             .as_mut()
             .filter(|f| f.shelf.is_none() && self.planar.tick == 0)
             .ok_or(GpuError::InvalidBoxRelease)?;
-        let shelf = shelf::Shelf::new(f, surface)?;
+        let shelf = shelf::Shelf::new(f, surface, manifold == ShelfManifold::CornerOrEdge)?;
         let total = f.device.device_info().allocated_buffer_bytes + shelf.allocated();
         f.device.gpu.info.allocated_buffer_bytes = total;
         self.planar.gpu.info.allocated_buffer_bytes = total;

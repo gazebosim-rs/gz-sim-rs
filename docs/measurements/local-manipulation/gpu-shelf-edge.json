@@ -1,0 +1,1067 @@
+{
+  "device": "NVIDIA GeForce RTX 5090, f64 Vulkan",
+  "public_step_ms": 1,
+  "corner_search_substep_ms": 0.25,
+  "native_reference_substep_ms": 0.015625,
+  "pair_tolerance": {
+    "height_m": 1e-11,
+    "root_time_s": 1e-10,
+    "relative_effective_mass_determinant_lower_bound": 1e-10
+  },
+  "coverage": {
+    "base": "9036f6c588909749125e1e56a91f1cf150e15cbf",
+    "objects": {
+      "scene": {
+        "executable_sha256": "05a8b4d63450b0d86254d3938383b70648bda079c72441b8f22dba271cbd77cc",
+        "profile_sha256": "b1c7be18c23d504cc800abf2aa1e56882c10212bf37161b3e6fd81330c5ee061"
+      },
+      "gpu": {
+        "executable_sha256": "94b19bac4474b38f69469f9225d15a3ab1419ffb19c7a2d159179476daa41c6b",
+        "profile_sha256": "8a740b003f0ec8cefc5647ef153a53eb2dea6cd69d31eccefdb4b13ec1b807a1"
+      },
+      "ordinary": {
+        "executable_sha256": "6ba3e2048a3dca7db0906fe0abc6e464f86de6b04cf6d6886ace408305f6ee57",
+        "profile_sha256": "ba8c3f38d57fea64215735003232172145874632d3461d8b2c42c476e6bf7dd3"
+      },
+      "edge": {
+        "executable_sha256": "c7f2f6bcfe4f101a9688c14a5f811851ea9440d507d15220b383583cee6d3490",
+        "profile_sha256": "01310217f63f998deb7f28daacdb61af67914affb616ade55de8e597b53688f4"
+      }
+    },
+    "production": {
+      "lines": [
+        240,
+        248
+      ],
+      "regions": [
+        432,
+        449
+      ]
+    },
+    "qualification": {
+      "lines": [
+        412,
+        419
+      ],
+      "regions": [
+        840,
+        874
+      ]
+    },
+    "crates": {
+      "gz-physics-gpu": {
+        "lines": [
+          218,
+          226
+        ],
+        "regions": [
+          408,
+          424
+        ]
+      },
+      "gz-sim-scene": {
+        "lines": [
+          22,
+          22
+        ],
+        "regions": [
+          24,
+          25
+        ]
+      }
+    }
+  },
+  "cases": {
+    "edge": {
+      "incoming": {
+        "cut_ms": 2172,
+        "first_arrival_time_s": 2.172484754249883,
+        "prospective_corner_order_m": [
+          [
+            -0.024,
+            -0.012,
+            -0.020000000000000004
+          ],
+          [
+            -0.024,
+            0.012,
+            -0.020000000000000004
+          ]
+        ],
+        "unconstrained_arrival_separation_s": 0.0
+      },
+      "last_safe_tick": 2185,
+      "max_post_angle_error_rad": 8.652639168909362e-06,
+      "max_post_com_speed_error_m_s": 5.176581385768486e-11,
+      "max_post_link_error_m": 4.659701375978977e-08,
+      "max_post_spin_error_rad_s": 1.1536371872675219e-10,
+      "post_ticks": 13,
+      "impact_step_ms": [
+        0.31560099999999996,
+        0.41261200000000003,
+        0.312561,
+        0.330141,
+        0.30279100000000003,
+        0.295931
+      ],
+      "median_impact_step_ms": 0.31408099999999994,
+      "first_impact": {
+        "angular_balance_error_nms": 8.674075400521369e-19,
+        "angular_nms": [
+          8.91381024229343e-21,
+          0.0014002161031487438,
+          0.0
+        ],
+        "angular_reference_error_nms": 3.0017221354070915e-15,
+        "arrival_error_s": 9.096652467746602e-13,
+        "linear_balance_error_ns": 1.3877787807814457e-17,
+        "linear_ns": [
+          0.0,
+          0.0,
+          0.06789530219670045
+        ],
+        "normal_impulses_ns": [
+          0.033947651098350226,
+          0.033947651098350226
+        ],
+        "offset_s": 0.00048475425079232083,
+        "point_errors_m": [
+          1.268570197087838e-12,
+          1.268570197087838e-12
+        ],
+        "point_m": [
+          [
+            0.16934409116844285,
+            -0.012,
+            0.013999999999959673
+          ],
+          [
+            0.16934409116844285,
+            0.012,
+            0.013999999999959673
+          ]
+        ],
+        "reference_impulses_ns": [
+          0.03394765110042093,
+          0.033947651100420924
+        ],
+        "reference_incoming_m_s": [
+          -1.1867896429761902,
+          -1.1867896429761902
+        ],
+        "reference_rebound_m_s": [
+          0.7714132679345236,
+          0.7714132679345236
+        ],
+        "row_errors_ns": [
+          2.070704718803995e-12,
+          2.070697779910091e-12
+        ],
+        "tick": 2173
+      },
+      "p95_ms": [
+        0.5407609999999999,
+        0.413741,
+        0.26611,
+        0.49904099999999996,
+        0.260841,
+        0.256681
+      ],
+      "median_p95_ms": 0.3399255,
+      "observed_steps_s": [
+        3260.715475634496,
+        3530.2834654499334,
+        4139.805278405905,
+        2913.282470502111,
+        4160.870979913524,
+        4453.583402348519
+      ],
+      "median_observed_steps_s": 3835.044371927919
+    },
+    "lateral_minus": {
+      "incoming": {
+        "cut_ms": 2179,
+        "first_arrival_time_s": 2.1793079391502084,
+        "prospective_corner_order_m": [
+          [
+            -0.024,
+            -0.012,
+            -0.020000000000000004
+          ],
+          [
+            0.024,
+            -0.012,
+            -0.020000000000000004
+          ]
+        ],
+        "unconstrained_arrival_separation_s": 0.0
+      },
+      "last_safe_tick": 2183,
+      "max_post_angle_error_rad": 6.323173930474965e-06,
+      "max_post_com_speed_error_m_s": 7.590039707849883e-13,
+      "max_post_link_error_m": 1.264630616566535e-08,
+      "max_post_spin_error_rad_s": 8.71904070796778e-11,
+      "post_ticks": 4,
+      "impact_step_ms": [
+        0.7535620000000001,
+        0.303421,
+        0.27501099999999995,
+        0.29219100000000003,
+        0.799782,
+        1.3161239999999998
+      ],
+      "median_impact_step_ms": 0.5284915,
+      "first_impact": {
+        "angular_balance_error_nms": 4.455359342418064e-19,
+        "angular_nms": [
+          -0.0010205157238653757,
+          -1.4198798581664581e-08,
+          0.0
+        ],
+        "angular_reference_error_nms": 8.155368805339712e-16,
+        "arrival_error_s": 4.558842452845324e-14,
+        "linear_balance_error_ns": 1.3877787807814457e-17,
+        "linear_ns": [
+          0.0,
+          0.0,
+          0.10359781986940766
+        ],
+        "normal_impulses_ns": [
+          0.04100743903480324,
+          0.06259038083460443
+        ],
+        "offset_s": 0.0003079391502542421,
+        "point_errors_m": [
+          5.3009839383840585e-14,
+          5.300978159392793e-14
+        ],
+        "point_m": [
+          [
+            0.15599917144045955,
+            -0.03945404299365895,
+            0.01399999999995239
+          ],
+          [
+            0.2039991714367456,
+            -0.03945344588613332,
+            0.01399999999995239
+          ]
+        ],
+        "reference_impulses_ns": [
+          0.04100743903482727,
+          0.06259038083464111
+        ],
+        "reference_incoming_m_s": [
+          -1.2048192647862859,
+          -1.2048209535910621
+        ],
+        "reference_rebound_m_s": [
+          0.783132522111086,
+          0.7831336198341904
+        ],
+        "row_errors_ns": [
+          2.4029389589230732e-14,
+          3.667899317605361e-14
+        ],
+        "tick": 2180
+      },
+      "p95_ms": [
+        0.7535620000000001,
+        0.292531,
+        0.23399099999999998,
+        0.253501,
+        1.708556,
+        1.6913049999999998
+      ],
+      "median_p95_ms": 0.5230465,
+      "observed_steps_s": [
+        2342.9407228788054,
+        3963.1231117311913,
+        4547.191902309783,
+        4528.291514561195,
+        604.811080978126,
+        904.7777249646294
+      ],
+      "median_observed_steps_s": 3153.0319173049984
+    },
+    "lateral_plus": {
+      "incoming": {
+        "cut_ms": 2179,
+        "first_arrival_time_s": 2.1793079391502084,
+        "prospective_corner_order_m": [
+          [
+            -0.024,
+            0.012,
+            -0.020000000000000004
+          ],
+          [
+            0.024,
+            0.012,
+            -0.020000000000000004
+          ]
+        ],
+        "unconstrained_arrival_separation_s": 0.0
+      },
+      "last_safe_tick": 2183,
+      "max_post_angle_error_rad": 6.323173930669254e-06,
+      "max_post_com_speed_error_m_s": 7.58726415028832e-13,
+      "max_post_link_error_m": 1.2646306170078261e-08,
+      "max_post_spin_error_rad_s": 8.715990866083579e-11,
+      "post_ticks": 4,
+      "impact_step_ms": [
+        0.316931,
+        0.31415099999999996,
+        0.290891,
+        0.278611,
+        1.156743,
+        1.181764
+      ],
+      "median_impact_step_ms": 0.31554099999999996,
+      "first_impact": {
+        "angular_balance_error_nms": 4.455359342418064e-19,
+        "angular_nms": [
+          0.0010205157238653757,
+          -1.4198798581664581e-08,
+          0.0
+        ],
+        "angular_reference_error_nms": 8.157537209667697e-16,
+        "arrival_error_s": 4.558842452845324e-14,
+        "linear_balance_error_ns": 1.3877787807814457e-17,
+        "linear_ns": [
+          0.0,
+          0.0,
+          0.10359781986940766
+        ],
+        "normal_impulses_ns": [
+          0.06259038083460443,
+          0.04100743903480324
+        ],
+        "offset_s": 0.0003079391502542421,
+        "point_errors_m": [
+          5.300978159392793e-14,
+          5.3009839383840585e-14
+        ],
+        "point_m": [
+          [
+            0.2039991714367456,
+            0.03945344588613332,
+            0.01399999999995239
+          ],
+          [
+            0.15599917144045955,
+            0.03945404299365895,
+            0.01399999999995239
+          ]
+        ],
+        "reference_impulses_ns": [
+          0.0625903808346411,
+          0.04100743903482726
+        ],
+        "reference_incoming_m_s": [
+          -1.2048209535910621,
+          -1.2048192647862859
+        ],
+        "reference_rebound_m_s": [
+          0.7831336198341906,
+          0.7831325221110859
+        ],
+        "row_errors_ns": [
+          3.6665115388245795e-14,
+          2.4015511801422917e-14
+        ],
+        "tick": 2180
+      },
+      "p95_ms": [
+        0.5203519999999999,
+        0.628042,
+        0.25559,
+        0.245511,
+        1.177844,
+        1.200024
+      ],
+      "median_p95_ms": 0.574197,
+      "observed_steps_s": [
+        3163.6072777568643,
+        3353.718783972525,
+        4278.833442787686,
+        4748.591154437301,
+        855.1322438992398,
+        861.598825921573
+      ],
+      "median_observed_steps_s": 3258.6630308646945
+    },
+    "near_minus": {
+      "incoming": {
+        "cut_ms": 2172,
+        "first_arrival_time_s": 2.1724847542466965,
+        "prospective_corner_order_m": [
+          [
+            -0.024,
+            0.012,
+            -0.020000000000000004
+          ],
+          [
+            -0.024,
+            -0.012,
+            -0.020000000000000004
+          ]
+        ],
+        "unconstrained_arrival_separation_s": 6.372943080375226e-12
+      },
+      "last_safe_tick": 2185,
+      "max_post_angle_error_rad": 8.652638450484029e-06,
+      "max_post_com_speed_error_m_s": 5.192113405882992e-11,
+      "max_post_link_error_m": 4.6597001340374394e-08,
+      "max_post_spin_error_rad_s": 1.0847855978132503e-10,
+      "post_ticks": 13,
+      "impact_step_ms": [
+        0.36022099999999996,
+        0.327471,
+        0.280801,
+        0.27439,
+        0.353341,
+        0.27697099999999997
+      ],
+      "median_impact_step_ms": 0.304136,
+      "first_impact": {
+        "angular_balance_error_nms": 2.98961614510945e-20,
+        "angular_nms": [
+          1.2505478160639662e-13,
+          0.0014002161031102982,
+          0.0
+        ],
+        "angular_reference_error_nms": 2.821961417935009e-15,
+        "arrival_error_s": 8.947154540688007e-13,
+        "linear_balance_error_ns": 0.0,
+        "linear_ns": [
+          0.0,
+          0.0,
+          0.06789530219404324
+        ],
+        "normal_impulses_ns": [
+          0.03394765107212101,
+          0.03394765112192224
+        ],
+        "offset_s": 0.0004847542475908995,
+        "point_errors_m": [
+          1.2697957489737719e-12,
+          1.2697680593880099e-12
+        ],
+        "point_m": [
+          [
+            0.16934409116714466,
+            -0.012000000006960127,
+            0.014000000007540769
+          ],
+          [
+            0.16934409116901922,
+            0.011999999993039872,
+            0.013999999999977412
+          ]
+        ],
+        "reference_impulses_ns": [
+          0.03394765107419792,
+          0.03394765112399914
+        ],
+        "reference_incoming_m_s": [
+          -1.186789642919883,
+          -1.1867896429713056
+        ],
+        "reference_rebound_m_s": [
+          0.771413267897924,
+          0.7714132679313488
+        ],
+        "row_errors_ns": [
+          2.076908089954088e-12,
+          2.0769011510601842e-12
+        ],
+        "tick": 2173
+      },
+      "p95_ms": [
+        0.646152,
+        1.247424,
+        0.254131,
+        0.233221,
+        0.268161,
+        0.238401
+      ],
+      "median_p95_ms": 0.261146,
+      "observed_steps_s": [
+        3088.4488074167944,
+        2302.584393727703,
+        4409.198829415485,
+        4820.941264510952,
+        4348.813730590569,
+        4837.970528084503
+      ],
+      "median_observed_steps_s": 4379.006280003027
+    },
+    "near_plus": {
+      "incoming": {
+        "cut_ms": 2172,
+        "first_arrival_time_s": 2.1724847542466965,
+        "prospective_corner_order_m": [
+          [
+            -0.024,
+            -0.012,
+            -0.020000000000000004
+          ],
+          [
+            -0.024,
+            0.012,
+            -0.020000000000000004
+          ]
+        ],
+        "unconstrained_arrival_separation_s": 6.372943080375226e-12
+      },
+      "last_safe_tick": 2185,
+      "max_post_angle_error_rad": 8.652638450484029e-06,
+      "max_post_com_speed_error_m_s": 5.1920856503073765e-11,
+      "max_post_link_error_m": 4.6597001340374394e-08,
+      "max_post_spin_error_rad_s": 1.0847856120333999e-10,
+      "post_ticks": 13,
+      "impact_step_ms": [
+        0.413171,
+        0.470882,
+        0.407032,
+        0.31189100000000003,
+        0.302451,
+        0.31805100000000003
+      ],
+      "median_impact_step_ms": 0.3625415,
+      "first_impact": {
+        "angular_balance_error_nms": 3.670129249149859e-20,
+        "angular_nms": [
+          -1.2505478841152766e-13,
+          0.0014002161031102982,
+          0.0
+        ],
+        "angular_reference_error_nms": 2.822395096325478e-15,
+        "arrival_error_s": 8.947154540688007e-13,
+        "linear_balance_error_ns": 0.0,
+        "linear_ns": [
+          0.0,
+          0.0,
+          0.06789530219404324
+        ],
+        "normal_impulses_ns": [
+          0.03394765112192224,
+          0.03394765107212101
+        ],
+        "offset_s": 0.0004847542475908995,
+        "point_errors_m": [
+          1.2697680593880099e-12,
+          1.2697957489737719e-12
+        ],
+        "point_m": [
+          [
+            0.16934409116901922,
+            -0.011999999993039872,
+            0.013999999999977412
+          ],
+          [
+            0.16934409116714466,
+            0.012000000006960127,
+            0.014000000007540769
+          ]
+        ],
+        "reference_impulses_ns": [
+          0.03394765112399914,
+          0.0339476510741979
+        ],
+        "reference_incoming_m_s": [
+          -1.1867896429713056,
+          -1.186789642919883
+        ],
+        "reference_rebound_m_s": [
+          0.7714132679313485,
+          0.7714132678979236
+        ],
+        "row_errors_ns": [
+          2.0769011510601842e-12,
+          2.0768872732723764e-12
+        ],
+        "tick": 2173
+      },
+      "p95_ms": [
+        0.570662,
+        0.5343519999999999,
+        1.122973,
+        0.24206,
+        0.241921,
+        0.253691
+      ],
+      "median_p95_ms": 0.39402149999999997,
+      "observed_steps_s": [
+        3477.948094095238,
+        3665.066043858202,
+        3357.101224126444,
+        4217.04852089495,
+        4427.993752070277,
+        4528.91873907906
+      ],
+      "median_observed_steps_s": 3941.057282376576
+    },
+    "split_minus": {
+      "incoming": {
+        "cut_ms": 2172,
+        "first_arrival_time_s": 2.1724843559535754,
+        "prospective_corner_order_m": [
+          [
+            -0.024,
+            0.012,
+            -0.020000000000000004
+          ],
+          [
+            -0.024,
+            -0.012,
+            -0.020000000000000004
+          ]
+        ],
+        "unconstrained_arrival_separation_s": 7.966196584448465e-07
+      },
+      "last_safe_tick": 2172,
+      "max_post_angle_error_rad": 0.0,
+      "max_post_com_speed_error_m_s": 0.0,
+      "max_post_link_error_m": 0.0,
+      "max_post_spin_error_rad_s": 0.0,
+      "post_ticks": 0,
+      "first_impact": null,
+      "p95_ms": [
+        0.667382,
+        0.5958019999999999,
+        0.618452,
+        0.942672,
+        1.505125,
+        1.192244
+      ],
+      "median_p95_ms": 0.8050269999999999,
+      "observed_steps_s": [
+        3392.495978799983,
+        3338.5701672856344,
+        3403.761192217897,
+        3039.004517894626,
+        1117.8422528112037,
+        849.7323140433734
+      ],
+      "median_observed_steps_s": 3188.7873425901303
+    },
+    "split_plus": {
+      "incoming": {
+        "cut_ms": 2172,
+        "first_arrival_time_s": 2.1724843559535754,
+        "prospective_corner_order_m": [
+          [
+            -0.024,
+            -0.012,
+            -0.020000000000000004
+          ],
+          [
+            -0.024,
+            0.012,
+            -0.020000000000000004
+          ]
+        ],
+        "unconstrained_arrival_separation_s": 7.966196584448465e-07
+      },
+      "last_safe_tick": 2172,
+      "max_post_angle_error_rad": 0.0,
+      "max_post_com_speed_error_m_s": 0.0,
+      "max_post_link_error_m": 0.0,
+      "max_post_spin_error_rad_s": 0.0,
+      "post_ticks": 0,
+      "first_impact": null,
+      "p95_ms": [
+        0.6347119999999999,
+        0.5305219999999999,
+        0.30402100000000004,
+        0.600431,
+        1.144844,
+        1.1779629999999999
+      ],
+      "median_p95_ms": 0.6175714999999999,
+      "observed_steps_s": [
+        3009.4053492544863,
+        3593.6354103329995,
+        4080.098263602908,
+        3539.273752287356,
+        894.0432983543857,
+        2385.04684042275
+      ],
+      "median_observed_steps_s": 3274.339550770921
+    }
+  },
+  "mirror": {
+    "lateral_plus": {
+      "frames": 2184,
+      "max_angular_impulse_reflection_error_nms": 0.0,
+      "max_normal_impulse_reflection_error_ns": 0.0,
+      "max_position_component_m": 0.0,
+      "max_quaternion_component": 0.0,
+      "max_witness_reflection_error_m": 0.0
+    },
+    "near_plus": {
+      "frames": 2186,
+      "max_angular_impulse_reflection_error_nms": 6.80513104040409e-21,
+      "max_normal_impulse_reflection_error_ns": 0.0,
+      "max_position_component_m": 6.808981085518352e-21,
+      "max_quaternion_component": 2.6622745588732342e-18,
+      "max_witness_reflection_error_m": 0.0
+    },
+    "split_plus": {
+      "frames": 2173,
+      "max_position_component_m": 0.0,
+      "max_quaternion_component": 0.0
+    }
+  },
+  "browser": {
+    "edge": {
+      "body_poses_and_shapes_checked": 816,
+      "captured_ms": {
+        "carry": 2000.0,
+        "incoming": 2172.0,
+        "landing": 2173.0,
+        "last": 2185.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        80.0,
+        160.0,
+        240.0,
+        320.0,
+        400.0,
+        480.0,
+        560.0,
+        640.0,
+        720.0,
+        800.0,
+        880.0,
+        960.0,
+        1040.0,
+        1120.0,
+        1200.0,
+        1280.0,
+        1360.0,
+        1440.0,
+        1520.0,
+        1600.0,
+        1680.0,
+        1760.0,
+        1840.0,
+        1920.0,
+        1980.0,
+        1992.0,
+        2000.0,
+        2004.0,
+        2016.0,
+        2028.0,
+        2040.0,
+        2052.0,
+        2064.0,
+        2076.0,
+        2080.0,
+        2088.0,
+        2100.0,
+        2112.0,
+        2157.0,
+        2158.0,
+        2159.0,
+        2160.0,
+        2161.0,
+        2162.0,
+        2163.0,
+        2164.0,
+        2165.0,
+        2166.0,
+        2167.0,
+        2168.0,
+        2169.0,
+        2170.0,
+        2171.0,
+        2172.0,
+        2173.0,
+        2174.0,
+        2175.0,
+        2176.0,
+        2177.0,
+        2178.0,
+        2179.0,
+        2180.0,
+        2181.0,
+        2182.0,
+        2183.0,
+        2184.0,
+        2185.0
+      ],
+      "frames": 68,
+      "independent_visual_poses_checked": 816,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 68,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11394%2F"
+    },
+    "lateral_plus": {
+      "body_poses_and_shapes_checked": 720,
+      "captured_ms": {
+        "carry": 2000.0,
+        "incoming": 2179.0,
+        "landing": 2180.0,
+        "last": 2183.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        80.0,
+        160.0,
+        240.0,
+        320.0,
+        400.0,
+        480.0,
+        560.0,
+        640.0,
+        720.0,
+        800.0,
+        880.0,
+        960.0,
+        1040.0,
+        1120.0,
+        1200.0,
+        1280.0,
+        1360.0,
+        1440.0,
+        1520.0,
+        1600.0,
+        1680.0,
+        1760.0,
+        1840.0,
+        1920.0,
+        1980.0,
+        1992.0,
+        2000.0,
+        2004.0,
+        2016.0,
+        2028.0,
+        2040.0,
+        2052.0,
+        2064.0,
+        2076.0,
+        2080.0,
+        2088.0,
+        2100.0,
+        2112.0,
+        2160.0,
+        2164.0,
+        2165.0,
+        2166.0,
+        2167.0,
+        2168.0,
+        2169.0,
+        2170.0,
+        2171.0,
+        2172.0,
+        2173.0,
+        2174.0,
+        2175.0,
+        2176.0,
+        2177.0,
+        2178.0,
+        2179.0,
+        2180.0,
+        2181.0,
+        2182.0,
+        2183.0
+      ],
+      "frames": 60,
+      "independent_visual_poses_checked": 720,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 60,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11395%2F"
+    },
+    "lateral_minus": {
+      "body_poses_and_shapes_checked": 720,
+      "captured_ms": {
+        "carry": 2000.0,
+        "incoming": 2179.0,
+        "landing": 2180.0,
+        "last": 2183.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        80.0,
+        160.0,
+        240.0,
+        320.0,
+        400.0,
+        480.0,
+        560.0,
+        640.0,
+        720.0,
+        800.0,
+        880.0,
+        960.0,
+        1040.0,
+        1120.0,
+        1200.0,
+        1280.0,
+        1360.0,
+        1440.0,
+        1520.0,
+        1600.0,
+        1680.0,
+        1760.0,
+        1840.0,
+        1920.0,
+        1980.0,
+        1992.0,
+        2000.0,
+        2004.0,
+        2016.0,
+        2028.0,
+        2040.0,
+        2052.0,
+        2064.0,
+        2076.0,
+        2080.0,
+        2088.0,
+        2100.0,
+        2112.0,
+        2160.0,
+        2164.0,
+        2165.0,
+        2166.0,
+        2167.0,
+        2168.0,
+        2169.0,
+        2170.0,
+        2171.0,
+        2172.0,
+        2173.0,
+        2174.0,
+        2175.0,
+        2176.0,
+        2177.0,
+        2178.0,
+        2179.0,
+        2180.0,
+        2181.0,
+        2182.0,
+        2183.0
+      ],
+      "frames": 60,
+      "independent_visual_poses_checked": 720,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 60,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11396%2F"
+    },
+    "split_plus": {
+      "body_poses_and_shapes_checked": 660,
+      "captured_ms": {
+        "carry": 2000.0,
+        "incoming": 2172.0,
+        "landing": 2172.0,
+        "last": 2172.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        80.0,
+        160.0,
+        240.0,
+        320.0,
+        400.0,
+        480.0,
+        560.0,
+        640.0,
+        720.0,
+        800.0,
+        880.0,
+        960.0,
+        1040.0,
+        1120.0,
+        1200.0,
+        1280.0,
+        1360.0,
+        1440.0,
+        1520.0,
+        1600.0,
+        1680.0,
+        1760.0,
+        1840.0,
+        1920.0,
+        1980.0,
+        1992.0,
+        2000.0,
+        2004.0,
+        2016.0,
+        2028.0,
+        2040.0,
+        2052.0,
+        2064.0,
+        2076.0,
+        2080.0,
+        2088.0,
+        2100.0,
+        2112.0,
+        2157.0,
+        2158.0,
+        2159.0,
+        2160.0,
+        2161.0,
+        2162.0,
+        2163.0,
+        2164.0,
+        2165.0,
+        2166.0,
+        2167.0,
+        2168.0,
+        2169.0,
+        2170.0,
+        2171.0,
+        2172.0
+      ],
+      "frames": 55,
+      "independent_visual_poses_checked": 660,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 55,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11397%2F"
+    }
+  },
+  "sha256": {
+    "edge-poses.json": "fc1ad772de8b2c820cd03290f65f9ba696e3dabea3c18bcbeacab662c413ede1",
+    "edge-replay/frames.jsonl": "5dcceefd414cf9a8ac869e472784b8e993f3af45fe4725b2719f49f9e394eb7f",
+    "lateral_minus-poses.json": "c933051e98b35500e52eb57909b5079c5543580cbe17792b58f16f995c12ba3c",
+    "lateral_minus-replay/frames.jsonl": "55664478598fb3c3b65861442811658a20ce73c9ee88253340355f154bcb9138",
+    "lateral_plus-poses.json": "f962ba0847dada8ccd031d2483461d02b18d4da0df0e259f0af85eae7e82503b",
+    "lateral_plus-replay/frames.jsonl": "0e162f07c2bdf885c686fb85067f8aa85ed8ba3b97d59e5f20e8e098d56f9900",
+    "near_minus-poses.json": "66ed80880bd7bf10e5cc050520fc17acb95bbc0cf748248e44da3c46fe161cf5",
+    "near_minus-replay/frames.jsonl": "f8f51c7de769e7ad9d4e04f6e99c50fd7435d2c100bb0b1c0fbf237aaece8530",
+    "near_plus-poses.json": "bc49fb95b296de6cef4a77279dc413bdcf1f30a943354587f12ede284237d59e",
+    "near_plus-replay/frames.jsonl": "8bd1a9098a72ff56e6927db6fa5bb6aa3267496a615b5f931f525980a4d67940",
+    "split_minus-poses.json": "00f49d8cac0cbb39d0891ed2d059e3d1309f8c9c76d21deb53ac788b134658a3",
+    "split_minus-replay/frames.jsonl": "e037cd9bd7699c62e551231d44444cbca83be1cd3f3ff8a7e4daa297351d3f1e",
+    "split_plus-poses.json": "ba115ff5a00b3080e435bd5e6d68c8518296cc98b2e6ea6c62a326e9c65a0e8c",
+    "split_plus-replay/frames.jsonl": "e8d5407a3fc9505e545b9a33fb60a074794a7c57cc63c63645bc5ffbf7aed1cd",
+    "gpu-shelf-edge-replays.tar.xz": "e4eb4305544c104e5e555aba8a86ada2183e34a4a216f29291a5088b7f863ba9",
+    "gpu-shelf-edge.jpg": "5e70b4e029982d12c639adf9a2b3009ec96c488bfa226631259be160850ea3a3",
+    "gpu-shelf-edge-loads.svg": "a56fd58e712328eee5509734d225dbaad0a93631a6103c6dd802bd3b7049d330"
+  },
+  "regressions": {
+    "physical_sdf_tests": 41,
+    "narrow_phase_and_unilateral_tests": 2,
+    "previous_corner_controls_byte_identical": true
+  },
+  "timing": "Median of three sequential optimized runs and two reset-identical epochs per run. All public spatial states were read back. Step elapsed time includes the Bevy update and hardware wait."
+}

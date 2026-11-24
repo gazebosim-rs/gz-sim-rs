@@ -3,74 +3,19 @@
 //! Compare the first 3D shelf impact from the same last pre-impact SDF state.
 #[path = "../../gz-sim-scene/examples/box_spatial/visual_frame.rs"]
 mod visual;
-use glam::{DMat3, DQuat, DVec3, DVec4};
-use gz_physics_gpu::{CarryGripperBatch, FreeBoxState, GpuError, simulation::BatchTiming};
+use glam::{DMat3, DVec3};
+use gz_physics_gpu::{CarryGripperBatch, GpuError, simulation::BatchTiming};
 use gz_sim_scene::{PhysicsEngine, WorldLoadOptions, load_world_on_adapter, reset_loaded_world};
 use serde_json::{Value, json};
 use std::{error::Error, fs, path::Path, time::Instant};
 const SDF: &str = include_str!("../../../examples/gpu_box_shelf_impact.sdf");
-const I: DVec3 = DVec3::new(0.00001450666666666667, 0.00002602666666666667, 0.0000192);
-const OFFSET: DVec3 = DVec3::new(0.005, 0., -0.002);
-const MASS: f64 = 0.08;
-const TOP: f64 = 0.014;
-#[derive(Clone, Copy)]
-struct Body {
-    p: DVec3,
-    v: DVec3,
-    q: DQuat,
-    w: DVec3,
-}
+#[path = "support/spatial_box_reference.rs"]
+mod reference;
+use reference::{Body, I, MASS, OFFSET};
 impl Body {
-    fn from_gpu(s: FreeBoxState) -> Self {
-        let q = DQuat::from_array(s.orientation);
-        Self {
-            p: s.mass_center.into(),
-            v: s.center_velocity.into(),
-            q,
-            w: (q.inverse() * DVec3::from(s.momentum)) / I,
-        }
-    }
-    fn free(self, dt: f64) -> Self {
-        let deriv = |v: DVec4, w: DVec3| {
-            let q = DQuat::from_array(v.to_array());
-            let wq = DQuat::from_xyzw(w.x, w.y, w.z, 0.);
-            (
-                DVec4::from_array((q * wq).to_array()) * 0.5,
-                -w.cross(I * w) / I,
-            )
-        };
-        let q = DVec4::from_array(self.q.to_array());
-        let w = self.w;
-        let (a, b) = deriv(q, w);
-        let (c, d) = deriv(q + a * (dt / 2.), w + b * (dt / 2.));
-        let (e, f) = deriv(q + c * (dt / 2.), w + d * (dt / 2.));
-        let (g, h) = deriv(q + e * dt, w + f * dt);
-        Self {
-            p: self.p + self.v * dt - DVec3::Z * (4.905 * dt * dt),
-            v: self.v - DVec3::Z * (9.81 * dt),
-            q: DQuat::from_array((q + (a + 2. * c + 2. * e + g) * (dt / 6.)).to_array())
-                .normalize(),
-            w: w + (b + 2. * d + 2. * f + h) * (dt / 6.),
-        }
-    }
-    fn lowest(self) -> (DVec3, f64) {
-        let mut bottom = (DVec3::ZERO, f64::INFINITY);
-        for x in [-0.024, 0.024] {
-            for y in [-0.012, 0.012] {
-                for z in [-0.020, 0.020] {
-                    let arm = self.q * (DVec3::new(x, y, z) - OFFSET);
-                    let gap = self.p.z + arm.z - TOP;
-                    if gap < bottom.1 {
-                        bottom = (arm, gap);
-                    }
-                }
-            }
-        }
-        bottom
-    }
     /// Use the change in witness velocity from one unit impulse and the complete
     /// world inertia matrix; body-axis RK4 continues independently after impact.
-    fn rebound(&mut self, e: f64) -> (DVec3, DVec3, DVec3, f64, f64) {
+    pub fn rebound(&mut self, e: f64) -> (DVec3, DVec3, DVec3, f64, f64) {
         let r = self.lowest().0;
         let rotation = DMat3::from_quat(self.q);
         let inverse = (rotation * DMat3::from_diagonal(I) * rotation.transpose()).inverse();

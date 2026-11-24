@@ -162,3 +162,7 @@ required-features = ["gpu-batch"]
 [[example]]
 name = "gpu_box_shelf_impact"
 required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_box_shelf_edge"
+required-features = ["gpu-batch"]

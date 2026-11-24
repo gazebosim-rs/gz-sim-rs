@@ -2,6 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Isolated frictionless normal impact between one cuboid corner and a finite shelf top.
 use super::*;
+mod edge;
+use crate::arithmetic::Condition;
+pub use edge::ShelfWitness;
+use edge::Solver;
+/// Vertices may share a single restitution solve only when both their surface
+/// distances and signed arrival times are indistinguishable at this scale.
+const TIE_SECONDS: f64 = 1e-10;
 use crate::spatial::dot;
 const DT: f64 = 0.00025;
 const EPS: f64 = 1e-11;
@@ -19,6 +26,7 @@ pub struct ShelfImpact {
     pub tick: u64,
     /// Seconds since the beginning of the indicated one-millisecond public tick.
     pub offset_s: f64,
+    /// World impulse-weighted witness position for the accepted manifold.
     pub point_m: [f64; 3],
     pub linear_impulse: [f64; 3],
     /// Device change in angular momentum about the center of mass (N m s).
@@ -34,7 +42,9 @@ struct EventLane {
 }
 pub(super) struct Shelf {
     surface: SpatialShelf,
-    device: ResidentBatch<EventLane>,
+    device: Solver,
+    pub(super) witnesses: [ShelfWitness; 2],
+    pub(super) count: usize,
     pub(super) receipt: Option<ShelfImpact>,
 }
 #[derive(Clone, Copy)]
@@ -42,6 +52,7 @@ struct Event {
     time: f64,
     arm: DVec3,
     state: FreeBoxState,
+    second: Option<DVec3>,
 }
 #[derive(Clone, Copy)]
 struct Shape {
@@ -112,10 +123,11 @@ impl Shape {
         self,
         start: FreeBoxState,
         dt: f64,
+        edges: bool,
     ) -> Result<(FreeBoxState, Option<Event>), GpuError> {
         let end = self.advance(start, dt);
         let a = self.acceleration(start);
-        let mut event = None;
+        let mut event: Option<Event> = None;
         for arm in self.corners() {
             let h0 = self.height(start, arm);
             let h1 = self.height(end, arm);
@@ -132,7 +144,7 @@ impl Shape {
             if h1 > 0. {
                 continue;
             }
-            if event.is_some() {
+            if event.is_some() && !edges {
                 return Err(GpuError::SpatialContactBoundary);
             }
             let (mut lo, mut hi) = (0., dt);
@@ -144,11 +156,48 @@ impl Shape {
                     hi = mid;
                 }
             }
-            event = Some(Event {
-                time: hi,
-                arm,
-                state: self.advance(start, hi),
-            });
+            if let Some(other) = &mut event {
+                if other.second.is_some() || (hi - other.time).abs() > TIE_SECONDS {
+                    return Err(GpuError::SpatialContactBoundary);
+                }
+                other.second = Some(arm);
+                other.time = other.time.min(hi);
+                other.state = self.advance(start, other.time);
+            } else {
+                event = Some(Event {
+                    time: hi,
+                    arm,
+                    state: self.advance(start, hi),
+                    second: None,
+                });
+            }
+        }
+        if edges && let Some(hit) = &mut event {
+            // Include a neighbor whose crossing falls just beyond the substep boundary.
+            let mut pair = [DVec3::ZERO; 2];
+            let mut count = 0;
+            for arm in self.corners() {
+                let gap = self.height(hit.state, arm).abs();
+                let approach = -self.velocity(hit.state, arm);
+                if gap <= EPS && approach > 0. && gap <= approach * TIE_SECONDS {
+                    if count == 2 {
+                        return Err(GpuError::SpatialContactBoundary);
+                    }
+                    pair[count] = arm;
+                    count += 1;
+                }
+            }
+            if count == 0 || (hit.second.is_some() && count != 2) {
+                return Err(GpuError::SpatialContactBoundary);
+            }
+            if count == 2 {
+                // Only two adjacent vertices form an admitted edge.
+                if (0..3).filter(|&i| pair[0][i] != pair[1][i]).count() != 1 {
+                    return Err(GpuError::SpatialContactBoundary);
+                }
+                hit.arm = pair[0];
+                hit.second = Some(pair[1]);
+            }
         }
         Ok((end, event))
     }
@@ -194,7 +243,7 @@ impl Shape {
     }
 }
 impl Shelf {
-    pub(super) fn new(f: &BoxFlight, surface: SpatialShelf) -> Result<Self, GpuError> {
+    pub(super) fn new(f: &BoxFlight, surface: SpatialShelf, edges: bool) -> Result<Self, GpuError> {
         let l = f.device.committed[0];
         if !surface.center_y.is_finite()
             || !surface.half_depth.is_finite()
@@ -204,29 +253,27 @@ impl Shelf {
         {
             return Err(GpuError::InvalidBoxRelease);
         }
-        let gpu = f.device.gpu.companion::<EventLane>(1)?;
-        let device = ResidentBatch::on_device(
-            gpu,
-            vec![EventLane {
-                free: l,
-                time: 0.,
-                arm: [0.; 3],
-                restitution: surface.restitution,
-            }],
-            module,
-            None,
-        )?;
+        let initial = EventLane {
+            free: l,
+            time: 0.,
+            arm: [0.; 3],
+            restitution: surface.restitution,
+        };
+        let device = Solver::new(f, initial, edges)?;
         Ok(Self {
             device,
             surface,
             receipt: None,
+            witnesses: Default::default(),
+            count: 0,
         })
     }
     pub(super) fn allocated(&self) -> u64 {
-        self.device.device_info().allocated_buffer_bytes
+        self.device.allocated()
     }
     pub(super) fn reset(&mut self) {
         self.receipt = None;
+        self.count = 0;
         self.device.reset();
     }
     pub(super) fn step(
@@ -240,7 +287,8 @@ impl Shelf {
         let mut hit = None;
         if shape.classify(next, &start, self.surface)? {
             for i in 0..4 {
-                let (end, event) = shape.interval(next, DT)?;
+                let (end, event) =
+                    shape.interval(next, DT, matches!(self.device, Solver::Edge(_)))?;
                 if let Some(mut event) = event {
                     if self.receipt.is_some() {
                         return Err(GpuError::SpatialContactBoundary);
@@ -257,31 +305,42 @@ impl Shelf {
                 validate_others(material, &start.body, &rows[0], false)
             });
         };
-        self.device.committed[0] = EventLane {
+        if let Some(second) = event.second
+            && !edge::well_conditioned(
+                event.state,
+                [event.arm, second],
+                shape.inertia,
+                start.carry.hand.ball_mass,
+            )
+        {
+            return Err(GpuError::SpatialContactBoundary);
+        }
+        let input = EventLane {
             free: start,
             time: event.time,
             arm: event.arm.to_array(),
             restitution: self.surface.restitution,
         };
-        self.device.tick = free.tick;
-        self.device.upload_needed = true;
-        let metrics = self.device.advance_checked(1, |rows| {
-            let out = rows[0].free;
+        let (metrics, out) = self.device.step(free.tick, input, event.second, |out| {
             validate_others(material, &start.body, &out, true)?;
             // Check the remaining fraction and all following substeps for secondary contacts.
-            let j = out.carry.shelf_normal;
+            let [first, second] = out.carry.point_impulse[3];
+            if first < 0. || second < 0. || first + second <= 0. {
+                return Err(GpuError::SpatialContactBoundary);
+            }
             let q = DQuat::from_array(event.state.orientation);
             let mut post = event.state;
-            post.center_velocity[2] += j / start.carry.hand.ball_mass;
-            post.momentum =
-                (DVec3::from(post.momentum) + (q * event.arm).cross(DVec3::Z * j)).to_array();
+            post.center_velocity[2] += (first + second) / start.carry.hand.ball_mass;
+            let torque = (q * event.arm).cross(DVec3::Z * first)
+                + (q * event.second.unwrap_or(DVec3::ZERO)).cross(DVec3::Z * second);
+            post.momentum = (DVec3::from(post.momentum) + torque).to_array();
             let mut t = event.time;
             for i in 1..=4 {
                 let end = i as f64 * DT;
                 if end <= t {
                     continue;
                 }
-                let (advanced, other) = shape.interval(post, end - t)?;
+                let (advanced, other) = shape.interval(post, end - t, false)?;
                 if other.is_some() {
                     return Err(GpuError::SpatialContactBoundary);
                 }
@@ -290,19 +349,29 @@ impl Shelf {
             }
             Ok(())
         })?;
-        let out = self.device.committed[0].free;
         let j = DVec3::Z * out.carry.shelf_normal;
-        let r = DQuat::from_array(event.state.orientation) * event.arm;
+        let mut weighted = DVec3::ZERO;
+        let q = DQuat::from_array(event.state.orientation);
+        self.count = if event.second.is_some() { 2 } else { 1 };
+        for (i, arm) in std::iter::once(event.arm).chain(event.second).enumerate() {
+            let p = DVec3::from(event.state.mass_center) + q * arm;
+            let impulse = out.carry.point_impulse[3][i];
+            self.witnesses[i] = ShelfWitness {
+                point_m: p.to_array(),
+                normal_impulse: impulse,
+            };
+            weighted += p * (impulse / j.z);
+        }
         self.receipt = Some(ShelfImpact {
-            tick: self.device.tick,
+            tick: free.tick + 1,
             offset_s: event.time,
-            point_m: (DVec3::from(event.state.mass_center) + r).to_array(),
+            point_m: weighted.to_array(),
             linear_impulse: j.to_array(),
             angular_impulse: (DVec3::from(out.body.momentum) - DVec3::from(start.body.momentum))
                 .to_array(),
         });
         free.committed[0] = out;
-        free.tick = self.device.tick;
+        free.tick += 1;
         free.upload_needed = true;
         Ok(metrics)
     }
@@ -319,8 +388,7 @@ fn validate_others(
         Err(GpuError::SpatialContactBoundary)
     }
 }
-fn module() -> naga::Module {
-    const N: usize = WORDS + 5;
+fn module<const N: usize, const EDGE: bool>() -> naga::Module {
     kernel::build(&constants(), |v: [_; N], c| {
         let (hand, swept) = unloaded_hand(std::array::from_fn(|i| v[i]), c);
         let mut p = std::array::from_fn(|i| v[WIDTH + i]);
@@ -340,9 +408,31 @@ fn module() -> naga::Module {
         let w = angular(q, l, inertia, c[1]);
         let row = [r[1], c[1] - r[0], c[1]];
         let effective = c[2] / v[20] + dot(row, angular(q, row, inertia, c[1]));
-        let impulse = (c[1] - (c[2] + v[WORDS + 4]) * (vel[2] + cross(w, r)[2])) / effective;
+        let factor = c[1] - (c[2] + v[WORDS + 4]);
+        let desired = factor * (vel[2] + cross(w, r)[2]);
+        let single = desired / effective;
+        let (first, second, other) = if EDGE {
+            let second_arm = rotated(q, std::array::from_fn(|i| v[WORDS + 5 + i]));
+            let other = [second_arm[1], c[1] - second_arm[0], c[1]];
+            let delta = angular(q, other, inertia, c[1]);
+            let coupling = c[2] / v[20] + dot(row, delta);
+            let other_weight = c[2] / v[20] + dot(other, delta);
+            let rhs = factor * (vel[2] + cross(w, second_arm)[2]);
+            let [j, k] = edge::pair_impulses(
+                [effective, other_weight],
+                coupling,
+                [desired, rhs],
+                c[1],
+                c[2],
+            );
+            let paired = v[WORDS + 8].greater(c[1]);
+            (paired.select(j, single), paired.select(k, c[1]), other)
+        } else {
+            (single, c[1], [c[1]; 3])
+        };
+        let impulse = first + second;
         vel[2] = vel[2] + impulse / v[20];
-        l = std::array::from_fn(|i| l[i] + row[i] * impulse);
+        l = std::array::from_fn(|i| l[i] + row[i] * first + other[i] * second);
         t = c[0];
         for _ in 0..4 {
             let dt = (t - tau).maximum(c[1]).minimum(c[0]);
@@ -351,7 +441,9 @@ fn module() -> naga::Module {
         }
         std::array::from_fn::<_, 52, _>(|i| match i {
             0..33 => match hand[i].0 {
-                67 | 69 | 82 => (hand[i].0, impulse),
+                67 | 69 => (hand[i].0, impulse),
+                82 => (82, first),
+                83 => (83, second),
                 _ => hand[i],
             },
             33..36 => (WIDTH + i - 33, p[i - 33]),
