@@ -187,3 +187,155 @@ fn hard_pad_reports_each_particles_momentum_change_and_clears_after_release() {
         assert!(observed.last_pad_loads().is_empty());
     }
 }
+
+#[test]
+fn viscous_pad_matches_implicit_compression_without_tension_or_lost_reaction() {
+    use gz_physics_xpbd::step_coupled_damped_pads;
+    let compliance = 0.001;
+    let mobility = Some(RigidMobility::PrescribedCuboid {
+        normal_compliance: compliance,
+        start_orientation: DQuat::IDENTITY.to_array(),
+        end_orientation: DQuat::IDENTITY.to_array(),
+        start_angular_velocity: [0.; 3],
+    });
+    let tau = compliance * 4.0;
+    let h = DT.as_secs_f64();
+    for mass_inv in [0., 50.] {
+        for (pad_speed, indent) in [
+            (0.2, 0.001),
+            (-0.2, 0.001),
+            (-0.8, 0.001),
+            (0.2, -0.0001),
+            (-0.2, -0.001),
+        ] {
+            let mut b = SoftBody::new(
+                vec![Particle {
+                    position: [0.; 3],
+                    velocity: [0.; 3],
+                    inverse_mass: mass_inv,
+                }],
+                vec![],
+                SolverConfig {
+                    gravity: [0.; 3],
+                    substeps: 1,
+                    iterations: 8,
+                    friction: 0.,
+                    particle_radius: 0.01,
+                    self_contact: false,
+                },
+            )
+            .unwrap()
+            .with_pad_loads();
+            let mut boundary = pad(-0.04 + indent);
+            if let Boundary::Cuboid {
+                ref mut velocity, ..
+            } = boundary
+            {
+                velocity[0] = pad_speed;
+            }
+            let trial = indent + pad_speed * h;
+            let expected = if trial > 0. {
+                ((h * trial + tau * (trial - indent.max(0.)))
+                    / (compliance + mass_inv * h * (h + tau)))
+                    .max(0.)
+            } else {
+                0.
+            };
+            step_coupled_damped_pads(&mut [&mut b], DT, &[boundary], &[mobility], &[(0, 4.)])
+                .unwrap();
+            assert!(
+                (b.last_boundary_impulses()[0].linear[0] + expected).abs() < 1e-13,
+                "{mass_inv} {pad_speed} {indent} {expected:?} {:?}",
+                b.last_boundary_impulses()
+            );
+            assert!((b.particles()[0].velocity[0] - mass_inv * expected).abs() < 1e-12);
+            assert!(
+                (b.last_pad_loads()
+                    .iter()
+                    .map(|load| load.normal[0])
+                    .sum::<f64>()
+                    + expected)
+                    .abs()
+                    < 1e-13
+            );
+            let state = b.particles().to_vec();
+            let prior = b.last_boundary_impulses().to_vec();
+            for invalid in [
+                vec![(1, 4.)],
+                vec![(0, -1.)],
+                vec![(0, 0.)],
+                vec![(0, f64::NAN)],
+                vec![(0, 1.), (0, 2.)],
+            ] {
+                assert!(matches!(
+                    step_coupled_damped_pads(&mut [&mut b], DT, &[boundary], &[mobility], &invalid),
+                    Err(XpbdError::InvalidBoundary)
+                ));
+                assert_eq!(b.particles(), state);
+                assert_eq!(b.last_boundary_impulses(), prior);
+            }
+        }
+    }
+}
+
+#[test]
+fn spring_dashpot_release_converges_to_a_passive_damped_oscillator() {
+    use gz_physics_xpbd::step_coupled_damped_pads;
+    let m: f64 = 0.02;
+    let k: f64 = 1000.;
+    let c = 4.;
+    let initial = 0.001;
+    let t = 0.002;
+    let a = c / (2. * m);
+    let w = (k / m - a * a).sqrt();
+    let exact = initial * (-a * t).exp() * ((w * t).cos() + a / w * (w * t).sin());
+    let mobility = Some(RigidMobility::PrescribedCuboid {
+        normal_compliance: 1. / k,
+        start_orientation: DQuat::IDENTITY.to_array(),
+        end_orientation: DQuat::IDENTITY.to_array(),
+        start_angular_velocity: [0.; 3],
+    });
+    let mut errors = Vec::new();
+    for steps in [8, 16, 32, 64] {
+        let mut b = SoftBody::new(
+            vec![Particle {
+                position: [0.; 3],
+                velocity: [0.; 3],
+                inverse_mass: 1. / m,
+            }],
+            vec![],
+            SolverConfig {
+                gravity: [0.; 3],
+                friction: 0.,
+                particle_radius: 0.01,
+                self_contact: false,
+                iterations: 4,
+                substeps: 1,
+            },
+        )
+        .unwrap();
+        let mut energy = 0.5 * k * initial * initial;
+        let mut net = 0.;
+        for _ in 0..steps {
+            step_coupled_damped_pads(
+                &mut [&mut b],
+                Duration::from_nanos(2_000_000 / steps),
+                &[pad(-0.04 + initial)],
+                &[mobility],
+                &[(0, c)],
+            )
+            .unwrap();
+            let p = b.particles()[0];
+            let current = 0.5 * (k * (initial - p.position[0]).powi(2) + m * p.velocity[0].powi(2));
+            assert!(current <= energy + 1e-15 && current >= 0.);
+            energy = current;
+            net += b.last_boundary_impulses()[0].linear[0];
+            assert!((net + m * p.velocity[0]).abs() < 1e-13);
+        }
+        errors.push((initial - b.particles()[0].position[0] - exact).abs());
+    }
+    assert!(
+        errors.windows(2).all(|p| p[1] < 0.6 * p[0]) && errors[3] < 1e-6,
+        "{errors:?}"
+    );
+}

@@ -437,7 +437,7 @@ pub fn step_coupled(
     boundaries: &[Boundary],
     mobility: &[Option<SphereMobility>],
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
-    solve(bodies, dt, boundaries, mobility)
+    solve(bodies, dt, boundaries, mobility, &[])
 }
 
 /// Advance finite centered spheres, cuboids and capsules with full principal
@@ -457,13 +457,27 @@ pub fn step_coupled_rigid(
     boundaries: &[Boundary],
     mobility: &[Option<RigidMobility>],
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
-    solve(bodies, dt, boundaries, mobility)
+    solve(bodies, dt, boundaries, mobility, &[])
 }
+/// Advance with optional normal viscous damping (N·s/m) on compliant prescribed
+/// cuboids. Each entry names one distinct boundary and its positive damping.
+/// The spring and dashpot act in parallel while compressed and exert no tension.
+pub fn step_coupled_damped_pads(
+    bodies: &mut [&mut SoftBody],
+    dt: Duration,
+    boundaries: &[Boundary],
+    mobility: &[Option<RigidMobility>],
+    damping: &[(usize, f64)],
+) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
+    solve(bodies, dt, boundaries, mobility, damping)
+}
+
 fn solve<M: Copy + Into<RigidMobility>>(
     bodies: &mut [&mut SoftBody],
     dt: Duration,
     boundaries: &[Boundary],
     mobility: &[Option<M>],
+    damping: &[(usize, f64)],
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
     if boundaries.len() != mobility.len() {
         return Err(XpbdError::InvalidBoundary);
@@ -518,7 +532,15 @@ fn solve<M: Copy + Into<RigidMobility>>(
                 material.retry_manifold = retry_material;
             }
         }
-        let result = solve_at_resolution(bodies, dt, boundaries, mobility, u128::from(steps), None);
+        let result = solve_at_resolution(
+            bodies,
+            dt,
+            boundaries,
+            mobility,
+            damping,
+            u128::from(steps),
+            None,
+        );
         for body in bodies.iter_mut() {
             if let Some(surface) = &mut body.surface {
                 surface.retry_plane = false;
@@ -573,7 +595,9 @@ fn solve<M: Copy + Into<RigidMobility>>(
                 {
                     return result;
                 }
-                return shell_retry::solve(bodies, dt, boundaries, mobility, count, maximum);
+                return shell_retry::solve(
+                    bodies, dt, boundaries, mobility, damping, count, maximum,
+                );
             }
             if capsule_sweep && finite_material && !retry_material {
                 // The ordinary coupled sweep exhausted its grid. Reconstruct
@@ -599,6 +623,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
     dt: Duration,
     boundaries: &[Boundary],
     mobility: &[Option<M>],
+    damping: &[(usize, f64)],
     count: u128,
     mut retry: Option<&mut ShellRetry>,
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
@@ -702,6 +727,14 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
             Ok(prepared)
         })
         .collect::<Result<Vec<_>, XpbdError>>()?;
+    for &(index, coefficient) in damping {
+        let pad = prepared.get_mut(index).ok_or(XpbdError::InvalidBoundary)?;
+        let relaxation = pad.normal_compliance * coefficient;
+        if !(relaxation.is_finite() && relaxation > 0.) || pad.normal_relaxation != 0. {
+            return Err(XpbdError::InvalidBoundary);
+        }
+        pad.normal_relaxation = relaxation;
+    }
     let empty = (0..boundaries.len())
         .map(|boundary| BoundaryImpulse {
             boundary,

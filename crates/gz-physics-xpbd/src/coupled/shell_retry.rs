@@ -26,6 +26,7 @@ pub(super) fn solve<M: Copy + Into<RigidMobility>>(
     dt: Duration,
     boundaries: &[Boundary],
     mobility: &[Option<M>],
+    damping: &[(usize, f64)],
     count: u32,
     maximum: u32,
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
@@ -34,7 +35,15 @@ pub(super) fn solve<M: Copy + Into<RigidMobility>>(
     surface.row_order = RowOrder::CertifiedSpeed;
     surface.subdivide_on_budget = false;
     // First try changing only the order of the certified velocity constraints.
-    let mut result = solve_at_resolution(bodies, dt, boundaries, mobility, count.into(), None);
+    let mut result = solve_at_resolution(
+        bodies,
+        dt,
+        boundaries,
+        mobility,
+        damping,
+        count.into(),
+        None,
+    );
     let mut depth = 0;
     let mut accepted = None;
     // If a finer base cannot resolve the tick within its budget, retain the
@@ -60,6 +69,7 @@ pub(super) fn solve<M: Copy + Into<RigidMobility>>(
             dt,
             boundaries,
             mobility,
+            damping,
             base.into(),
             Some(&mut retry),
         );

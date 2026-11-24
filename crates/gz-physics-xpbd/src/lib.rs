@@ -45,7 +45,8 @@ mod surface;
 pub use surface::{SelfContactLoad, SelfContactParticleImpulse, ShellConstraintImpulse};
 mod tensor;
 pub use coupled::{
-    ReceiverMotion, RigidMobility, SphereMobility, step_coupled, step_coupled_rigid,
+    ReceiverMotion, RigidMobility, SphereMobility, step_coupled, step_coupled_damped_pads,
+    step_coupled_rigid,
 };
 pub use tensor::PrincipalRigidMotion;
 /// Original name for finite sphere callers.

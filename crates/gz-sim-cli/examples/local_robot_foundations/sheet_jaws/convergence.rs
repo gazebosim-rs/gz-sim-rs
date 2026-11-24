@@ -44,6 +44,8 @@ struct Recording {
     jaw_damping_ns_per_m: f64,
     pad_compliance_m_per_n: f64,
     #[serde(default)]
+    pad_damping_ns_per_m: f64,
+    #[serde(default)]
     panel_balance: bool,
     #[serde(default)]
     bend_damping_nms_per_rad: f64,
@@ -89,6 +91,7 @@ pub(crate) fn compare(paths: &[PathBuf]) -> Result<Value> {
             r.jaw_density_scale,
             r.jaw_damping_ns_per_m,
             r.pad_compliance_m_per_n,
+            r.pad_damping_ns_per_m,
             r.panel_balance,
             r.bend_damping_nms_per_rad,
         );
@@ -112,6 +115,7 @@ pub(crate) fn compare(paths: &[PathBuf]) -> Result<Value> {
             r.panel_balance,
             r.bend_damping_nms_per_rad,
         )?;
+        let expected = super::damped_pads(expected, r.pad_damping_ns_per_m)?;
         if fs::read_to_string(path.join("world.sdf"))? != expected {
             return Err(
                 "recording SDF differs from the expected gripper, material or clock".into(),

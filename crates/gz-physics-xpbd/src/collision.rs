@@ -24,6 +24,8 @@ pub(super) struct PreparedBoundary {
     pub(super) path_endpoints: Option<(DVec3, DVec3)>,
     shape: Shape,
     pub(super) normal_compliance: f64,
+    /// Viscous damping times compliance, in seconds. Independent of pad quadrature weight.
+    pub(super) normal_relaxation: f64,
 }
 
 impl PreparedBoundary {
@@ -135,6 +137,7 @@ impl PreparedBoundary {
             velocity,
             shape,
             normal_compliance: 0.,
+            normal_relaxation: 0.,
         })
     }
 
@@ -659,12 +662,15 @@ fn project_points<const SPATIAL: bool>(
         for (local, (x, p)) in xs.iter_mut().zip(ps).enumerate() {
             let i = k * spatial::BLOCK + local;
             let mut skip = block.skip;
-            if p.inverse_mass == 0.0 {
-                continue;
-            }
             let start = DVec3::from(p.position);
-
-            for (j, boundary) in boundaries.iter_mut().enumerate() {
+            // Prescribed nodes transmit a finite spring/dashpot force to the
+            // pad. A rigid positional projection cannot move a prescribed node.
+            let rigid_rows = if p.inverse_mass > 0. {
+                &mut *boundaries
+            } else {
+                &mut []
+            };
+            for (j, boundary) in rigid_rows.iter_mut().enumerate() {
                 if skip != 0 && skip & (1u64 << j) != 0 {
                     continue;
                 }

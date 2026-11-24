@@ -80,9 +80,16 @@ impl Contacts {
             if !compliance.is_finite() || compliance == 0. {
                 return Err(XpbdError::Numerical);
             }
-            let impulse = ((time.h * hit.depth - compliance * old)
-                / (inverse * time.h * time.h + compliance))
-                .max(-old);
+            // Backward Euler on F = k * indentation + c * indentation rate.
+            // The clipped starting indentation excludes free flight before contact.
+            let relaxation = b.normal_relaxation;
+            let rhs = time.h * hit.depth + relaxation * (hit.depth - hit.initial_overlap)
+                - compliance * old;
+            let lhs = inverse * time.h * (time.h + relaxation) + compliance;
+            if !rhs.is_finite() || !lhs.is_finite() {
+                return Err(XpbdError::Numerical);
+            }
+            let impulse = (rhs / lhs).max(-old);
             let applied = impulse * hit.normal;
             correct(
                 x,

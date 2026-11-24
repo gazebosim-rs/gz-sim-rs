@@ -21,7 +21,7 @@ use gz_physics::{BodyState, DynamicBackend};
 use gz_physics_multifidelity::SoftRigidInertia;
 use gz_physics_xpbd::{
     Boundary, BoundaryImpulse, Particle, PrincipalRigidMotion, RigidMobility, SoftBody,
-    SphereMobility, step_coupled_rigid,
+    SphereMobility, step_coupled_damped_pads,
 };
 use gz_sim_core::{StepFault, UpdateInfo, entity_by_id};
 
@@ -83,7 +83,10 @@ enum ReceiverMass {
     Isotropic(SphereMobility),
     Principal(SoftRigidInertia),
     ForceAware(SoftRigidInertia),
-    ArticulatedWrench { normal_compliance: f64 },
+    ArticulatedWrench {
+        normal_compliance: f64,
+        normal_damping: f64,
+    },
 }
 
 impl ReceiverMass {
@@ -105,7 +108,9 @@ impl ReceiverMass {
     ) -> RigidMobility {
         match self {
             Self::Isotropic(mass) => RigidMobility::Isotropic(mass),
-            Self::ArticulatedWrench { normal_compliance } => RigidMobility::PrescribedCuboid {
+            Self::ArticulatedWrench {
+                normal_compliance, ..
+            } => RigidMobility::PrescribedCuboid {
                 normal_compliance,
                 start_orientation: start.orientation,
                 end_orientation: end.orientation,
@@ -174,6 +179,7 @@ pub(crate) struct Deformables {
     mobility: Vec<Option<RigidMobility>>,
     receivers: Vec<Option<(BodyId, BodyState)>>,
     active_slots: Vec<usize>,
+    pad_damping: Vec<(usize, f64)>,
     articulated_wrenches: bool,
     pad_wrenches: BTreeMap<u64, ArticulatedPadWrench>,
     samples: BTreeMap<String, DeformableSample>,
@@ -593,6 +599,7 @@ impl Deformables {
         self.mobility.clear();
         self.active_slots.clear();
         self.applied_forcing.clear();
+        self.pad_damping.clear();
         let mut paths = Vec::new();
         for (slot, (surface, &start)) in self.surfaces.iter().zip(&self.starts).enumerate() {
             let (boundary, receiver, mobility) = match *surface {
@@ -697,6 +704,15 @@ impl Deformables {
                     )
                 }
             };
+            if let Surface::Rigid {
+                mobility: Some(ReceiverMass::ArticulatedWrench { normal_damping, .. }),
+                ..
+            } = *surface
+                && normal_damping > 0.
+            {
+                self.pad_damping
+                    .push((self.boundaries.len(), normal_damping));
+            }
             self.boundaries.push(boundary);
             self.receivers.push(receiver);
             self.mobility.push(mobility);
@@ -746,7 +762,13 @@ impl Deformables {
             .unwrap_or(&mut self.current)
             .values_mut()
             .collect::<Vec<_>>();
-        let motions = step_coupled_rigid(&mut bodies, dt, &self.boundaries, &self.mobility)?;
+        let motions = step_coupled_damped_pads(
+            &mut bodies,
+            dt,
+            &self.boundaries,
+            &self.mobility,
+            &self.pad_damping,
+        )?;
         let mut updates = Vec::new();
         for (receiver, motion) in self.receivers.iter().zip(motions) {
             if let (Some((id, end)), Some(motion)) = (receiver, motion) {

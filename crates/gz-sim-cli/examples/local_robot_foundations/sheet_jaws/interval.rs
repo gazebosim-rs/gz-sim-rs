@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Replay the same measured rigid jaw path from a complete, matched soft state.
 use super::*;
-use gz_physics_xpbd::{Boundary, RigidMobility, SoftBody, step_coupled_rigid};
+use gz_physics_xpbd::{Boundary, RigidMobility, SoftBody, step_coupled_damped_pads};
 use std::time::Duration;
 
 #[path = "interval_view.rs"]
@@ -53,7 +53,7 @@ pub(super) fn run(
     out: &Path,
     xml: &str,
     damping: f64,
-    compliance: f64,
+    [compliance, pad_viscosity]: [f64; 2],
     exchanges: usize,
     (first_tick, count): (usize, usize),
 ) -> Result<()> {
@@ -72,6 +72,12 @@ pub(super) fn run(
         arm_cable::half_size(&r.sdf, "arm", "right")?,
     ];
     let dt = r.sim.step_duration();
+    let pad_settings = [(0, pad_viscosity), (1, pad_viscosity)];
+    let viscosity: &[_] = if pad_viscosity > 0. {
+        &pad_settings
+    } else {
+        &[]
+    };
     let mut branches = Vec::<(u32, SoftBody)>::new();
     let mut samples = Vec::with_capacity(count);
     let stride = count.div_ceil(160);
@@ -112,7 +118,7 @@ pub(super) fn run(
         let mut levels = Vec::new();
         let mut forces = [[0.; 2]; 4];
         for (index, (steps, branch)) in branches.iter_mut().enumerate() {
-            step_coupled_rigid(&mut [branch], dt, &geometry, &mobility)?;
+            step_coupled_damped_pads(&mut [branch], dt, &geometry, &mobility, viscosity)?;
             if index == 0
                 && (branch.particles() != native.particles()
                     || branch.last_boundary_impulses() != native.last_boundary_impulses())
@@ -175,9 +181,9 @@ mod tests {
             0.001,
         )?;
         for t in [0, 3390, usize::MAX] {
-            assert!(run(dir.path(), &xml, 12., 0.001, 1, (t, 16)).is_err());
+            assert!(run(dir.path(), &xml, 12., [0.001, 0.], 1, (t, 16)).is_err());
         }
-        run(dir.path(), &xml, 12., 0.001, 1, (1751, 16))?;
+        run(dir.path(), &xml, 12., [0.001, 0.], 1, (1751, 16))?;
         let v: Value = serde_json::from_slice(&fs::read(dir.path().join("interval.json"))?)?;
         let steps = v["intervals"].as_array().unwrap();
         assert_eq!(steps.len(), 16);
@@ -194,6 +200,47 @@ mod tests {
             }
             assert_eq!(step["samples"][0]["max_pose_delta_m"], 0.);
         }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod viscous_tests {
+    use super::*;
+    #[test]
+    fn the_native_and_replayed_pad_use_the_same_viscosity_and_source_clock() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let xml = super::super::damped_pads(
+            super::super::timed_scene(
+                1.,
+                0.001,
+                Case {
+                    substeps: 1,
+                    ..Default::default()
+                },
+                1,
+                true,
+                0.001,
+            )?,
+            0.2,
+        )?;
+        for bad in ["-1", "NaN", "1e1000", "bad"] {
+            let wrong = xml.replace(
+                "normal_damping=\"0.2\"",
+                &format!("normal_damping=\"{bad}\""),
+            );
+            assert!(Recording::new(&wrong, "bad.sdf", "default").is_err());
+        }
+        let hard = xml.replace("normal_compliance=\"0.001\"", "normal_compliance=\"0\"");
+        assert!(Recording::new(&hard, "hard.sdf", "default").is_err());
+        assert!(super::super::damped_pads(xml.clone(), -1.).is_err());
+        run(dir.path(), &xml, 12., [0.001, 0.2], 1, (1691, 16))?;
+        let samples: Value = serde_json::from_slice(&fs::read(dir.path().join("interval.json"))?)?;
+        assert_eq!(samples["native_matched_intervals"], 16);
+        let frames: Value =
+            serde_json::from_slice(&fs::read(dir.path().join("particle-frames.json"))?)?;
+        assert_eq!(frames[0]["time_ns"], 1_691_000_000);
+        assert_eq!(frames[15]["time_ns"], 1_706_000_000);
         Ok(())
     }
 }

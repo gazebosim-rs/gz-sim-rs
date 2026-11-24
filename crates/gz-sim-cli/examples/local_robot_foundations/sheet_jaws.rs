@@ -25,6 +25,9 @@ pub(crate) struct Settings {
     /// Measure the signed self-contact impulses delivered to each folded panel.
     #[arg(long)]
     panel_balance: bool,
+    /// Normal viscous damping of each fingertip contact in N·s/m.
+    #[arg(long, default_value_t = 0.)]
+    pad_damping: f64,
     /// Pad compliance in m/N.
     #[arg(long, default_value_t = 0.001)]
     pad_compliance: f64,
@@ -106,6 +109,22 @@ fn scene(
     Ok(xml)
 }
 
+fn damped_pads(xml: String, coefficient: f64) -> Result<String> {
+    if !coefficient.is_finite() || coefficient < 0. {
+        return Err("invalid pad damping".into());
+    }
+    if coefficient == 0. {
+        return Ok(xml);
+    }
+    // This generator authors precisely two compliant box surfaces.
+    Ok(xml.replace(
+        "coupling=\"articulated_wrench\" normal_compliance=",
+        &format!(
+            "coupling=\"articulated_wrench\" normal_damping=\"{coefficient}\" normal_compliance="
+        ),
+    ))
+}
+
 fn timed_scene(
     scale: f64,
     compliance: f64,
@@ -135,6 +154,7 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
     let Settings {
         jaw_mass_scale: scale,
         pad_compliance: compliance,
+        pad_damping,
         substeps,
         tune_damping,
         exchanges_per_ms,
@@ -153,6 +173,7 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
         panel_balance,
         bend_damping,
     )?;
+    let xml = damped_pads(xml, pad_damping)?;
     // With the same position stiffness, this preserves the continuous-time
     // damping ratio of an unloaded jaw. Both force and speed limits remain active.
     let damping = if tune_damping {
@@ -161,7 +182,14 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
         12.
     };
     if let Some(window) = window {
-        return interval::run(out, &xml, damping, compliance, exchanges_per_ms, window);
+        return interval::run(
+            out,
+            &xml,
+            damping,
+            [compliance, pad_damping],
+            exchanges_per_ms,
+            window,
+        );
     }
     let result =
         arm_sheet::simulate_with_jaw_damping(&xml, case, NOMINAL_FLARE, Some(out), damping);
@@ -177,7 +205,7 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
     fs::write(out.join("world.sdf"), xml)?;
     write_json(
         &out.join("jaw-contact.json"),
-        &json!({"native_step_ns":1_000_000/exchanges_per_ms,"actuator_period_ns":1_000_000,"jaw_density_scale":scale,"jaw_damping_ns_per_m":damping,"pad_compliance_m_per_n":compliance,"panel_balance":panel_balance,"bend_damping_nms_per_rad":bend_damping,"substeps":substeps,"trial":trial}),
+        &json!({"native_step_ns":1_000_000/exchanges_per_ms,"actuator_period_ns":1_000_000,"jaw_density_scale":scale,"jaw_damping_ns_per_m":damping,"pad_compliance_m_per_n":compliance,"pad_damping_ns_per_m":pad_damping,"panel_balance":panel_balance,"bend_damping_nms_per_rad":bend_damping,"substeps":substeps,"trial":trial}),
     )
 }
 
@@ -222,6 +250,7 @@ mod tests {
             exchanges_per_ms: 1,
             panel_balance: false,
             bend_damping: 0.,
+            pad_damping: 0.,
         };
         for (exchanges, soft_steps) in [(1, 4), (4, 1)] {
             let dir = temp.path().join(exchanges.to_string());

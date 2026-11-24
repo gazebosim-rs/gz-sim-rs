@@ -238,7 +238,13 @@ fn rigid_surface(
 ) -> Result<Surface, String> {
     fields(
         node,
-        &["link", "coupling", "linear_trajectory", "normal_compliance"],
+        &[
+            "link",
+            "coupling",
+            "linear_trajectory",
+            "normal_compliance",
+            "normal_damping",
+        ],
         false,
     )?;
     let normal_compliance = match node.attribute("normal_compliance") {
@@ -254,6 +260,23 @@ fn rigid_surface(
             compliance
         }
         Some(_) => return Err("normal_compliance requires an articulated_wrench box".into()),
+    };
+    let normal_damping = if node.attribute("normal_damping").is_some() {
+        let coefficient = number::<f64>(node, "normal_damping")?;
+        if normal_compliance <= 0.
+            || !coefficient.is_finite()
+            || coefficient < 0.
+            || !(coefficient * normal_compliance).is_finite()
+            || (coefficient > 0. && coefficient * normal_compliance == 0.)
+        {
+            return Err(
+                "normal_damping requires finite nonnegative N·s/m and a compliant articulated pad"
+                    .into(),
+            );
+        }
+        coefficient
+    } else {
+        0.
     };
     let forced = match node.attribute("linear_trajectory") {
         None | Some("native_chord") => false,
@@ -344,7 +367,10 @@ fn rigid_surface(
                     "articulated_wrench requires a dynamic jointed cuboid with centered mass on '{name}'"
                 ));
             }
-            Some(ReceiverMass::ArticulatedWrench { normal_compliance })
+            Some(ReceiverMass::ArticulatedWrench {
+                normal_compliance,
+                normal_damping,
+            })
         }
         "two_way" => {
             let backend = physics
@@ -887,6 +913,7 @@ fn parse(
         receivers: Vec::new(),
         mobility: Vec::new(),
         active_slots: Vec::new(),
+        pad_damping: Vec::new(),
     })
 }
 
