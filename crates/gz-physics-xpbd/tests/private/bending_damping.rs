@@ -191,3 +191,18 @@ fn two_prescribed_faces_report_the_viscous_moment_of_an_imposed_bend() {
         );
     }
 }
+
+#[test]
+fn unrepresentable_rates_and_impulses_fail_before_publication() {
+    let mut body = square().with_bending_damping(1.).unwrap();
+    let ids = body.bending[0].vertices;
+    body.scratch[ids[2]].velocity[2] = f64::MAX;
+    let public = body.particles.clone();
+    assert_eq!(body.damp_bending(0.01), Err(XpbdError::Numerical));
+    for p in &mut body.scratch {
+        p.inverse_mass = 0.;
+    }
+    body.scratch[ids[2]].velocity[2] = 1e305;
+    assert_eq!(body.damp_bending(1e4), Err(XpbdError::Numerical));
+    assert_eq!(body.particles, public);
+}

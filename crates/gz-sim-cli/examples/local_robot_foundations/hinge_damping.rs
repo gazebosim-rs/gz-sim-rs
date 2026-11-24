@@ -102,3 +102,7 @@ pub(super) fn run(out: &Path) -> Result<()> {
     fs::write(out.join("world.sdf"), WORLD)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "hinge_damping_tests.rs"]
+mod tests;

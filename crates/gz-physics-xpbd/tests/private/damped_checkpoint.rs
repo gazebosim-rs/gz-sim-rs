@@ -83,3 +83,27 @@ fn invalid_damped_construction_refuses_without_reinterpreting_legacy_rows() {
         ));
     }
 }
+
+#[test]
+fn legacy_particle_and_cable_constructions_keep_their_exact_wire_format() {
+    let seed = cloth();
+    let particles = SoftBody::new(seed.particles.clone(), vec![], seed.config).unwrap();
+    let cable = SoftBody::cable(seed.particles, 0.001, 0.05, seed.config).unwrap();
+    for (body, expected) in [
+        (particles, MaterialTopology::Particles),
+        (cable, MaterialTopology::Cable),
+    ] {
+        let bytes = bincode::serialize(&body.one_way_construction().unwrap()).unwrap();
+        let old: LegacyConstruction = bincode::deserialize(&bytes).unwrap();
+        assert_eq!(old.topology, expected);
+        let legacy_bytes = bincode::serialize(&old).unwrap();
+        assert_eq!(bytes, legacy_bytes);
+        let rebuilt =
+            SoftBody::from_one_way_construction(&bincode::deserialize(&legacy_bytes).unwrap())
+                .unwrap();
+        assert_eq!(
+            rebuilt.one_way_identity().unwrap(),
+            body.one_way_identity().unwrap()
+        );
+    }
+}
