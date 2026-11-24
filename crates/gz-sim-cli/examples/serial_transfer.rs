@@ -16,6 +16,10 @@ use gz_sim_scene::{
 };
 use serde::Serialize;
 
+#[path = "serial_transfer/obstacle.rs"]
+mod obstacle;
+use obstacle::{Passage, PassageOutcome};
+
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const XML: &str = include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf");
 const WEIGHT: f64 = 0.2 * 9.81;
@@ -29,6 +33,24 @@ enum Trial {
     Transfer,
     OpenJaws,
     MissedShelf,
+    ClearObstacle,
+    LowClearance,
+    ContactStop,
+}
+impl Trial {
+    fn obstacle(self) -> bool {
+        matches!(
+            self,
+            Self::ClearObstacle | Self::LowClearance | Self::ContactStop
+        )
+    }
+    fn xml(self) -> &'static str {
+        if self.obstacle() {
+            include_str!("../../../examples/worlds/local_robot_serial_obstacle.sdf")
+        } else {
+            XML
+        }
+    }
 }
 #[derive(Parser)]
 struct Args {
@@ -71,6 +93,8 @@ impl Part {
 }
 #[derive(Debug, Default, PartialEq, Serialize)]
 struct Outcome {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    obstacle: Option<PassageOutcome>,
     lift_mm: f64,
     lateral_payload_at_arrival_mm: f64,
     lateral_carriage_at_arrival_mm: f64,
@@ -107,9 +131,18 @@ fn command_rail(sim: &mut Simulation, rail: Part, tick: usize, goal: f64, dt: f6
     Ok(())
 }
 
+#[cfg(test)]
 fn run(
     sim: &mut Simulation,
     trial: Trial,
+    capture: impl FnMut(&Simulation) -> Result<()>,
+) -> Result<Outcome> {
+    drive(sim, trial, None, capture)
+}
+fn drive(
+    sim: &mut Simulation,
+    trial: Trial,
+    mut passage: Option<Passage>,
     mut capture: impl FnMut(&Simulation) -> Result<()>,
 ) -> Result<Outcome> {
     let parcel = part(sim, "parcel::box")?;
@@ -149,13 +182,21 @@ fn run(
     }
     capture(sim)?;
     for tick in 1..=STEPS {
+        if tick == 2 && matches!(trial, Trial::LowClearance | Trial::ContactStop) {
+            set_joint_controller_command(sim, spindle.id, 0.85)?;
+        }
         if tick == 3600 {
             set_joint_controller_command(sim, wrist.id, 0.)?;
         }
         if tick > 1 {
+            let goal = if passage.as_ref().is_some_and(Passage::aborted) {
+                0.
+            } else {
+                goal
+            };
             command_rail(sim, rail, tick, goal, dt)?;
         }
-        if tick == LOWER {
+        if tick == LOWER && !passage.as_ref().is_some_and(Passage::aborted) {
             set_joint_controller_command(sim, spindle.id, -0.018)?;
         }
         sim.step_exact(1)?;
@@ -175,6 +216,21 @@ fn run(
                 .ok_or("missing signed impulse")?
                 .magnitude
                 / dt;
+        }
+        if let Some(route) = &mut passage {
+            route.observe(
+                sim,
+                solver,
+                tick,
+                goal - (carriage - start_car),
+                trial == Trial::ContactStop,
+                dt,
+            )?;
+            route.record_grip(
+                carriage - start_car,
+                pad,
+                source.face_loaded || target.face_loaded,
+            );
         }
         if tick == MOVE_START {
             out.lift_mm = 1000. * (p[2] - initial[2]);
@@ -198,7 +254,10 @@ fn run(
             out.lateral_payload_at_arrival_mm = 1000. * (p[1] - initial[1]);
             out.lateral_carriage_at_arrival_mm = 1000. * (carriage - start_car);
         }
-        if tick >= LOWER && out.release_tick.is_none() {
+        if tick >= LOWER
+            && out.release_tick.is_none()
+            && !passage.as_ref().is_some_and(Passage::aborted)
+        {
             let q = sim
                 .world()
                 .get::<JointSample>(spindle.entity)
@@ -239,10 +298,14 @@ fn run(
             out.final_tray_load_n += source.normal_force_n / 500.;
             out.final_pad_load_n += (pad[0] + pad[1]) / 500.;
         }
-        if tick % 40 == 0 {
+        let event = passage
+            .as_ref()
+            .is_some_and(|g| g.outcome.abort_tick == Some(tick) || out.release_tick == Some(tick));
+        if tick % 40 == 0 || event {
             capture(sim)?;
         }
     }
+    out.obstacle = passage.map(|p| p.outcome);
     out.final_parcel_position_m = parcel.pose(sim)?.translation;
     out.final_palm_position_m = palm.pose(sim)?.translation;
     Ok(out)
@@ -257,7 +320,12 @@ fn record(args: Args, xml: &str) -> Result<Outcome> {
         PhysicsEngine::MultiFidelity,
     )?;
     let mut frames = Vec::new();
-    let outcome = run(&mut sim, args.trial, |s| {
+    let passage = args
+        .trial
+        .obstacle()
+        .then(|| Passage::bind(&sim, &sdf))
+        .transpose()?;
+    let outcome = drive(&mut sim, args.trial, passage, |s| {
         frames.push(gz_sim_cli::primitive_frame(
             s,
             &sdf,
@@ -270,10 +338,9 @@ fn record(args: Args, xml: &str) -> Result<Outcome> {
     Ok(outcome)
 }
 fn main() -> Result<()> {
-    println!(
-        "{}",
-        serde_json::to_string_pretty(&record(Args::parse(), XML)?)?
-    );
+    let args = Args::parse();
+    let xml = args.trial.xml();
+    println!("{}", serde_json::to_string_pretty(&record(args, xml)?)?);
     Ok(())
 }
 
