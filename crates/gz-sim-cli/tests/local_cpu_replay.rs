@@ -652,3 +652,54 @@ fn a_load_wakes_the_parked_wrist_and_reaches_its_first_dynamic_solve() {
         shared(record(&rows, 7, i), record(&rows, 15, i), STATE);
     }
 }
+
+#[test]
+fn capped_ball_targets_track_both_directions_and_repeat_every_tick_after_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let d = tmp.path();
+    let xml = file(
+        d,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/local_ball_wrist.sdf"),
+    );
+    let source = include_str!("../../../examples/replay/tracked_ball_wrist.json");
+    let path = file(d, "drive.json", source);
+    let journal: Value = serde_json::from_str(source).unwrap();
+    let rows = success(run(&xml, &path, &[]));
+    let quat = |v: &Value| glam::DQuat::from_array(serde_json::from_value(v.clone()).unwrap());
+    let vec = |v: &Value| glam::DVec3::from_array(serde_json::from_value(v.clone()).unwrap());
+    for (op, end) in [(1, 450), (4, 950)] {
+        let q = quat(&record(&rows, op, end)["wrists"][0]["orientation_xyzw"]);
+        let target = quat(&journal["commands"][(op - 1) as usize]["orientation_xyzw"]);
+        assert!(q.angle_between(target).abs() < 0.003);
+    }
+    for row in rows
+        .iter()
+        .filter(|v| v["epoch"] == 0 && [1, 4].contains(&v["command"].as_u64().unwrap()))
+    {
+        let same = record(
+            &rows,
+            row["command"].as_u64().unwrap() + 5,
+            row["step"].as_u64().unwrap(),
+        );
+        shared(row, same, STATE);
+        shared(row, same, &["wrists"]);
+    }
+    let control = altered(d, &journal, "raw.json", |v| {
+        v["commands"] = json!([{"op":"ball_torque","joint":"default::wrist::bearing","torque_nm":[1.4/3.,2.8/3.,-2.8/3.]},{"op":"step","count":1}]);
+    });
+    let raw = success(run(&xml, &control, &[]));
+    let speed = |r: &Value| vec(&r["wrists"][0]["angular_velocity_rad_s"]);
+    assert!(speed(record(&rows, 1, 1)).distance(speed(record(&raw, 2, 1))) < 1e-12);
+    for (field, value) in [
+        ("count", json!(0)),
+        ("orientation_xyzw", json!([0, 0, 0, 0])),
+        ("max_torque_nm", json!(-1.)),
+        ("joint", json!("missing")),
+    ] {
+        let bad = altered(d, &journal, "invalid.json", |v| {
+            v["commands"][0][field] = value
+        });
+        assert!(!run(&xml, &bad, &[]).status.success());
+    }
+}

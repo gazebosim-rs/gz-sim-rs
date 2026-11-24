@@ -74,6 +74,18 @@ enum Command {
         joint: String,
         torque_nm: [f64; 2],
     },
+    TrackBall {
+        count: u64,
+        joint: String,
+        orientation_xyzw: [f64; 4],
+        #[serde(default)]
+        angular_velocity_rad_s: [f64; 3],
+        #[serde(default)]
+        feedforward_nm: [f64; 3],
+        stiffness_nm_rad: f64,
+        damping_nm_s_rad: f64,
+        max_torque_nm: f64,
+    },
     BallTorque {
         joint: String,
         torque_nm: [f64; 3],
@@ -301,9 +313,44 @@ fn run(args: Args) -> Result<()> {
     for (index, command) in journal.commands.iter().enumerate() {
         let mut keyframe = false;
         match command {
-            Command::Step { count } => {
+            Command::Step { count } | Command::TrackBall { count, .. } => {
                 sim.validate_steps(*count)?;
+                let drive = if let Command::TrackBall {
+                    joint,
+                    orientation_xyzw,
+                    angular_velocity_rad_s,
+                    feedforward_nm,
+                    stiffness_nm_rad,
+                    damping_nm_s_rad,
+                    max_torque_nm,
+                    ..
+                } = command
+                {
+                    if *count == 0 {
+                        return Err(
+                            "a spherical drive must request at least one advancing tick".into()
+                        );
+                    }
+                    Some((
+                        entity_id(&sim, joint)?,
+                        gz_physics::joint_drive::SphericalDrive::new(
+                            *stiffness_nm_rad,
+                            *damping_nm_s_rad,
+                            *max_torque_nm,
+                        )?,
+                        gz_physics_multifidelity::BallJointState {
+                            orientation: *orientation_xyzw,
+                            angular_velocity: *angular_velocity_rad_s,
+                        },
+                        *feedforward_nm,
+                    ))
+                } else {
+                    None
+                };
                 for _ in 0..*count {
+                    if let Some((id, motor, target, ff)) = &drive {
+                        gz_sim_scene::queue_ball_joint_drive(&mut sim, *id, motor, *target, *ff)?;
+                    }
                     sim.step_exact(1)
                         .map_err(|e| gz_sim_cli::with_fault(&sim, e))?;
                     sink.emit(&observation::state(&sim, index + 1)?)?;

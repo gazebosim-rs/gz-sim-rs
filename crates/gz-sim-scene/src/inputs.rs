@@ -623,6 +623,43 @@ pub fn queue_ball_joint_effort(
         .map_err(input_error)
 }
 
+/// Compute and queue one feedback torque using the committed native spherical
+/// encoder. The target and all vectors are in the parent joint axes. The
+/// returned actuator torque is bounded before summing with other applied loads.
+pub fn queue_ball_joint_drive(
+    sim: &mut Simulation,
+    id: u64,
+    drive: &gz_physics::joint_drive::SphericalDrive,
+    target: gz_physics_multifidelity::BallJointState,
+    feedforward_nm: [f64; 3],
+) -> Result<[f64; 3], InputError> {
+    sim.validate_steps(1)?;
+    let (_, joint) = loaded_joint(sim, id)?;
+    let mut owner = sim.world_mut().resource_mut::<PhysicsBackend>();
+    let backend = owner
+        .downcast_mut::<gz_physics_multifidelity::MultiFidelityBackend>()
+        .ok_or(InputError::InvalidPhysics)?;
+    let actual = backend
+        .ball_joint_state(joint)
+        .ok_or(InputError::Unsupported(
+            "a spherical drive requires a ball joint",
+        ))?;
+    let torque = drive
+        .torque(
+            glam::DQuat::from_array(actual.orientation),
+            glam::DQuat::from_array(target.orientation),
+            actual.angular_velocity.into(),
+            target.angular_velocity.into(),
+            feedforward_nm.into(),
+        )
+        .map_err(input_error)?
+        .to_array();
+    backend
+        .add_ball_effort(joint, torque)
+        .map_err(input_error)?;
+    Ok(torque)
+}
+
 pub(super) fn apply_joint_forces(
     time: Res<UpdateInfo>,
     mut backend: ResMut<PhysicsBackend>,
