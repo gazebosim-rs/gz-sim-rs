@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Check the jaw contact solver against a hand calculation
+
+A free 200 g parcel hit a free 80 g jaw from either side. The 25 ns window located first contact within 8.33 ns of the exact time and reproduced the analytic impulse within 1.77 × 10⁻¹³ N·s. The original 64-call solve also got the impulse right, while its first loaded timestamp trailed the exact contact by 11.46 µs. All eight release and solver combinations preserved momentum, and both native replays followed the calculated trajectory through 320 ms. The next independent check is the attached jaw, where the wrist and finger constraints share the impact. [Measurements, Rust regression and both replays](measurements/local-manipulation/free-jaw-impact.md)
+
 ## 2026-11-24 — Resolve a separated jaw strike and qualify the full carry
 
 At a 50 µm gap the old gripper combined two left-hand strikes. Advancing the first 93.75 µs on the 25 ns contact clock matched each reference pulse on both jaws and reduced the worst position error over 24 ms from 1.62 to 0.18 mm. Matching the even finer 1 ns run exposed an additional pulse on each jaw and a 2.97–3.44% shift in total impulse relative to 25 ns. The 25 ns window cost 601–736 ms at p95, compared with 8.29–9.14 s for continuously fine steps. On a full 200 g carry, both jaws stayed loaded for all 4,001 traverse ticks and the robot placed the parcel on the shelf. Enabling the window preserved every recorded pose in two complete pickup-and-place controls and in the open-jaw and missed-shelf controls. Changed-code coverage exceeded 95% for both lines and regions in the scene and CLI crates. Next is an independent impact calculation to select an accurate step that is practical for a working robot. [Measurements, cost, portable replays and gz-web-rs views](measurements/local-manipulation/early-jaw.md)
