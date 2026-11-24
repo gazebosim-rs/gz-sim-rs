@@ -65,12 +65,56 @@ fn incomplete_or_degenerate_certificates_cannot_leak_into_later_queries() {
     let x: Vec<_> = p.iter().map(|n| DVec3::from(n.position)).collect();
     assert!(!c.clear(&x, &p, 0.26, 1e-12));
     assert!(!c.clear(&x, &p, 0.001, 1e-12));
-    c.may_rebuild = true;
+    for _ in 0..32 {
+        c.begin_step();
+    }
     assert!(c.clear(&x, &p, 0.001, 1e-12));
     p[3].position = p[0].position;
     let x: Vec<_> = p.iter().map(|n| DVec3::from(n.position)).collect();
-    c.may_rebuild = true;
+    for _ in 0..32 {
+        c.begin_step();
+    }
     assert!(!c.clear(&x, &p, 0.001, 1e-12));
     let tri = Surface::new(vec![[0, 1, 2]], &p[..3]).unwrap();
     assert!(tri.clearance.is_none());
+}
+
+#[test]
+fn a_clear_shell_skips_projection_but_a_new_crossing_is_verified() {
+    let (mut shell, mut particles) = loose_pair(0.25);
+    let mut x: Vec<_> = particles.iter().map(|p| DVec3::from(p.position)).collect();
+    let before = x.clone();
+    shell
+        .project(&mut x, &mut particles, 0.02, 0.001, false)
+        .unwrap();
+    assert_eq!(x, before);
+    shell.verify(&x, &particles, 0.02).unwrap();
+    assert!(!shell.clearance.as_ref().unwrap().may_rebuild);
+    for q in &mut x[3..] {
+        q.z -= 0.3;
+    }
+    assert_eq!(
+        shell.verify(&x, &particles, 0.02),
+        Err(XpbdError::UnresolvedSurface)
+    );
+}
+
+#[test]
+fn larger_shells_keep_the_spatial_sweep() {
+    let particles: Vec<_> = (0..12)
+        .flat_map(|i| {
+            loose_pair(0.25).1[..3]
+                .iter()
+                .map(|p| {
+                    let mut p = *p;
+                    p.position[0] += 2. * f64::from(i);
+                    p
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    let triangles = (0..12).map(|i| [3 * i, 3 * i + 1, 3 * i + 2]).collect();
+    let surface = Surface::new(triangles, &particles).unwrap();
+    assert!(surface.features.len() > 64);
+    assert!(surface.clearance.is_none());
 }

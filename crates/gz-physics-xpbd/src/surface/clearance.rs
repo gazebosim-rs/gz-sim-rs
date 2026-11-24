@@ -10,7 +10,8 @@ pub(super) struct Clearance {
     pairs: Arc<[Stencil]>,
     reference: Vec<DVec3>,
     lower_bound: f64,
-    pub(super) may_rebuild: bool,
+    may_rebuild: bool,
+    retry_after: u8,
 }
 
 impl Clearance {
@@ -36,7 +37,13 @@ impl Clearance {
             reference: Vec::new(),
             lower_bound: 0.,
             may_rebuild: true,
+            retry_after: 0,
         })
+    }
+
+    pub(super) fn begin_step(&mut self) {
+        self.may_rebuild = self.retry_after == 0;
+        self.retry_after = self.retry_after.saturating_sub(1);
     }
 
     fn contains(&self, x: &[DVec3], p: &[Particle], gap: f64, eps: f64) -> bool {
@@ -65,6 +72,9 @@ impl Clearance {
         if !std::mem::take(&mut self.may_rebuild) {
             return false;
         }
+        // A shell already touching spends its work on the full search. Bound the
+        // cost of trying this optional shortcut again while contact persists.
+        self.retry_after = 31;
         self.reference.clear();
         let origin = DVec3::from(p[0].position);
         self.reference
@@ -100,7 +110,11 @@ impl Clearance {
                 return false;
             }
         }
-        self.contains(x, p, gap, eps)
+        let clear = self.contains(x, p, gap, eps);
+        if clear {
+            self.retry_after = 0;
+        }
+        clear
     }
 }
 

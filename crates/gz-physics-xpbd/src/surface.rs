@@ -133,7 +133,7 @@ fn edge(a: usize, b: usize) -> [usize; 2] {
 impl Surface {
     pub(super) fn begin_clearance_step(&mut self) {
         if let Some(clearance) = &mut self.clearance {
-            clearance.may_rebuild = true;
+            clearance.begin_step();
         }
     }
 
@@ -325,6 +325,9 @@ impl Surface {
         on_plane: bool,
     ) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
+        if self.certified_clear(x, p, gap, eps) {
+            return Ok(());
+        }
         let mut candidates = 0;
         let mut queries = 0;
         let mut count = 0;
@@ -393,6 +396,9 @@ impl Surface {
         mut support: impl FnMut(&[DVec3], &mut [Particle]) -> Result<(), XpbdError>,
     ) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
+        if self.certified_clear(x, p, gap, eps) {
+            return Ok(());
+        }
         let (mut candidates, mut queries) = (0, 0);
         for _ in 0..MAX_PROJECTIONS {
             let Some(mut hit) = self.next_hit(
@@ -446,6 +452,9 @@ impl Surface {
 
     pub fn verify(&mut self, x: &[DVec3], p: &[Particle], gap: f64) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
+        if self.certified_clear(x, p, gap, eps) {
+            return Ok(());
+        }
         if self
             .next_hit(
                 x,
@@ -465,6 +474,12 @@ impl Surface {
         }
         Ok(())
     }
+    fn certified_clear(&mut self, x: &[DVec3], p: &[Particle], gap: f64, eps: f64) -> bool {
+        self.clearance
+            .as_mut()
+            .is_some_and(|c| c.clear(x, p, gap, eps))
+    }
+
     fn tolerance(x: &[DVec3], p: &[Particle], gap: f64) -> Result<f64, XpbdError> {
         let scale = x
             .iter()
@@ -487,15 +502,6 @@ impl Surface {
         search: Search,
     ) -> Result<Option<Hit>, XpbdError> {
         let (candidates, queries) = budget;
-        if *candidates == 0
-            && *queries == 0
-            && self
-                .clearance
-                .as_mut()
-                .is_some_and(|c| c.clear(x, p, gap, eps))
-        {
-            return Ok(None);
-        }
         let mode = if self.friction.is_none() {
             SweepMode::Geometric
         } else if search != Search::Ordinary {
