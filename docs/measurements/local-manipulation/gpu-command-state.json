@@ -63,12 +63,22 @@
     },
     "including_qualification_examples": {
       "lines": [
-        609,
-        626
+        634,
+        645
       ],
       "regions": [
-        1140,
-        1230
+        1211,
+        1267
+      ]
+    },
+    "qualification_programs": {
+      "lines": [
+        368,
+        373
+      ],
+      "regions": [
+        718,
+        754
       ]
     }
   },

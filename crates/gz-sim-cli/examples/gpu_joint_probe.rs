@@ -3,8 +3,8 @@
 //! Drive the ordinary SDF GPU arm over Gazebo transport and compare every
 //! published joint state with the same commands applied at local ECS boundaries.
 use gz_sim_proto::{
-    msgs::{Boolean, Clock, Double, Model, WorldControl, WorldReset},
-    prost::{Message, Name as _},
+    msgs::{Boolean, WorldControl},
+    prost::Message,
 };
 use gz_sim_scene::{
     PhysicsEngine, WorldLoadOptions, gpu_scene::planar_tool::observe,
@@ -20,6 +20,8 @@ use std::{
     time::{Duration, Instant},
 };
 use zenoh::Wait;
+#[path = "support/gpu_joint_wire.rs"]
+mod wire;
 
 type Result<T> = std::result::Result<T, Box<dyn Error + Send + Sync>>;
 const WAIT: Duration = Duration::from_secs(10);
@@ -53,7 +55,9 @@ fn control(session: &zenoh::Session, key: &str, control: WorldControl) -> Result
         .ok_or("missing world-control response")?
         .into_result()
         .map_err(|_| "world-control service error")?;
-    assert!(Boolean::decode(response.payload().to_bytes().as_ref())?.data);
+    if !Boolean::decode(response.payload().to_bytes().as_ref())?.data {
+        return Err("world control refused".into());
+    }
     Ok(())
 }
 fn main() -> Result<()> {
@@ -97,11 +101,9 @@ fn main() -> Result<()> {
         .collect();
     let scratch = tempfile::tempdir()?;
     let config = scratch.path().join("zenoh.json");
-    std::fs::write(
+    wire::save(
         &config,
-        serde_json::to_vec(
-            &json!({"mode":"client","listen":{"endpoints":[]},"connect":{"endpoints":endpoints,"timeout_ms":2000},"scouting":{"multicast":{"enabled":false},"gossip":{"enabled":false}},"transport":{"shared_memory":{"enabled":false}}}),
-        )?,
+        &json!({"mode":"client","listen":{"endpoints":[]},"connect":{"endpoints":endpoints,"timeout_ms":2000},"scouting":{"multicast":{"enabled":false},"gossip":{"enabled":false}},"transport":{"shared_memory":{"enabled":false}}}),
     )?;
     let world = scratch.path().join("world.sdf");
     std::fs::write(&world, WORLD)?;
@@ -153,77 +155,9 @@ fn main() -> Result<()> {
             std::thread::sleep(Duration::from_millis(10));
         }
     }
-    let control = format!("{prefix}/world/default/control");
+    let control_key = format!("{prefix}/world/default/control");
     if after_reset {
-        let clock = session
-            .declare_subscriber(format!("{prefix}/world/default/clock"))
-            .wait()?;
-        publishers[0]
-            .put(
-                Double {
-                    data: -8.,
-                    ..Default::default()
-                }
-                .encode_to_vec(),
-            )
-            .attachment(Double::full_name())
-            .wait()?;
-        advance(&session, &control, 0)?;
-        advance(&session, &control, 100)?;
-        let end = Instant::now() + WAIT;
-        loop {
-            let packet = state
-                .recv_timeout(end.saturating_duration_since(Instant::now()))?
-                .ok_or("pre-reset state timeout")?;
-            let model = Model::decode(packet.payload().to_bytes().as_ref())?;
-            let stamp = model
-                .header
-                .as_ref()
-                .and_then(|h| h.stamp.as_ref())
-                .ok_or("pre-reset state time")?;
-            if stamp.nsec == 100_000_000 {
-                assert!(model.joint[0].axis1.as_ref().unwrap().position < -0.05);
-                break;
-            }
-        }
-        // This queued alternative target must be cleared together with the physical state.
-        publishers[0]
-            .put(
-                Double {
-                    data: 8.,
-                    ..Default::default()
-                }
-                .encode_to_vec(),
-            )
-            .attachment(Double::full_name())
-            .wait()?;
-        advance(&session, &control, 0)?;
-        self::control(
-            &session,
-            &control,
-            WorldControl {
-                pause: true,
-                reset: Some(WorldReset {
-                    all: true,
-                    ..Default::default()
-                }),
-                ..Default::default()
-            },
-        )?;
-        let mut before = false;
-        loop {
-            let packet = clock
-                .recv_timeout(end.saturating_duration_since(Instant::now()))?
-                .ok_or("world clock did not rewind")?;
-            let sim_time = Clock::decode(packet.payload().to_bytes().as_ref())?
-                .sim
-                .ok_or("missing simulation time")?;
-            before |= sim_time.nsec == 100_000_000;
-            if before && sim_time.nsec == 0 {
-                break;
-            }
-        }
-        while state.try_recv()?.is_some() {}
+        wire::reset_loaded(&session, &prefix, &state, &publishers[0])?;
     }
     let mut trace = Vec::new();
     let mut tick = 0_u32;
@@ -239,20 +173,11 @@ fn main() -> Result<()> {
         if tick == 1 || tick == 300 {
             target = if tick == 1 { [-8., 0.12] } else { [8., 0.47] };
             for (i, publisher) in publishers.iter().enumerate() {
-                publisher
-                    .put(
-                        Double {
-                            data: target[i],
-                            ..Default::default()
-                        }
-                        .encode_to_vec(),
-                    )
-                    .attachment(Double::full_name())
-                    .wait()?;
+                wire::command(publisher, target[i])?;
                 set_joint_controller_command(&mut sim, ids[i].0, target[i])?;
             }
             // Round-trip through the paused server before the next stepped interval.
-            advance(&session, &control, 0)?;
+            advance(&session, &control_key, 0)?;
         }
         let next = match tick {
             0 => 1,
@@ -260,47 +185,20 @@ fn main() -> Result<()> {
             300..=599 => (tick + 10).min(600),
             _ => break,
         };
-        advance(&session, &control, next - tick)?;
-        let deadline = Instant::now() + WAIT;
+        advance(&session, &control_key, next - tick)?;
         while tick < next {
-            let packet = state
-                .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
-                .ok_or_else(|| format!("joint-state timeout after tick {tick}"))?;
-            assert_eq!(
-                packet
-                    .attachment()
-                    .ok_or("missing type")?
-                    .to_bytes()
-                    .as_ref(),
-                Model::full_name().as_bytes()
-            );
-            let model = Model::decode(packet.payload().to_bytes().as_ref())?;
-            let stamp = model
-                .header
-                .as_ref()
-                .and_then(|h| h.stamp.as_ref())
-                .ok_or("missing state time")?;
-            let observed = stamp.sec * 1000 + i64::from(stamp.nsec / 1_000_000);
-            if observed <= i64::from(tick) {
-                continue;
-            }
-            assert_eq!(observed as u32, tick + 1);
-            tick += 1;
+            let sample = wire::Feedback::at(&state, tick + 1)?;
+            tick = sample.tick;
             sim.step_exact(1)?;
             let lane = observe(&sim, 7)?;
-            let mut position = [0.; 2];
-            let mut velocity = [0.; 2];
-            assert_eq!(model.joint.len(), 2);
-            for (i, j) in model.joint.iter().enumerate() {
-                assert_eq!(j.name, ["shoulder", "elbow"][i]);
-                let a = j.axis1.as_ref().ok_or("missing joint axis")?;
-                position[i] = a.position;
-                velocity[i] = a.velocity;
+            let position = sample.position;
+            let velocity = sample.velocity;
+            for i in 0..2 {
                 max_residual = max_residual
-                    .max((a.position - (lane.joint_angles()[i] - [0.48, -0.62][i])).abs())
-                    .max((a.velocity - lane.arm.speed[i]).abs());
+                    .max((position[i] - (lane.joint_angles()[i] - [0.48, -0.62][i])).abs())
+                    .max((velocity[i] - lane.arm.speed[i]).abs());
                 peak_effort[i] = peak_effort[i].max(lane.arm.effort[i].abs());
-                max_speed[i] = max_speed[i].max(a.velocity.abs());
+                max_speed[i] = max_speed[i].max(velocity[i].abs());
                 max_target[i] = max_target[i].max(lane.velocity_target[i].abs());
             }
             if lane.normal_impulse > 0. {
@@ -311,16 +209,13 @@ fn main() -> Result<()> {
             trace.push(json!({"tick_ms":tick,"command_rad":target,"position_rad":position,"velocity_rad_s":velocity,"motor_demand_rad_s":lane.velocity_target,"motor_torque_nm":lane.arm.effort,"normal_impulse_ns":lane.normal_impulse,"gap_m":lane.gap()}));
         }
     }
-    advance(&session, &control, 1)?;
+    advance(&session, &control_key, 1)?;
     sim.step_exact(1)?;
     let terminal = observe(&sim, 7)?;
     let position: [f64; 2] =
         std::array::from_fn(|axis| terminal.joint_angles()[axis] - [0.48, -0.62][axis]);
     let final_state = json!({"tick_ms":601,"source":"matched local hardware","position_rad":position,"velocity_rad_s":terminal.arm.speed,"normal_impulse_ns":terminal.normal_impulse,"gap_m":terminal.gap()});
-    std::fs::write(
-        out.join("terminal.json"),
-        serde_json::to_vec_pretty(&final_state)?,
-    )?;
+    wire::save(&out.join("terminal.json"), &final_state)?;
     let deadline = Instant::now() + WAIT;
     loop {
         if let Some(status) = server.0.try_wait()? {
@@ -334,11 +229,8 @@ fn main() -> Result<()> {
     }
     assert!(max_residual < 1e-12 && first.is_some() && last.unwrap() < 600);
     let summary = json!({"adapter":adapter,"after_transport_reset":after_reset,"frames":trace.len(),"first_loaded_tick":first,"last_loaded_tick":last,"normal_impulse_ns":impulse,"max_torque_nm":peak_effort,"max_measured_speed_rad_s":max_speed,"max_motor_demand_rad_s":max_target,"max_joint_transport_residual_si":max_residual});
-    std::fs::write(out.join("trace.json"), serde_json::to_vec(&trace)?)?;
-    std::fs::write(
-        out.join("comparison.json"),
-        serde_json::to_vec_pretty(&summary)?,
-    )?;
+    wire::save(&out.join("trace.json"), &serde_json::Value::Array(trace))?;
+    wire::save(&out.join("comparison.json"), &summary)?;
     println!("{summary}");
     Ok(())
 }
