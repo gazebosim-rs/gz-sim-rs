@@ -1703,6 +1703,18 @@ impl MultiFidelityBackend {
             .add_robot_joint(parent, child, anchor, joint)
             .map_err(engine_error)
     }
+    /// Attach an unbounded revolute or prismatic joint using native generalized coordinates.
+    pub fn add_reduced_scalar_robot_joint(
+        &mut self,
+        parent: Option<BodyId>,
+        child: BodyId,
+        anchor: [f64; 3],
+        joint: RobotJoint,
+    ) -> Result<JointId, PhysicsError> {
+        self.solver
+            .add_reduced_scalar_robot_joint(parent, child, anchor, joint)
+            .map_err(engine_error)
+    }
     pub fn is_robot_link(&self, link: BodyId) -> bool {
         self.solver.is_robot_link(link)
     }

@@ -88,6 +88,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                     prescribed_motion::is_initial_velocity(p)
                         || contact_material::is_plugin(p)
                         || crate::articulation::is_plugin(p)
+                        || joints::is_scalar_tree_plugin(p)
                         || crate::joint_state_publisher::is_plugin(p)
                         || matches!(
                             p.filename.as_str(),

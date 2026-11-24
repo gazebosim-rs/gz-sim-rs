@@ -80,9 +80,61 @@ fn mixed_robot(model: &Model) -> bool {
     })
 }
 
+pub(super) fn is_scalar_tree_plugin(plugin: &sdformat::Plugin) -> bool {
+    plugin.name == "gz::sim::systems::ReducedScalarJoints"
+        && plugin.filename == "gz-sim-reduced-scalar-joints-system"
+}
+
+/// This mode admits passive, unbounded scalar joints with public state readout.
+/// Model-local drives and other constraint owners need their own qualification.
+fn scalar_tree(model: &Model, engine: Option<&str>) -> Result<bool, LoadError> {
+    let mut markers = model
+        .plugins
+        .iter()
+        .filter(|plugin| is_scalar_tree_plugin(plugin));
+    let Some(marker) = markers.next() else {
+        return Ok(false);
+    };
+    let invalid = || LoadError::Unsupported {
+        entity: model.scoped_name.clone(),
+        feature: "ReducedScalarJoints requires one passive, world-mounted, unbounded revolute/prismatic tree",
+    };
+    let xml = roxmltree::Document::parse(&marker.xml).map_err(|_| invalid())?;
+    let root = xml.root_element();
+    if markers.next().is_some()
+        || engine != Some("multifidelity")
+        || !mixed_robot(model)
+        || !model.joints.iter().all(|joint| {
+            matches!(
+                joint.kind,
+                sdformat::JointKind::Prismatic | sdformat::JointKind::Revolute
+            ) && joint.axis.as_ref().is_some_and(|axis| {
+                axis.lower == f64::NEG_INFINITY
+                    && axis.upper == f64::INFINITY
+                    && axis.dynamics.damping == 0.
+                    && axis.dynamics.spring_stiffness == 0.
+            })
+        })
+        || !model.plugins.iter().all(|p| {
+            is_scalar_tree_plugin(p)
+                || contact_material::is_plugin(p)
+                || joint_state_publisher::is_plugin(p)
+        })
+        || root.attributes().len() != 2
+        || root.namespaces().next().is_some()
+        || !root
+            .children()
+            .all(|n| n.is_comment() || n.is_text() && n.text().unwrap_or("").trim().is_empty())
+    {
+        return Err(invalid());
+    }
+    Ok(true)
+}
+
 #[derive(Debug)]
 pub(super) struct ReducedPlan {
     pub switchable_root: Option<usize>,
+    pub scalar_robot: bool,
     pub exact_revolute_locks: bool,
     pub additional_pgs_iterations: Option<u8>,
     pub joint_order: Vec<usize>,
@@ -91,7 +143,7 @@ pub(super) struct ReducedPlan {
 pub(super) enum JointConstruction<'a> {
     Impulse,
     Controller,
-    Reduced(&'a [usize]),
+    Reduced(&'a ReducedPlan),
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -105,6 +157,7 @@ pub(super) fn validate_model(
     actuated: &[&str],
     coated_tree: bool,
 ) -> Result<Option<ReducedPlan>, LoadError> {
+    let scalar_robot = scalar_tree(model, engine)?;
     let options = articulation::validate_marker(model, engine)?;
     let switchable = options.is_some();
     for joint in &model.joints {
@@ -239,6 +292,13 @@ pub(super) fn validate_model(
         entity: model.scoped_name.clone(),
         feature: "closed joint loops",
     })?;
+    if scalar_robot {
+        require(
+            graph.neighbors(model.links.len()).count() == 1,
+            &model.scoped_name,
+            "ReducedScalarJoints requires a single world mount",
+        )?;
+    }
     if robot && switchable {
         require(
             graph.neighbors(model.links.len()).count() == 1,
@@ -285,6 +345,7 @@ pub(super) fn validate_model(
         })
         .collect();
     Ok(Some(ReducedPlan {
+        scalar_robot,
         switchable_root: switchable.then(|| if robot { ordered[1] } else { ordered[0] }),
         exact_revolute_locks: options.is_some_and(|o| o.exact_revolute_locks),
         additional_pgs_iterations: options.and_then(|o| o.additional_pgs_iterations),
@@ -378,8 +439,10 @@ pub(super) fn build(
 ) -> Result<(), LoadError> {
     let robot = mixed_robot(model);
     let mut order: Vec<_> = (0..model.joints.len()).collect();
-    if let JointConstruction::Reduced(solver_order) = construction {
-        order.copy_from_slice(solver_order);
+    let scalar_robot =
+        matches!(construction, JointConstruction::Reduced(plan) if plan.scalar_robot);
+    if let JointConstruction::Reduced(plan) = construction {
+        order.copy_from_slice(&plan.joint_order);
     } else if matches!(construction, JointConstruction::Controller) && model.joints.len() == 2 {
         let endpoints: Vec<_> = model
             .joints
@@ -480,7 +543,9 @@ pub(super) fn build(
                     },
                 )
             });
-            let id = if matches!(motion, RobotJoint::Universal { .. }) {
+            let id = if scalar_robot {
+                local.add_reduced_scalar_robot_joint(parent_body, body, pose.translation, motion)?
+            } else if matches!(motion, RobotJoint::Universal { .. }) {
                 local.add_universal_joint_with_springs(
                     parent_body,
                     body,

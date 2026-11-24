@@ -48,6 +48,35 @@ impl RapierBackend {
         anchor: [f64; 3],
         joint: RobotJoint,
     ) -> Result<JointId, PhysicsError> {
+        self.insert_robot_joint(parent, child, anchor, joint, Solver::Impulse)
+    }
+
+    /// Build an unbounded scalar bearing in a native reduced-coordinate tree.
+    /// The constraint removes locked degrees of freedom from the impact mass.
+    pub fn add_reduced_scalar_robot_joint(
+        &mut self,
+        parent: Option<BodyId>,
+        child: BodyId,
+        anchor: [f64; 3],
+        joint: RobotJoint,
+    ) -> Result<JointId, PhysicsError> {
+        if !matches!(
+            joint,
+            RobotJoint::Prismatic { limits: None, .. } | RobotJoint::Revolute { limits: None, .. }
+        ) {
+            return Err(PhysicsError::InvalidJoint);
+        }
+        self.insert_robot_joint(parent, child, anchor, joint, Solver::Reduced)
+    }
+
+    fn insert_robot_joint(
+        &mut self,
+        parent: Option<BodyId>,
+        child: BodyId,
+        anchor: [f64; 3],
+        joint: RobotJoint,
+        solver: Solver,
+    ) -> Result<JointId, PhysicsError> {
         let (axis, constraint) = match joint {
             RobotJoint::Fixed => ([1., 0., 0.], AngularConstraint::Weld),
             RobotJoint::Universal {
@@ -113,8 +142,7 @@ impl RapierBackend {
                 (axis, AngularConstraint::Revolute(limits))
             }
         };
-        let id =
-            self.insert_configured_joint(parent, child, anchor, axis, Solver::Impulse, constraint)?;
+        let id = self.insert_configured_joint(parent, child, anchor, axis, solver, constraint)?;
         self.joints
             .records
             .get_mut(&id)

@@ -2318,7 +2318,7 @@ fn build_model(
     }
     if let Some(backend) = backend {
         let construction = match &reduced_plan {
-            Some(plan) => joints::JointConstruction::Reduced(&plan.joint_order),
+            Some(plan) => joints::JointConstruction::Reduced(plan),
             None if controller_plan.is_some() => joints::JointConstruction::Controller,
             None => joints::JointConstruction::Impulse,
         };
