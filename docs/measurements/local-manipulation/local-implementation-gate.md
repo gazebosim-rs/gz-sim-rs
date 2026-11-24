@@ -21,3 +21,17 @@ Rapier reached 95.83% of lines and 95.20% of regions. The multifidelity and XPBD
 These are the counts from the original profile commands. Later local tests uncovered a real live-server wrist admission error and exercised warm contact and motion paths missing from the original CLI and scene measurements. Their separate reports record the physical comparisons and the additional counters. The renderer's software adapter does not supply discrete GPU physics evidence. Each mandatory profile must still clear the thresholds independently on the release candidate. [Live serial robot](local-robot-operator.md) · [Warm CLI checkpoints](cli-warm-physics.md) · [Worker qualification](headless-worker-coverage.md)
 
 The local receipts, both LLVM reports, native peer transcripts and raw profiles are in `artifacts/local-implementation/integration-audit/gate-8c57ff69ca13-T99feidj`. The `profiles/{headless,renderer}/object-paths.json` files map the compiler's original executable paths to their retained ELF files. The `{headless,renderer}-all-crates.json` files give counts for every crate and identify the largest uncovered files.
+
+## Independent renderer physics consumers
+
+The renderer Cargo command now includes the existing package whose integration tests drive the shared scene and CLI APIs. The renderer keeps its original production source list. The Rust harness also runs twenty CLI operator cases through their actual native worker, the two loaded grippers against a separate local Bevy world, and the curved-scene checkpoint comparison. The ordinary Cargo example builds retain the full renderer package and feature selection. Their Bevy, scene, CLI, Rapier and worker library artifacts matched the original renderer artifacts. The focused three-part qualification took 100.30 seconds.
+
+On the frozen candidate, 46 named consumer suites exercised the renderer build. A physical RTX 5090 ran all 61 hardware cases across fourteen targets. A further real worker job compared three successive Vulkan contacts against the independently advanced parent and closed the worker's input normally so LLVM could save its process counters. Its counter file's ELF build ID matched the candidate's worker. The 734 supplemental raw files, 532 original or additional executable inputs and the original renderer profile produced these results with the original denominators.
+
+| Renderer crate | Lines | Regions | Further regions required |
+|---|---:|---:|---:|
+| gz-physics-gpu | 5,118 / 5,320 (96.20%) | 8,450 / 8,867 (95.30%) | 0 |
+| gz-sim-cli | 7,154 / 7,857 (91.05%) | 12,080 / 13,430 (89.95%) | 679 |
+| gz-sim-scene | 29,080 / 31,027 (93.72%) | 44,153 / 48,023 (91.94%) | 1,469 |
+
+The two shared crates remain below the gate. The real GPU clears both metrics. These results supplement the earlier frozen release run. The next release candidate must execute the expanded profile in full. Reproduction on a discrete Vulkan adapter uses `GZ_GPU_ADAPTER` with the adapter's reported name. The physical worker fixtures use local processes and loopback sockets. The source, per-target logs and LLVM input identities are retained under `artifacts/local-implementation/integration-audit/{renderer-shared-harness,renderer-consumers,renderer-consumers-remaining,renderer-hardware-native}`.

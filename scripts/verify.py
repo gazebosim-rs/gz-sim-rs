@@ -275,6 +275,8 @@ RENDER_PACKAGES = frozenset({
     "gz-render-client", "gz-render-worker", "gz-render-scene",
 })
 RENDER_SHARED_PACKAGES = frozenset({"gz-sim-core", "gz-sim-scene", "gz-sim-cli", proto_inputs.PACKAGE})
+# These native clients exercise the same renderer-feature scene and CLI binaries.
+RENDER_CONSUMERS = ("gz-physics-distributed",)
 RGB_FEATURE = "gz-sim-cli/rgb-camera"
 HEADLESS_FEATURES = [RGB_FEATURE, "gz-sim-cli/landing-audit"]
 RENDER_FEATURES = ["gz-renderer/gpu", RGB_FEATURE, "gz-sim-cli/gpu-batch"]
@@ -292,6 +294,7 @@ def load_profile_contract():
             "headless": {"exclude_packages": sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}),
                          "runner": "cpu", "features": HEADLESS_FEATURES},
             "renderer": {"packages": sorted(RENDER_PACKAGES | RENDER_SHARED_PACKAGES),
+                         "consumer_packages": list(RENDER_CONSUMERS),
                          "features": RENDER_FEATURES, "runner": "vulkan"},
         },
         "excluded_sources": [],
@@ -325,7 +328,7 @@ def profile_plan(sources):
     for name in sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}):
         headless_command += ["--exclude", name]
     render_command = ["cargo", "test", "--locked", "--no-fail-fast", "--all-targets"]
-    for name in render:
+    for name in [*render, *RENDER_CONSUMERS]:
         render_command += ["--package", name]
     render_command += ["--package", TEST_SUPPORT_PACKAGE, "--features", ",".join(RENDER_FEATURES)]
     return {"headless": (headless, headless_command), "renderer": (render, render_command)}
@@ -602,7 +605,8 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                                      directory=directory, label="gpu-hardware-qualification")
         if result.returncode or not (directory / "gpu-hardware.json").is_file():
             raise ValueError(f"GPU hardware qualification failed: {result.stdout}{result.stderr}")
-    if name == "headless" and "gz-physics-distributed" in crates:
+    shared_operators = name == "renderer" and "gz-physics-distributed" in command
+    if (name == "headless" and "gz-physics-distributed" in crates) or shared_operators:
         source = ROOT / HEADLESS_WORKER_TEST
         harnesses = {Path(a["executable"]) for a in artifacts
                      if a["profile"]["test"] and Path(a["target"]["src_path"]) == source}
@@ -613,10 +617,12 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
         if harness.is_symlink() or not harness.is_file() or not harness.resolve().is_relative_to(target_root):
             raise ValueError("headless worker qualification harness is outside the owned target")
         (directory / "headless-artifacts.json").write_text(json.dumps(artifacts))
+        suite = "renderer_scene_operators" if shared_operators else "real_worker_fixtures"
         result = profile_process.run([str(harness), "--ignored", "--exact", "--test-threads=1",
-                                      "real_worker_fixtures", "real_trajectory_checkpoint",
+                                      suite, "real_trajectory_checkpoint",
                                       "loaded_grippers_match_local_scene"],
-                                     cwd=ROOT, env=dict(env, GZ_HEADLESS_EVIDENCE=str(directory)),
+                                     cwd=ROOT, env=dict(env, GZ_HEADLESS_EVIDENCE=str(directory),
+                                                        GZ_PHYSICS_CARGO_SELECTION=json.dumps(command[2:])),
                                      directory=directory, label="worker-qualification")
         if result.returncode or not (directory / "headless-workers.json").is_file():
             raise ValueError(f"physical worker qualification failed: {result.stdout}{result.stderr}")
@@ -827,6 +833,9 @@ def coverage(changed_file=None):
                                  ROOT / "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs",
                                  ROOT / "crates/gz-physics-distributed/tests/support/production_example.rs",
                                  ROOT / "crates/gz-physics-distributed/tests/support/loaded_grippers.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/support/humanoid_return_cli.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/support/humanoid_return_tests.rs",
+                                 ROOT / "crates/gz-sim-cli/tests/private/warm_physics_cli.rs",
                                  ROOT / "crates/gz-sim-cli/examples/grasp_fleet_profiles.rs",
                                  *[ROOT / "crates/gz-sim-cli/examples/support" / name for name in
                                    ("floating_tree_drive.rs", "grasp_drive.rs", "grasp_fleet_drive.rs", "tree_visuals.rs")],
@@ -1041,7 +1050,9 @@ def retain_profile_evidence(candidate, output, hashes, missing):
         required = ["test-output.log", "coverage.json", "coverage.lcov", "summary.json",
                     "evidence.json", "merged.profdata", "proto-generated.json",
                     "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"]
-        if profile == "headless" and HEADLESS_WORKER_TEST in data.get("inputs", {}):
+        shared_operators = (profile == "renderer" and contract_path.is_file()
+                            and "gz-physics-distributed" in contract.get("profiles", {}).get("renderer", {}).get("consumer_packages", []))
+        if (profile == "headless" or shared_operators) and HEADLESS_WORKER_TEST in data.get("inputs", {}):
             required.append("headless-workers.json")
             if "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs" in data["inputs"]:
                 required.append("worker-trajectory.json")
@@ -1236,7 +1247,7 @@ def main():
         run(["cargo", "fmt", "--all", "--", "--check"])
         run(["cargo", "clippy", "--locked", "--workspace", "--all-targets", "--keep-going", "--", "-D", "warnings"])
         render_packages = sorted(RENDER_PACKAGES | RENDER_SHARED_PACKAGES)
-        selected = sum((["--package", name] for name in [*render_packages, TEST_SUPPORT_PACKAGE]), [])
+        selected = sum((["--package", name] for name in [*render_packages, *RENDER_CONSUMERS, TEST_SUPPORT_PACKAGE]), [])
         run(["cargo", "clippy", "--locked", "--all-targets", "--keep-going", *selected,
              "--features", ",".join(RENDER_FEATURES), "--", "-D", "warnings"])
         doc_packages = sorted((RENDER_PACKAGES - {"gz-render-worker"}) | {"gz-sim-core", "gz-sim-scene"})

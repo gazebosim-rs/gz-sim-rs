@@ -34,21 +34,30 @@ pub(super) fn build(
         .map(|v| v.as_str().ok_or("invalid Cargo feature"))
         .collect::<std::result::Result<Vec<_>, _>>()?;
     let output = directory.join(format!("{label}-build.stdout"));
-    let status = Command::new("cargo")
-        .args([
-            "build",
+    let mut cargo = Command::new("cargo");
+    cargo.args(["build", "--profile", "test"]);
+    if let Some(selection) = std::env::var_os("GZ_PHYSICS_CARGO_SELECTION") {
+        let selected: Vec<String> =
+            serde_json::from_str(selection.to_str().ok_or("invalid Cargo selection")?)?;
+        // Preserve the profile's workspace package selection and unified dependency features.
+        // Only the test-run switches change when building an ordinary example.
+        cargo.args(
+            selected
+                .into_iter()
+                .filter(|v| v != "--no-fail-fast" && v != "--all-targets"),
+        );
+    } else {
+        cargo.args([
             "--locked",
-            "--profile",
-            "test",
             "-p",
             "gz-sim-cli",
-            "--example",
-            example,
             "--no-default-features",
             "--features",
             &features.join(","),
-            "--message-format=json",
-        ])
+        ]);
+    }
+    let status = cargo
+        .args(["--example", example, "--message-format=json"])
         .stdout(File::create_new(&output)?)
         .stderr(File::create_new(
             directory.join(format!("{label}-build.stderr")),

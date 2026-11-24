@@ -39,7 +39,10 @@
         "gz-sim-cli/rgb-camera",
         "gz-sim-cli/gpu-batch"
       ],
-      "runner": "vulkan"
+      "runner": "vulkan",
+      "consumer_packages": [
+        "gz-physics-distributed"
+      ]
     }
   },
   "excluded_sources": [],

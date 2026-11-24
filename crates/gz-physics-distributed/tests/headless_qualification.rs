@@ -197,6 +197,16 @@ fn run_cases(
 #[test]
 #[ignore = "requires the headless qualification's Cargo artifact list and coverage directory"]
 fn real_worker_fixtures() -> Result<()> {
+    qualify_worker_suites(false)
+}
+
+#[test]
+#[ignore = "requires the renderer profile's actual Cargo artifacts"]
+fn renderer_scene_operators() -> Result<()> {
+    qualify_worker_suites(true)
+}
+
+fn qualify_worker_suites(scene_operators_only: bool) -> Result<()> {
     let Inputs {
         directory,
         root,
@@ -204,8 +214,16 @@ fn real_worker_fixtures() -> Result<()> {
         worker,
         artifacts,
     } = Inputs::load()?;
-    let suites: BTreeMap<String, Vec<String>> = serde_json::from_str(CASES)?;
-    let mut receipt = json!({"worker_sha256": sha256(&worker)?, "input_sha256": initial_witnesses(&directory)?, "suites": {}});
+    let mut suites: BTreeMap<String, Vec<String>> = serde_json::from_str(CASES)?;
+    let mut receipt = json!({"worker_sha256": sha256(&worker)?, "suites": {}});
+    if scene_operators_only {
+        suites.retain(|source, _| source.starts_with("gz-sim-cli/"));
+        if suites.is_empty() {
+            return Err("no renderer scene operators selected".into());
+        }
+    } else {
+        receipt["input_sha256"] = serde_json::to_value(initial_witnesses(&directory)?)?;
+    }
     for (source, mut cases) in suites {
         if cases.is_empty() || cases.iter().collect::<BTreeSet<_>>().len() != cases.len() {
             return Err(format!("invalid headless test selection for {source}").into());

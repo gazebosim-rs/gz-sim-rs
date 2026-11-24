@@ -152,6 +152,8 @@ class FeatureProfiles(unittest.TestCase):
         self.assertNotIn("gz-sim-cli", verify.RENDER_PACKAGES)
         self.assertEqual(plan["headless"][1].count("--exclude"), len(verify.RENDER_PACKAGES) + 1)
         self.assertIn(verify.TEST_SUPPORT_PACKAGE, plan["renderer"][1])
+        self.assertIn("gz-physics-distributed", plan["renderer"][1])
+        self.assertNotIn("gz-physics-distributed", plan["renderer"][0])
 
     def test_missing_package_empty_source_and_duplicate_ownership_fail(self):
         crates = sources()
