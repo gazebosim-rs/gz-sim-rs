@@ -367,6 +367,36 @@ fn canonical_twist_and_dual_packets_preserve_samples_rates_pause_reset_and_recon
     let mut first = None;
     for epoch in 1..=2 {
         reset(&mut server, epoch);
+        // Reset replaces the command subscriber. A match from the old epoch
+        // cannot prove a one-shot command will reach the new callback. A bad
+        // protobuf on the same topic is rejected without changing the robot.
+        let before = server.counters();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let mut next_probe = Instant::now();
+        while server.counters().diff_drive_messages_rejected == before.diff_drive_messages_rejected
+        {
+            let now = Instant::now();
+            assert!(
+                now < deadline,
+                "no Twist callback acknowledgement in epoch {epoch}"
+            );
+            if now >= next_probe && commands.matching_status().wait().unwrap().matching() {
+                commands
+                    .put(vec![0xff])
+                    .attachment(Twist::full_name())
+                    .wait()
+                    .unwrap();
+                next_probe = now + Duration::from_millis(10);
+            }
+            server.update().unwrap();
+            assert!(server.simulation().is_paused());
+            std::thread::yield_now();
+        }
+        assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+        assert_eq!(
+            server.counters().diff_drive_commands_applied,
+            before.diff_drive_commands_applied
+        );
         let baseline = server.counters();
         let mut expected_imus = Vec::new();
         let mut expected_scans = Vec::new();
