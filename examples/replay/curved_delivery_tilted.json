@@ -1,0 +1,14 @@
+{
+  "seed": "curved-delivery",
+  "commands": [
+    {"op":"step","count":10},
+    {"op":"spawn","template":"default::cylinder","alias":"roller","position":[-0.15,-0.12,0.25],"rotation_xyzw":[0,0.08715574274765817,0,0.9961946980917455]},
+    {"op":"spawn","template":"default::capsule","alias":"canister","position":[0.15,-0.12,0.25],"rotation_xyzw":[0,0.08715574274765817,0,0.9961946980917455]},
+    {"op":"step","count":750},
+    {"op":"reset"},
+    {"op":"step","count":10},
+    {"op":"spawn","template":"default::cylinder","alias":"roller","position":[-0.15,-0.12,0.25],"rotation_xyzw":[0,0.08715574274765817,0,0.9961946980917455]},
+    {"op":"spawn","template":"default::capsule","alias":"canister","position":[0.15,-0.12,0.25],"rotation_xyzw":[0,0.08715574274765817,0,0.9961946980917455]},
+    {"op":"step","count":750}
+  ]
+}

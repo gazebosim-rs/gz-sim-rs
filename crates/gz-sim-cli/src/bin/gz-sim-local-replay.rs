@@ -126,6 +126,8 @@ enum Command {
         template: String,
         alias: String,
         position: [f64; 3],
+        /// World orientation of the new model. Existing journals spawn it upright.
+        rotation_xyzw: Option<[f64; 4]>,
     },
     Remove {
         alias: String,
@@ -478,13 +480,14 @@ fn run(args: Args) -> Result<()> {
                 template,
                 alias,
                 position,
+                rotation_xyzw,
             } => {
                 if aliases.contains_key(alias) {
                     return Err(format!("duplicate live alias {alias}").into());
                 }
                 let pose = WorldPose {
                     translation: *position,
-                    rotation: [0., 0., 0., 1.],
+                    rotation: rotation_xyzw.unwrap_or([0., 0., 0., 1.]),
                 };
                 aliases.insert(
                     alias.clone(),

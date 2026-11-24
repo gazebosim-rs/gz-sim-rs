@@ -1131,3 +1131,64 @@ fn contact_solver_selection_is_part_of_the_verified_execution_profile() {
         serde_json::from_str(fs::read_to_string(trace).unwrap().lines().next().unwrap()).unwrap();
     assert_eq!(first["rapier_per_point_friction"], true);
 }
+
+#[test]
+fn tilted_deliveries_replay_the_supplied_pose_and_validate_it_before_spawn() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let raw = include_str!("../../../examples/replay/curved_delivery_tilted.json");
+    let world = file(
+        dir,
+        "parts.sdf",
+        include_str!("../../../examples/worlds/local_curved_delivery.sdf"),
+    );
+    let journal = file(dir, "tilted.json", raw);
+    let capture = dir.join("capture");
+    let rows = success(run(
+        &world,
+        &journal,
+        &[
+            "--record",
+            capture.to_str().unwrap(),
+            "--record-every",
+            "100",
+        ],
+    ));
+    let mut impact = std::collections::BTreeMap::new();
+    for row in rows.iter().filter(|r| r["command"] == 4) {
+        for p in row["pair_reactions_ns"].as_array().unwrap() {
+            if p[0] == 0 && p[1].as_u64().unwrap() >= 3 && p[2].as_f64().unwrap() > 0. {
+                impact
+                    .entry(p[1].as_u64().unwrap())
+                    .or_insert(row["step"].as_u64().unwrap());
+            }
+        }
+    }
+    assert!(impact[&3] < 182 && impact[&4] > 182);
+    let expected =
+        serde_json::from_str::<Value>(raw).unwrap()["commands"][1]["rotation_xyzw"].clone();
+    for epoch in [0, 1] {
+        let frames =
+            fs::read_to_string(capture.join(format!("epoch-{epoch}/frames.jsonl"))).unwrap();
+        let at_birth = frames
+            .lines()
+            .filter_map(|l| {
+                let r = serde_json::from_str::<Value>(l).unwrap();
+                let s = serde_json::from_str::<Value>(r["scene"].as_str()?).unwrap();
+                (s["nanoseconds"] == 10_000_000 && s["visuals"].as_array().unwrap().len() == 5)
+                    .then_some(s)
+            })
+            .next()
+            .unwrap();
+        for v in &at_birth["visuals"].as_array().unwrap()[3..] {
+            for i in 0..4 {
+                assert!(
+                    (v["rotation"][i].as_f64().unwrap() - expected[i].as_f64().unwrap()).abs()
+                        < 1e-14
+                );
+            }
+        }
+    }
+    let broken = file(dir, "invalid.json", &raw.replace("0.9961946980917455", "2"));
+    assert!(!run(&world, &broken, &[]).status.success());
+}
