@@ -134,6 +134,9 @@ impl RapierBackend {
         }
         self.world = prepared.world;
         self.bodies = prepared.bodies;
+        if self.axial_caps.is_some() {
+            self.set_axial_cap_impact(true);
+        }
         self.refresh_max_boundary_spin();
         self.restore_fleet_clock();
         self.next_id = self.next_id.max(prepared.next_id);

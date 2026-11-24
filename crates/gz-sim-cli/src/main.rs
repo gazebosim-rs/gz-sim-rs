@@ -42,7 +42,7 @@ struct Args {
     #[arg(long, conflicts_with = "replay")]
     rapier_per_point_friction: bool,
     /// Resolve cold isolated cylinder-cap impacts against fixed finite box faces in local Rapier.
-    #[arg(long)]
+    #[arg(long, conflicts_with = "replay")]
     rapier_axial_cap_impact: bool,
     /// Number of local authoritative processes in the distributed engine.
     #[arg(long,conflicts_with="replay",value_parser=clap::value_parser!(u8).range(2..=8))]

@@ -180,7 +180,7 @@ pub struct RapierBackend {
     exchange_epoch: Arc<()>,
     world: PhysicsWorld,
     bodies: BTreeMap<BodyId, BodyEntry>,
-    axial_caps: Option<BTreeSet<BodyId>>,
+    axial_caps: Option<axial_cap::Registry>,
     joints: joints::Joints,
     welded_projection: Option<Box<joints::WeldedProjection>>,
     welded_exclusion: Option<(usize, usize, usize)>,
@@ -770,11 +770,14 @@ impl RapierBackend {
             spec.collider.clone(),
             properties,
         );
-        if let Some(ids) = &mut self.axial_caps
-            && axial_cap::primitive(&spec.collider)
-                .is_some_and(|(_, shape)| shape.as_cylinder().is_some())
-        {
-            ids.insert(id);
+        if let Some(caps) = &mut self.axial_caps {
+            if axial_cap::primitive(&spec.collider).is_some_and(|(_, s)| s.as_cylinder().is_some())
+            {
+                caps.ids.insert(id);
+            }
+            if self.world.bodies[handle].is_fixed() {
+                caps.floors.take();
+            }
         }
         self.bodies
             .insert(id, (handle, spec, rotational, inertia, None));
@@ -935,7 +938,10 @@ impl DynamicBackend for RapierBackend {
         }
         if let Some((handle, ..)) = self.bodies.remove(&id) {
             if let Some(ids) = &mut self.axial_caps {
-                ids.remove(&id);
+                ids.ids.remove(&id);
+                if self.world.bodies[handle].is_fixed() {
+                    ids.floors.take();
+                }
             }
             if let Some(rows) = &mut self.exchange_reactions {
                 rows.retain(|&(a, b), _| a != id && b != id);
@@ -1000,6 +1006,11 @@ impl DynamicBackend for RapierBackend {
             self.observe_boundary_spin(state.angular_velocity);
         }
         let body = &mut self.world.bodies[handle];
+        if body.is_fixed()
+            && let Some(caps) = &mut self.axial_caps
+        {
+            caps.floors.take();
+        }
         body.set_position(pose, true);
         body.set_linvel(Vector::from(state.velocity), true);
         body.set_angvel(Vector::from(state.angular_velocity), true);
@@ -1122,6 +1133,9 @@ impl DynamicBackend for RapierBackend {
 
     /// Restores remaining bodies to their spawn state. Removed bodies stay removed.
     fn reset(&mut self) -> Result<(), PhysicsError> {
+        if self.axial_caps.is_some() {
+            self.set_axial_cap_impact(true);
+        }
         let joints = self.joints.initial();
         #[cfg(feature = "partition-checkpoint")]
         {

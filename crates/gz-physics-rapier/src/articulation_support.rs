@@ -429,7 +429,7 @@ impl RapierBackend {
                     .contact_pair(*x, *y)
                     .is_some_and(|pair| pair.manifolds().iter().any(|m| !m.points.is_empty()))
             });
-            self.cold_support_pairs = pending;
+            self.cold_support_pairs.extend(pending);
         }
         self.support_watch.awaiting_solve.clear();
         self.support_watch.update(&self.world, None);

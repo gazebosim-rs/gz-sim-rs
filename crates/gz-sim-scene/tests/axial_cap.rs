@@ -161,3 +161,126 @@ fn tilted_spinning_eccentric_grazing_and_unenrolled_shapes_keep_native_response(
     assert!(load(&base, PhysicsEngine::Tpe, true).is_err());
     Ok(())
 }
+
+#[test]
+fn incoming_fast_third_body_constraint_and_large_origin_preserve_regular_manifolds() -> Result<()> {
+    let sphere = r#"<model name="fast"><pose>0.14 0 0.105 0 0 0</pose>
+    <plugin name="gz::sim::systems::InitialVelocity" filename="gz-sim-initial-velocity-system"><linear_velocity>-100 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity></plugin>
+    <link name="body"><inertial><mass>0.1</mass><inertia><ixx>0.001</ixx><iyy>0.001</iyy><izz>0.001</izz></inertia></inertial><collision name="sphere"><geometry><sphere><radius>0.01</radius></sphere></geometry></collision></link></model>"#;
+    let base = world();
+    let fast = base.replace("</world>", &format!("{sphere}</world>"));
+    let distant = base
+        .replace("0 0 0 0 0 0</pose><link", "10000000 0 0 0 0 0</pose><link")
+        .replace("0 0 0.105", "10000000 0 0.105");
+    let guided=base.lines().filter(|l|!l.contains("systems::InitialVelocity")).collect::<Vec<_>>().join("\n").replace("<gravity>0 0 0","<gravity>0 0 -9.81").replace("0.105 0 0 0","0.115 0 0 0").replace("</link></model></world>",r#"</link><joint name="guide" type="prismatic"><parent>world</parent><child>body</child><axis><xyz>0 0 1</xyz></axis></joint></model></world>"#);
+    for (name, xml) in [("third", fast), ("large", distant), ("guided", guided)] {
+        let mut old = load(&xml, PhysicsEngine::MultiFidelity, false)?;
+        let mut new = load(&xml, PhysicsEngine::MultiFidelity, true)?;
+        let mut saw = false;
+        for _ in 0..70 {
+            let a = measure(&mut old)?;
+            let b = measure(&mut new)?;
+            assert_eq!(a, b, "{name}");
+            if a.impulse.length() > 0. {
+                assert!(a.levers.len() > 1, "{name}");
+                saw = true;
+                break;
+            }
+        }
+        assert!(saw, "{name}");
+    }
+    Ok(())
+}
+#[test]
+fn resetting_with_a_live_clone_rebuilds_eligibility_and_repeats_the_native_first_hit() -> Result<()>
+{
+    use gz_sim_scene::{WorldPose, prepare_model_template, spawn_model_template};
+    let source = include_str!("../../../examples/worlds/local_curved_delivery.sdf");
+    let sdf = sdformat::load_str(source, "clone.sdf", &sdformat::NoResources)?;
+    let mut sim = load(source, PhysicsEngine::MultiFidelity, true)?;
+    let template = prepare_model_template(&sim, &sdf, &sdf.worlds[0].models[1])?;
+    let spawn = |s: &mut Simulation| {
+        spawn_model_template(
+            s,
+            &template,
+            WorldPose {
+                translation: [0., 0., 0.25],
+                rotation: [0., 0., 0., 1.],
+            },
+        )
+    };
+    sim.step_exact(1)?;
+    let first = spawn(&mut sim)?;
+    sim.step_exact(180)?;
+    let get = |s: &Simulation, id| gz_sim_scene::model_state(s, id);
+    let hit = get(&sim, first)?;
+    assert!(hit.linear_velocity[2] > 0.8 && DVec3::from(hit.angular_velocity).length() < 1e-9);
+    gz_sim_scene::reset_loaded_world(&mut sim, |_| ())?;
+    sim.step_exact(1)?;
+    assert!(get(&sim, first).is_err());
+    let again = spawn(&mut sim)?;
+    sim.step_exact(180)?;
+    let repeat = get(&sim, again)?;
+    assert_eq!(repeat, hit);
+    Ok(())
+}
+
+#[test]
+fn energetic_returns_remain_axial_and_weak_reloading_contacts_stay_ordinary() -> Result<()> {
+    let drop = |height: f64, restitution: f64| {
+        world()
+            .lines()
+            .filter(|l| !l.contains("systems::InitialVelocity"))
+            .collect::<Vec<_>>()
+            .join("\n")
+            .replace("0 0 0.105", &format!("0 0 {}", 0.105 + height))
+            .replace("<gravity>0 0 0", "<gravity>0 0 -9.81")
+            .replace(">0.65<", &format!(">{restitution}<"))
+    };
+    for (height, restitution) in [(0.145, 0.), (0.00001, 0.01), (0.010, 0.05)] {
+        let xml = drop(height, restitution);
+        let mut regular = load(&xml, PhysicsEngine::MultiFidelity, false)?;
+        let mut enabled = load(&xml, PhysicsEngine::MultiFidelity, true)?;
+        for _ in 0..500 {
+            assert_eq!(
+                measure(&mut enabled)?,
+                measure(&mut regular)?,
+                "height={height}, restitution={restitution}"
+            );
+        }
+    }
+    let mut sim = load(&drop(0.145, 0.65), PhysicsEngine::MultiFidelity, true)?;
+    let mut returns = Vec::new();
+    let mut loaded = false;
+    let mut rest = 0.;
+    let mut max_spin: f64 = 0.;
+    for tick in 1..=3000 {
+        let h = measure(&mut sim)?;
+        let now = h.impulse.z > 0.;
+        max_spin = max_spin.max(DVec3::from(h.state.angular_velocity).length());
+        if now && !loaded {
+            returns.push((
+                tick,
+                h.impulse.z,
+                h.levers.len(),
+                DVec3::from(h.state.angular_velocity).length(),
+            ));
+        }
+        if tick > 2900 {
+            rest += h.impulse.z;
+        }
+        loaded = now;
+    }
+    println!(
+        "native axial returns {returns:?}, max spin {max_spin}, terminal mean force {} N",
+        rest / 0.1
+    );
+    assert!(returns.len() >= 3);
+    assert!(max_spin < 1e-9);
+    for r in &returns[..3] {
+        assert_eq!(r.2, 1);
+        assert!(r.3 < 1e-9);
+    }
+    assert!((rest / 0.1 - 0.25 * 9.81).abs() < 0.002);
+    Ok(())
+}
