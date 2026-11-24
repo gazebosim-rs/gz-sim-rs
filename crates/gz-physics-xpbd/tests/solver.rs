@@ -613,3 +613,49 @@ fn moving_material_uses_kinetic_friction_below_the_static_breakaway_load() {
     }
     near(body.particles()[0].velocity.into(), DVec3::X * 0.30, 1e-11);
 }
+
+#[test]
+fn kinetic_slip_stops_and_static_support_reacquires_without_creep() {
+    let node = Particle {
+        position: [0., 0., 0.125],
+        velocity: [0.25, 0., 0.],
+        inverse_mass: 1.,
+    };
+    for dt_ms in [1, 5] {
+        let mut body = SoftBody::new(
+            vec![node],
+            vec![],
+            SolverConfig {
+                particle_radius: 0.125,
+                gravity: [2., 0., -10.],
+                friction: 0.3,
+                substeps: 1,
+                ..isolated()
+            },
+        )
+        .unwrap()
+        .with_static_plane_friction(0.5)
+        .unwrap();
+        let dt = Duration::from_millis(dt_ms);
+        let support = floor([0.; 3]);
+        // The initial quarter metre per second decays under 1 m/s² of net
+        // deceleration. The same drive remains below the static friction limit.
+        for _ in 0..250 / dt_ms {
+            body.step(dt, &[support]).unwrap();
+        }
+        let stopped = body.particles()[0];
+        assert!(stopped.velocity[0].abs() < 1e-11);
+        assert!((stopped.position[0] - 0.03125).abs() < 0.8 * dt.as_secs_f64());
+        let mut impulse = DVec3::ZERO;
+        for _ in 0..250 / dt_ms {
+            body.step(dt, &[support]).unwrap();
+            impulse += DVec3::from(body.last_boundary_impulses()[0].linear);
+        }
+        near(
+            body.particles()[0].position.into(),
+            stopped.position.into(),
+            1e-12,
+        );
+        near(impulse, DVec3::new(0.5, 0., -2.5), 1e-10);
+    }
+}
