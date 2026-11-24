@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Catch a crossing between two controller samples
+
+A moving parcel now lands on a narrow sorting pad even when its predicted footprints are clear at both ends of the step. It registered 0.04000008 N·s at 10 ms. At the next reading, trajectory error fell from 23.05 mm to 0.00249 mm. The other lane stayed clear, the following ticks used ordinary steps, and a reset reproduced the same impact. All 29 changed executable lines and all 66 regions were covered. [Measured results, native replays and fixture](measurements/local-manipulation/sorter-crossing.md)
+
 ## 2026-11-24 — Time the entire robot step during a jaw strike
 
 Applying 500 native solves only to the impact reduced the left-jaw run from 1,365 ms to 59.6 ms. The selected tick still took 59.0 ms at p95, while a missed parcel triggered no extra solves. Every one of 4,320 timed public steps matched its separately observed six-body control. [Timing, impact accuracy and native replay](measurements/local-manipulation/serial-impact-cost.md)
