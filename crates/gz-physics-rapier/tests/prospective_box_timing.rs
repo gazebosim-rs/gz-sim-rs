@@ -886,3 +886,6 @@ fn pair_specific_upper_projection_validates_before_consuming_inputs() {
     );
     assert!((e.state(foot).unwrap().velocity[0] - 8. * DT.as_secs_f64()).abs() < 1e-12);
 }
+
+#[path = "private/box_policy.rs"]
+mod box_policy;

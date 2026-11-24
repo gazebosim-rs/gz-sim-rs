@@ -307,3 +307,7 @@ impl UpperPair {
         Some((split, first))
     }
 }
+
+#[cfg(test)]
+#[path = "../../tests/private/shortened_impact.rs"]
+mod tests;

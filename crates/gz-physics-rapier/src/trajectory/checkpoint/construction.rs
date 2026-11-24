@@ -176,3 +176,7 @@ impl RapierBackend {
         Ok(b)
     }
 }
+
+#[cfg(test)]
+#[path = "../../../tests/private/trajectory_image.rs"]
+mod tests;

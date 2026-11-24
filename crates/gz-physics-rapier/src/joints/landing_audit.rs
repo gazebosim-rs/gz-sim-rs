@@ -584,6 +584,68 @@ impl RapierBackend {
     }
 }
 
+/// Read-only pair data from the last full narrow-phase update and native solve.
+/// Anchors retain Rapier's solver convention (COM-local or world-attached).
+pub struct LandingSolverPoint {
+    pub foot_is_first: bool,
+    pub relative_dominance: i16,
+    pub normal_on_foot: [f64; 3],
+    pub geometric_gap: f64,
+    pub solver_gap_at_update: f64,
+    pub local_foot: [f64; 3],
+    pub local_pad: [f64; 3],
+    pub solver_foot_anchor: [f64; 3],
+    pub solver_pad_anchor: [f64; 3],
+    pub impulse: f64,
+}
+impl RapierBackend {
+    /// Inspect only the named, single-collider pair. The world is left untouched.
+    pub fn landing_solver_points(
+        &self,
+        foot: BodyId,
+        pad: BodyId,
+    ) -> Result<Vec<LandingSolverPoint>, PhysicsError> {
+        let mut rows = vec![];
+        let single = |id: &BodyId| {
+            let h = self.bodies.get(id).ok_or(PhysicsError::MissingBody)?.0;
+            let [c] = self.world.bodies[h].colliders() else {
+                return Err(PhysicsError::InvalidValue);
+            };
+            Ok(*c)
+        };
+        let f = single(&foot)?;
+        let p = single(&pad)?;
+        let Some(pair) = self.world.narrow_phase.contact_pair(f, p) else {
+            return Ok(rows);
+        };
+        let first = pair.collider1 == f;
+        for m in pair.solver_manifolds() {
+            for sc in &m.data.solver_contacts {
+                let i = (sc.contact_id[0] & !rapier3d_f64::geometry::NEW_CONTACT_BIT) as usize;
+                let point = &m.points[i];
+                let (a, b, xa, xb) = if first {
+                    (point.local_p1, point.local_p2, sc.anchor1, sc.anchor2)
+                } else {
+                    (point.local_p2, point.local_p1, sc.anchor2, sc.anchor1)
+                };
+                rows.push(LandingSolverPoint {
+                    foot_is_first: first,
+                    relative_dominance: m.data.relative_dominance,
+                    normal_on_foot: (if first { -m.data.normal } else { m.data.normal }).to_array(),
+                    geometric_gap: point.dist,
+                    solver_gap_at_update: sc.dist,
+                    local_foot: a.to_array(),
+                    local_pad: b.to_array(),
+                    solver_foot_anchor: xa.to_array(),
+                    solver_pad_anchor: xb.to_array(),
+                    impulse: point.data.impulse,
+                });
+            }
+        }
+        Ok(rows)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -731,67 +793,5 @@ mod tests {
             native.world.integration_parameters.num_solver_iterations,
             original_iterations
         );
-    }
-}
-
-/// Read-only pair data from the last full narrow-phase update and native solve.
-/// Anchors retain Rapier's solver convention (COM-local or world-attached).
-pub struct LandingSolverPoint {
-    pub foot_is_first: bool,
-    pub relative_dominance: i16,
-    pub normal_on_foot: [f64; 3],
-    pub geometric_gap: f64,
-    pub solver_gap_at_update: f64,
-    pub local_foot: [f64; 3],
-    pub local_pad: [f64; 3],
-    pub solver_foot_anchor: [f64; 3],
-    pub solver_pad_anchor: [f64; 3],
-    pub impulse: f64,
-}
-impl RapierBackend {
-    /// Inspect only the named, single-collider pair. The world is left untouched.
-    pub fn landing_solver_points(
-        &self,
-        foot: BodyId,
-        pad: BodyId,
-    ) -> Result<Vec<LandingSolverPoint>, PhysicsError> {
-        let mut rows = vec![];
-        let single = |id: &BodyId| {
-            let h = self.bodies.get(id).ok_or(PhysicsError::MissingBody)?.0;
-            let [c] = self.world.bodies[h].colliders() else {
-                return Err(PhysicsError::InvalidValue);
-            };
-            Ok(*c)
-        };
-        let f = single(&foot)?;
-        let p = single(&pad)?;
-        let Some(pair) = self.world.narrow_phase.contact_pair(f, p) else {
-            return Ok(rows);
-        };
-        let first = pair.collider1 == f;
-        for m in pair.solver_manifolds() {
-            for sc in &m.data.solver_contacts {
-                let i = (sc.contact_id[0] & !rapier3d_f64::geometry::NEW_CONTACT_BIT) as usize;
-                let point = &m.points[i];
-                let (a, b, xa, xb) = if first {
-                    (point.local_p1, point.local_p2, sc.anchor1, sc.anchor2)
-                } else {
-                    (point.local_p2, point.local_p1, sc.anchor2, sc.anchor1)
-                };
-                rows.push(LandingSolverPoint {
-                    foot_is_first: first,
-                    relative_dominance: m.data.relative_dominance,
-                    normal_on_foot: (if first { -m.data.normal } else { m.data.normal }).to_array(),
-                    geometric_gap: point.dist,
-                    solver_gap_at_update: sc.dist,
-                    local_foot: a.to_array(),
-                    local_pad: b.to_array(),
-                    solver_foot_anchor: xa.to_array(),
-                    solver_pad_anchor: xb.to_array(),
-                    impulse: point.data.impulse,
-                });
-            }
-        }
-        Ok(rows)
     }
 }
