@@ -21,6 +21,7 @@ pub use landing_audit::{
 };
 mod exact_lock;
 mod parked_robot;
+pub(crate) mod parked_speed;
 mod robot;
 mod screw;
 mod universal;
@@ -922,6 +923,7 @@ impl RapierBackend {
         let Some(joint) = self.joints.records.remove(&id) else {
             return false;
         };
+        self.resume_parked_speed_groups();
         self.joints.efforts.remove(&id);
         self.joints.angular_efforts.remove(&id);
         self.joints.wide_universal.remove(&id);

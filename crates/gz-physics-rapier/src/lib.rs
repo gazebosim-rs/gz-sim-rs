@@ -184,6 +184,7 @@ pub struct RapierBackend {
     landing_rows: Option<landing_row_order::LandingRows>,
     support_watch: support_loss::SupportWatch,
     parked_robots: BTreeMap<BodyId, Vec<RigidBodyHandle>>,
+    parked_speed: BTreeMap<BodyId, joints::parked_speed::ParkedSpeed>,
     parked_shared: Vec<articulation_support::ParkedSharedSupport>,
     solved_shared_groups: Vec<SharedSupportRequest>,
     held_supports: BTreeMap<BodyId, Vec<articulation_support::SupportHold>>,
@@ -422,6 +423,7 @@ impl RapierBackend {
             support_watch: Default::default(),
             parked_shared: Vec::new(),
             parked_robots: BTreeMap::new(),
+            parked_speed: BTreeMap::new(),
             solved_shared_groups: Vec::new(),
             held_supports: BTreeMap::new(),
             cold_support_pairs: Vec::new(),
@@ -919,6 +921,7 @@ impl DynamicBackend for RapierBackend {
             }
             self.pending_wrenches.remove(&id);
             self.held_wrenches.remove(&id);
+            self.resume_parked_speed_groups();
             let survivors = self.joints.forget_body(id, &mut self.world);
             self.world.remove_body(handle);
             for survivor in survivors {
@@ -1084,6 +1087,7 @@ impl DynamicBackend for RapierBackend {
         self.held_wrenches.clear();
         self.spinning_assemblies.clear();
         self.parked_robots.clear();
+        self.parked_speed.clear();
         self.held_supports.clear();
         self.support_watch = Default::default();
         self.cold_support_pairs.clear();

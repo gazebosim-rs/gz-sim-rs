@@ -105,8 +105,12 @@ impl Joints {
         &self,
         world: &mut PhysicsWorld,
         bodies: &BTreeMap<BodyId, BodyEntry>,
+        parked: &BTreeMap<BodyId, parked_speed::ParkedSpeed>,
     ) {
         for (id, caps) in &self.speed_caps {
+            if parked.values().any(|group| group.joints.contains(id)) {
+                continue;
+            }
             let joint = self.records[id].initial;
             let child = *world.bodies[bodies[&joint.child].0].rotation();
             let parent = joint.parent.map_or(Rotation::IDENTITY, |p| {
@@ -170,6 +174,16 @@ impl Joints {
 }
 
 impl AxisCap {
+    pub(super) fn references(
+        &self,
+    ) -> impl Iterator<Item = (RigidBodyHandle, Option<MultibodyJointHandle>)> {
+        let sides: &[SpeedSide] = match self {
+            Self::Held(_) => &[],
+            Self::Bounded { sides, .. } => sides,
+        };
+        sides.iter().map(|s| (s.reference, s.drive))
+    }
+
     pub(super) fn drive_handles(&self) -> impl Iterator<Item = MultibodyJointHandle> {
         let sides: &[SpeedSide] = match self {
             Self::Held(_) => &[],

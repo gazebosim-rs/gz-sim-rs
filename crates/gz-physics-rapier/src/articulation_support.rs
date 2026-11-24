@@ -318,6 +318,21 @@ impl RapierBackend {
     ) {
         self.parked_shared.clear();
         self.solved_shared_groups.clear();
+        let trial = if self.parked_speed.is_empty() {
+            None
+        } else {
+            let ordinary = fresh.is_none()
+                && rows.is_empty()
+                && self.held_supports.is_empty()
+                && self.cold_support_pairs.is_empty()
+                && !self.joints.authored_welds
+                && self.welded_projection.is_none();
+            #[cfg(feature = "landing-audit")]
+            let ordinary = ordinary && self.landing_rows.is_none();
+            #[cfg(feature = "partition-checkpoint")]
+            let ordinary = ordinary && !self.join_queries_pending;
+            self.parked_speed_trial(ordinary)
+        };
         if self.joints.authored_welds || self.welded_projection.is_some() {
             let eligible = fresh.is_none()
                 && rows.is_empty()
@@ -375,20 +390,17 @@ impl RapierBackend {
                 }),
             );
         }
-        self.joints
-            .prepare_universal_axes(&mut self.world, &self.bodies);
-        self.joints
-            .prepare_speed_caps(&mut self.world, &self.bodies);
-        self.joints.prepare_screws(&mut self.world, &self.bodies);
-        self.world.step_with_events(
-            &collision::SupportedGroups(
-                &self.held_supports,
-                rows,
-                #[cfg(feature = "landing-audit")]
-                self.landing_rows.as_ref(),
-            ),
-            &(),
-        );
+        self.solve_mounted_interval(rows);
+        if let Some(before) = trial
+            && self.speed_park_invalidated()
+        {
+            // An incoming contact woke the island during this interval. Repeat from
+            // its unmodified manifolds with the original signed speed limits active.
+            self.world = before;
+            self.resume_parked_speed_groups();
+            self.solve_mounted_interval(rows);
+        }
+        self.advance_parked_reference_time();
         for (a, old) in first.into_iter().chain(extra) {
             let c = &mut self.world.colliders[a];
             c.set_active_hooks(old);
@@ -437,6 +449,23 @@ impl RapierBackend {
                 }
             }
         }
+    }
+
+    fn solve_mounted_interval(&mut self, rows: &[collision::SuppressedRows]) {
+        self.joints
+            .prepare_universal_axes(&mut self.world, &self.bodies);
+        self.joints
+            .prepare_speed_caps(&mut self.world, &self.bodies, &self.parked_speed);
+        self.joints.prepare_screws(&mut self.world, &self.bodies);
+        self.world.step_with_events(
+            &collision::SupportedGroups(
+                &self.held_supports,
+                rows,
+                #[cfg(feature = "landing-audit")]
+                self.landing_rows.as_ref(),
+            ),
+            &(),
+        );
     }
 
     /// The single captured support, when the link has exactly one.

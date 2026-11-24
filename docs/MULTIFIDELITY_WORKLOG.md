@@ -2051,3 +2051,7 @@ At tick 737 of the finer mesh, the new solver took 11.32 s per public step compa
 ## 2026-11-23 — Faster continuous cloth contact with identical motion
 
 The hardest sliding step took 9.20 s instead of 13.10 s in six alternated trials per version. Whole-run p95 fell from 53.04 to 38.24 ms in the seven-column control. Across two sheet resolutions and both grasp settings, 36 physical and replay files matched byte for byte. The two finer recordings passed browser and geometry checks. The changed contact search covered 70/70 lines and 132/132 regions. [Measurements and replays](measurements/local-manipulation/fold-slide-refinement.md#cost-of-the-same-sliding-contact)
+
+## 2026-11-23 — Parking the complete speed-limited gripper
+
+The capped screw and wrist now park their private speed references together with the public links and restore them on the first commanded or externally disturbed solve. Over a 10 s physical pickup and placement, both joints reached their limits while holding the unsupported parcel. The robot spent 750 ms parked, retained both loaded jaw contacts, and stayed within 4.80 µm of the continuously dynamic robot. An independent projectile test matched the first strike impulse and time exactly. An already-moving external collider defers capped parking because Rapier can batch physically disconnected objects. The remaining opportunity is to prove independent integration for distant moving bodies and relax that conservative restriction. [Measurements and gz-web-rs replays](measurements/local-manipulation/capped-spindle.md)

@@ -7,8 +7,8 @@ use super::*;
 use crate::ArticulationTier;
 
 // Maximum velocity discarded by a stationary cut (SI). Both are checked on every link.
-const LINEAR_REST: f64 = 0.00025;
-const ANGULAR_REST: f64 = 0.001;
+pub(super) const LINEAR_REST: f64 = 0.00025;
+pub(super) const ANGULAR_REST: f64 = 0.001;
 
 fn defer(reason: &'static str) -> PhysicsError {
     PhysicsError::TransitionDeferred { reason }
@@ -40,12 +40,15 @@ impl RapierBackend {
             .map(|(id, j)| (*id, j))
     }
     pub(crate) fn mounted_robot_root(&self, root: BodyId) -> bool {
-        self.bodies
-            .get(&root)
-            .is_some_and(|e| self.world.multibody_joints.rigid_body_link(e.0).is_none())
-            && self
-                .robot_parent_joint(root)
-                .is_some_and(|(_, j)| j.initial.parent.is_none())
+        self.bodies.get(&root).is_some_and(|e| {
+            self.world.multibody_joints.rigid_body_link(e.0).is_none()
+                || !self.joints.records.values().any(|j| {
+                    matches!(j.handle, Handle::Reduced(_))
+                        && (j.initial.child == root || j.initial.parent == Some(root))
+                })
+        }) && self
+            .robot_parent_joint(root)
+            .is_some_and(|(_, j)| j.initial.parent.is_none())
     }
     pub(crate) fn robot_member(&self, root: BodyId, mut body: BodyId) -> bool {
         // Impulse graphs can be made programmatically as well as through the SDF tree loader.
@@ -173,16 +176,6 @@ impl RapierBackend {
             let Handle::Impulse(handle) = joint.handle else {
                 return Err(defer("expected an impulse joint"));
             };
-            // Positive speed stops attach moving native reference bodies. Sleeping only
-            // the public links would split the active solver island and corrupt its wake.
-            if self
-                .joints
-                .speed_caps
-                .get(&joint_id)
-                .is_some_and(|caps| caps.iter().flatten().any(|cap| cap.limit() > 0.))
-            {
-                return Err(defer("mounted robot has moving speed-limit references"));
-            }
             if !self
                 .world
                 .impulse_joints
@@ -257,6 +250,15 @@ impl RapierBackend {
                 ));
             }
         }
+        if self.joints.speed_caps.iter().any(|(id, caps)| {
+            members.contains(&self.joints.records[id].initial.child)
+                && caps.iter().flatten().any(|cap| cap.limit() > 0.)
+        }) && self.foreign_body_moving(&handles)
+        {
+            return Err(defer(
+                "speed-limited parking needs stationary external bodies",
+            ));
+        }
         // The first native solve establishes narrow-phase contact pairs and processes
         // new restraints. Until then an apparently unloaded mount can already touch a load.
         if self.joints.construction_open() {
@@ -276,12 +278,14 @@ impl RapierBackend {
             ArticulationTier::Prescribed if self.mounted_tier(root) == target => {}
             ArticulationTier::Prescribed => {
                 let handles = self.validate_mounted_park(root, dt)?;
+                self.park_speed_references(root, &handles)?;
                 for &h in &handles {
                     self.world.bodies[h].sleep();
                 }
                 self.parked_robots.insert(root, handles);
             }
             ArticulationTier::Dynamic => {
+                self.resume_speed_references(root);
                 if let Some(handles) = self.parked_robots.remove(&root) {
                     for h in handles {
                         self.world.islands.wake_up(&mut self.world.bodies, h, true);

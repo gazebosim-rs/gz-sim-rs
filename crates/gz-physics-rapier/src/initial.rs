@@ -120,6 +120,7 @@ impl RapierBackend {
         self.held_wrenches.clear();
         self.spinning_assemblies.clear();
         self.parked_robots.clear();
+        self.parked_speed.clear();
         self.held_supports.clear();
         self.support_watch = Default::default();
         self.cold_support_pairs.clear();

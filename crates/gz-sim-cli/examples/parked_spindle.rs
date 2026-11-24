@@ -18,6 +18,7 @@ use serde_json::json;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const XML: &str = include_str!("../../../examples/worlds/local_robot_parked_spindle.sdf");
+const CAPPED: &str = include_str!("../../../examples/worlds/local_robot_capped_spindle.sdf");
 const STEPS: usize = 10_000;
 
 #[derive(Clone, Copy)]
@@ -149,12 +150,14 @@ struct Trial {
     lift_m: f64,
     release_support_ns: f64,
     final_support_n: f64,
+    peak_abs_speed_rad_s: [f64; 2],
+    carried_peak_abs_speed_rad_s: [f64; 2],
     peak_wrist_rad: f64,
     carried_ticks: usize,
 }
-fn load() -> Result<Simulation> {
+fn load(xml: &str) -> Result<Simulation> {
     Ok(load_world_with_sdf_step(
-        XML,
+        xml,
         "parked_spindle.sdf",
         "default",
         &sdformat::NoResources,
@@ -233,6 +236,15 @@ fn run(
         sim.step_exact(1)?;
         costs.push(start.elapsed().as_nanos() as u64);
         let state = r.observe(sim)?;
+        let carried =
+            state.impulses[0] > 0. && state.impulses[1] > 0. && state.impulses[2..] == [0.; 2];
+        for (i, rate) in [state.dq[0], state.dq[2]].into_iter().enumerate() {
+            out.peak_abs_speed_rad_s[i] = out.peak_abs_speed_rad_s[i].max(rate.abs());
+            if carried {
+                out.carried_peak_abs_speed_rad_s[i] =
+                    out.carried_peak_abs_speed_rad_s[i].max(rate.abs());
+            }
+        }
         let tier = model_fidelity(sim, r.model)?;
         if prior == Tier::Prescribed && tier == Tier::Dynamic {
             out.wake_at.push(tick);
@@ -250,11 +262,7 @@ fn run(
         if (3801..=4250).contains(&tick) {
             out.peak_wrist_rad = out.peak_wrist_rad.max(state.q[2].abs());
         }
-        if (3201..=4250).contains(&tick)
-            && state.impulses[0] > 0.
-            && state.impulses[1] > 0.
-            && state.impulses[2..] == [0.; 2]
-        {
+        if (3201..=4250).contains(&tick) && carried {
             out.carried_ticks += 1;
         }
         if tick == 8350 {
@@ -275,12 +283,12 @@ fn p95(values: &[u64]) -> u64 {
     v.sort_unstable();
     v[(v.len() * 95).div_ceil(100) - 1]
 }
-fn record(output: &Path) -> Result<serde_json::Value> {
-    let sdf = sdformat::load_str(XML, "parked_spindle.sdf", &sdformat::NoResources)?;
+fn record(output: &Path, xml: &str) -> Result<serde_json::Value> {
+    let sdf = sdformat::load_str(xml, "parked_spindle.sdf", &sdformat::NoResources)?;
     let one = |switched| -> Result<_> {
         let mut frames = vec![];
         let trial = run(
-            &mut load()?,
+            &mut load(xml)?,
             |s| {
                 frames.push(gz_sim_cli::primitive_frame(
                     s,
@@ -386,7 +394,14 @@ fn main() -> Result<()> {
         .ok_or("supply an unused recording directory")?;
     let path = Path::new(&output);
     std::fs::create_dir(path)?;
-    let report = serde_json::to_string_pretty(&record(path)?)?;
+    let report = serde_json::to_string_pretty(&record(
+        path,
+        if std::env::args().nth(2).as_deref() == Some("--capped") {
+            CAPPED
+        } else {
+            XML
+        },
+    )?)?;
     std::fs::write(path.join("comparison.json"), &report)?;
     println!("{report}");
     Ok(())
@@ -398,7 +413,7 @@ mod tests {
 
     #[test]
     fn parking_keeps_loaded_contacts_and_reset_reproduces_the_entire_cycle() -> Result<()> {
-        let mut sim = load()?;
+        let mut sim = load(XML)?;
         let mut before = Vec::new();
         for pass in 0..2 {
             let (trial, states, _) = run(&mut sim, |_| Ok(()), true)?;
@@ -437,9 +452,55 @@ mod tests {
     }
 
     #[test]
+    fn both_speed_stops_limit_the_loaded_robot_after_each_wake() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let report = record(dir.path(), CAPPED)?;
+        for trial in ["dynamic", "switched"] {
+            let r = &report[trial];
+            assert_eq!(r["carried_ticks"], 1050);
+            assert!(r["lift_m"].as_f64().unwrap() > 0.125);
+            assert!((r["final_support_n"].as_f64().unwrap() - 1.962).abs() < 1e-4);
+            for (index, limit) in [0.60, 0.22].into_iter().enumerate() {
+                for key in ["peak_abs_speed_rad_s", "carried_peak_abs_speed_rad_s"] {
+                    assert!(
+                        (r[key][index].as_f64().unwrap() - limit).abs() < 1e-5,
+                        "{key}: {r}"
+                    );
+                }
+            }
+        }
+        assert_eq!(report["switched"]["parked_ticks"], 750);
+        assert_eq!(report["switched"]["wake_at"], json!([1251, 9501]));
+        assert!(
+            report["switched"]["loaded_refusal"]
+                .as_str()
+                .unwrap()
+                .contains("external contact")
+        );
+        assert!(report["max_all_link_position_error_m"].as_f64().unwrap() < 1e-5);
+        assert!(
+            report["max_impulse_error_ns"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|v| v.as_f64().unwrap() < 2e-6)
+        );
+        Ok(())
+    }
+
+    #[test]
     fn a_recording_error_stops_on_the_last_measured_public_boundary() -> Result<()> {
+        let archive = tempfile::tempdir()?;
+        assert!(record(archive.path(), "<sdf").is_err());
+        assert!(
+            record(
+                archive.path(),
+                r#"<sdf version="1.12"><world name="other"/></sdf>"#
+            )
+            .is_err()
+        );
         for tick in [0, 40] {
-            let mut sim = load()?;
+            let mut sim = load(XML)?;
             let error = run(
                 &mut sim,
                 |s| {
@@ -454,7 +515,7 @@ mod tests {
             assert_eq!(error.to_string(), "archive write failed");
             assert_eq!(sim.elapsed().as_millis(), tick);
         }
-        let mut sim = load()?;
+        let mut sim = load(XML)?;
         sim.world()
             .resource::<gz_sim_core::StepFault>()
             .report(std::io::Error::other("broken solver"));
@@ -466,7 +527,7 @@ mod tests {
     #[test]
     fn continuously_solved_control_and_native_archive_bound_the_switching_error() -> Result<()> {
         let dir = tempfile::tempdir()?;
-        let report = record(dir.path())?;
+        let report = record(dir.path(), XML)?;
         for branch in ["dynamic", "switched"] {
             let r = &report[branch];
             assert_eq!(r["first_jaw"][0][0], 1274);

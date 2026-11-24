@@ -374,7 +374,7 @@ fn each_wrist_axis_needs_balance_and_active_inputs_keep_the_robot_dynamic() {
 }
 
 #[test]
-fn moving_speed_references_prevent_partial_sleep_but_a_fixed_speed_stop_can_park() {
+fn moving_and_held_speed_stops_park_and_wake_on_torque() {
     for cap in [0., 0.8] {
         let mut b = RapierBackend::new([0.; 3]).unwrap();
         let r = body(&mut b, 0.);
@@ -394,12 +394,222 @@ fn moving_speed_references_prevent_partial_sleep_but_a_fixed_speed_stop_can_park
         b.set_world_joint_speed_limits(j, [Some(cap), None])
             .unwrap();
         b.step(DT).unwrap();
-        if cap > 0. {
-            refused(&mut b, r, r, "moving speed-limit references");
-        } else {
-            b.switch_articulation(r, Prescribed, DT).unwrap();
+        b.switch_articulation(r, Prescribed, DT).unwrap();
+        for _ in 0..20 {
             b.step(DT).unwrap();
             assert_eq!(b.articulation_tier(r).unwrap(), Prescribed);
         }
+        for _ in 0..100 {
+            b.add_joint_effort(j, 2.).unwrap();
+            b.step(DT).unwrap();
+            assert_eq!(b.articulation_tier(r).unwrap(), Dynamic);
+        }
+        let v = b.joint_state(j).unwrap().velocity;
+        assert!((v - cap).abs() < 1e-5, "{v} vs {cap}");
     }
+}
+
+#[test]
+fn off_center_collision_restores_private_cap_spins_before_the_impact_solve() {
+    let run = |park| {
+        let mut b = RapierBackend::new([0.; 3]).unwrap();
+        let base = body(&mut b, 0.);
+        let tip = body(&mut b, 0.3);
+        let j = b
+            .add_robot_joint(
+                None,
+                base,
+                [0.; 3],
+                RobotJoint::Screw {
+                    axis: [0., 0., 1.],
+                    pitch: 0.2,
+                    effort_limit: 2.,
+                    limits: None,
+                },
+            )
+            .unwrap();
+        b.set_joint_angular_speed_limits(j, [Some(0.5), None])
+            .unwrap();
+        let w = b
+            .add_robot_joint(
+                Some(base),
+                tip,
+                [0.3, 0., 0.],
+                RobotJoint::Universal {
+                    axes: [[1., 0., 0.], [0., 1., 0.]],
+                    limits: [None; 2],
+                    effort_limits: [2.; 2],
+                },
+            )
+            .unwrap();
+        b.set_joint_angular_speed_limits(w, [Some(0.4), Some(0.3)])
+            .unwrap();
+        b.set_robot_root_iterations(base, 41).unwrap();
+        let ball = b
+            .spawn(BodySpec {
+                shape: Shape::Sphere { radius: 0.05 },
+                position: [0.3, -0.32, 0.02],
+                velocity: [0., 0., 0.],
+                mass: Some(1.),
+            })
+            .unwrap();
+        b.step(DT).unwrap();
+        if park {
+            b.switch_articulation(base, Prescribed, DT).unwrap();
+        }
+        for tick in 2..=300 {
+            if tick == 42 {
+                b.apply_impulse(ball, [0., 1., 0.], [0.; 3]).unwrap();
+                if !park {
+                    refused(&mut b, base, tip, "stationary external bodies");
+                }
+            }
+            b.step(DT).unwrap();
+            if let Some(c) = b
+                .rigid_contact_observations()
+                .iter()
+                .find(|c| c.normal_impulse > 0.)
+            {
+                let jn = c.normal_impulse;
+                assert_eq!(b.articulation_tier(base).unwrap(), Dynamic);
+                return (
+                    tick,
+                    jn,
+                    b.state(ball).unwrap().velocity,
+                    b.joint_state(j).unwrap().velocity,
+                );
+            }
+            if park && tick < 35 {
+                assert_eq!(
+                    b.articulation_tier(base).unwrap(),
+                    Prescribed,
+                    "early wake at {tick}"
+                );
+            }
+        }
+        panic!("missed impact")
+    };
+    let (a, b) = (run(false), run(true));
+    eprintln!("first capped impact always dynamic {a:?}, parked {b:?}");
+    assert_eq!(a.0, b.0, "{a:?} {b:?}");
+    assert!((a.1 - b.1).abs() < 1e-6, "{a:?} {b:?}");
+    assert!(a.2.iter().zip(b.2).all(|(x, y)| (x - y).abs() < 1e-6));
+    assert!(
+        (a.3 - b.3).abs() < 1e-6 && b.3.abs() > 0.01 && b.3.abs() <= 0.501,
+        "{a:?} {b:?}"
+    );
+}
+
+#[test]
+fn removing_a_parked_speed_bearing_or_joint_resumes_surviving_links() {
+    for remove_body in [false, true] {
+        let mut b = RapierBackend::new([0.; 3]).unwrap();
+        let base = body(&mut b, 0.);
+        let tip = body(&mut b, 0.3);
+        b.add_robot_joint(None, base, [0.; 3], RobotJoint::Fixed)
+            .unwrap();
+        let w = b
+            .add_robot_joint(
+                Some(base),
+                tip,
+                [0.3, 0., 0.],
+                RobotJoint::Universal {
+                    axes: [[1., 0., 0.], [0., 1., 0.]],
+                    limits: [None; 2],
+                    effort_limits: [2.; 2],
+                },
+            )
+            .unwrap();
+        b.set_joint_angular_speed_limits(w, [Some(0.4), Some(0.3)])
+            .unwrap();
+        b.step(DT).unwrap();
+        b.switch_articulation(base, Prescribed, DT).unwrap();
+        if remove_body {
+            assert!(b.remove(tip));
+        } else {
+            assert!(b.remove_joint(w));
+        }
+        b.step(DT).unwrap();
+        assert_eq!(b.articulation_tier(base).unwrap(), Dynamic);
+        assert!(
+            b.state(base)
+                .unwrap()
+                .position
+                .iter()
+                .all(|v| v.is_finite())
+        );
+    }
+}
+
+#[test]
+fn newly_falling_payload_repeats_the_interval_once_with_live_speed_limits() {
+    let trial = |park| {
+        let mut b = RapierBackend::new([0., 0., -9.81]).unwrap();
+        let root = body(&mut b, 0.);
+        let w = b
+            .add_robot_joint(
+                None,
+                root,
+                [0.; 3],
+                RobotJoint::Universal {
+                    axes: [[1., 0., 0.], [0., 1., 0.]],
+                    limits: [None; 2],
+                    effort_limits: [2.; 2],
+                },
+            )
+            .unwrap();
+        b.set_joint_angular_speed_limits(w, [Some(0.4), Some(0.3)])
+            .unwrap();
+        b.step(DT).unwrap();
+        if park {
+            b.switch_articulation(root, Prescribed, DT).unwrap();
+        }
+        for _ in 0..5 {
+            b.step(DT).unwrap();
+        }
+        if park {
+            assert_eq!(b.articulation_tier(root).unwrap(), Prescribed);
+        }
+        let falling = body(&mut b, 4.);
+        b.step(DT).unwrap();
+        assert_eq!(b.articulation_tier(root).unwrap(), Dynamic);
+        b.state(falling).unwrap()
+    };
+    let (a, b) = (trial(false), trial(true));
+    assert!((b.velocity[2] + 0.00981).abs() < 1e-12);
+    assert_eq!(a, b);
+}
+
+#[test]
+fn a_public_reduced_joint_cannot_be_claimed_as_a_private_speed_reference() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let base = body(&mut b, 0.);
+    let tip = body(&mut b, 0.3);
+    let j = b
+        .add_robot_joint(
+            None,
+            base,
+            [0.; 3],
+            RobotJoint::Screw {
+                axis: [0., 0., 1.],
+                limits: None,
+                pitch: 0.2,
+                effort_limit: 3.,
+            },
+        )
+        .unwrap();
+    b.set_joint_angular_speed_limits(j, [Some(0.6), None])
+        .unwrap();
+    assert!(
+        b.add_reduced_revolute(Some(base), tip, [0.1, 0., 0.], [1., 0., 0.])
+            .is_err()
+    );
+    let free = body(&mut b, 0.6);
+    b.add_reduced_revolute(Some(free), tip, [0.45, 0., 0.], [1., 0., 0.])
+        .unwrap();
+    b.step(DT).unwrap();
+    let before = b.state(tip);
+    assert!(b.switch_articulation(free, Prescribed, DT).is_err());
+    assert!(b.switch_articulation(tip, Prescribed, DT).is_err());
+    assert_eq!(b.state(tip), before);
 }
