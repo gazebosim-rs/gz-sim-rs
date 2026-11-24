@@ -170,7 +170,8 @@
     "renderer": "WebGPU",
     "reset_ms": 0.0,
     "source_trajectories": 1,
-    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10040%2F"
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10040%2F",
+    "camera": "perspective"
   },
   "coverage": {
     "crates/gz-physics-multifidelity/src/lib.rs": {

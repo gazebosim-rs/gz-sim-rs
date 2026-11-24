@@ -292,7 +292,7 @@ pub(super) fn record(out: &Path, stabilize: bool, substeps: u8) -> Result<()> {
         ("trace.json", serde_json::to_value(first)?),
         (
             "frames.json",
-            json!({"kind":"authored-archive-v1","dt_ns":1,"camera":"right","captures":captures}),
+            json!({"kind":"authored-archive-v1","dt_ns":1,"camera":"perspective","captures":captures}),
         ),
     ] {
         fs::write(out.join(name), serde_json::to_vec_pretty(&value)?)?;
