@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Keep the sheet and 1 ms robot controller fixed while varying jaw density and pad stiffness.
+#[path = "sheet_jaws/contact_windows.rs"]
+pub(super) mod contact_windows;
 #[path = "sheet_jaws/convergence.rs"]
 pub(super) mod convergence;
 #[path = "sheet_jaws/force_view.rs"]

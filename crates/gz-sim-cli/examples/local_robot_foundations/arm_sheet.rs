@@ -209,6 +209,7 @@ pub(super) struct Metrics {
 }
 #[derive(Debug, Default, serde::Serialize)]
 pub(super) struct PanelBalance {
+    contact_windows: crate::sheet_jaws::contact_windows::ContactWindows,
     normal_up_n: [f64; 2],
     tangent_up_n: [f64; 2],
     momentum_change_per_second_n: [f64; 2],
@@ -504,6 +505,7 @@ pub(super) fn simulate_with_jaw_damping(
             );
         }
         let mut jaw_z = 0.;
+        let mut nearest_gap = [f64::INFINITY; 2];
         for (index, id) in jaws.into_iter().enumerate() {
             let jaw = state(&r.sim, id)?;
             jaw_z += jaw.position[2] * 0.5;
@@ -512,12 +514,15 @@ pub(super) fn simulate_with_jaw_damping(
                 m.mean_hold_jaw_squeeze_n[index] +=
                     (inv * js[index]).x * if index == 0 { -1. } else { 1. } / hold_duration;
             }
-            for p in points {
+            for (id, p) in points.iter().enumerate() {
                 let q = (inv * (DVec3::from(p.position) - DVec3::from(jaw.position))).abs()
                     - pads[index];
-                m.max_compression_m = m
-                    .max_compression_m
-                    .max(RADIUS - q.max(DVec3::ZERO).length() - q.max_element().min(0.));
+                let outside = q.max(DVec3::ZERO).length();
+                let inside = q.max_element().min(0.);
+                m.max_compression_m = m.max_compression_m.max(RADIUS - outside - inside);
+                if m.panel_balance.is_some() && panel(id) == index {
+                    nearest_gap[index] = nearest_gap[index].min(outside + inside - RADIUS);
+                }
             }
         }
         let mut heights = [0.; 2];
@@ -536,6 +541,14 @@ pub(super) fn simulate_with_jaw_damping(
             }
         }
         if HOLD.contains(&tick) {
+            if let Some(balance) = &mut m.panel_balance {
+                balance.contact_windows.observe(
+                    native_tick as u64 * native_ns as u64,
+                    native_ns as u64,
+                    same_panel_normal,
+                    nearest_gap,
+                );
+            }
             if native_tick == (*HOLD.start() - 1) * exchanges + 1 {
                 relative_at_hold_start = heights;
             }
