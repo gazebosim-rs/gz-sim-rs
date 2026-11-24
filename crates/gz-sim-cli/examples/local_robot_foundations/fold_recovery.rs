@@ -150,7 +150,7 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
         actions.drive(k, &mut grasp, phase, force).map_err(|err| {
             format!("{columns}-point {peak_mn} mN guard={enabled} tick {k} stroke={} lower={:?} open={:?} last={:?}: {err} ({:?})", grasp.stroke, actions.lower, actions.open, grasp.trace.last(), grasp.recording.sim.fault())
         })?;
-        step_costs.push((k, start.elapsed().as_nanos() as u64));
+        step_costs.push([k as u64, start.elapsed().as_nanos() as u64]);
         let last = baseline + k;
         actions.observe(
             k,
@@ -218,10 +218,7 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
     )?;
     if end == End::Rest {
         write_json(&dir.join("rest.json"), &rest.report())?;
-        write_json(
-            &dir.join("step-cost-ns.json"),
-            &serde_json::to_value(step_costs)?,
-        )?;
+        write_json(&dir.join("step-cost-ns.json"), &step_costs.into())?;
     }
     if let Some(impact) = &landing {
         write_json(&dir.join("landing.json"), impact)?;

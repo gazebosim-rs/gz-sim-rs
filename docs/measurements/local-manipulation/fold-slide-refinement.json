@@ -162,5 +162,57 @@
         "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9897%2F"
       }
     }
-  ]
+  ],
+  "changed_source_coverage_against_84569c9": {
+    "crates/gz-physics-xpbd/src/coupled.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        7,
+        7
+      ]
+    },
+    "crates/gz-physics-xpbd/src/coupled/shell_retry.rs": {
+      "lines": [
+        51,
+        51
+      ],
+      "regions": [
+        72,
+        73
+      ]
+    },
+    "crates/gz-physics-xpbd/src/surface.rs": {
+      "lines": [
+        25,
+        25
+      ],
+      "regions": [
+        43,
+        43
+      ]
+    },
+    "crates/gz-physics-xpbd/src/surface/position.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        0,
+        0
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/fold_recovery.rs": {
+      "lines": [
+        4,
+        4
+      ],
+      "regions": [
+        12,
+        12
+      ]
+    }
+  }
 }

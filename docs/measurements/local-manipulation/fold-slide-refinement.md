@@ -21,6 +21,8 @@ The ordinary solve still processes impacts in time order. After its uniform refi
 
 Both five-column runs and the guarded seven-column run reproduced their former particle and force traces. The seven-column control first changed at postgrip tick 737. Its greatest subsequent difference from the previous recording was 0.2593 mm at a sampled particle. The first landing impulse remained 1.75655 mN·s. Both seven-column runs passed 50 consecutive milliseconds of independent velocity, ground-load and unloaded-jaw checks at rest. gz-web-rs verified 401 frames, 11,228 independent particle positions and rewind in the two finer runs. Geometry checks found zero triangle intersections between the two panels or with the jaw cores across all recorded frames.
 
+The 182 ordinary XPBD tests and the release matched-state test passed. A second instrumented run reproduced both seven-column particle, force, impact and rest traces and replay bytes. The changed solver lines reached 78/78 and the changed regions reached 122/123. The timing recorder covered 4/4 lines and 12/12 regions, including a failed write that left the requested destination unpublished.
+
 ## Reproduce
 
 Run the matched-state regression in release mode. It reconstructs the original SDF material limits, uses the recorded native poses of both jaws, advances the public solver, runs the older subdivision and recomputes the fine reference. It prints timings and errors separately for each solve. Numerical agreement is checked against the retained 28-particle reference. The timed fold example also writes one controller-and-solve duration in nanoseconds for every postgrip tick in each case's `step-cost-ns.json`.

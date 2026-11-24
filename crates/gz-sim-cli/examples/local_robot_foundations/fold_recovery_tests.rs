@@ -178,3 +178,36 @@ fn rest_requires_fifty_consecutive_supported_unloaded_quiet_ticks() {
     assert_eq!(report["consecutive_ticks"], 50);
     assert_eq!(report["observations"][101], json!([102, 0.001, 1.]));
 }
+
+#[test]
+#[ignore = "runs the measured five-column case twice through rest in release mode"]
+fn step_cost_recording_and_refused_output_preserve_the_completed_trial() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    for blocked in [false, true] {
+        let destination = temp
+            .path()
+            .join(if blocked { "blocked" } else { "complete" });
+        let case = "mesh-5-1250-guard";
+        let result = write_new(&destination, |stage| {
+            if blocked {
+                fs::create_dir_all(stage.join(case).join("step-cost-ns.json"))?;
+            }
+            branch(5, 1250, true, stage, End::Rest).map(|_| ())
+        });
+        if blocked {
+            assert!(result.is_err());
+            assert!(!destination.exists());
+        } else {
+            result?;
+            let costs: Vec<[u64; 2]> = serde_json::from_slice(&fs::read(
+                destination.join(case).join("step-cost-ns.json"),
+            )?)?;
+            assert_eq!(costs.len(), 1588);
+            for (tick, [observed, nanos]) in costs.into_iter().enumerate() {
+                assert_eq!(observed, tick as u64 + 1);
+                assert!(nanos > 0);
+            }
+        }
+    }
+    Ok(())
+}
