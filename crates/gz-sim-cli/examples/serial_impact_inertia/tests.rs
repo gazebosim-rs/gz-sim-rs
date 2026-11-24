@@ -260,3 +260,36 @@ fn failed_native_timing_never_returns_a_partial_latency_sample() -> Result<()> {
     assert!(run(reference.trial).is_err());
     Ok(())
 }
+
+#[test]
+fn impact_iteration_budget_only_applies_to_the_selected_interval() -> Result<()> {
+    for arguments in [
+        vec!["study", "--impact-iterations", "8"],
+        vec!["study", "--automatic", "--impact-iterations", "0"],
+        vec!["study", "--automatic", "--impact-iterations", "33"],
+    ] {
+        assert!(Args::try_parse_from(arguments).is_err());
+    }
+    let trial = Args::try_parse_from([
+        "study",
+        "--automatic",
+        "--impact-iterations",
+        "8",
+        "--substeps",
+        "40",
+        "--ticks",
+        "3",
+    ])?
+    .trial;
+    assert!(fixture(&trial).contains("<solver_iterations>8</solver_iterations>"));
+    let run = run(trial)?;
+    assert_eq!(
+        run.samples
+            .iter()
+            .map(|s| s.native_steps)
+            .collect::<Vec<_>>(),
+        [40, 1, 1]
+    );
+    assert!(run.samples[0].impact.left_ns > 0.);
+    Ok(())
+}
