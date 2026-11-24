@@ -240,6 +240,13 @@ impl RapierBackend {
             return Err(PhysicsError::MissingBody);
         }
         let key = (body.min(support), body.max(support));
+        if let Some(rows) = &self.exchange_reactions {
+            let mut r = rows.get(&key).map(|row| row.1).unwrap_or_default();
+            if body != key.0 {
+                r.impulse = (-Vector::from(r.impulse)).to_array();
+            }
+            return Ok(Some(r));
+        }
         if self.curves.steps != 0 {
             let Some(rows) = &self.curves.normal_reactions else {
                 return Ok(None);

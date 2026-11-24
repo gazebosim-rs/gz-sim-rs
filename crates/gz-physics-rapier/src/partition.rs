@@ -216,6 +216,9 @@ impl RapierBackend {
     /// Includes speculative pairs, allowing transfer to detect any contact
     /// history even when its solver impulse or active contact count is zero.
     pub fn rigid_contact_observations(&self) -> Vec<RigidContactObservation> {
+        if let Some(rows) = &self.exchange_reactions {
+            return rows.values().map(|row| row.0).collect();
+        }
         let mut pairs = self.world.narrow_phase.contact_pairs().peekable();
         if pairs.peek().is_none() {
             return Vec::new();

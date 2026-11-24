@@ -69,6 +69,7 @@ mod checkpoint;
 mod inertia_frame;
 mod initial;
 mod joints;
+pub use joints::ExchangeInputs;
 pub use joints::{
     ArticulatedContactSample, ArticulatedContactSite, ArticulatedContactTransaction,
     ArticulatedImpulseReport, ArticulatedNativeInterval, ArticulatedSweep, BoundPointInterval,
@@ -179,6 +180,8 @@ pub struct RapierBackend {
     welded_exclusion: Option<(usize, usize, usize)>,
     next_id: u64,
     pending_wrenches: BTreeSet<BodyId>,
+    exchange_reactions:
+        Option<BTreeMap<(BodyId, BodyId), (RigidContactObservation, NormalReaction)>>,
     // An upper bound after velocity edits or removal. Recompute the live maximum
     // only when this bound could exceed the allowed angular travel for a step.
     max_boundary_spin: f64,
@@ -419,6 +422,7 @@ impl RapierBackend {
             joints: joints::Joints::default(),
             next_id: 0,
             pending_wrenches: BTreeSet::new(),
+            exchange_reactions: None,
             max_boundary_spin: 0.0,
             held_wrenches: BTreeMap::new(),
             #[cfg(feature = "landing-audit")]
@@ -899,6 +903,9 @@ impl DynamicBackend for RapierBackend {
             self.rejoin_fleet();
         }
         if let Some((handle, ..)) = self.bodies.remove(&id) {
+            if let Some(rows) = &mut self.exchange_reactions {
+                rows.retain(|&(a, b), _| a != id && b != id);
+            }
             self.release_welded_projection();
             self.support_watch.retire(handle);
             self.retire_support_body(handle);
@@ -1086,6 +1093,7 @@ impl DynamicBackend for RapierBackend {
             self.join_queries_pending = false;
         }
         self.pending_wrenches.clear();
+        self.exchange_reactions = None;
         self.release_welded_projection();
         self.held_wrenches.clear();
         self.spinning_assemblies.clear();

@@ -429,6 +429,7 @@ fn parse(
             "name",
             "filename",
             "worker_threads",
+            "rigid_exchanges",
             "worker_processes",
             "worker_transport",
             "worker_warm_budget_ms",
@@ -838,6 +839,7 @@ fn parse(
                 .into(),
         );
     }
+    let exchanges = exchange::admit(root, &initial, &surfaces, dt)?;
     let samples = initial
         .iter()
         .map(|(name, body)| {
@@ -887,6 +889,8 @@ fn parse(
         worker_threads: threads,
         #[cfg(feature = "distributed-physics")]
         remote_material: false,
+        exchanges,
+        pending_pad_impulses: BTreeMap::new(),
         visuals,
         automatic_impact,
         automatic_consumed: false,
@@ -954,7 +958,7 @@ pub(crate) fn install(
                 .before(crate::sync_bodies),
         );
     }
-    if soft.automatic_impact.is_none() {
+    if soft.automatic_impact.is_none() && soft.exchanges == 1 {
         sim.add_systems(
             Phase::PhysicsPrepare,
             start_positions.after(crate::inputs::apply),

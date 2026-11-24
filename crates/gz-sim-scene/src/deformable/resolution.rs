@@ -44,6 +44,7 @@ pub fn set_material_resolution(
     {
         return Err(RemoteOwner);
     }
+    let ns = sim.step_duration().as_nanos();
     let mut soft = sim
         .world_mut()
         .get_resource_mut::<Deformables>()
@@ -51,6 +52,9 @@ pub fn set_material_resolution(
     #[cfg(feature = "distributed-physics")]
     if soft.remote_material {
         return Err(RemoteOwner);
+    }
+    if u128::from(substeps) * u128::from(soft.exchanges) > ns {
+        return Err(InvalidResolution);
     }
     let shared_clock = soft.surfaces.iter().any(|surface| {
         matches!(

@@ -65,6 +65,12 @@ impl Deformables {
         physics: &mut PhysicsBackend,
         dt: Duration,
     ) -> Result<(), CouplingError> {
+        self.with_forces(|soft| soft.advance(physics, dt))
+    }
+    pub(super) fn with_forces<T>(
+        &mut self,
+        solve: impl FnOnce(&mut Self) -> Result<T, CouplingError>,
+    ) -> Result<T, CouplingError> {
         for (name, acceleration) in &self.pending_accelerations {
             self.current
                 .get_mut(name)
@@ -72,7 +78,7 @@ impl Deformables {
                 .set_gravity(*acceleration)
                 .expect("validated acceleration");
         }
-        let step = self.advance(physics, dt);
+        let step = solve(self);
         // Restore the authored field even if integration fails. Potential-energy queries,
         // future solver steps and checkpoints always see the ordinary gravitational field.
         for name in self.pending_accelerations.keys() {

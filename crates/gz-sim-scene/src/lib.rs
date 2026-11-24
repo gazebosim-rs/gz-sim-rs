@@ -1174,6 +1174,14 @@ fn load_world_with_automatic_owner(
                     ));
                 }
                 primary_contact::install(&mut sim, backend, plan)?;
+            } else if deformable::exchange::enabled(sim.world()) {
+                if distributed_worker.is_some() {
+                    return Err(LoadError::Deformable {
+                        world: world_name.into(),
+                        reason: "rigid_exchanges requires local material ownership".into(),
+                    });
+                }
+                gz_physics::install_with_step(&mut sim, backend, deformable::exchange::step)?;
             } else if deformable::automatic_impact(sim.world()) {
                 #[cfg(feature = "distributed-physics")]
                 if let Some(exe) =

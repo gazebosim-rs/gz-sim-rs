@@ -9,6 +9,7 @@
 //! tick applies their sum at the link center of mass through its joint constraints.
 //! `normal_compliance` sets per-particle normal contact compliance in m/N and defaults to zero.
 mod boundary_path;
+pub(super) mod exchange;
 mod force;
 pub use force::{MaterialForceError, set_material_force};
 mod particle_visual;
@@ -164,6 +165,8 @@ pub(crate) struct Deformables {
     pub(super) worker_transport: gz_physics_distributed::moving::WorkerTransport,
     #[cfg(feature = "distributed-physics")]
     remote_material: bool,
+    exchanges: u32,
+    pending_pad_impulses: BTreeMap<BodyId, (DVec3, DVec3)>,
     visuals: Vec<particle_visual::Binding>,
     automatic_impact: Option<articulated_impact::ScheduledImpact>,
     automatic_consumed: bool,
@@ -201,6 +204,8 @@ pub struct CapsuleForcing {
 #[derive(Default)]
 pub struct DeformableSample {
     movable_mass_kg: f64,
+    exchange_shell: Vec<gz_physics_xpbd::ShellConstraintImpulse>,
+    exchanges: u32,
     supports: Vec<articulated_impact::ArticulatedSupportInterval>,
     impacts_this_step: Vec<std::sync::Arc<articulated_impact::ArticulatedMaterialImpact>>,
     impact_count: u64,
@@ -235,6 +240,10 @@ impl DeformableSample {
         &self.supports
     }
 
+    /// Completed rigid/material exchanges in this accepted public tick.
+    pub fn rigid_material_exchanges(&self) -> u32 {
+        self.exchanges
+    }
     /// All accepted contacts in chronological order in this public physics step.
     pub fn impacts_this_step(
         &self,
@@ -381,11 +390,12 @@ pub fn shell_constraint_impulses<'a>(
     if sim.is_faulted() {
         return None;
     }
-    sim.world()
-        .get_resource::<Deformables>()?
-        .current
-        .get(name)
-        .map(SoftBody::last_shell_constraint_impulses)
+    let soft = sim.world().get_resource::<Deformables>()?;
+    if soft.exchanges > 1 {
+        Some(&soft.samples.get(name)?.exchange_shell)
+    } else {
+        Some(soft.current.get(name)?.last_shell_constraint_impulses())
+    }
 }
 
 /// Query spring restoring forces on the committed nodes of one named material.
@@ -407,6 +417,7 @@ fn reset(info: Res<UpdateInfo>, mut soft: ResMut<Deformables>) {
     let soft = &mut *soft;
     soft.pending_accelerations.clear();
     soft.pad_wrenches.clear();
+    soft.pending_pad_impulses.clear();
     soft.current.clone_from(&soft.initial);
     soft.automatic_consumed = false;
     soft.starts.fill(None);
@@ -513,6 +524,8 @@ impl Deformables {
     fn publish(&mut self, time: Duration, epoch: u64) {
         for (name, body) in &self.current {
             let sample = self.samples.get_mut(name).expect("registered soft body");
+            sample.exchange_shell.clear();
+            sample.exchanges = u32::from(!time.is_zero());
             if time.is_zero() {
                 sample.latest_articulated_impact = None;
                 sample.impact_count = 0;
@@ -866,7 +879,12 @@ impl Deformables {
             let force = linear / dt.as_secs_f64();
             let torque = (angular + offset.cross(linear)) / dt.as_secs_f64();
             if linear != DVec3::ZERO || angular != DVec3::ZERO {
-                backend.add_world_wrench(id, force.to_array(), torque.to_array())?;
+                if self.exchanges > 1 {
+                    self.pending_pad_impulses
+                        .insert(id, (linear, angular + offset.cross(linear)));
+                } else {
+                    backend.add_world_wrench(id, force.to_array(), torque.to_array())?;
+                }
             }
             let Surface::Rigid { link, .. } = self.surfaces[slot] else {
                 return Err(CouplingError::Binding);

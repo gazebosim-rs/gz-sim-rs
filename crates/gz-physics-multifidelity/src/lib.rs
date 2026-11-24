@@ -27,7 +27,7 @@ use gz_physics::{
     PreparedPhysicsReset, RotationSpec,
 };
 use gz_physics_rapier::RapierBackend;
-pub use gz_physics_rapier::{CoatedAnkle, CoatedAnkleStep, ShankContact};
+pub use gz_physics_rapier::{CoatedAnkle, CoatedAnkleStep, ExchangeInputs, ShankContact};
 mod contact_window;
 pub use contact_window::ContactWindow;
 pub use gz_physics::NormalApproach;
@@ -340,6 +340,25 @@ impl MultiFidelityBackend {
             .map_err(engine_error)
     }
 
+    /// Start a local exchange grid after public commands have reached the native solver.
+    pub fn exchange_inputs(
+        &self,
+        dt: Duration,
+        count: u32,
+    ) -> Result<ExchangeInputs, PhysicsError> {
+        self.solver.exchange_inputs(dt, count).map_err(engine_error)
+    }
+    pub fn repeat_exchange_inputs(&mut self, held: &ExchangeInputs) -> Result<(), PhysicsError> {
+        self.solver
+            .repeat_exchange_inputs(held)
+            .map_err(engine_error)
+    }
+    pub fn observe_exchange(&self, held: &mut ExchangeInputs) -> Result<(), PhysicsError> {
+        self.solver.observe_exchange(held).map_err(engine_error)
+    }
+    pub fn finish_exchanges(&mut self, held: ExchangeInputs) -> Result<(), PhysicsError> {
+        self.solver.finish_exchanges(held).map_err(engine_error)
+    }
     pub fn validate_contact_interval(
         &self,
         dt: Duration,

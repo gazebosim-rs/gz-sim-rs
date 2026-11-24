@@ -19,6 +19,8 @@ pub use landing_audit::{
     LandingCachedPoint, LandingFork, LandingRestartState, LandingSolverPoint, LandingTrial,
     RestartPairHistory,
 };
+mod exchange_inputs;
+pub use exchange_inputs::ExchangeInputs;
 mod coated_ankle;
 pub use coated_ankle::{CoatedAnkle, CoatedAnkleStep, ShankContact};
 mod exact_lock;

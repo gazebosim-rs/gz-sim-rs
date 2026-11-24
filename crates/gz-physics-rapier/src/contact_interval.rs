@@ -2375,6 +2375,7 @@ impl RapierBackend {
         coating: Option<collision::SuppressedRows>,
     ) -> Result<(), PhysicsError> {
         if !dt.is_zero() {
+            self.exchange_reactions = None;
             if let FleetClock::Translating(elapsed) = self.fleet_clock {
                 let now = elapsed.checked_add(dt).ok_or(PhysicsError::InvalidValue)?;
                 self.fleet_clock = FleetClock::Translating(now);

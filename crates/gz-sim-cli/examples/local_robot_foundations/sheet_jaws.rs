@@ -5,6 +5,8 @@
 pub(super) mod contact_windows;
 #[path = "sheet_jaws/convergence.rs"]
 pub(super) mod convergence;
+#[path = "sheet_jaws/exchange_audit.rs"]
+mod exchange_audit;
 #[path = "sheet_jaws/force_view.rs"]
 pub(super) mod force_view;
 #[path = "sheet_jaws/interval.rs"]
@@ -22,6 +24,9 @@ pub(crate) struct Settings {
     /// Number of native rigid/material exchanges per 1 ms actuator period.
     #[arg(long, default_value_t = 1)]
     exchanges_per_ms: usize,
+    /// Keep the public Bevy step at 1 ms and exchange pad loads inside it.
+    #[arg(long)]
+    public_exchange_clock: bool,
     /// Measure the signed self-contact impulses delivered to each folded panel.
     #[arg(long)]
     panel_balance: bool,
@@ -157,6 +162,7 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
         pad_damping,
         substeps,
         tune_damping,
+        public_exchange_clock,
         exchanges_per_ms,
         panel_balance,
         bend_damping,
@@ -165,14 +171,32 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
         substeps,
         ..Default::default()
     };
-    let xml = timed_scene(
-        scale,
-        compliance,
-        case,
-        exchanges_per_ms,
-        panel_balance,
-        bend_damping,
-    )?;
+    let xml = if public_exchange_clock {
+        if window.is_some()
+            || !(2..=256).contains(&exchanges_per_ms)
+            || !1_000_000_usize.is_multiple_of(exchanges_per_ms)
+        {
+            return Err(
+                "public exchange study requires 2–256 exchanges and full public-step measurements"
+                    .into(),
+            );
+        }
+        scene(scale, compliance, case, panel_balance, bend_damping)?.replace(
+            "filename=\"gz-sim-deformables-system\"",
+            &format!(
+                "filename=\"gz-sim-deformables-system\" rigid_exchanges=\"{exchanges_per_ms}\""
+            ),
+        )
+    } else {
+        timed_scene(
+            scale,
+            compliance,
+            case,
+            exchanges_per_ms,
+            panel_balance,
+            bend_damping,
+        )?
+    };
     let xml = damped_pads(xml, pad_damping)?;
     // With the same position stiffness, this preserves the continuous-time
     // damping ratio of an unloaded jaw. Both force and speed limits remain active.
@@ -202,10 +226,24 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
             json!({"completed":false,"refused_at_tick":fault.tick,"diagnostic":fault.diagnostic})
         }
     };
+    if public_exchange_clock && trial["completed"] == true {
+        let fine = damped_pads(
+            timed_scene(
+                scale,
+                compliance,
+                case,
+                exchanges_per_ms,
+                panel_balance,
+                bend_damping,
+            )?,
+            pad_damping,
+        )?;
+        exchange_audit::check(&xml, &fine, exchanges_per_ms, damping, out)?;
+    }
     fs::write(out.join("world.sdf"), xml)?;
     write_json(
         &out.join("jaw-contact.json"),
-        &json!({"native_step_ns":1_000_000/exchanges_per_ms,"actuator_period_ns":1_000_000,"jaw_density_scale":scale,"jaw_damping_ns_per_m":damping,"pad_compliance_m_per_n":compliance,"pad_damping_ns_per_m":pad_damping,"panel_balance":panel_balance,"bend_damping_nms_per_rad":bend_damping,"substeps":substeps,"trial":trial}),
+        &json!({"native_step_ns":1_000_000/exchanges_per_ms,"public_step_ns":if public_exchange_clock {1_000_000}else{1_000_000/exchanges_per_ms},"actuator_period_ns":1_000_000,"jaw_density_scale":scale,"jaw_damping_ns_per_m":damping,"pad_compliance_m_per_n":compliance,"pad_damping_ns_per_m":pad_damping,"panel_balance":panel_balance,"bend_damping_nms_per_rad":bend_damping,"substeps":substeps,"trial":trial}),
     )
 }
 
@@ -248,6 +286,7 @@ mod tests {
             substeps: 1,
             tune_damping: true,
             exchanges_per_ms: 1,
+            public_exchange_clock: false,
             panel_balance: false,
             bend_damping: 0.,
             pad_damping: 0.,
