@@ -459,7 +459,9 @@ fn early_parallel_jaw_loading_matches_the_fine_impulse_on_both_sides() -> Result
             ..args.trial.clone()
         };
         let primary = run(trial.clone())?;
-        let [fine, rest] = primary.first_early_schedule.unwrap();
+        let Some([fine, rest]) = primary.first_early_schedule.as_deref() else {
+            panic!("expected the fine prefix and the remaining impact grid");
+        };
         assert_eq!(
             (fine.duration, fine.native_steps, rest.native_steps),
             (Duration::from_nanos(93_750), 3750, 58)
