@@ -217,3 +217,32 @@ fn a_predicted_arrival_without_load_does_not_spend_the_next_strike() -> Result<(
     assert!(r.samples[2].impact.left_ns > 0.02);
     Ok(())
 }
+
+#[test]
+fn timing_compares_every_native_body_without_changing_the_actuator_clock() -> Result<()> {
+    for options in [
+        &[][..],
+        &["--automatic", "--substeps", "4"][..],
+        &["--passive-spindle", "capped", "--substeps", "4"][..],
+    ] {
+        let a = Args::try_parse_from(
+            ["impact", "--ticks", "2", "--timing-runs", "2"]
+                .into_iter()
+                .chain(options.iter().copied()),
+        )?;
+        let r = run(a.trial)?;
+        let timed = serde_json::to_value(timing::measure(&r, 2)?)?;
+        assert_eq!(
+            timed["native_calls_per_tick"],
+            serde_json::to_value(r.samples.iter().map(|s| s.native_steps).collect::<Vec<_>>())?
+        );
+        let rows = timed["step_ns_by_run"].as_array().unwrap();
+        assert_eq!(rows.len(), 2);
+        for row in rows {
+            let ns = row.as_array().unwrap();
+            assert_eq!(ns.len(), 2);
+            assert!(ns.iter().all(|t| t.as_u64().unwrap() > 0));
+        }
+    }
+    Ok(())
+}

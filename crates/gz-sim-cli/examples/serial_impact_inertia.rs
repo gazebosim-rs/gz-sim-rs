@@ -19,6 +19,8 @@ mod compare;
 #[cfg(test)]
 #[path = "serial_impact_inertia/tests.rs"]
 mod tests;
+#[path = "serial_impact_inertia/timing.rs"]
+mod timing;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const WORLD: &str = include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf");
@@ -41,6 +43,9 @@ struct Args {
     /// Write the exact authored study world for the ordinary simulator CLI.
     #[arg(long)]
     write_world: Option<PathBuf>,
+    /// Time public steps across newly loaded copies and check all six bodies against the observed reference.
+    #[arg(long, conflicts_with_all = ["compare", "replay"], value_parser = clap::value_parser!(u32).range(1..=1000))]
+    timing_runs: Option<u32>,
 }
 
 #[derive(Clone, Copy, PartialEq, ValueEnum, Serialize)]
@@ -281,11 +286,9 @@ fn states(sim: &Simulation, ids: &[BodyId]) -> Vec<State> {
         .collect()
 }
 
-fn run(trial: Trial) -> Result<Run> {
-    let xml = fixture(&trial);
-    let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
+fn load_robot(trial: &Trial, xml: &str) -> Result<(Simulation, Vec<BodyId>, [Entity; 5])> {
     let mut sim = load_world_with_sdf_step(
-        &xml,
+        xml,
         "serial-impact.sdf",
         "default",
         &sdformat::NoResources,
@@ -300,17 +303,24 @@ fn run(trial: Trial) -> Result<Run> {
     let mut bodies = LINKS
         .map(|(name, _, _)| body(&format!("gripper::{name}")))
         .to_vec();
-    let ids = Contacts {
-        parcel: body("parcel::box"),
-        left: bodies[3],
-        right: bodies[4],
-    };
-    bodies.push(ids.parcel);
+    bodies.push(body("parcel::box"));
     let joint = JOINTS.map(|name| entity(&sim, &format!("gripper::{name}")));
     if trial.passive_spindle.is_some() {
         let id = sim.world().get::<EntityId>(joint[1]).unwrap().get();
         gz_sim_scene::JointForceCommand::set_batch(&mut sim, [(id, 3.)])?;
     }
+    Ok((sim, bodies, joint))
+}
+
+fn run(trial: Trial) -> Result<Run> {
+    let xml = fixture(&trial);
+    let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
+    let (mut sim, bodies, joint) = load_robot(&trial, &xml)?;
+    let ids = Contacts {
+        left: bodies[3],
+        right: bodies[4],
+        parcel: bodies[5],
+    };
     let native = sim
         .world()
         .resource::<PhysicsBackend>()
@@ -437,7 +447,9 @@ fn main() -> Result<()> {
     }
     let report = run(args.trial)?;
     let output = std::io::stdout().lock();
-    if args.compare {
+    if let Some(count) = args.timing_runs {
+        serde_json::to_writer(output, &timing::measure(&report, count)?)?;
+    } else if args.compare {
         serde_json::to_writer_pretty(output, &compare::against_fine(&report)?)?;
     } else {
         serde_json::to_writer(output, &report)?;
