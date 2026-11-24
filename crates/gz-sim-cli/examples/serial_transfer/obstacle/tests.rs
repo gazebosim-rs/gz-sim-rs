@@ -204,6 +204,7 @@ fn incompletely_observed_obstacle_routes_never_issue_the_next_rail_command() -> 
                 output: output.clone(),
                 world: None,
                 travel_ms: 4000,
+                control_ms: 1,
                 pull: None,
             },
             XML

@@ -91,6 +91,7 @@ fn is_zero(value: &usize) -> bool {
 
 pub(super) struct Passage {
     wall: BoxPart,
+    shelf: Option<BoxPart>,
     moving: Vec<BoxPart>,
     pub(super) outcome: PassageOutcome,
 }
@@ -105,15 +106,23 @@ impl Passage {
             .find(|world| world.name == "default")
             .ok_or("missing obstacle route world")?;
         let mut wall = None;
+        let mut shelf = None;
         let mut moving = Vec::new();
         for model in &world.models {
             let obstacle = model.name == "obstacle";
-            if !obstacle && !matches!(model.name.as_str(), "parcel" | "gripper") {
+            if !obstacle && !matches!(model.name.as_str(), "parcel" | "gripper" | "receiver") {
                 continue;
             }
             for link in &model.links {
                 for c in &link.collisions {
+                    let receiver = model.name == "receiver";
+                    if receiver && (link.name != "shelf" || c.name != "top" || !model.is_static) {
+                        continue;
+                    }
                     let sdformat::Geometry::Box { size } = c.geometry else {
+                        if receiver {
+                            continue;
+                        }
                         return Err("route requires cuboid collision geometry".into());
                     };
                     let name = format!("{}::{}", link.scoped_name, c.name);
@@ -132,7 +141,9 @@ impl Passage {
                         body: part(sim, &format!("{}::{}", model.name, link.name))?.body(sim)?,
                         shape: Cuboid::new(Vector::from_array(size) * 0.5),
                     };
-                    if obstacle {
+                    if receiver {
+                        shelf = Some(box_part);
+                    } else if obstacle {
                         if !model.is_static || wall.is_some() {
                             return Err("route requires one fixed obstacle box".into());
                         }
@@ -170,9 +181,35 @@ impl Passage {
         }
         Ok(Self {
             wall,
+            shelf,
             moving,
             outcome,
         })
+    }
+    // The first gap uses the current orientation. The second bounds every
+    // orientation of the parcel about its geometric center at this same height.
+    pub(super) fn receiver_gaps(&self, sim: &Simulation, body: BodyId) -> Result<[f64; 2]> {
+        let parcel = self
+            .moving
+            .iter()
+            .find(|p| p.body == body)
+            .ok_or("missing carried collision")?;
+        let shelf = self
+            .shelf
+            .as_ref()
+            .ok_or("missing fixed receiving shelf box")?;
+        let p = parcel.pose(sim)?;
+        let s = shelf.pose(sim)?;
+        let height = |p: &Pose, shape: &Cuboid| {
+            (p.rotation.inverse() * Vector::Z)
+                .abs()
+                .dot(shape.half_extents)
+        };
+        let above = p.translation.z - (s.translation.z + height(&s, &shelf.shape));
+        Ok([
+            above - height(&p, &parcel.shape),
+            above - parcel.shape.half_extents.length(),
+        ])
     }
     pub(super) fn path_clear(&self, sim: &Simulation, span: f64) -> Result<bool> {
         let wall = self.wall.pose(sim)?;
@@ -206,14 +243,7 @@ impl Passage {
         self.outcome.abort_tick.is_some()
     }
 
-    pub(super) fn record_grip(
-        &mut self,
-        tick: usize,
-        travel: f64,
-        pad: [f64; 2],
-        on_support: bool,
-    ) {
-        let carried = !on_support && pad.iter().all(|n| *n > 0.1);
+    pub(super) fn record_grip(&mut self, tick: usize, travel: f64, carried: bool) {
         if tick == MOVE_START && !carried {
             self.outcome.unsecured_dispatch_tick = Some(tick);
             self.outcome.abort_tick.get_or_insert(tick);

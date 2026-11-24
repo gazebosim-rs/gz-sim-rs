@@ -40,16 +40,16 @@ impl Loads {
             shelf_loaded_traverse_ticks: 0,
         }
     }
-    pub(super) fn observe(&mut self, tick: usize, pad: [f64; 2], tray: bool, shelf: bool) {
-        for (i, force) in pad.into_iter().enumerate() {
+    pub(super) fn observe(&mut self, tick: usize, reading: &cycle::Reading, intervals: usize) {
+        for (i, force) in reading.pad.into_iter().enumerate() {
             self.min_pad_normal_n[i] = self.min_pad_normal_n[i].min(force);
-            self.mean_pad_normal_n[i] += force / (MOVE_END - MOVE_START + 1) as f64;
+            self.mean_pad_normal_n[i] += force / intervals as f64;
         }
-        if !pad.iter().all(|f| *f > 0.1) {
+        if !reading.both_pads_loaded {
             self.first_missing_bilateral_grip_ms.get_or_insert(tick);
         }
-        self.tray_loaded_traverse_ticks += usize::from(tray);
-        self.shelf_loaded_traverse_ticks += usize::from(shelf);
+        self.tray_loaded_traverse_ticks += usize::from(reading.face_loaded_any[0]);
+        self.shelf_loaded_traverse_ticks += usize::from(reading.face_loaded_any[1]);
     }
 }
 

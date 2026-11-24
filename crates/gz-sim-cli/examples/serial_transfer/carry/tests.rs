@@ -40,9 +40,18 @@ fn repeated(xml: &str, trial: Trial, ms: u64) -> Result<Outcome> {
     repeated_pull(xml, trial, ms, None)
 }
 fn repeated_pull(xml: &str, trial: Trial, ms: u64, pull: Option<pull::Pull>) -> Result<Outcome> {
+    repeated_clock(xml, trial, ms, 1, pull)
+}
+fn repeated_clock(
+    xml: &str,
+    trial: Trial,
+    ms: u64,
+    control: u64,
+    pull: Option<pull::Pull>,
+) -> Result<Outcome> {
     let sdf = sdformat::load_str(xml, "carry.sdf", &sdformat::NoResources)?;
     let mut sim = world(xml)?;
-    configure(&mut sim, trial, ms)?;
+    configure_clock(&mut sim, trial, ms, control)?;
     if let Some(p) = pull {
         p.install(&mut sim, trial)?;
     }
@@ -356,16 +365,7 @@ fn serial_receiver_matrix() -> Result<()> {
 #[test]
 #[ignore = "paired release step timings on the diagonal parcel, use fixed CPU affinity"]
 fn serial_receiver_step_cost() -> Result<()> {
-    use bevy_ecs::prelude::{Res, ResMut};
-    use gz_sim_core::{Phase, UpdateInfo};
-    use std::time::Instant;
-    #[derive(Resource, Default)]
-    struct Cost {
-        prior: Option<Instant>,
-        ns: Vec<u64>,
-    }
     let xml = diagonal_fixture(0.4, 0.35, 10., 8.)?;
-    let sdf = sdformat::load_str(&xml, "cost.sdf", &sdformat::NoResources)?;
     let policies = [
         (Trial::GuardedCarry, 0),
         (Trial::ObserveCarry, 8),
@@ -375,51 +375,7 @@ fn serial_receiver_step_cost() -> Result<()> {
     for order in [[0, 1, 2], [2, 0, 1], [1, 2, 0]] {
         for i in order {
             let (trial, force) = policies[i];
-            let mut sim = world(&xml)?;
-            configure(&mut sim, trial, 4000)?;
-            format!("6200,65,{force}")
-                .parse::<pull::Pull>()?
-                .install(&mut sim, trial)?;
-            sim.world_mut().init_resource::<Cost>();
-            // Consecutive ingress times include the completed Bevy step and the
-            // ordinary contact checks, control and capture before the next solve.
-            sim.add_systems(
-                Phase::Ingress,
-                |clock: Res<UpdateInfo>, mut c: ResMut<Cost>| {
-                    let now = Instant::now();
-                    if let Some(last) = c.prior.replace(now)
-                        && (6201..=10201).contains(&clock.iteration)
-                    {
-                        c.ns.push(now.duration_since(last).as_nanos() as u64);
-                    }
-                },
-            );
-            let route = Passage::bind(&sim, &sdf)?;
-            let mut frames = 0;
-            let mut captured = Vec::new();
-            let o = drive(
-                &mut sim,
-                trial,
-                Some(route),
-                payload::weight(&sdf)?,
-                true,
-                |s| {
-                    frames += 1;
-                    captured.push(gz_sim_cli::primitive_frame(s, &sdf, "default", frames)?);
-                    Ok(())
-                },
-            )?;
-            let mut costs = sim.world_mut().remove_resource::<Cost>().unwrap().ns;
-            assert_eq!(costs.len(), 4001);
-            costs.sort_unstable();
-            blocks.push(
-                serde_json::json!({"mode":format!("{trial:?}"),"downward_n":force,
-                "p50_ns":costs[costs.len().div_ceil(2)-1],
-                "p95_ns":costs[(95*costs.len()).div_ceil(100)-1],
-                "p99_ns":costs[(99*costs.len()).div_ceil(100)-1],
-                "frames": captured.len(), "shelf_release_ms":o.release_tick,
-                "recovery_open_ms":o.carry.unwrap().supported_open_ms}),
-            );
+            blocks.push(cost_block(&xml, trial, 1, 6200, 65, force)?);
         }
     }
     if let Some(file) = std::env::var_os("GZ_SERIAL_RECEIVER_COST") {
@@ -428,6 +384,77 @@ fn serial_receiver_step_cost() -> Result<()> {
     Ok(())
 }
 
+fn cost_block(
+    xml: &str,
+    trial: Trial,
+    control_ms: u64,
+    first: u64,
+    duration: u64,
+    force: u8,
+) -> Result<serde_json::Value> {
+    use bevy_ecs::prelude::{Res, ResMut};
+    use gz_sim_core::{Phase, UpdateInfo};
+    use std::time::Instant;
+    #[derive(Resource, Default)]
+    struct Cost {
+        prior: Option<Instant>,
+        ns: Vec<u64>,
+    }
+    let sdf = sdformat::load_str(xml, "cost.sdf", &sdformat::NoResources)?;
+    let mut sim = world(xml)?;
+    configure_clock(&mut sim, trial, 4000, control_ms)?;
+    format!("{first},{duration},{force}")
+        .parse::<pull::Pull>()?
+        .install(&mut sim, trial)?;
+    sim.world_mut().init_resource::<Cost>();
+    // Consecutive ingress times include the completed Bevy step and the
+    // ordinary contact checks, control and capture before the next solve.
+    sim.add_systems(
+        Phase::Ingress,
+        move |clock: Res<UpdateInfo>, mut c: ResMut<Cost>| {
+            let ms = clock.start_time.as_millis() as u64;
+            if !clock
+                .start_time
+                .as_micros()
+                .is_multiple_of(control_ms as u128 * 1000)
+            {
+                return;
+            }
+            let now = Instant::now();
+            if let Some(last) = c.prior.replace(now)
+                && (6200 + control_ms..=10200 + control_ms).contains(&ms)
+            {
+                c.ns.push(now.duration_since(last).as_nanos() as u64);
+            }
+        },
+    );
+    let route = Passage::bind(&sim, &sdf)?;
+    let mut frames = 0;
+    let mut captured = Vec::new();
+    let o = drive(
+        &mut sim,
+        trial,
+        Some(route),
+        payload::weight(&sdf)?,
+        true,
+        |s| {
+            frames += 1;
+            captured.push(gz_sim_cli::primitive_frame(s, &sdf, "default", frames)?);
+            Ok(())
+        },
+    )?;
+    let mut costs = sim.world_mut().remove_resource::<Cost>().unwrap().ns;
+    assert_eq!(costs.len(), 4000 / control_ms as usize + 1);
+    costs.sort_unstable();
+    Ok(
+        serde_json::json!({"mode":format!("{trial:?}"),"downward_n":force,
+                "sampled_control_intervals":costs.len(), "p50_ns":costs[costs.len().div_ceil(2)-1],
+                "p95_ns":costs[(95*costs.len()).div_ceil(100)-1],
+                "p99_ns":costs[(99*costs.len()).div_ceil(100)-1],
+                "frames": captured.len(), "shelf_release_ms":o.release_tick,
+                "recovery_open_ms":o.carry.unwrap().supported_open_ms}),
+    )
+}
 #[test]
 #[ignore = "per-tick independent parcel motion against a matched no-pull trajectory"]
 fn serial_receiver_slip_trace() -> Result<()> {
@@ -506,3 +533,6 @@ fn serial_receiver_slip_trace() -> Result<()> {
     }
     Ok(())
 }
+
+#[path = "pressure_tests.rs"]
+mod pressure_tests;

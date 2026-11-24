@@ -47,8 +47,14 @@ impl FromStr for Pull {
 }
 impl Pull {
     pub(super) fn install(self, sim: &mut Simulation, trial: Trial) -> Result<()> {
-        if !matches!(trial, Trial::GuardedCarry | Trial::ObserveCarry) {
+        if !trial.carry() {
             return Err("a parcel pull requires a monitored carry trial".into());
+        }
+        let dt_ns = sim.step_duration().as_nanos();
+        if !(((self.first_ms - 1) as u128 * 1_000_000).is_multiple_of(dt_ns)
+            && (self.duration_ms as u128 * 1_000_000).is_multiple_of(dt_ns))
+        {
+            return Err("align the physical pull start and duration to the SDF solve clock".into());
         }
         sim.world_mut().insert_resource(self);
         Ok(())
@@ -80,7 +86,7 @@ impl Measurements {
         parcel: Part,
         rail: Part,
     ) -> Result<()> {
-        if tick == self.command.first_ms {
+        if tick == self.command.first_ms && self.incoming.is_none() {
             self.incoming = Some(ContactState::read(sim, parcel, rail)?);
         }
         if (self.command.first_ms..self.command.first_ms + self.command.duration_ms).contains(&tick)

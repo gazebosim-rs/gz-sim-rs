@@ -18,6 +18,8 @@ use serde::Serialize;
 
 #[path = "serial_transfer/carry.rs"]
 mod carry;
+#[path = "serial_transfer/cycle.rs"]
+mod cycle;
 #[path = "serial_transfer/obstacle.rs"]
 mod obstacle;
 #[path = "serial_transfer/payload.rs"]
@@ -36,6 +38,7 @@ const MOVE_START: usize = 3700;
 const MOVE_END: usize = 7700;
 const LOWER: usize = 8100;
 const STEPS: usize = 18000;
+const SUPPORT_DWELL: Duration = Duration::from_millis(30);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
 enum Trial {
@@ -45,22 +48,26 @@ enum Trial {
     ClearObstacle,
     GuardedCarry,
     ObserveCarry,
+    /// Tighten on slip and use the original direct approach for comparison.
+    DirectCarry,
     /// Keep the native recycled contact geometry as a comparison control.
     CachedObstacle,
     LowClearance,
     ContactStop,
 }
 impl Trial {
-    fn obstacle(self) -> bool {
+    fn carry(self) -> bool {
         matches!(
             self,
-            Self::ClearObstacle
-                | Self::GuardedCarry
-                | Self::ObserveCarry
-                | Self::CachedObstacle
-                | Self::LowClearance
-                | Self::ContactStop
+            Self::GuardedCarry | Self::ObserveCarry | Self::DirectCarry
         )
+    }
+    fn obstacle(self) -> bool {
+        self.carry()
+            || matches!(
+                self,
+                Self::ClearObstacle | Self::CachedObstacle | Self::LowClearance | Self::ContactStop
+            )
     }
     fn xml(self) -> &'static str {
         if self.obstacle() {
@@ -78,9 +85,12 @@ struct Args {
     /// Load a self-contained serial-transfer workcell with the same named parts.
     #[arg(long)]
     world: Option<PathBuf>,
-    /// Time for the 460 mm quintic command in the two carry trials.
+    /// Time for the 460 mm quintic command in the monitored carry trials.
     #[arg(long, default_value_t = 4000, value_parser=clap::value_parser!(u64).range(1..=4000))]
     travel_ms: u64,
+    /// Interval for outer rail, grip, support and recovery commands in milliseconds.
+    #[arg(long,default_value_t=1,value_parser=clap::value_parser!(u64).range(1..=2))]
+    control_ms: u64,
     /// Optional downward force at the parcel center of mass, given as first_ms,duration_ms,force_N.
     #[arg(long)]
     pull: Option<pull::Pull>,
@@ -217,10 +227,10 @@ fn drive(
     let body = parcel.body(sim)?;
     let shelf = part(sim, "receiver::shelf")?;
     let tray = part(sim, "stand::post")?;
-    let c = SupportCriteria::for_weight(weight, Duration::from_millis(30));
-    let mut receiver = ReceivingSupport::new(sim.world(), parcel.id, shelf.id, c)?;
-    let mut pickup = ReceivingSupport::new(sim.world(), parcel.id, tray.id, c)?;
-    let mut carry = if matches!(trial, Trial::GuardedCarry | Trial::ObserveCarry) {
+    let c = SupportCriteria::for_weight(weight, SUPPORT_DWELL);
+    let receiver = ReceivingSupport::new(sim.world(), parcel.id, shelf.id, c)?;
+    let pickup = ReceivingSupport::new(sim.world(), parcel.id, tray.id, c)?;
+    let mut carry = if trial.carry() {
         let bar = passage.as_ref().ok_or("missing monitored obstacle")?.body();
         Some(carry::Supervisor::new(
             sim,
@@ -257,12 +267,37 @@ fn drive(
     } else {
         0.46
     };
-    let dt = sim.step_duration().as_secs_f64();
+    let cadence = sim
+        .world()
+        .get_resource::<cycle::Cadence>()
+        .copied()
+        .unwrap_or(cycle::Cadence::ONE_SOLVE);
+    let rail_time_unit = if carry.is_some() {
+        0.001
+    } else {
+        sim.step_duration().as_secs_f64()
+    };
+    let control_ms = cadence.control_ms;
+    let mut cycle = cycle::Cycle {
+        cadence,
+        criteria: c,
+        pickup,
+        receiver,
+        parcel,
+        car,
+        rail,
+        start_car,
+        body,
+        pads: pad_bodies,
+        goal,
+        trial,
+    };
+    let control_dt = rail_time_unit * control_ms as f64;
     if trial == Trial::OpenJaws {
         JointForceCommand::set_batch(sim, jaws.map(|id| (id, -20.)))?;
     }
     capture(sim)?;
-    for tick in 1..=STEPS {
+    for tick in (control_ms..=STEPS).step_by(control_ms) {
         if tick == 2 && matches!(trial, Trial::LowClearance | Trial::ContactStop) {
             set_joint_controller_command(sim, spindle.id, 0.85)?;
         }
@@ -276,61 +311,30 @@ fn drive(
                 goal
             };
             if let Some(active) = &carry {
-                active.command_rail(sim, rail, tick, goal, dt)?;
+                active.command_rail(sim, rail, tick, goal, rail_time_unit)?;
             } else {
-                command_rail(sim, rail, tick, goal, dt)?;
+                command_rail(sim, rail, tick, goal, rail_time_unit)?;
             }
         }
         let returning = carry.as_ref().is_some_and(carry::Supervisor::recovering);
         if !returning && tick == LOWER && !passage.as_ref().is_some_and(Passage::aborted) {
             set_joint_controller_command(sim, spindle.id, -0.018)?;
         }
-        if trial != Trial::CachedObstacle
-            && let Some(route) = &mut passage
-        {
-            route.recheck(sim)?;
-        }
-        if let Some(pull) = &mut out.pull {
-            pull.before_step(sim, tick, parcel, rail)?;
-        }
-        sim.step_exact(1)?;
-        let p = parcel.pose(sim)?.translation;
-        let carriage = car.pose(sim)?.translation[1];
-        let target = receiver.sample(sim.world())?;
-        let source = pickup.sample(sim.world())?;
-        let solver = sim
-            .world()
-            .resource::<PhysicsBackend>()
-            .downcast_ref::<MultiFidelityBackend>()
-            .ok_or("missing local solver")?;
-        let mut pad = [0.; 2];
-        for (n, b) in pad.iter_mut().zip(pad_bodies) {
-            *n = solver
-                .normal_reaction_on(body, b)?
-                .ok_or("missing signed impulse")?
-                .magnitude
-                / dt;
-        }
+        let reading = cycle.advance(
+            sim,
+            tick,
+            passage.as_mut(),
+            carry.as_ref(),
+            out.pull.as_mut(),
+        )?;
+        let source = reading.source;
+        let target = reading.target;
+        let pad = reading.pad;
+        let p = reading.parcel_position;
+        let carriage = reading.carriage_y;
+        let carried = reading.both_pads_loaded && !reading.face_loaded_any.contains(&true);
         if let Some(route) = &mut passage {
-            route.observe(
-                sim,
-                solver,
-                tick,
-                match &carry {
-                    Some(active) => active.remaining(tick, carriage - start_car, goal),
-                    None => (MOVE_START..MOVE_END)
-                        .contains(&tick)
-                        .then_some((goal - (carriage - start_car)).max(0.)),
-                },
-                trial == Trial::ContactStop,
-                dt,
-            )?;
-            route.record_grip(
-                tick,
-                carriage - start_car,
-                pad,
-                source.face_loaded || target.face_loaded,
-            );
+            route.record_grip(tick, carriage - start_car, carried);
         }
         if tick == MOVE_START {
             out.lift_mm = 1000. * (p[2] - initial[2]);
@@ -338,11 +342,9 @@ fn drive(
         if (MOVE_START..=MOVE_END).contains(&tick) {
             out.traverse_ticks += 1;
             if let Some(loads) = &mut out.payload {
-                loads.observe(tick, pad, source.face_loaded, target.face_loaded);
+                loads.observe(tick, &reading, (MOVE_END - MOVE_START) / control_ms + 1);
             }
-            out.parcel_carried_on_both_pads_ticks += usize::from(
-                pad.iter().all(|n| *n > 0.1) && !source.face_loaded && !target.face_loaded,
-            );
+            out.parcel_carried_on_both_pads_ticks += usize::from(carried);
             let hand = palm.pose(sim)?;
             let local = glam::DQuat::from_array(hand.rotation).inverse()
                 * (glam::DVec3::from(p) - glam::DVec3::from(hand.translation));
@@ -358,14 +360,15 @@ fn drive(
             out.lateral_carriage_at_arrival_mm = 1000. * (carriage - start_car);
         }
         if let (Some(active), Some(route)) = (&mut carry, &passage) {
-            active.update(
+            active.update_with_reading(
                 sim,
                 tick,
                 carriage - start_car,
-                [&source, &target],
+                &reading,
                 route.aborted(),
             )?;
             active.verify_return(sim, tick, carriage - start_car, route)?;
+            active.check_shelf_edge(sim, tick, carriage - start_car, route, &reading)?;
             if let Some(pull) = &mut out.pull {
                 pull.after_alarm(
                     sim,
@@ -393,7 +396,7 @@ fn drive(
                 let demand = hold.get_or_insert(q);
                 *demand += (0.003 * (target.normal_force_n + source.normal_force_n - weight))
                     .clamp(-0.008, 0.008)
-                    * dt;
+                    * control_dt;
                 set_joint_controller_command(sim, spindle.id, *demand)?;
             }
             out.pickup_ready_ticks += usize::from(source.ready);
@@ -417,9 +420,9 @@ fn drive(
             set_joint_controller_command(sim, spindle.id, 1.6)?;
         }
         if tick > STEPS - 500 {
-            out.final_shelf_load_n += target.normal_force_n / 500.;
-            out.final_tray_load_n += source.normal_force_n / 500.;
-            out.final_pad_load_n += (pad[0] + pad[1]) / 500.;
+            out.final_shelf_load_n += target.normal_force_n / (500. / control_ms as f64);
+            out.final_tray_load_n += source.normal_force_n / (500. / control_ms as f64);
+            out.final_pad_load_n += (pad[0] + pad[1]) / (500. / control_ms as f64);
         }
         let event = passage
             .as_ref()
@@ -447,7 +450,7 @@ fn record(args: Args, xml: &str) -> Result<Outcome> {
         &sdformat::NoResources,
         PhysicsEngine::MultiFidelity,
     )?;
-    carry::configure(&mut sim, args.trial, args.travel_ms)?;
+    carry::configure_clock(&mut sim, args.trial, args.travel_ms, args.control_ms)?;
     if let Some(pull) = args.pull {
         pull.install(&mut sim, args.trial)?;
     }
@@ -742,6 +745,7 @@ mod tests {
             output: path.clone(),
             world: None,
             travel_ms: 4000,
+            control_ms: 1,
             pull: None,
         };
         assert!(record(args(), "<sdf").is_err());
