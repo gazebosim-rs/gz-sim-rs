@@ -382,3 +382,87 @@ fn spherical_wrist_commands_accumulate_survive_pause_and_replay_after_reset() {
     );
     assert!(!run(&xml, &miss, &[]).status.success());
 }
+
+#[test]
+fn spindle_and_universal_inputs_replay_on_the_moving_wrist() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = file(
+        dir,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/local_robot_screw_wrist.sdf"),
+    );
+    let json = include_str!("../../../examples/replay/screw_universal.json");
+    let journal = file(dir, "axis.json", json);
+    let rows = success(run(&xml, &journal, &["--threads", "1"]));
+    assert_eq!(rows, success(run(&xml, &journal, &["--threads", "8"])));
+    let queued = record(&rows, 3, 0);
+    shared(queued, record(&rows, 4, 0), STATE);
+    assert_eq!(queued["scalar_joints"][0]["pending_effort"], 2.);
+    assert_eq!(
+        queued["universal_joints"][0]["pending_effort"],
+        json!([0.8, -1.25])
+    );
+    let reset = record(&rows, 9, 0);
+    for key in ["scalar_joints", "universal_joints"] {
+        assert!(reset[key][0]["pending_effort"].is_null());
+        assert!(record(&rows, 5, 1)[key][0]["pending_effort"].is_null());
+    }
+    assert_eq!(
+        record(&rows, 8, 180)["scalar_joints"][0]["pending_effort"],
+        0.
+    );
+    assert_eq!(
+        record(&rows, 8, 180)["universal_joints"][0]["pending_effort"],
+        json!([0., 0.])
+    );
+    for tick in 1..=180 {
+        shared(
+            record(&rows, 5, tick),
+            record(&rows, 14, tick),
+            &[
+                "physics",
+                "inputs",
+                "scene",
+                "contacts",
+                "scalar_joints",
+                "universal_joints",
+            ],
+        );
+    }
+
+    let mut control: Value = serde_json::from_str(json).unwrap();
+    for c in control["commands"].as_array_mut().unwrap() {
+        match c["op"].as_str().unwrap() {
+            "universal_torque" => c["torque_nm"] = json!([0., 0.]),
+            "joint_effort" => c["effort"] = json!(0.),
+            _ => {}
+        }
+    }
+    let baseline = file(dir, "unloaded.json", &control.to_string());
+    let free = success(run(&xml, &baseline, &[]));
+    let first = record(&rows, 5, 1);
+    let passive = record(&free, 5, 1);
+    assert_ne!(
+        first["scalar_joints"][0]["velocity"],
+        passive["scalar_joints"][0]["velocity"]
+    );
+    for i in 0..2 {
+        assert_ne!(
+            first["universal_joints"][0]["velocity"][i],
+            passive["universal_joints"][0]["velocity"][i]
+        );
+    }
+    for command in [
+        json!({"op":"joint_effort","joint":"default::robot::wrist","effort":1.}),
+        json!({"op":"universal_torque","joint":"default::robot::spindle","torque_nm":[0.,1.]}),
+        json!({"op":"universal_torque","joint":"default::robot::wrist","torque_nm":[0.,3.]}),
+    ] {
+        let path = file(
+            dir,
+            "invalid.json",
+            &json!({"seed":"invalid","commands":[command]}).to_string(),
+        );
+        assert!(!run(&xml, &path, &[]).status.success());
+    }
+}

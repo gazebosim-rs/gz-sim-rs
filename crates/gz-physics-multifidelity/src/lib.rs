@@ -1679,6 +1679,11 @@ impl MultiFidelityBackend {
             .set_universal_motor(id, axis, motor)
             .map_err(engine_error)
     }
+    /// Sum of one-step torques in each moving universal axis.
+    pub fn pending_universal_effort(&self, id: JointId) -> Option<[f64; 2]> {
+        self.solver.pending_universal_effort(id)
+    }
+
     /// Accumulate one step of torque around each moving universal axis.
     pub fn add_universal_effort(
         &mut self,

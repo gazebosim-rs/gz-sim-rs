@@ -373,6 +373,12 @@ fn each_wrist_axis_needs_balance_and_active_inputs_keep_the_robot_dynamic() {
         b.set_universal_motor(j, axis, None).unwrap();
     }
     b.add_universal_effort(j, [0., 0.15]).unwrap();
+    assert_eq!(b.pending_universal_effort(j), Some([0., 0.15]));
+    assert_eq!(b.pending_ball_effort(j), None);
+    assert_eq!(
+        b.pending_universal_effort(gz_physics::JointId::from_raw(u64::MAX)),
+        None
+    );
     refused(&mut b, r, r, "input");
 }
 

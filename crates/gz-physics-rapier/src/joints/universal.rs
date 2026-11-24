@@ -325,6 +325,17 @@ impl RapierBackend {
         })
     }
 
+    /// One-step torques awaiting the next solve on the two moving universal axes.
+    pub fn pending_universal_effort(&self, id: JointId) -> Option<[f64; 2]> {
+        if !matches!(
+            self.joints.records.get(&id)?.initial.motion,
+            JointMotion::Universal(_)
+        ) {
+            return None;
+        }
+        self.joints.angular_efforts.get(&id).map(|v| [v.x, v.y])
+    }
+
     pub fn add_universal_effort(
         &mut self,
         id: JointId,

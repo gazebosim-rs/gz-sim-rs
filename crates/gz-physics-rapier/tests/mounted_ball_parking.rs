@@ -55,6 +55,12 @@ fn a_hanging_tool_parks_and_a_three_axis_torque_reaches_the_first_resumed_solve(
             assert_eq!(engine.articulation_tier(mount).unwrap(), Prescribed);
         }
         engine.add_ball_effort(joint, [0.01, -0.02, 0.03]).unwrap();
+        assert_eq!(engine.pending_universal_effort(joint), None);
+        assert_eq!(engine.pending_ball_effort(joint), Some([0.01, -0.02, 0.03]));
+        assert_eq!(
+            engine.pending_ball_effort(JointId::from_raw(u64::MAX)),
+            None
+        );
         let mut states = Vec::new();
         for _ in 0..25 {
             engine.step(DT).unwrap();

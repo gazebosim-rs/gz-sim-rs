@@ -35,6 +35,15 @@ struct Wrist {
     pending_torque_nm: Option<[f64; 3]>,
 }
 
+/// Coordinates and accumulated one-step efforts in the joint's authored axes.
+#[derive(Serialize)]
+struct Encoder<T> {
+    id: u64,
+    position: T,
+    velocity: T,
+    pending_effort: Option<T>,
+}
+
 #[derive(Serialize)]
 pub(super) struct State {
     command: usize,
@@ -49,6 +58,10 @@ pub(super) struct State {
     imu: String,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     wrists: Vec<Wrist>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    scalar_joints: Vec<Encoder<f64>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    universal_joints: Vec<Encoder<[f64; 2]>>,
     /// Aggregate physical checks for qualification and fault isolation.
     pub(crate) held_targets: usize,
     pub(crate) pending_wrenches: usize,
@@ -76,6 +89,8 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
     let mut inputs = Signature::default();
     let mut imu = Signature::default();
     let mut wrists = Vec::new();
+    let mut scalar_joints = Vec::new();
+    let mut universal_joints = Vec::new();
     let mut held_targets = 0;
     let mut pending_wrenches = 0;
     let mut imu_samples = 0;
@@ -107,6 +122,18 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         }
         if let Some(j) = e.get::<JointSample>() {
             physics.item((id, j.state.position.to_bits(), j.state.velocity.to_bits()));
+            let pending = e
+                .get::<JointHandle>()
+                .and_then(|h| solver.pending_joint_effort(h.id()));
+            if let Some(value) = pending {
+                inputs.item((id, "joint_effort", bits(value)));
+            }
+            scalar_joints.push(Encoder {
+                id,
+                position: j.state.position,
+                velocity: j.state.velocity,
+                pending_effort: pending,
+            });
         }
         if let (Some(j), Some(handle)) = (e.get::<BallJointSample>(), e.get::<JointHandle>()) {
             let pending = solver.pending_ball_effort(handle.id());
@@ -127,6 +154,18 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         }
         if let Some(j) = e.get::<UniversalJointSample>() {
             physics.item((id, j.state.position.map(bits), j.state.velocity.map(bits)));
+            let pending = e
+                .get::<JointHandle>()
+                .and_then(|h| solver.pending_universal_effort(h.id()));
+            if let Some(value) = pending {
+                inputs.item((id, "universal_torque_nm", value.map(bits)));
+            }
+            universal_joints.push(Encoder {
+                id,
+                position: j.state.position,
+                velocity: j.state.velocity,
+                pending_effort: pending,
+            });
         }
         if let Some(target) = gz_sim_scene::held_joint_controller_target(sim, id) {
             held_targets += 1;
@@ -208,6 +247,8 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         inputs: inputs.finish(),
         imu: imu.finish(),
         wrists,
+        scalar_joints,
+        universal_joints,
         held_targets,
         pending_wrenches,
         imu_samples,
