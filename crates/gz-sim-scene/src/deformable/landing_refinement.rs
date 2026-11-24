@@ -13,7 +13,11 @@ pub struct FiniteLandingStep {
     pub material_substeps: u32,
 }
 
+/// Returns the committed local selection, including its actual material subdivision count.
 pub fn finite_landing_step(sim: &Simulation) -> Option<FiniteLandingStep> {
+    if sim.is_faulted() {
+        return None;
+    }
     sim.world()
         .get_resource::<Deformables>()?
         .landing_refinement

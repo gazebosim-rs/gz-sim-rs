@@ -166,3 +166,14 @@ fn one_enrolled_deck_enforces_local_clock_and_budget_before_stepping() {
     ];
     assert!(check("landing_step_ns='1000'", &invalid, 1).is_err());
 }
+
+#[test]
+fn a_faulted_world_has_no_committed_refinement_readout() {
+    let mut sim = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(finite_landing_step(&sim).is_none());
+    sim.world()
+        .resource::<StepFault>()
+        .report(std::io::Error::other("halt"));
+    assert!(sim.step_exact(1).is_err());
+    assert!(finite_landing_step(&sim).is_none());
+}
