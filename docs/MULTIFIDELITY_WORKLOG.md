@@ -2191,3 +2191,7 @@ The two finest runs released both jaws within 2 µs of one another. Their first 
 ## 2026-11-23 — Rigid and material exchanges on the public gripper clock
 
 The gripper held an 8.4 g folded sheet with 16 rigid/material solves inside each 1 ms Bevy tick. Its jaws carried 41.20 and 41.21 mN and released the sheet onto the bench. At both 16 and 64 exchanges, particle positions and velocities matched independent fine simulations at all 3,400 public endpoints. The maximum torque disagreement was 3.19 × 10⁻¹⁶ N·m. Loaded reset reproduced the pending pad reactions and pickup. Strict release Clippy passed with 474/489 changed production lines and 883/924 regions covered. [Measurements, scope and three native replays](measurements/local-manipulation/public-gripper-exchanges.md)
+
+## 2026-11-23 — Reading range and public poses in the 100,000-deck fleet
+
+Indexing co-moving boxes cut a solid range reading from 16.28 to 0.60 ms with 1,000 loads. With every pose observed, complete-step p95 fell from 40.32 to 16.08 ms. Every measured trajectory, range, IMU and contact point matched through launch and landing. The sensor-free prescribed commit still took 3.09 ms at median against the 0.10 ms budget. A parent-block optimization increased p95, leaving combined pose publication as the next experiment. [Evidence, work boundaries and native gz-web-rs playback](measurements/local-manipulation/fleet-range-publication.md)
