@@ -537,6 +537,15 @@ fn local_templates_validate_the_impact_material_before_allocating_a_runtime_body
     assert!(prepare_model_template(&ordinary, &parsed, &parsed.worlds[0].models[0]).is_err());
     assert!(prepare_model_template(&local, &malformed, &malformed.worlds[0].models[0]).is_err());
 
+    // A forged template must not turn a pad-only property into ordinary material.
+    let pad = sdformat::load_str(
+        &with_material.replace("restitution", "normal_stiffness"),
+        "free-pad.sdf",
+        &NoResources,
+    )
+    .unwrap();
+    assert!(prepare_model_template(&local, &pad, &pad.worlds[0].models[0]).is_err());
+
     let xml = XML.replace(
         "<visual name='v'><geometry><box><size>1 2 3</size></box>",
         "<visual name='v'><geometry><ellipsoid><radii>1 2 3</radii></ellipsoid>",

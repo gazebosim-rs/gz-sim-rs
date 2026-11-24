@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use bevy_ecs::prelude::Entity;
-use glam::DVec3;
+use glam::{DQuat, DVec3};
 use gz_physics::{BodyId, BodyState, JointState, PhysicsBackend};
 use gz_physics_multifidelity::MultiFidelityBackend;
 use gz_sim_core::{EntityId, Simulation};
@@ -49,6 +49,10 @@ impl Rig {
             PhysicsEngine::MultiFidelity,
         )
         .unwrap();
+        Self::from_sim(sim, step_us, g)
+    }
+
+    fn from_sim(sim: Simulation, step_us: u32, g: f64) -> Self {
         let get_body = |name| {
             sim.world()
                 .get::<BodyHandle>(named(&sim, name))
@@ -349,3 +353,172 @@ fn parcel_first_preserves_signed_weight_support_on_each_pad() {
 
 #[path = "support/pad_patch.rs"]
 mod pad_patch;
+const STIFF_PADS: &str = include_str!("../../../examples/worlds/local_stiff_pad_grasp.sdf");
+
+fn overlaps(rig: &Rig) -> [f64; 2] {
+    let sphere = DVec3::from(rig.state().position);
+    let backend = rig.sim.world().resource::<PhysicsBackend>();
+    rig.pads.map(|id| {
+        let pad = backend.state(id).unwrap();
+        let relative =
+            DQuat::from_array(pad.orientation).inverse() * (sphere - DVec3::from(pad.position));
+        // Only the broad inner face of each 20 mm pad touches the 15 mm sphere.
+        assert!(relative.y.abs() < 0.015 && relative.z.abs() < 0.050);
+        0.010 + 0.015 - relative.x.abs()
+    })
+}
+
+fn pad_mass(xml: &str, mass: f64) -> String {
+    let mut xml = xml.replace("<mass>0.08</mass>", &format!("<mass>{mass}</mass>"));
+    // Keep shape, density distribution and center of mass the same on both sides.
+    for value in [
+        "7.26666666666667e-05",
+        "6.93333333333333e-05",
+        "8.66666666666667e-06",
+    ] {
+        xml = xml.replace(
+            value,
+            &(value.parse::<f64>().unwrap() * mass / 0.08).to_string(),
+        );
+    }
+    xml
+}
+
+#[test]
+fn authored_pad_compression_tracks_force_and_stiffness_across_three_inertias() {
+    for (mass, stiffness, drive) in [
+        (0.04, 30_000., 3.),
+        (0.08, 30_000., 3.),
+        (0.16, 30_000., 3.),
+        (0.08, 15_000., 3.),
+        (0.08, 60_000., 4.5),
+    ] {
+        let world = pad_mass(STIFF_PADS, mass).replace(
+            ">30000</normal_stiffness>",
+            &format!(">{stiffness}</normal_stiffness>"),
+        );
+        let mut rig = Rig::new(&world, 500, -GRAVITY);
+        rig.drive([drive; 2]);
+        rig.sim.step_exact(16_000).unwrap();
+        let loads = rig.advance(20_000);
+        let depth = overlaps(&rig);
+        let expected = drive / stiffness;
+        println!(
+            "pad_mass_kg={mass} stiffness_n_m={stiffness} force_n={drive} expected_m={expected} overlaps_m={depth:?}"
+        );
+        for (side, overlap) in depth.into_iter().enumerate() {
+            near(overlap, expected, 1e-7);
+            near(loads.normal[side] / 0.020, drive, 0.001);
+            near(loads.tangent_z[side] / 0.020, MASS * GRAVITY / 2., 0.003);
+        }
+        near(rig.state().position[2], 0.30, 3e-6);
+    }
+}
+
+#[test]
+fn stiffer_pads_preserve_slip_and_release_through_loaded_reset() {
+    let mut rig = Rig::new(STIFF_PADS, STEP_US, -GRAVITY);
+    let mut results = Vec::new();
+    for _ in 0..2 {
+        rig.drive([3.; 2]);
+        rig.advance(50_000);
+        let initial = rig.state();
+        rig.drive([1.5; 2]);
+        let slip = rig.advance(110_000);
+        let end = rig.state();
+        let drop = initial.position[2] - end.position[2];
+        near(
+            drop,
+            0.5 * (GRAVITY - 2. * MU * 1.5 / MASS) * 0.11_f64.powi(2),
+            1e-6,
+        );
+        near(end.angular_velocity[1], 0., 0.01);
+        for f in slip.tangent_z {
+            near(f / 0.11, 0.75, 0.002);
+        }
+        rig.drive([-3.; 2]);
+        rig.advance(50_000);
+        let start_free = rig.state();
+        let free = rig.advance(30_000);
+        let fall = rig.state();
+        assert_eq!(free.normal, [0.; 2]);
+        near(
+            fall.velocity[2] - start_free.velocity[2],
+            -GRAVITY * 0.030,
+            1e-8,
+        );
+        println!(
+            "pad_slip_m={drop} pad_slip_spin_rad_s={} post_release_z_m={}",
+            end.angular_velocity[1], fall.position[2]
+        );
+        results.push((
+            initial.position,
+            end.position,
+            slip.normal,
+            slip.tangent_z,
+            fall.velocity,
+        ));
+        gz_sim_scene::reset_loaded_world(&mut rig.sim, |_| ()).unwrap();
+        rig = Rig::from_sim(rig.sim, STEP_US, -GRAVITY);
+        near(rig.state().position[2], 0.30, 1e-12);
+    }
+    assert_eq!(results[0], results[1]);
+}
+
+#[test]
+fn contact_material_validates_pad_ownership_and_independent_properties() {
+    let load = |xml: &str, engine| {
+        load_world_with_sdf_step(
+            xml,
+            "materials.sdf",
+            "default",
+            &sdformat::NoResources,
+            engine,
+        )
+    };
+    let left = r#"<normal_stiffness link="left">30000</normal_stiffness>"#;
+    let restitution = r#"<restitution link="left">0.2</restitution>"#;
+    assert!(
+        load(
+            &STIFF_PADS.replace(left, &format!("{restitution}{left}")),
+            PhysicsEngine::MultiFidelity
+        )
+        .is_ok()
+    );
+    for bad in [
+        left.replace("30000", "-3"),
+        left.replace("30000", "0"),
+        left.replace("30000", "inf"),
+        left.replace("30000", "NaN"),
+        left.replace("30000", "missing"),
+        left.replace("left", "absent"),
+        left.replace("left", "wrist"),
+        left.replace("normal_stiffness", "unknown"),
+        left.replace("link=", "name="),
+        left.replace("link=", "units='N/m' link="),
+        left.replace("30000", "<value>30000</value>"),
+        format!("{left}{left}"),
+        format!("{restitution}{restitution}"),
+        restitution.replace("0.2", "1.2"),
+    ] {
+        assert!(
+            load(
+                &STIFF_PADS.replace(left, &bad),
+                PhysicsEngine::MultiFidelity
+            )
+            .is_err(),
+            "{bad}"
+        );
+    }
+    let marker = r#"<plugin name="gz::sim::systems::ReducedScalarJoints" filename="gz-sim-reduced-scalar-joints-system"/>"#;
+    for unsupported in [
+        STIFF_PADS.replace(marker, ""),
+        STIFF_PADS.replace(
+            "<limit><lower>-0.008</lower><upper>0.008</upper></limit>",
+            "",
+        ),
+    ] {
+        assert!(load(&unsupported, PhysicsEngine::MultiFidelity).is_err());
+    }
+    assert!(load(STIFF_PADS, PhysicsEngine::Rapier).is_err());
+}
