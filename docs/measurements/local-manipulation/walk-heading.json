@@ -1,0 +1,54 @@
+{
+  "tested_base": "46e0867",
+  "fixture": "examples/humanoid_stand.sdf",
+  "heading_gain": 0.6,
+  "world_torque_nm_one_tick": 20.0,
+  "test_binary_sha256": "51f452d8fcf86aa16a4ae5ff9dd8b07ef3829d38d395f29ff451b3d82b37a82f",
+  "single_test_binary_llvm": {
+    "lines": {
+      "count": 76,
+      "covered": 76,
+      "percent": 100
+    },
+    "regions": {
+      "count": 153,
+      "covered": 148,
+      "notcovered": 5,
+      "percent": 96.73202614379085
+    },
+    "functions": {
+      "count": 9,
+      "covered": 9,
+      "percent": 100
+    }
+  },
+  "scene_tests": 4,
+  "local_cli_tests": 5,
+  "cli_example_binary_sha256": "bd03ad72dd1ca7c8e9a3f82632c923d997d1e094c95019ec652f22738cb59981",
+  "cli_test_binary_sha256": "9320c955b865e5384ec2ca81e705dace6fdc9289e00996bc8193a79565363bae",
+  "exported_sdf_sha256": "87fe105ae3e486a280fde6da8ef704b5b18d1ace5e39874c25be681f43d1355e",
+  "separate_unpushed_cli_run": {
+    "ticks": 3101,
+    "axes": 30,
+    "links": 31,
+    "mass_kg": 74.99999999999997,
+    "first_fall": null,
+    "feet_force_n": [
+      733.9837947153533,
+      0.0
+    ],
+    "loaded_sole_points": [
+      4,
+      0
+    ],
+    "other_force_n": 0.0
+  },
+  "visual": {
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&url=ws%3A%2F%2F127.0.0.1%3A9895%2F",
+    "webgpu": true,
+    "seconds": 3,
+    "nanoseconds": 101000000,
+    "visuals": 32,
+    "paused": true
+  }
+}
