@@ -1,16 +1,6 @@
 {
-  "source": "fa27b43",
   "public_topic": "/world/default/model/gripper/joint_state",
   "sample_rate_hz": 100,
-  "axis_units": [
-    "m",
-    "m/s"
-  ],
-  "joint_names": [
-    "travel",
-    "close_left",
-    "close_right"
-  ],
   "outcome": {
     "lift_mm": 126.07045106947423,
     "lateral_payload_at_arrival_mm": 462.43610482383735,
@@ -38,27 +28,6 @@
       0.46001273723384106,
       0.8223228043010385
     ]
-  },
-  "coverage": {
-    "crates/gz-sim-scene/src/joint_state_publisher.rs": {
-      "lines": {
-        "hit": 21,
-        "total": 21,
-        "missing": []
-      },
-      "regions": {
-        "hit": 41,
-        "total": 42,
-        "missing": [
-          [
-            237,
-            48,
-            237,
-            67
-          ]
-        ]
-      }
-    }
   },
   "viewer": {
     "body_poses_and_shapes_checked": 9020,
@@ -533,6 +502,107 @@
   },
   "archive_sha256": {
     "sensors": "d4304060673838256512259d8427fc1539e345980c763aee1fcfb9fa1fe4d119",
-    "baseline": "d4304060673838256512259d8427fc1539e345980c763aee1fcfb9fa1fe4d119"
-  }
+    "baseline": "d4304060673838256512259d8427fc1539e345980c763aee1fcfb9fa1fe4d119",
+    "all_axes": "d4304060673838256512259d8427fc1539e345980c763aee1fcfb9fa1fe4d119"
+  },
+  "original_rail_and_jaw_phase": {
+    "source": "fa27b43",
+    "joint_names": [
+      "travel",
+      "close_left",
+      "close_right"
+    ],
+    "axis_units": [
+      "m",
+      "m/s"
+    ],
+    "coverage": {
+      "crates/gz-sim-scene/src/joint_state_publisher.rs": {
+        "lines": {
+          "hit": 21,
+          "total": 21,
+          "missing": []
+        },
+        "regions": {
+          "hit": 41,
+          "total": 42,
+          "missing": [
+            [
+              237,
+              48,
+              237,
+              67
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "source": "6e89969",
+  "joint_coordinates": {
+    "travel": [
+      "m"
+    ],
+    "close_left": [
+      "m"
+    ],
+    "close_right": [
+      "m"
+    ],
+    "spindle": [
+      "rad"
+    ],
+    "wrist": [
+      "rad",
+      "rad"
+    ]
+  },
+  "axis_rates": "coordinate units per second",
+  "coverage": {
+    "crates/gz-sim-scene/src/joint_state_publisher.rs": {
+      "lines": {
+        "hit": 58,
+        "total": 58,
+        "missing": []
+      },
+      "regions": {
+        "hit": 120,
+        "total": 123,
+        "missing": [
+          [
+            248,
+            29,
+            248,
+            37
+          ],
+          [
+            325,
+            61,
+            325,
+            62
+          ],
+          [
+            452,
+            54,
+            452,
+            55
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-server/src/joint_state.rs": {
+      "lines": {
+        "hit": 19,
+        "total": 19,
+        "missing": []
+      },
+      "regions": {
+        "hit": 25,
+        "total": 25,
+        "missing": []
+      }
+    }
+  },
+  "spindle_pitch_m_per_revolution": 0.5,
+  "spindle_travel_check_tolerance_m": 2e-05
 }

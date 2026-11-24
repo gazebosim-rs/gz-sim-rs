@@ -3,6 +3,8 @@
 
 # Static friction for material resting on a support
 
+These measurements describe the first static-friction implementation. The current solver also corrects displacement during sliding. Its independent finite-board and sheet measurements include the revised travel and the finer holdout. [Current results and reproduction command](material-support-edge.md)
+
 The green strip stayed in place on a 25% slope for 0.8 s. The orange strip slid 470.145 mm and reached 1.142052 m/s, within 4 × 10⁻¹⁵ m/s of the analytical speed. Both strips used the same mass, geometry, gravity and sliding coefficient of 0.1. Their static friction coefficients were 0.55 and 0.1. The ordinary SDF world advanced 80 ten-millisecond ticks and reproduced every position, velocity and support impulse after reset. The viewer checked all 324 particle positions. [Open the incline in gz-web-rs](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9996%2F) · [Measurements](material-incline.json)
 
 ![The green strip stays uphill as the orange strip slides](material-incline.jpg)
