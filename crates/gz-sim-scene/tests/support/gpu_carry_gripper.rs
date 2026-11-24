@@ -1097,3 +1097,113 @@ fn reduced_shelf_contacts_require_full_transverse_width_and_a_single_material_la
             .is_err()
     );
 }
+
+const SPATIAL_SHELF: &str = include_str!("../../../../examples/gpu_box_shelf_spatial.sdf");
+#[test]
+#[ignore = "requires native f64 Vulkan hardware"]
+fn spatial_friction_arrests_real_yaw_and_publishes_the_full_signed_wrench() {
+    use gz_physics_gpu::{CarryGripperBatch, SpatialShelfLoads};
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(SPATIAL_SHELF, Some(&adapter)).unwrap();
+    sim.step_exact(2041).unwrap();
+    let incoming = sim
+        .world()
+        .resource::<CarryGripperBatch>()
+        .free_box()
+        .unwrap();
+    assert!(incoming.momentum[2] > 5e-5);
+    let mut y_shear = 0_f64;
+    let mut yaw_impulse = 0.;
+    let mut dissipated = 0.;
+    for tick in 2042..=2350 {
+        sim.step_exact(1).unwrap();
+        let b = sim.world().resource::<CarryGripperBatch>();
+        let loads = b.spatial_shelf_loads().copied().unwrap_or_default();
+        for [x, y, z] in loads.world_impulses {
+            assert!(z >= 0. && x.hypot(y) <= 0.45 * z + 1e-12);
+            y_shear = y_shear.max(y.abs());
+        }
+        yaw_impulse += loads.angular_impulse[2];
+        dissipated += loads.contact_work[1];
+        if tick > 2250 {
+            assert!((1000. * b.lanes()[0].shelf_up - 0.7848).abs() < 0.002);
+            assert!(b.free_box_link().unwrap().angular[2].abs() < 0.001);
+        }
+    }
+    let b = sim.world().resource::<CarryGripperBatch>();
+    assert!(y_shear > 1e-4 && dissipated < -1e-5);
+    assert!((b.free_box().unwrap().momentum[2] - incoming.momentum[2] - yaw_impulse).abs() < 1e-12);
+    let last = (b.free_box(), b.spatial_shelf_loads().copied());
+    assert!(last.1.is_some_and(|v| v != SpatialShelfLoads::default()));
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert!(
+        sim.world()
+            .resource::<CarryGripperBatch>()
+            .spatial_shelf_loads()
+            .is_none()
+    );
+    sim.step_exact(2350).unwrap();
+    let b = sim.world().resource::<CarryGripperBatch>();
+    assert_eq!((b.free_box(), b.spatial_shelf_loads().copied()), last);
+}
+#[test]
+#[ignore = "requires native f64 Vulkan hardware"]
+fn spatial_shelf_rejects_unqualified_material_and_stops_before_a_side_or_floor() {
+    use gz_physics_gpu::{CarryGripperBatch, ShelfManifold, SpatialShelf};
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(FLIGHT, Some(&adapter)).unwrap();
+    let b = &mut *sim.world_mut().resource_mut::<CarryGripperBatch>();
+    let full = SpatialShelf {
+        center_y: 0.,
+        half_depth: 0.105,
+        restitution: 0.,
+    };
+    for bad in [
+        SpatialShelf {
+            restitution: 0.65,
+            ..full
+        },
+        SpatialShelf {
+            half_depth: 0.,
+            ..full
+        },
+        SpatialShelf {
+            half_depth: f64::NAN,
+            ..full
+        },
+        SpatialShelf {
+            center_y: f64::NAN,
+            ..full
+        },
+    ] {
+        assert!(
+            b.enable_shelf_manifold(bad, ShelfManifold::SpatialSupport)
+                .is_err()
+        );
+    }
+    for center in ["-0.18 0 0.007", "0.255 0 0.007"] {
+        let src = SPATIAL_SHELF.replace("0.18 0 0.007", center);
+        let mut sim = load(&src, Some(&adapter)).unwrap();
+        sim.step_exact(2041).unwrap();
+        let mut stopped = false;
+        for _ in 2042..2300 {
+            let b = sim.world().resource::<CarryGripperBatch>();
+            let before = (b.tick(), b.free_box(), b.spatial_shelf_loads().copied());
+            assert!(before.2.is_none());
+            if sim.step_exact(1).is_err() {
+                let b = sim.world().resource::<CarryGripperBatch>();
+                assert_eq!(
+                    (b.tick(), b.free_box(), b.spatial_shelf_loads().copied()),
+                    before
+                );
+                assert!(matches!(
+                    sim.fault().and_then(|e| e.downcast_ref::<GpuError>()),
+                    Some(GpuError::SpatialContactBoundary)
+                ));
+                stopped = true;
+                break;
+            }
+        }
+        assert!(stopped);
+    }
+}

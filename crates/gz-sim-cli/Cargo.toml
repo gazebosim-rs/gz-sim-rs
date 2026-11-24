@@ -171,3 +171,7 @@ required-features = ["gpu-batch"]
 [[example]]
 name = "gpu_box_shelf_rest"
 required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_box_shelf_spatial"
+required-features = ["gpu-batch"]

@@ -17,7 +17,7 @@ use contact_step::{Loads, Point, Step};
 use flight::BoxFlight;
 pub use flight::{
     BoxFlightMaterial, BoxLinkState, FreeBoxState, ShelfImpact, ShelfManifold, ShelfWitness,
-    SpatialShelf,
+    SpatialShelf, SpatialShelfLoads,
 };
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]

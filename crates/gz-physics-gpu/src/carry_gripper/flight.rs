@@ -3,9 +3,11 @@
 //! Spatial momentum and attitude after an actually separated cuboid leaves the fingers.
 use super::*;
 mod shelf;
+mod support;
 use crate::spatial::{cross, rotate};
 use glam::{DMat3, DQuat, DVec3};
 pub use shelf::{ShelfImpact, ShelfWitness, SpatialShelf};
+pub use support::SpatialShelfLoads;
 
 /// Authored receiving-shelf contact law for an initially separated cuboid.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -14,6 +16,8 @@ pub enum ShelfManifold {
     CornerOrEdge,
     /// Inelastic Coulomb contact for a centered planar release with full transverse support.
     PlanarSupport,
+    /// Inelastic three-dimensional point friction on the interior of a horizontal shelf.
+    SpatialSupport,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct BoxFlightMaterial {
@@ -56,6 +60,7 @@ pub(super) struct BoxFlight {
     shelf: Option<shelf::Shelf>,
     material: BoxFlightMaterial,
     planar_support: bool,
+    spatial_support: Option<support::Support>,
     active: bool,
     published: bool,
 }
@@ -209,6 +214,7 @@ impl CarryGripperBatch {
             shelf: None,
             material,
             planar_support: false,
+            spatial_support: None,
             active: false,
             published: false,
         });
@@ -233,8 +239,23 @@ impl CarryGripperBatch {
         let f = self
             .flight
             .as_mut()
-            .filter(|f| f.shelf.is_none() && !f.planar_support && self.planar.tick == 0)
+            .filter(|f| {
+                f.shelf.is_none()
+                    && f.spatial_support.is_none()
+                    && !f.planar_support
+                    && self.planar.tick == 0
+            })
             .ok_or(GpuError::InvalidBoxRelease)?;
+        if manifold == ShelfManifold::SpatialSupport {
+            let mut support = support::Support::new(f, surface)?;
+            let total = f.device.device_info().allocated_buffer_bytes
+                + support.device.device_info().allocated_buffer_bytes;
+            support.device.gpu.info.allocated_buffer_bytes = total;
+            f.device.gpu.info.allocated_buffer_bytes = total;
+            self.planar.gpu.info.allocated_buffer_bytes = total;
+            f.spatial_support = Some(support);
+            return Ok(());
+        }
         if manifold == ShelfManifold::PlanarSupport {
             let m = f.material;
             let q = m.initial_orientation;
@@ -261,6 +282,15 @@ impl CarryGripperBatch {
     /// Last accepted corner impact in the current epoch. Reset clears the receipt.
     pub fn shelf_impact(&self) -> Option<ShelfImpact> {
         self.flight.as_ref()?.shelf.as_ref()?.receipt
+    }
+    /// Impulses on the free body in the last public millisecond of spatial shelf contact.
+    pub fn spatial_shelf_loads(&self) -> Option<&SpatialShelfLoads> {
+        self.flight
+            .as_ref()?
+            .spatial_support
+            .as_ref()?
+            .latest
+            .as_ref()
     }
     /// At a free boundary apply a world impulse (N·s) at a box-local material point (m).
     pub fn release_box(&mut self, impulse: [f64; 3], point: [f64; 3]) -> Result<(), GpuError> {
@@ -300,7 +330,11 @@ impl CarryGripperBatch {
     /// Active state layout and total explicit buffers allocated by the active physics pipelines on the device.
     pub fn device_info(&self) -> &crate::GpuInfo {
         match self.flight.as_ref().filter(|f| f.published && f.active) {
-            Some(f) => f.device.device_info(),
+            Some(f) => f
+                .spatial_support
+                .as_ref()
+                .filter(|s| s.latest.is_some())
+                .map_or_else(|| f.device.device_info(), |s| s.device.device_info()),
             None => self.planar.device_info(),
         }
     }
@@ -355,7 +389,9 @@ impl CarryGripperBatch {
             f.device.upload_needed = true;
         }
         let material = f.material;
-        let metrics = if let Some(shelf) = &mut f.shelf {
+        let metrics = if let Some(support) = &mut f.spatial_support {
+            support.step(&mut f.device, material)?
+        } else if let Some(shelf) = &mut f.shelf {
             shelf.step(&mut f.device, material)?
         } else {
             f.device.advance_checked(1, |rows| {
@@ -379,6 +415,10 @@ impl CarryGripperBatch {
             f.active = false;
             f.published = false;
             f.device.reset();
+            if let Some(s) = &mut f.spatial_support {
+                s.latest = None;
+                s.device.reset();
+            }
             if let Some(shelf) = &mut f.shelf {
                 shelf.reset();
             }

@@ -110,7 +110,7 @@ pub(super) fn build<const WIDTH: usize, const STORES: usize>(
     constants: &[f64],
     calculate: impl for<'a> FnOnce([Value<'a>; WIDTH], &[Value<'a>]) -> [(usize, Value<'a>); STORES],
 ) -> Module {
-    build_mode(constants, false, |values, constants, _| {
+    build_mode(constants, false, None, |values, constants, _| {
         calculate(values, constants)
     })
 }
@@ -126,14 +126,27 @@ pub(super) fn build_loop<const WIDTH: usize, const STORES: usize>(
         Value<'a>,
     ) -> [(usize, Value<'a>); STORES],
 ) -> Module {
-    build_mode(constants, true, |values, constants, offset| {
+    build_mode(constants, true, None, |values, constants, offset| {
         calculate(values, constants, offset.unwrap())
+    })
+}
+
+/// Fixed device-local iteration count. A complete solve publishes only after the
+/// last iteration and needs no uniform upload or intermediate storage barrier.
+pub(super) fn build_fixed_loop<const WIDTH: usize, const STORES: usize>(
+    constants: &[f64],
+    iterations: u32,
+    calculate: impl for<'a> FnOnce([Value<'a>; WIDTH], &[Value<'a>]) -> [(usize, Value<'a>); STORES],
+) -> Module {
+    build_mode(constants, false, Some(iterations), |v, c, _| {
+        calculate(v, c)
     })
 }
 
 fn build_mode<const WIDTH: usize, const STORES: usize>(
     constants: &[f64],
     repeated: bool,
+    fixed_count: Option<u32>,
     calculate: impl for<'a> FnOnce(
         [Value<'a>; WIDTH],
         &[Value<'a>],
@@ -204,7 +217,8 @@ fn build_mode<const WIDTH: usize, const STORES: usize>(
     let width = uint(WIDTH as u32);
     let numbers: Vec<_> = constants.iter().copied().map(number).collect();
     let control = control.map(|g| expr(Expression::GlobalVariable(g)));
-    let iteration = control.map(|_| {
+    let fixed = fixed_count.map(uint);
+    let iteration = (fixed.is_some() || control.is_some()).then(|| {
         let local = function.local_variables.append(
             LocalVariable {
                 name: Some("iteration".into()),
@@ -257,7 +271,9 @@ fn build_mode<const WIDTH: usize, const STORES: usize>(
             index: (base + offset).id,
         })
     });
-    let control = control.map(|v| expr(Expression::Load { pointer: v.id }));
+    let control = control
+        .map(|v| expr(Expression::Load { pointer: v.id }))
+        .or(fixed);
     function
         .body
         .push(Statement::Emit(arena.borrow().range_from(mark)), SPAN);

@@ -26,7 +26,7 @@ pub(super) fn well_conditioned(
     let product = a * b;
     product.is_finite() && product - c * c > 1e-10 * product
 }
-pub(super) fn pair_impulses<T: Scalar>(
+pub(in crate::carry_gripper::flight) fn pair_impulses<T: Scalar>(
     diagonal: [T; 2],
     coupling: T,
     desired: [T; 2],
@@ -40,11 +40,12 @@ pub(super) fn pair_impulses<T: Scalar>(
     let safe = det.greater(zero).select(det, one);
     let x = (u * b - v * coupling) / safe;
     let y = (v * a - u * coupling) / safe;
-    let first = x.at_most(zero);
-    let second = y.at_most(zero);
+    let both = x.at_least(zero).and(y.at_least(zero));
+    let solo = (u / a).maximum(zero);
+    let first = (coupling * solo).at_least(v);
     [
-        first.select(zero, second.select(u / a, x)),
-        first.select(v / b, second.select(zero, y)),
+        both.select(x, first.select(solo, zero)),
+        both.select(y, first.select(zero, (v / b).maximum(zero))),
     ]
 }
 

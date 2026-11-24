@@ -56,6 +56,15 @@ fn edge_active_set_reduces_unloaded_rows_without_attractive_impulses() {
             assert!(j[i] >= 0. && residual >= -1e-12 && (j[i] * residual).abs() < 1e-12);
         }
     }
+    // Separating contacts are admissible during a sustained patch solve. With a
+    // negative coupling, an unloaded two-row trial can still require the first row.
+    for (rhs, expected) in [
+        ([-1., -2.], [0., 0.]),
+        ([1., -3.], [0.5, 0.]),
+        ([-3., 1.], [0., 0.5]),
+    ] {
+        assert_eq!(edge::pair_impulses([2.; 2], -1.8, rhs, 0., 1.), expected);
+    }
     let s = state(0.031, -1.);
     let sh = shape();
     assert!(!edge::well_conditioned(s, [DVec3::X; 2], sh.inertia, 0.08));

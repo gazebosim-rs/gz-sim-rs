@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Isolated frictionless normal impact between one cuboid corner and a finite shelf top.
 use super::*;
-mod edge;
+pub(super) mod edge;
 use crate::arithmetic::Condition;
 pub use edge::ShelfWitness;
 use edge::Solver;
@@ -55,7 +55,7 @@ struct Event {
     second: Option<DVec3>,
 }
 #[derive(Clone, Copy)]
-struct Shape {
+pub(super) struct Shape {
     half: DVec3,
     offset: DVec3,
     inertia: DVec3,
@@ -63,7 +63,7 @@ struct Shape {
     g: f64,
 }
 impl Shape {
-    fn new(l: &Lane, material: BoxFlightMaterial) -> Self {
+    pub(super) fn new(l: &Lane, material: BoxFlightMaterial) -> Self {
         Self {
             half: DVec3::new(
                 l.carry.box_half[0],
@@ -201,7 +201,7 @@ impl Shape {
         }
         Ok((end, event))
     }
-    fn classify(
+    pub(super) fn classify(
         self,
         start: FreeBoxState,
         l: &Lane,
@@ -214,7 +214,7 @@ impl Shape {
             + rot.y_axis.abs() * self.half.y
             + rot.z_axis.abs() * self.half.z;
         // The entire body stays inside this swept box even if it rebounds.
-        // A static frictionless Newton impact with e <= 1 cannot add kinetic energy.
+        // Both admitted Newton impacts and passive interior support are energy bounded.
         let v = DVec3::from(start.center_velocity);
         let angular = q.inverse() * DVec3::from(start.momentum);
         let mass = l.carry.hand.ball_mass;
@@ -376,7 +376,7 @@ impl Shelf {
         Ok(metrics)
     }
 }
-fn validate_others(
+pub(super) fn validate_others(
     material: BoxFlightMaterial,
     start: &FreeBoxState,
     out: &Lane,
