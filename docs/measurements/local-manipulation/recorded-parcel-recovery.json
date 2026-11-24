@@ -1,0 +1,410 @@
+{
+  "code_commit": "c579c1eda14c5f28d8d6e04dde8d6df87d53a0e0",
+  "base_commit": "186f5c1d6e9a9424980f25691298613908a63a05",
+  "frozen_commit": "522a03fa7fd46ec5925b2cc596d645b4919fbc5f",
+  "frozen_renderer": {
+    "cli": {
+      "build_id": "496d97d02671098c2db462147f6ba76de9ab7807",
+      "binary_sha256": "02f8e6cfde24e11a16969e4c70f8e08282cc2aef41e680548d733dd69924e438",
+      "raws": 13,
+      "asset": "assets/0/marker.obj.glb",
+      "capture_sha256": "2de56f90b5404d8dc1bebd94e5180413b100e2151918d217ddba0d7b33348cb8"
+    },
+    "objects": 807,
+    "owned_files": 41,
+    "counts": {
+      "lines": [
+        7965,
+        7976,
+        8470
+      ],
+      "regions": [
+        13674,
+        13682,
+        14724
+      ]
+    },
+    "gains": {
+      "gz-sim-cli/src/live.rs": {
+        "regions": 1
+      },
+      "gz-sim-cli/src/main.rs": {
+        "lines": 4,
+        "regions": 2
+      },
+      "gz-sim-cli/src/web.rs": {
+        "lines": 2,
+        "regions": 1
+      },
+      "gz-sim-cli/src/web/recording/archive.rs": {
+        "lines": 1
+      },
+      "gz-sim-cli/src/web/recording/playback.rs": {
+        "lines": 4,
+        "regions": 4
+      }
+    },
+    "object_map_sha256": "2c59b2a5b2470075d387882bfb6e6c53528d6e8c7cb36e5bcd7c30343c6c5b56",
+    "original_profile_sha256": "26b7468dfb88a15be74d1928918233eac993be14726f27935f69de78f5b521b9",
+    "merged_profile_sha256": "628b5e48b07b2f3d764df098a9a005799697b7256b5f6047d94e76b1998f1908",
+    "llvm_preexisting_mismatched_functions": 10124
+  },
+  "frozen_headless_retained": {
+    "cli": {
+      "build_id": "0f3c9a773072c45340f7a77949748c64bfed80cd",
+      "binary_sha256": "db8b00102fced5ce27597fc7b3e3967180b8449ddfc62798048b0a983f1e6016",
+      "raws": 13,
+      "asset": "assets/0/marker.obj.glb",
+      "capture_sha256": "f459f9eb6dd956cbe43782afd501b2c39f1ca8ed67f3f9f6bc8db95e3df5fcdb"
+    },
+    "objects": 814,
+    "owned_files": 41,
+    "counts": {
+      "lines": [
+        7905,
+        7916,
+        8470
+      ],
+      "regions": [
+        13605,
+        13613,
+        14723
+      ]
+    },
+    "gains": {
+      "gz-sim-cli/src/live.rs": {
+        "regions": 1
+      },
+      "gz-sim-cli/src/main.rs": {
+        "lines": 4,
+        "regions": 2
+      },
+      "gz-sim-cli/src/web.rs": {
+        "lines": 2,
+        "regions": 1
+      },
+      "gz-sim-cli/src/web/recording/archive.rs": {
+        "lines": 1
+      },
+      "gz-sim-cli/src/web/recording/playback.rs": {
+        "lines": 4,
+        "regions": 4
+      }
+    },
+    "object_map_sha256": "cf4df36d098931c760163fa73d4b914691880cd7cb6fe79cb5d444cd6f3f4e73",
+    "original_profile_sha256": "981017fbc1ccd8caf899ef7f79217d15f55bb7f503b697d43d130800778150b5",
+    "merged_profile_sha256": "9e2df31da4494573b427189fc0e36e243d27497316712b9ef7a63753771ad3ce",
+    "llvm_preexisting_mismatched_functions": 9602,
+    "canonical_source_coverage": {
+      "lines": [
+        7965,
+        8470
+      ],
+      "regions": [
+        13673,
+        14723
+      ]
+    },
+    "missing_qualification_objects": 6,
+    "only_baseline_file_diverging": "gz-sim-cli/src/live/convoy.rs",
+    "excluded_covered_lines": 60,
+    "excluded_covered_regions": 68
+  },
+  "changed_coverage": {
+    "production": {
+      "lines": [
+        36,
+        36
+      ],
+      "regions": [
+        64,
+        65
+      ],
+      "missed_lines": [],
+      "missed_regions": [
+        [
+          "crates/gz-sim-cli/src/web/recording/archive.rs",
+          314,
+          28,
+          314,
+          29
+        ]
+      ]
+    },
+    "acceptance": {
+      "lines": [
+        314,
+        320
+      ],
+      "regions": [
+        640,
+        648
+      ],
+      "missed_lines": [
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          9
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          16
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          43
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          44
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          92
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          101
+        ]
+      ],
+      "missed_regions": [
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          9,
+          13,
+          9,
+          19
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          16,
+          5,
+          16,
+          11
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          43,
+          13,
+          43,
+          20
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          43,
+          21,
+          43,
+          60
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          44,
+          13,
+          44,
+          21
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          92,
+          13,
+          92,
+          36
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          92,
+          37,
+          92,
+          51
+        ],
+        [
+          "crates/gz-sim-cli/tests/private/recorded_parcel_state.rs",
+          101,
+          5,
+          101,
+          11
+        ]
+      ]
+    },
+    "objects": {
+      "gz-sim-rs": "58489766d6ab47961acfb496a7178289ed5251aa4d07f355556a285489e53fc7",
+      "gz_sim_cli-9b1d316de93beba1": "19fb2c7069e2e50cab4cb160063b93cd3291705b7aad893226dafae35b0c5d81",
+      "native-c6efdec87fc5079a": "9ff58735f1f49ef4b137c49b19e407ff659de2e8dd9fb84bdaa5def0651f43f7",
+      "cli-3f3e7cd6a1c81010": "b0f70314b5d91199c291af62337829f0191350eb0e1dea18fd372a4de3d0c4ec"
+    },
+    "profdata_sha256": "11668b8be8bf73e488ff52bcb664a81cdff8721b78fad8bf84a3cdb3733e1106"
+  },
+  "capture": {
+    "manifest_sha256": "e81ce764fbfe6293b5525583de434f2a7d0b35ce5ff6ea00d1a077e9d3810e53",
+    "stream_sha256": "d5a830d53c4e05f49d429a90a742ad8f447b31f4c7fadb555590347841287d97",
+    "frames": [
+      {
+        "ordinal": 1,
+        "time_ns": 0,
+        "parcel_m": [
+          0.0,
+          0.0,
+          0.535
+        ],
+        "outcomes": []
+      },
+      {
+        "ordinal": 2,
+        "time_ns": 0,
+        "parcel_m": [
+          0.0,
+          0.0,
+          0.535
+        ],
+        "outcomes": [
+          {
+            "action": "set_state",
+            "ok": false,
+            "model_id": 28
+          }
+        ]
+      },
+      {
+        "ordinal": 3,
+        "time_ns": 0,
+        "parcel_m": [
+          0.0,
+          0.46,
+          0.675
+        ],
+        "outcomes": [
+          {
+            "action": "set_state",
+            "ok": true,
+            "model_id": 15
+          }
+        ]
+      },
+      {
+        "ordinal": 4,
+        "time_ns": 1000000,
+        "parcel_m": [
+          0.0,
+          0.46,
+          0.6749744818750001
+        ],
+        "outcomes": [
+          {
+            "action": "resume",
+            "ok": true,
+            "model_id": null
+          }
+        ]
+      },
+      {
+        "ordinal": 5,
+        "time_ns": 23000000,
+        "parcel_m": [
+          0.0,
+          0.46,
+          0.671931153125
+        ],
+        "outcomes": []
+      },
+      {
+        "ordinal": 6,
+        "time_ns": 44000000,
+        "parcel_m": [
+          0.0,
+          0.46,
+          0.6645969424999999
+        ],
+        "outcomes": []
+      },
+      {
+        "ordinal": 7,
+        "time_ns": 65000000,
+        "parcel_m": [
+          0.0,
+          0.46,
+          0.6529365218750001
+        ],
+        "outcomes": []
+      },
+      {
+        "ordinal": 8,
+        "time_ns": 89000000,
+        "parcel_m": [
+          0.0,
+          0.46,
+          0.6343129268750002
+        ],
+        "outcomes": []
+      },
+      {
+        "ordinal": 9,
+        "time_ns": 110000000,
+        "parcel_m": [
+          -5.066078997489812e-05,
+          0.46,
+          0.6150245457595016
+        ],
+        "outcomes": []
+      },
+      {
+        "ordinal": 10,
+        "time_ns": 137000000,
+        "parcel_m": [
+          -1.801078379473486e-05,
+          0.46,
+          0.6150021380678836
+        ],
+        "outcomes": []
+      },
+      {
+        "ordinal": 11,
+        "time_ns": 170000000,
+        "parcel_m": [
+          -1.5544697581437275e-05,
+          0.46,
+          0.6149842553290334
+        ],
+        "outcomes": []
+      },
+      {
+        "ordinal": 12,
+        "time_ns": 180000000,
+        "parcel_m": [
+          -1.595370972290187e-05,
+          0.46,
+          0.61498027521148
+        ],
+        "outcomes": []
+      }
+    ]
+  },
+  "browser": {
+    "body_poses_and_shapes_checked": 240,
+    "captured_ms": {
+      "initial": 0.0,
+      "landed": 180.0,
+      "launched": 0.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frame_times_ms": [
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      23.0,
+      44.0,
+      65.0,
+      89.0,
+      110.0,
+      137.0,
+      170.0,
+      180.0
+    ],
+    "frames": 12,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 12,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10083%2F"
+  }
+}
