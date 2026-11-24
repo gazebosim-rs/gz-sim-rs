@@ -46,6 +46,7 @@ pub struct ContactSegment {
 
 #[derive(Clone, Copy)]
 struct PreparedSegment {
+    fallback: Option<((BodyId, BodyId), NativeStepGrid)>,
     grid: NativeStepGrid,
     iterations: ContactSolverIterations,
 }
@@ -852,7 +853,11 @@ impl RapierBackend {
         };
         self.integrate_prepared(
             dt,
-            &[PreparedSegment { grid, iterations }],
+            &[PreparedSegment {
+                grid,
+                iterations,
+                fallback: None,
+            }],
             observer,
             fresh,
             None,
@@ -868,7 +873,7 @@ impl RapierBackend {
         segments: &[ContactSegment],
         pairs: &[(BodyId, BodyId)],
     ) -> Result<(ContactIntervalReceipt, u64), PhysicsError> {
-        self.run_schedule(dt, segments, pairs, None)
+        self.run_schedule(dt, segments, pairs, None, None)
     }
 
     /// Observe every committed native solve on the same public elapsed clock.
@@ -879,15 +884,83 @@ impl RapierBackend {
         pairs: &[(BodyId, BodyId)],
         mut observe: impl FnMut(ContactSubstep<'_>),
     ) -> Result<(ContactIntervalReceipt, u64), PhysicsError> {
-        self.run_schedule(dt, segments, pairs, Some(&mut observe))
+        self.run_schedule(dt, segments, pairs, Some(&mut observe), None)
     }
 
+    /// Consider a coarser middle segment only after the named box pair has delivered
+    /// the interval's sole positive reaction and its closest surfaces are separating.
+    /// The finer fallback and all three segments run inside one public transaction.
+    pub fn step_after_box_release(
+        &mut self,
+        dt: Duration,
+        segments: &[ContactSegment; 3],
+        pair: (BodyId, BodyId),
+        fallback_steps: u32,
+        fresh: &[(BodyId, BodyId)],
+        observer: Option<&mut dyn FnMut(ContactSubstep<'_>)>,
+    ) -> Result<(ContactIntervalReceipt, u64), PhysicsError> {
+        let key = if pair.0 < pair.1 {
+            pair
+        } else {
+            (pair.1, pair.0)
+        };
+        if key.0 == key.1
+            || !self.bodies.contains_key(&key.0)
+            || !self.bodies.contains_key(&key.1)
+            || fallback_steps <= segments[1].native_steps
+        {
+            return Err(PhysicsError::InvalidValue);
+        }
+        fallback_steps
+            .checked_add(segments[0].native_steps)
+            .and_then(|n| n.checked_add(segments[2].native_steps))
+            .ok_or(PhysicsError::InvalidValue)?;
+        let grid = NativeStepGrid::new(segments[1].duration, fallback_steps)?;
+        self.run_schedule(dt, segments, fresh, observer, Some((key, grid)))
+    }
+
+    fn released_box_pair(&self, work: &Integration<'_, '_>, pair: (BodyId, BodyId)) -> bool {
+        let mut loaded = work
+            .pairs
+            .iter()
+            .filter(|(_, (entry, _))| entry.normal_impulse > 0.);
+        if loaded.next().map(|(key, _)| *key) != Some(pair) || loaded.next().is_some() {
+            return false;
+        }
+        let a = &self.world.bodies[self.bodies[&pair.0].0];
+        let b = &self.world.bodies[self.bodies[&pair.1].0];
+        let ([ca], [cb]) = (a.colliders(), b.colliders()) else {
+            return false;
+        };
+        let (ca, cb) = (&self.world.colliders[*ca], &self.world.colliders[*cb]);
+        if ca.shape().as_cuboid().is_none() || cb.shape().as_cuboid().is_none() {
+            return false;
+        }
+        let max_dist = ca
+            .position()
+            .translation
+            .distance(cb.position().translation);
+        let Ok(Some(contact)) = rapier3d_f64::parry::query::contact(
+            ca.position(),
+            ca.shape(),
+            cb.position(),
+            cb.shape(),
+            max_dist,
+        ) else {
+            return false;
+        };
+        contact.dist > ca.contact_skin() + cb.contact_skin()
+            && (b.velocity_at_point(contact.point2) - a.velocity_at_point(contact.point1))
+                .dot(contact.normal1)
+                > 0.
+    }
     fn run_schedule(
         &mut self,
         dt: Duration,
         segments: &[ContactSegment],
         pairs: &[(BodyId, BodyId)],
         observer: Option<&mut dyn FnMut(ContactSubstep<'_>)>,
+        fallback: Option<((BodyId, BodyId), NativeStepGrid)>,
     ) -> Result<(ContactIntervalReceipt, u64), PhysicsError> {
         let mut total = Duration::ZERO;
         let mut steps = 0_u32;
@@ -903,6 +976,7 @@ impl RapierBackend {
                 .contact_grid(segment.duration, segment.native_steps, segment.iterations)?
                 .ok_or(PhysicsError::InvalidValue)?;
             prepared.push(PreparedSegment {
+                fallback: if prepared.len() == 1 { fallback } else { None },
                 grid,
                 iterations: segment.iterations,
             });
@@ -1430,7 +1504,11 @@ impl RapierBackend {
         {
             g.receipt.opposing_corner_calls = Some(Vec::new());
         }
-        let uniform = [PreparedSegment { grid, iterations }];
+        let uniform = [PreparedSegment {
+            grid,
+            iterations,
+            fallback: None,
+        }];
         let phased;
         let segments = if let Some(f) = flight
             && f.at < dt
@@ -1439,10 +1517,12 @@ impl RapierBackend {
             let after = (u128::from(calls - 1)).min(tail.as_nanos()) as u32;
             phased = [
                 PreparedSegment {
+                    fallback: None,
                     grid: NativeStepGrid::new(f.at, calls - after)?,
                     iterations,
                 },
                 PreparedSegment {
+                    fallback: None,
                     grid: NativeStepGrid::new(tail, after)?,
                     iterations,
                 },
@@ -1614,7 +1694,11 @@ impl RapierBackend {
                     .iterations
                     .relaxation
                     .unwrap_or(previous.num_internal_stabilization_iterations);
-                for ordinary in segment.grid.intervals() {
+                let grid = match segment.fallback {
+                    Some((pair, fine)) if !self.released_box_pair(work, pair) => fine,
+                    _ => segment.grid,
+                };
+                for ordinary in grid.intervals() {
                     if work
                         .live
                         .as_ref()

@@ -93,10 +93,22 @@ pub struct Refinement {
     pub requested_pairs: Vec<RequestedPair>,
     /// Actual fine prefix and remaining impact grid, present only on an admitted separated face.
     pub early_face_schedule: Option<[ContactSegment; 2]>,
+    /// The actually used three-part schedule when a positive reaction and separating
+    /// cuboid surfaces allowed a longer middle step after impact.
+    pub released_face_schedule: Option<[ContactSegment; 3]>,
     /// Solver settings requested for this interval's ordinary impact grid. Absent fields inherit the world’s settings.
     pub solver: ContactSolverIterations,
     /// Includes contacts elsewhere in the same collision world.
     pub interval: ContactIntervalReceipt,
+}
+impl Refinement {
+    /// Exact native segments used for an admitted separated-face refinement.
+    pub fn realized_face_schedule(&self) -> Option<&[ContactSegment]> {
+        self.released_face_schedule
+            .as_ref()
+            .map(|s| s.as_slice())
+            .or_else(|| self.early_face_schedule.as_ref().map(|s| s.as_slice()))
+    }
 }
 /// Returns the latest committed receipt in this epoch. A pause retains it.
 pub fn last_refinement(sim: &Simulation) -> Option<&Refinement> {
@@ -1222,6 +1234,7 @@ fn advance(
     } else {
         None
     };
+    let mut released_face_schedule = None;
     let receipt = if !returning_features.is_empty()
         || !timing_pairs.is_empty()
         || !projections.is_empty()
@@ -1384,18 +1397,43 @@ fn advance(
         } else {
             (impact_calls, impact_solver)
         };
-        match selected_interval(
-            native,
-            *time,
-            ContactSegment {
-                duration: time.dt,
-                native_steps: calls,
-                iterations,
-            },
-            early_face_schedule.as_ref(),
-            &fresh,
-            observer.as_deref_mut(),
-        ) {
+        let staged =
+            early_face_schedule.and_then(|s| policy.early_face?.after_release(s, separated_face?));
+        let outcome = if let Some((segments, fallback)) = staged {
+            let pair = policy.pairs[requests[0]].key();
+            let result = if let Some(probe) = observer.as_deref_mut() {
+                native.step_after_box_release(
+                    time.dt,
+                    &segments,
+                    pair,
+                    fallback,
+                    &fresh,
+                    Some(&mut |s| probe.sample(*time, s)),
+                )
+            } else {
+                native.step_after_box_release(time.dt, &segments, pair, fallback, &fresh, None)
+            };
+            result.map(|(r, n)| {
+                if r.native_steps == segments.iter().map(|s| s.native_steps).sum::<u32>() {
+                    released_face_schedule = Some(segments);
+                }
+                (r, n)
+            })
+        } else {
+            selected_interval(
+                native,
+                *time,
+                ContactSegment {
+                    duration: time.dt,
+                    native_steps: calls,
+                    iterations,
+                },
+                early_face_schedule.as_ref(),
+                &fresh,
+                observer.as_deref_mut(),
+            )
+        };
+        match outcome {
             Ok((r, n)) => {
                 rebuilt = n;
                 Some(r)
@@ -1710,7 +1748,8 @@ fn advance(
             start_time: time.start_time,
             sim_time: time.sim_time,
             requested_pairs,
-            early_face_schedule,
+            early_face_schedule: early_face_schedule.filter(|_| released_face_schedule.is_none()),
+            released_face_schedule,
             solver,
             interval,
         });

@@ -407,6 +407,21 @@ impl MultiFidelityBackend {
             .map_err(engine_error)
     }
 
+    /// Run a three-part schedule with the longer middle timestep gated by actual box release.
+    pub fn step_after_box_release(
+        &mut self,
+        dt: Duration,
+        segments: &[ContactSegment; 3],
+        pair: (BodyId, BodyId),
+        fallback_steps: u32,
+        fresh: &[(BodyId, BodyId)],
+        observer: Option<&mut dyn FnMut(ContactSubstep<'_>)>,
+    ) -> Result<(ContactIntervalReceipt, u64), PhysicsError> {
+        self.solver
+            .step_after_box_release(dt, segments, pair, fallback_steps, fresh, observer)
+            .map_err(engine_error)
+    }
+
     /// Active native geometry on the last step for a single-collider box pair.
     pub fn has_box_contact(&self, a: BodyId, b: BodyId) -> bool {
         self.solver.has_box_contact(a, b)

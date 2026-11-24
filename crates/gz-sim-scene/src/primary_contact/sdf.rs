@@ -185,6 +185,7 @@ pub(crate) fn parse(
     {
         return Err(err("invalid plugin attributes"));
     }
+    let (mut tail_step, mut tail_guard) = (None, None);
     let mut early_step = None;
     let mut early_budget = None;
     let mut touching = None;
@@ -214,6 +215,22 @@ pub(crate) fn parse(
                         .and_then(|s| s.parse().ok())
                         .filter(|n: &u32| *n > 0)
                         .ok_or_else(|| err("early_face_max_steps must be a positive integer"))?,
+                );
+            }
+            "early_face_tail_step_ns" if tail_step.is_none() => {
+                tail_step = Some(
+                    field(n)
+                        .and_then(|s| s.parse::<u32>().ok())
+                        .filter(|n| *n > 0)
+                        .ok_or_else(|| err("early_face_tail_step_ns must be a positive integer"))?,
+                );
+            }
+            "early_face_guard_ns" if tail_guard.is_none() => {
+                tail_guard = Some(
+                    field(n)
+                        .and_then(|s| s.parse::<u32>().ok())
+                        .filter(|n| *n > 0)
+                        .ok_or_else(|| err("early_face_guard_ns must be a positive integer"))?,
                 );
             }
             "touching_solver" if touching.is_none() => {
@@ -889,9 +906,24 @@ pub(crate) fn parse(
             _ => return Err(err("unknown or duplicate policy field")),
         }
     }
+    let tail = match (tail_step, tail_guard) {
+        (None, None) => None,
+        (Some(post), Some(guard)) if early_step.is_some_and(|step| post > step) => {
+            Some((post, guard))
+        }
+        _ => {
+            return Err(err(
+                "early_face_tail_step_ns and early_face_guard_ns require a fine face window and a longer tail timestep",
+            ));
+        }
+    };
     let early_face = match (early_step, early_budget) {
         (None, None) => None,
-        (Some(step_ns), Some(max_steps)) => Some(super::EarlyFace { step_ns, max_steps }),
+        (Some(step_ns), Some(max_steps)) => Some(super::EarlyFace {
+            step_ns,
+            max_steps,
+            tail,
+        }),
         _ => {
             return Err(err(
                 "early_face_step_ns and early_face_max_steps must appear together",
