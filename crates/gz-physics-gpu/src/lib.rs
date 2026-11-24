@@ -39,7 +39,7 @@ mod carry_gripper;
 mod parallel_gripper;
 pub use carry_gripper::{
     BoxFlightMaterial, BoxLinkState, CarryGripperBatch, CarryGripperLane, FreeBoxState,
-    ShelfImpact, ShelfManifold, ShelfWitness, SpatialShelf,
+    ShelfImpact, ShelfManifold, ShelfWitness, SpatialShelf, SpatialShelfLoads,
 };
 mod planar_arm;
 mod planar_object;
@@ -514,6 +514,14 @@ impl<T: Pod + Send + Sync> ResidentBatch<T> {
         ticks: u32,
         validate: impl FnOnce(&[T]) -> Result<(), GpuError>,
     ) -> Result<StepMetrics, GpuError> {
+        self.advance_sequence(ticks, None, validate)
+    }
+    fn advance_sequence(
+        &mut self,
+        ticks: u32,
+        passes: Option<&[Dispatch]>,
+        validate: impl FnOnce(&[T]) -> Result<(), GpuError>,
+    ) -> Result<StepMetrics, GpuError> {
         let start = Instant::now();
         let next = self
             .tick
@@ -544,7 +552,7 @@ impl<T: Pod + Send + Sync> ResidentBatch<T> {
         let scratch = &mut self.scratch;
         let block_control = &self.block_control;
         self.gpu.run(
-            std::slice::from_ref(&self.dispatch),
+            passes.unwrap_or_else(|| std::slice::from_ref(&self.dispatch)),
             &mut metrics,
             |lanes| {
                 bytemuck::cast_slice_mut(scratch).copy_from_slice(lanes);
