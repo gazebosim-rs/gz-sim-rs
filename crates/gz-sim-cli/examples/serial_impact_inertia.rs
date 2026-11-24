@@ -52,6 +52,9 @@ struct Args {
     /// Inspect native jaw-load transitions in the first controller tick and optionally replay those instants.
     #[arg(long, conflicts_with_all = ["compare", "timing_runs", "impact_pulses"])]
     audit_first_strike: bool,
+    /// Measure the impulse transmitted through the finger and wrist against an unloaded, clock-matched arm.
+    #[arg(long, requires = "audit_first_strike")]
+    load_path: bool,
     /// Write the exact authored study world for the ordinary simulator CLI.
     #[arg(long)]
     write_world: Option<PathBuf>,
@@ -587,7 +590,10 @@ fn main() -> Result<()> {
         std::fs::write(path, fixture(&args.trial))?;
     }
     if args.audit_first_strike {
-        serde_json::to_writer(std::io::stdout().lock(), &strike::audit(args.trial)?)?;
+        serde_json::to_writer(
+            std::io::stdout().lock(),
+            &strike::audit(args.trial, args.load_path)?,
+        )?;
         return Ok(());
     }
     let report = run(args.trial)?;
