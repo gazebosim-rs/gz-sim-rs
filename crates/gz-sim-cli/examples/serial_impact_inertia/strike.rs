@@ -20,18 +20,13 @@ pub(super) struct Audit {
 }
 
 impl Audit {
-    fn verify(&self, target: &Sample) -> Result<()> {
-        let last = self.samples.last().unwrap();
-        if last.states != target.bodies
-            || (last.accumulated_ns - target.impact.left_ns - target.impact.right_ns).abs() > 1e-12
-        {
-            let max_v = last
-                .states
-                .iter()
-                .zip(&target.bodies)
-                .map(|(a, b)| DVec3::from_array(a.v).distance(DVec3::from_array(b.v)))
-                .fold(0_f64, f64::max);
-            return Err(format!("native audit disagreed with the selected step (body equality {}, max velocity difference {max_v:e} m/s, normal impulse difference {:e} N s)", last.states == target.bodies,last.accumulated_ns-target.impact.left_ns-target.impact.right_ns).into());
+    fn verify(&self, target: &Sample, committed: &[State]) -> Result<()> {
+        if committed != target.bodies {
+            return Err("observing contact changed the committed state of the robot".into());
+        }
+        let impulse = self.samples.last().unwrap().accumulated_ns;
+        if (impulse - target.impact.left_ns - target.impact.right_ns).abs() > 1e-12 {
+            return Err("observed and committed jaw impulses differ".into());
         }
         Ok(())
     }
@@ -69,6 +64,8 @@ pub(super) fn audit(mut trial: Trial) -> Result<Audit> {
     };
     let calls = target.native_steps;
     let solver = expected.first_solver;
+    let early = expected.first_early_schedule;
+    let observed_bodies = bodies.clone();
     sim.initialize_schedules()?;
     assert_eq!(
         sim.remove_systems_in_set(Phase::PhysicsStep, Phase::PhysicsStep)?,
@@ -92,46 +89,53 @@ pub(super) fn audit(mut trial: Trial) -> Result<Audit> {
                 iterations: solver.unwrap_or_else(|| native.ordinary_contact_iterations()),
             };
             let mut previous = start.clone();
-            if let Err(e) = native.observe_contact_schedule(clock.dt, &[schedule], &[], |cut| {
-                let patches = cut.contact_patches();
-                pulses::record(&mut data.pulses, &patches, ids, cut.elapsed, cut.duration);
-                let impulse = patches
-                    .iter()
-                    .filter(|p| {
-                        ids.counterpart(p.a, p.b)
-                            .is_some_and(|(peer, _)| peer == ids.left || peer == ids.right)
-                    })
-                    .flat_map(|p| &p.points)
-                    .map(|p| p.normal_impulse)
-                    .sum::<f64>();
-                let sample = Instant {
-                    end_ns: cut.elapsed.as_nanos() as u64,
-                    states: bodies
+            if let Err(e) = native.observe_contact_schedule(
+                clock.dt,
+                early
+                    .as_ref()
+                    .map_or(std::slice::from_ref(&schedule), |s| s.as_slice()),
+                &[],
+                |cut| {
+                    let patches = cut.contact_patches();
+                    pulses::record(&mut data.pulses, &patches, ids, cut.elapsed, cut.duration);
+                    let impulse = patches
                         .iter()
-                        .map(|id| State::from(cut.state(*id).unwrap()))
-                        .collect(),
-                    jaw_impulse_ns: impulse,
-                    accumulated_ns: previous.accumulated_ns + impulse,
-                };
-                // Preserve both sides of every transition, and one context frame per
-                // 10 microseconds for long flight or sustained contact. No interpolation.
-                if (impulse > 0.) != (previous.jaw_impulse_ns > 0.) {
-                    data.save(&previous);
-                    data.save(&sample);
-                } else if sample.end_ns / 10_000 != previous.end_ns / 10_000
-                    || cut.elapsed == clock.dt
-                {
-                    data.save(&sample);
-                }
-                previous = sample;
-            }) {
+                        .filter(|p| {
+                            ids.counterpart(p.a, p.b)
+                                .is_some_and(|(peer, _)| peer == ids.left || peer == ids.right)
+                        })
+                        .flat_map(|p| &p.points)
+                        .map(|p| p.normal_impulse)
+                        .sum::<f64>();
+                    let sample = Instant {
+                        end_ns: cut.elapsed.as_nanos() as u64,
+                        states: observed_bodies
+                            .iter()
+                            .map(|id| State::from(cut.state(*id).unwrap()))
+                            .collect(),
+                        jaw_impulse_ns: impulse,
+                        accumulated_ns: previous.accumulated_ns + impulse,
+                    };
+                    // Preserve both sides of every transition, and one context frame per
+                    // 10 microseconds for long flight or sustained contact. No interpolation.
+                    if (impulse > 0.) != (previous.jaw_impulse_ns > 0.) {
+                        data.save(&previous);
+                        data.save(&sample);
+                    } else if sample.end_ns / 10_000 != previous.end_ns / 10_000
+                        || cut.elapsed == clock.dt
+                    {
+                        data.save(&sample);
+                    }
+                    previous = sample;
+                },
+            ) {
                 fault.report(e);
             }
         },
     );
     sim.step_exact(1)?;
     let data = sim.world_mut().remove_resource::<Audit>().unwrap();
-    data.verify(target)?;
+    data.verify(target, &states(&sim, &bodies))?;
     if let Some(path) = replay {
         // The gauge exists only in the playback scene.
         let display_xml = xml.replace("</world>", r#"<model name="jaw_impulse_gauge"><static>true</static><link name="readout"><collision name="stand"><geometry><sphere><radius>0.001</radius></sphere></geometry></collision>
@@ -232,23 +236,21 @@ mod tests {
         let decoded = raw
             .lines()
             .skip(1)
-            .map(|line| -> Result<Value> {
-                let r: Value = serde_json::from_str(line)?;
-                Ok(serde_json::from_str(r["scene"].as_str().unwrap())?)
-            })
-            .collect::<Result<Vec<_>>>()?;
+            .map(serde_json::from_str::<Value>)
+            .collect::<std::result::Result<Vec<_>, _>>()?
+            .into_iter()
+            .filter(|r| r["kind"] == "frame")
+            .map(|r| serde_json::from_str(r["scene"].as_str().unwrap()))
+            .collect::<std::result::Result<Vec<Value>, _>>()?;
         let xml = fixture(&trial);
         let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
         let (mut ordinary, _, _) = load_robot(&trial, &xml)?;
         ordinary.step_exact(1)?;
         let end: Value =
             serde_json::from_str(&gz_sim_cli::primitive_frame(&ordinary, &sdf, "default", 1)?.0)?;
-        for (a, b) in decoded.last().unwrap()["visuals"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .zip(end["visuals"].as_array().unwrap())
-        {
+        let drawn = decoded.last().unwrap()["visuals"].as_array().unwrap();
+        for b in end["visuals"].as_array().unwrap() {
+            let a = drawn.iter().find(|a| a["name"] == b["name"]).unwrap();
             for k in ["translation", "rotation"] {
                 for (u, v) in a[k]
                     .as_array()
@@ -273,9 +275,12 @@ mod tests {
         assert_eq!(height(on - 1), 0.54);
         assert_eq!(height(on), 0.54 + 2. * events[on].accumulated_ns);
         observed.samples.last_mut().unwrap().accumulated_ns += 0.001;
-        assert!(observed.verify(&reference.samples[0]).is_err());
-        observed.samples.last_mut().unwrap().states.clear();
-        assert!(observed.verify(&reference.samples[0]).is_err());
+        assert!(
+            observed
+                .verify(&reference.samples[0], &reference.samples[0].bodies)
+                .is_err()
+        );
+        assert!(observed.verify(&reference.samples[0], &[]).is_err());
         Ok(())
     }
 
