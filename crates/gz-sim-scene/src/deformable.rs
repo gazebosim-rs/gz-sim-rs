@@ -76,10 +76,54 @@ enum Surface {
 enum BoxMotion {
     Fixed(Transform),
     Translating(Transform),
+    Turntable(Transform),
 }
-pub(super) fn requires_translation(world: &World, link: u64) -> bool {
-    world.get_resource::<Deformables>().is_some_and(|soft| soft.surfaces.iter().any(|surface|
-        matches!(surface, Surface::Rigid {link: id, one_way_box: Some(BoxMotion::Translating(_)), ..} if *id == link)))
+/// Return false before replacing a public command when it would invalidate
+/// a one-way material boundary's geometry.
+pub(super) fn admits_angular_command(
+    world: &World,
+    link: u64,
+    omega: [f64; 3],
+    dt: Duration,
+) -> bool {
+    world.get_resource::<Deformables>().is_none_or(|soft| {
+        soft.surfaces.iter().all(|surface| {
+            let Surface::Rigid {
+                link: id,
+                body,
+                one_way_box: Some(motion),
+                ..
+            } = surface
+            else {
+                return true;
+            };
+            if link != *id {
+                return true;
+            }
+            match motion {
+                BoxMotion::Fixed(_) => true,
+                BoxMotion::Translating(_) => omega == [0.; 3],
+                BoxMotion::Turntable(local) => world
+                    .resource::<PhysicsBackend>()
+                    .state(*body)
+                    .is_some_and(|state| {
+                        valid_turntable_twist(*local, state.orientation, omega, dt)
+                    }),
+            }
+        })
+    })
+}
+
+fn valid_turntable_twist(
+    local: Transform,
+    orientation: [f64; 4],
+    omega: [f64; 3],
+    dt: Duration,
+) -> bool {
+    let axis = (DQuat::from_array(orientation) * DQuat::from_array(local.rotation)) * DVec3::Z;
+    let spin = DVec3::from(omega);
+    spin.cross(axis).length() <= 1e-12 * spin.length()
+        && spin.length() * dt.as_secs_f64() < std::f64::consts::PI
 }
 
 #[derive(Clone, Copy)]
@@ -442,7 +486,7 @@ enum CouplingError {
     Binding,
     #[error("one-way capsule guide requires a fixed world axis and axial angular velocity")]
     TiltedCapsule,
-    #[error("one-way material cuboid requires linear translation with fixed orientation")]
+    #[error("one-way material cuboid requires linear translation and its authored rotation axis")]
     NonlinearBox,
     #[error("nonfinite deformable boundary trajectory or reaction")]
     Nonfinite,
@@ -464,15 +508,15 @@ fn capsule_axis(state: BodyState) -> Result<DVec3, CouplingError> {
     Ok(axis)
 }
 
-fn linear_box_motion(physics: &PhysicsBackend, body: BodyId, state: BodyState) -> bool {
-    state.angular_velocity == [0.; 3]
-        && physics
-            .downcast_ref::<MultiFidelityBackend>()
-            .is_some_and(|native| native.translation_sample(body).is_none())
+fn constant_twist(physics: &PhysicsBackend, body: BodyId) -> bool {
+    physics
+        .downcast_ref::<MultiFidelityBackend>()
+        .is_some_and(|native| native.translation_sample(body).is_none())
 }
 
 fn start_positions(world: &mut World) {
-    if world.resource::<UpdateInfo>().dt.is_zero() {
+    let dt = world.resource::<UpdateInfo>().dt;
+    if dt.is_zero() {
         return;
     }
     let result = world.resource_scope(|world, mut soft: Mut<Deformables>| {
@@ -499,15 +543,29 @@ fn start_positions(world: &mut World) {
                     return Err(CouplingError::Binding);
                 }
                 let state = physics.state(body).ok_or(CouplingError::Binding)?;
-                if matches!(
-                    surface,
-                    Surface::Rigid {
-                        one_way_box: Some(BoxMotion::Translating(_)),
-                        ..
-                    }
-                ) && !linear_box_motion(physics, body, state)
+                if let Surface::Rigid {
+                    one_way_box: Some(motion),
+                    ..
+                } = surface
                 {
-                    return Err(CouplingError::NonlinearBox);
+                    let valid = match motion {
+                        BoxMotion::Fixed(_) => true,
+                        BoxMotion::Translating(_) => {
+                            constant_twist(physics, body) && state.angular_velocity == [0.; 3]
+                        }
+                        BoxMotion::Turntable(local) => {
+                            constant_twist(physics, body)
+                                && valid_turntable_twist(
+                                    *local,
+                                    state.orientation,
+                                    state.angular_velocity,
+                                    dt,
+                                )
+                        }
+                    };
+                    if !valid {
+                        return Err(CouplingError::NonlinearBox);
+                    }
                 }
                 *start = Some(state);
                 if matches!(
@@ -726,9 +784,9 @@ impl Deformables {
                                 if let Some(motion) = one_way_box =>
                             {
                                 let local = match motion {
-                                    BoxMotion::Fixed(local) | BoxMotion::Translating(local) => {
-                                        local
-                                    }
+                                    BoxMotion::Fixed(local)
+                                    | BoxMotion::Translating(local)
+                                    | BoxMotion::Turntable(local) => local,
                                 };
                                 let rotation = DQuat::from_array(start.orientation);
                                 let center = (DVec3::from_array(center)
@@ -742,6 +800,32 @@ impl Deformables {
                                         half_extents,
                                         orientation,
                                     },
+                                    BoxMotion::Turntable(_) => {
+                                        // Native kinematic integration can differ slightly from
+                                        // the commanded rate. Interpolate its two published poses.
+                                        let step = dt.as_secs_f64();
+                                        let mut delta = DQuat::from_array(end.orientation)
+                                            * rotation.conjugate();
+                                        if delta.w < 0. {
+                                            delta = -delta;
+                                        }
+                                        let axis = DQuat::from_array(orientation) * DVec3::Z;
+                                        let signed_sine =
+                                            DVec3::new(delta.x, delta.y, delta.z).dot(axis);
+                                        let angular_speed = 2. * signed_sine.atan2(delta.w) / step;
+                                        let end_center = DVec3::from(end.position)
+                                            + DQuat::from_array(end.orientation)
+                                                * DVec3::from(local.translation);
+                                        Boundary::Turntable {
+                                            center,
+                                            half_extents,
+                                            orientation,
+                                            angular_speed,
+                                            velocity: ((end_center - DVec3::from(center))
+                                                / dt.as_secs_f64())
+                                            .to_array(),
+                                        }
+                                    }
                                     BoxMotion::Translating(_) => Boundary::TranslatingCuboid {
                                         center,
                                         half_extents,

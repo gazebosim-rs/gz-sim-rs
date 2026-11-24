@@ -148,6 +148,16 @@ pub enum Boundary {
         orientation: [f64; 4],
         velocity: [f64; 3],
     },
+    /// Prescribed cuboid spinning about its collision center and local +Z while
+    /// that center translates at constant world velocity. Moment is about the
+    /// collision center at the start of the public interval.
+    Turntable {
+        center: [f64; 3],
+        half_extents: [f64; 3],
+        orientation: [f64; 4],
+        velocity: [f64; 3],
+        angular_speed: f64,
+    },
     /// COM-centered box. Its uncoupled orientation follows the shortest arc
     /// between the two world quaternions in the accompanying principal motion.
     Cuboid {
@@ -827,7 +837,12 @@ impl SoftBody {
             boundaries,
             reactions,
             self.config.friction,
-            h,
+            collision::Interval {
+                h,
+                t0: t1 - h,
+                t1,
+                radius: self.config.particle_radius,
+            },
         )?;
         self.box_faces.finish(
             &self.predicted,
@@ -835,7 +850,7 @@ impl SoftBody {
             boundaries,
             reactions,
             self.config,
-            h,
+            (h, t1),
         )?;
         if let Some(m) = &mut self.capsule_material {
             m.finish(

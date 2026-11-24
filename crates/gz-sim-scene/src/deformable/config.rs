@@ -242,12 +242,14 @@ fn rigid_surface(
     ecs: &World,
     physics: &PhysicsBackend,
     capsule_pair: &[(BodyId, SoftRigidInertia)],
+    dt: Duration,
 ) -> Result<Surface, String> {
     fields(
         node,
         &[
             "link",
             "coupling",
+            "motion",
             "linear_trajectory",
             "normal_compliance",
             "normal_damping",
@@ -331,15 +333,47 @@ fn rigid_surface(
         .get::<BodyHandle>(entity)
         .ok_or("missing rigid body")?
         .id();
+    let turntable = match node.attribute("motion") {
+        None => false,
+        Some("turntable")
+            if matches!(shape, ReceiverShape::Cuboid(_))
+                && node.attribute("coupling") == Some("one_way")
+                && prescribed
+                && !fixed =>
+        {
+            true
+        }
+        Some(_) => return Err("motion=turntable requires a one-way prescribed cuboid".into()),
+    };
     let one_way_box = if matches!(shape, ReceiverShape::Cuboid(_))
         && node.attribute("coupling") == Some("one_way")
         && prescribed_or_static
     {
-        if fixed {
+        if turntable {
+            let axis = DQuat::from_array(collision_pose.rotation) * DVec3::Z;
+            let com = ecs
+                .get::<LinkCenterOfMass>(entity)
+                .map_or(DVec3::ZERO, |c| DVec3::from(c.0));
+            let lever = DVec3::from(collision_pose.translation) - com;
+            if lever.cross(axis).length() > 1e-12
+                || !constant_twist(physics, body)
+                || !physics.state(body).is_some_and(|state| {
+                    valid_turntable_twist(
+                        collision_pose,
+                        state.orientation,
+                        state.angular_velocity,
+                        dt,
+                    )
+                })
+            {
+                return Err("turntable requires straight center motion and rotation about its collision Z axis through the center of mass".into());
+            }
+            Some(BoxMotion::Turntable(collision_pose))
+        } else if fixed {
             Some(BoxMotion::Fixed(collision_pose))
         } else if physics
             .state(body)
-            .is_some_and(|state| linear_box_motion(physics, body, state))
+            .is_some_and(|state| state.angular_velocity == [0.; 3] && constant_twist(physics, body))
         {
             Some(BoxMotion::Translating(collision_pose))
         } else {
@@ -714,6 +748,7 @@ fn parse(
                     ecs,
                     physics,
                     &capsule_pair,
+                    dt,
                 )?);
             }
             "plane" => {
