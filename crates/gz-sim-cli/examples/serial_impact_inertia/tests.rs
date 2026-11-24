@@ -478,8 +478,14 @@ fn early_parallel_jaw_loading_matches_the_fine_impulse_on_both_sides() -> Result
                 i.normal_on_parcel_ns,
             )
         };
-        assert!(hit(&primary).0 > 0.04);
-        assert_eq!(hit(&primary), hit(&continuous));
+        let (impulse, onset, normal) = hit(&primary);
+        let (expected, fine_onset, fine_normal) = hit(&continuous);
+        assert!(impulse > 0.04);
+        assert_eq!((impulse, onset), (expected, fine_onset));
+        // The public reducer groups point impulses by body before summing the substeps.
+        for (measured, fine) in normal.into_iter().zip(fine_normal) {
+            assert!((measured - fine).abs() <= 4. * f64::EPSILON * expected);
+        }
         // Tail comparisons with the speed guard must reproduce the incoming state of
         // the next public tick even when the first interval uses two solver settings.
         let matched = run(Trial {
