@@ -7,6 +7,10 @@ The local Rust/Bevy robot can carry rigid parcels, weigh a loose cable and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — The folded-sheet gripper selects finer material time as it lands
+
+Across a full 4.6 s transfer, the opt-in local solver refined 80 native intervals. Its first rebound was within 0.015 mm of continuous fine material time from the same incoming state, at about 3% of the cost over the impact window. All five requests had physical contact, and the policy stayed off during ordinary placement and early retained withdrawal. [Full results, controls and replay](measurements/local-manipulation/sheet-adaptive-landing.md)
+
 ## 2026-11-23 — Replaying spherical targets on floating and parked robots
 
 The CPU journal now drives a ball joint to a requested orientation over a chosen number of actuator ticks. The floating wrist finished within 0.017° after a shove and a change of target. A hanging 2 kg wrist woke before the next solve and reached its heading within 0.000023°. All 950 floating robot steps repeated after reset. [Commands, independent controls and both native recordings](measurements/local-manipulation/ball-drive-targets.md)

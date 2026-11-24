@@ -1,0 +1,1039 @@
+{
+  "public_actuator_step_ns": 1000000,
+  "benchmark_host": "AMD Ryzen 9 9950X3D, shared 16-core x86-64 Linux",
+  "frozen_code_commit": "f1da866e189b6d458eebaad5822680b0ddbb38d6",
+  "integrated_code_tip": "d2bb1e1bf61be61cf7d47de064100a87ce19ae47",
+  "diff_base": "04709cac4cb764f5d3dedba31dfac973bdb8f244",
+  "matched_release": {
+    "drop-early:adaptive": {
+      "summary": {
+        "actuator_cost": {
+          "n": 4600,
+          "p50_ns": 2897309,
+          "p95_ns": 4222034,
+          "p99_ns": 4487604,
+          "total_ns": 13963706991
+        },
+        "clock": "Adaptive",
+        "events": {
+          "fast_landings_ns": [],
+          "first_ms_impulse_ns": 0.0,
+          "guarded_landings_ns": [],
+          "rebound_m": 0.0,
+          "refined_steps": 0,
+          "requests_ns": [],
+          "requests_with_measured_contact_ns": [],
+          "window_impulse_ns": 0.0,
+          "window_steps": 1280
+        },
+        "mode": "DropEarly",
+        "native_commits_per_ms": 16,
+        "other_native_cost": {
+          "n": 72320,
+          "p50_ns": 182841,
+          "p95_ns": 265061,
+          "p99_ns": 285141,
+          "total_ns": 13742939476
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.0,
+          "final_deck_descent_m": 0.05000000000000726,
+          "final_deck_lateral_clearance_m": -0.15400088717451593,
+          "final_grip_n": 1.6165394187153137,
+          "final_jaw_up_n": 0.08242136761866106,
+          "final_material_gap_m": 0.04696336291073343,
+          "final_table_n": 0.0,
+          "first_opening_tick": 3112,
+          "first_pad_free_tick": null,
+          "fully_open_tick": null,
+          "max_downward_adjustment_m": 0.004,
+          "max_loose_gap_m": null,
+          "min_raised_clearance_m": 0.14961128876271257,
+          "opening_ms_at_end": 9,
+          "peak_loose_table_interval_ns": null,
+          "preceding_20ms_table_force_range_n": [
+            0.07322055082873263,
+            0.11909388406252389
+          ],
+          "receiver_drop": {
+            "first_paused_tick": 3121,
+            "first_returning_table_load_tick": null,
+            "first_tick": 3120,
+            "opening_before_ms": 8,
+            "preceding_grip_n": [
+              0.781854997809936,
+              0.7798527638538812
+            ]
+          },
+          "search_exhausted_tick": 4301
+        },
+        "reset": true,
+        "target_ns": 1000,
+        "window_native_cost": {
+          "n": 1280,
+          "p50_ns": 169390,
+          "p95_ns": 191301,
+          "p99_ns": 222400,
+          "total_ns": 220767515
+        }
+      },
+      "public_trajectory_sha256": "2113cdf97ba765c8319b60aab855c238a5fc2b82f992bbd325fca55aee2ff6b2",
+      "world_sdf_sha256": "2dfda8ebfcf5f489ad251d8ce51a4e3e0e70572069c236731ffe96c349958835"
+    },
+    "drop-early:coarse": {
+      "summary": {
+        "actuator_cost": {
+          "n": 4600,
+          "p50_ns": 2526988,
+          "p95_ns": 3100570,
+          "p99_ns": 3410751,
+          "total_ns": 12371773594
+        },
+        "clock": "Coarse",
+        "events": {
+          "fast_landings_ns": [],
+          "first_ms_impulse_ns": 0.0,
+          "guarded_landings_ns": [],
+          "rebound_m": 0.0,
+          "refined_steps": 0,
+          "requests_ns": [],
+          "requests_with_measured_contact_ns": [],
+          "window_impulse_ns": 0.0,
+          "window_steps": 1280
+        },
+        "mode": "DropEarly",
+        "native_commits_per_ms": 16,
+        "other_native_cost": {
+          "n": 72320,
+          "p50_ns": 158681,
+          "p95_ns": 195761,
+          "p99_ns": 229151,
+          "total_ns": 12171760646
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.0,
+          "final_deck_descent_m": 0.05000000000000726,
+          "final_deck_lateral_clearance_m": -0.15400088717451593,
+          "final_grip_n": 1.6165394187153137,
+          "final_jaw_up_n": 0.08242136761866106,
+          "final_material_gap_m": 0.04696336291073343,
+          "final_table_n": 0.0,
+          "first_opening_tick": 3112,
+          "first_pad_free_tick": null,
+          "fully_open_tick": null,
+          "max_downward_adjustment_m": 0.004,
+          "max_loose_gap_m": null,
+          "min_raised_clearance_m": 0.14961128876271257,
+          "opening_ms_at_end": 9,
+          "peak_loose_table_interval_ns": null,
+          "preceding_20ms_table_force_range_n": [
+            0.07322055082873263,
+            0.11909388406252389
+          ],
+          "receiver_drop": {
+            "first_paused_tick": 3121,
+            "first_returning_table_load_tick": null,
+            "first_tick": 3120,
+            "opening_before_ms": 8,
+            "preceding_grip_n": [
+              0.781854997809936,
+              0.7798527638538812
+            ]
+          },
+          "search_exhausted_tick": 4301
+        },
+        "reset": false,
+        "target_ns": 1000,
+        "window_native_cost": {
+          "n": 1280,
+          "p50_ns": 155161,
+          "p95_ns": 163351,
+          "p99_ns": 172781,
+          "total_ns": 200012948
+        }
+      },
+      "public_trajectory_sha256": "2113cdf97ba765c8319b60aab855c238a5fc2b82f992bbd325fca55aee2ff6b2",
+      "world_sdf_sha256": "a7f6e3f2a57fb163154734c2a6798a34cf8dc0cc8c4a6e24d71e466f6cef8129"
+    },
+    "drop-late:adaptive": {
+      "summary": {
+        "actuator_cost": {
+          "n": 4600,
+          "p50_ns": 3033130,
+          "p95_ns": 5492897,
+          "p99_ns": 8616538,
+          "total_ns": 16465672707
+        },
+        "clock": "Adaptive",
+        "events": {
+          "fast_landings_ns": [
+            3251937500,
+            3347000000,
+            3387750000
+          ],
+          "first_ms_impulse_ns": 0.012246118480023467,
+          "guarded_landings_ns": [
+            3251937500,
+            3347000000,
+            3387750000
+          ],
+          "rebound_m": 0.011014395924391004,
+          "refined_steps": 80,
+          "requests_ns": [
+            3251937500,
+            3347000000,
+            3387750000,
+            3391625000,
+            3409500000
+          ],
+          "requests_with_measured_contact_ns": [
+            3251937500,
+            3347000000,
+            3387750000,
+            3391625000,
+            3409500000
+          ],
+          "window_impulse_ns": 0.012246118480023467,
+          "window_steps": 1280
+        },
+        "mode": "DropLate",
+        "native_commits_per_ms": 16,
+        "other_native_cost": {
+          "n": 72320,
+          "p50_ns": 188311,
+          "p95_ns": 327472,
+          "p99_ns": 521902,
+          "total_ns": 15937132644
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.2780625,
+          "final_deck_descent_m": 0.05000000000000726,
+          "final_deck_lateral_clearance_m": -0.15470618440343886,
+          "final_grip_n": 0.0,
+          "final_jaw_up_n": 0.0,
+          "final_material_gap_m": -4.343747583845925e-15,
+          "final_table_n": 0.08240400000000134,
+          "first_opening_tick": 3112,
+          "first_pad_free_tick": 3137,
+          "fully_open_tick": 3873,
+          "max_downward_adjustment_m": 0.0016871295460305611,
+          "max_loose_gap_m": 0.012726390843939964,
+          "min_raised_clearance_m": 0.14961128876271257,
+          "opening_ms_at_end": 350,
+          "peak_loose_table_interval_ns": 0.004168939870390845,
+          "preceding_20ms_table_force_range_n": [
+            0.07322055082873263,
+            0.11909388406252389
+          ],
+          "receiver_drop": {
+            "first_paused_tick": 3153,
+            "first_returning_table_load_tick": 3252,
+            "first_tick": 3152,
+            "opening_before_ms": 40,
+            "preceding_grip_n": [
+              0.0,
+              0.0
+            ]
+          },
+          "search_exhausted_tick": null
+        },
+        "reset": true,
+        "target_ns": 1000,
+        "window_native_cost": {
+          "n": 1280,
+          "p50_ns": 296911,
+          "p95_ns": 339071,
+          "p99_ns": 9496790,
+          "total_ns": 528540063
+        }
+      },
+      "public_trajectory_sha256": "4e4b95fa675db2bea27376352d815b1553244a52c6aea651a0fa45894c1af745",
+      "world_sdf_sha256": "2dfda8ebfcf5f489ad251d8ce51a4e3e0e70572069c236731ffe96c349958835"
+    },
+    "drop-late:coarse": {
+      "summary": {
+        "actuator_cost": {
+          "n": 4600,
+          "p50_ns": 2997590,
+          "p95_ns": 4280074,
+          "p99_ns": 4726695,
+          "total_ns": 14069306093
+        },
+        "clock": "Coarse",
+        "events": {
+          "fast_landings_ns": [
+            3251937500,
+            3284312500
+          ],
+          "first_ms_impulse_ns": 0.00967675071936455,
+          "guarded_landings_ns": [],
+          "rebound_m": 0.0012618410964578552,
+          "refined_steps": 0,
+          "requests_ns": [],
+          "requests_with_measured_contact_ns": [],
+          "window_impulse_ns": 0.014873921999407236,
+          "window_steps": 1280
+        },
+        "mode": "DropLate",
+        "native_commits_per_ms": 16,
+        "other_native_cost": {
+          "n": 72320,
+          "p50_ns": 187371,
+          "p95_ns": 266690,
+          "p99_ns": 300191,
+          "total_ns": 13794204245
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.1373125,
+          "final_deck_descent_m": 0.05000000000000726,
+          "final_deck_lateral_clearance_m": -0.15400103716748004,
+          "final_grip_n": 0.0,
+          "final_jaw_up_n": 0.0,
+          "final_material_gap_m": -4.343747583845925e-15,
+          "final_table_n": 0.08240400000000286,
+          "first_opening_tick": 3112,
+          "first_pad_free_tick": 3137,
+          "fully_open_tick": 3624,
+          "max_downward_adjustment_m": 0.0013706626275153007,
+          "max_loose_gap_m": 0.012726390843939964,
+          "min_raised_clearance_m": 0.14961128876271257,
+          "opening_ms_at_end": 350,
+          "peak_loose_table_interval_ns": 0.0042862534591513735,
+          "preceding_20ms_table_force_range_n": [
+            0.07322055082873263,
+            0.11909388406252389
+          ],
+          "receiver_drop": {
+            "first_paused_tick": 3153,
+            "first_returning_table_load_tick": 3252,
+            "first_tick": 3152,
+            "opening_before_ms": 40,
+            "preceding_grip_n": [
+              0.0,
+              0.0
+            ]
+          },
+          "search_exhausted_tick": null
+        },
+        "reset": false,
+        "target_ns": 1000,
+        "window_native_cost": {
+          "n": 1280,
+          "p50_ns": 220151,
+          "p95_ns": 276731,
+          "p99_ns": 300751,
+          "total_ns": 275101848
+        }
+      },
+      "public_trajectory_sha256": "9357023ff22930ff7f961b1f7f49faa9983d74e821d2f48a751f71bc37169788",
+      "world_sdf_sha256": "a7f6e3f2a57fb163154734c2a6798a34cf8dc0cc8c4a6e24d71e466f6cef8129"
+    },
+    "drop-late:matched-fine": {
+      "summary": {
+        "actuator_cost": {
+          "n": 4600,
+          "p50_ns": 3099370,
+          "p95_ns": 4586564,
+          "p99_ns": 227243747,
+          "total_ns": 33367842770
+        },
+        "clock": "MatchedFine",
+        "events": {
+          "fast_landings_ns": [
+            3251937500,
+            3347062500
+          ],
+          "first_ms_impulse_ns": 0.012246136989801249,
+          "guarded_landings_ns": [],
+          "rebound_m": 0.011028686774042076,
+          "refined_steps": 0,
+          "requests_ns": [],
+          "requests_with_measured_contact_ns": [],
+          "window_impulse_ns": 0.012246136989801249,
+          "window_steps": 1280
+        },
+        "mode": "DropLate",
+        "native_commits_per_ms": 16,
+        "other_native_cost": {
+          "n": 72320,
+          "p50_ns": 191910,
+          "p95_ns": 263571,
+          "p99_ns": 329291,
+          "total_ns": 14114008846
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.215375,
+          "final_deck_descent_m": 0.05000000000000726,
+          "final_deck_lateral_clearance_m": -0.15452373749464093,
+          "final_grip_n": 0.0,
+          "final_jaw_up_n": 0.0,
+          "final_material_gap_m": -4.343747583845925e-15,
+          "final_table_n": 0.0824040000000028,
+          "first_opening_tick": 3112,
+          "first_pad_free_tick": 3137,
+          "fully_open_tick": 3765,
+          "max_downward_adjustment_m": 0.0015546253073817331,
+          "max_loose_gap_m": 0.012726390843939964,
+          "min_raised_clearance_m": 0.14961128876271257,
+          "opening_ms_at_end": 350,
+          "peak_loose_table_interval_ns": 0.004168524738136294,
+          "preceding_20ms_table_force_range_n": [
+            0.07322055082873263,
+            0.11909388406252389
+          ],
+          "receiver_drop": {
+            "first_paused_tick": 3153,
+            "first_returning_table_load_tick": 3252,
+            "first_tick": 3152,
+            "opening_before_ms": 40,
+            "preceding_grip_n": [
+              0.0,
+              0.0
+            ]
+          },
+          "search_exhausted_tick": null
+        },
+        "reset": false,
+        "target_ns": 1000,
+        "window_native_cost": {
+          "n": 1280,
+          "p50_ns": 14532426,
+          "p95_ns": 20477395,
+          "p99_ns": 24540448,
+          "total_ns": 19253833924
+        }
+      },
+      "public_trajectory_sha256": "df22b55c755bb0ab4683fc0ed18a8eff0690dbb87fb1efe0a460f1cb87ef7287",
+      "world_sdf_sha256": "a7f6e3f2a57fb163154734c2a6798a34cf8dc0cc8c4a6e24d71e466f6cef8129"
+    },
+    "finite:adaptive": {
+      "summary": {
+        "actuator_cost": {
+          "n": 4300,
+          "p50_ns": 3157620,
+          "p95_ns": 4703735,
+          "p99_ns": 5454866,
+          "total_ns": 13755417997
+        },
+        "clock": "Adaptive",
+        "events": {
+          "fast_landings_ns": [],
+          "first_ms_impulse_ns": 0.0,
+          "guarded_landings_ns": [],
+          "rebound_m": 0.0,
+          "refined_steps": 0,
+          "requests_ns": [],
+          "requests_with_measured_contact_ns": [],
+          "window_impulse_ns": 0.0,
+          "window_steps": 0
+        },
+        "mode": "Finite",
+        "native_commits_per_ms": 16,
+        "other_native_cost": {
+          "n": 68800,
+          "p50_ns": 196351,
+          "p95_ns": 299291,
+          "p99_ns": 339081,
+          "total_ns": 13755417997
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.0,
+          "final_deck_descent_m": 0.0,
+          "final_deck_lateral_clearance_m": -0.153997832066393,
+          "final_grip_n": 0.0,
+          "final_jaw_up_n": 0.0,
+          "final_material_gap_m": -4.232725281383409e-15,
+          "final_table_n": 0.08240400000000107,
+          "first_opening_tick": 3112,
+          "first_pad_free_tick": 3137,
+          "fully_open_tick": 3461,
+          "max_downward_adjustment_m": 0.0011234639662119931,
+          "max_loose_gap_m": 3.490263633665336e-14,
+          "min_raised_clearance_m": 0.14961128876271257,
+          "opening_ms_at_end": 350,
+          "peak_loose_table_interval_ns": 5.224837183803576e-06,
+          "preceding_20ms_table_force_range_n": [
+            0.07322055082873263,
+            0.11909388406252389
+          ],
+          "receiver_drop": null,
+          "search_exhausted_tick": null
+        },
+        "reset": true,
+        "target_ns": 1000,
+        "window_native_cost": null
+      },
+      "public_trajectory_sha256": "a0e42df2dc9c613e68ca658c124b0aeca0aa470549a1e4517321229130ffab2d",
+      "world_sdf_sha256": "2dfda8ebfcf5f489ad251d8ce51a4e3e0e70572069c236731ffe96c349958835"
+    },
+    "finite:coarse": {
+      "summary": {
+        "actuator_cost": {
+          "n": 4300,
+          "p50_ns": 2975360,
+          "p95_ns": 3295140,
+          "p99_ns": 3638352,
+          "total_ns": 12426812091
+        },
+        "clock": "Coarse",
+        "events": {
+          "fast_landings_ns": [],
+          "first_ms_impulse_ns": 0.0,
+          "guarded_landings_ns": [],
+          "rebound_m": 0.0,
+          "refined_steps": 0,
+          "requests_ns": [],
+          "requests_with_measured_contact_ns": [],
+          "window_impulse_ns": 0.0,
+          "window_steps": 0
+        },
+        "mode": "Finite",
+        "native_commits_per_ms": 16,
+        "other_native_cost": {
+          "n": 68800,
+          "p50_ns": 184711,
+          "p95_ns": 207450,
+          "p99_ns": 248551,
+          "total_ns": 12426812091
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.0,
+          "final_deck_descent_m": 0.0,
+          "final_deck_lateral_clearance_m": -0.153997832066393,
+          "final_grip_n": 0.0,
+          "final_jaw_up_n": 0.0,
+          "final_material_gap_m": -4.232725281383409e-15,
+          "final_table_n": 0.08240400000000107,
+          "first_opening_tick": 3112,
+          "first_pad_free_tick": 3137,
+          "fully_open_tick": 3461,
+          "max_downward_adjustment_m": 0.0011234639662119931,
+          "max_loose_gap_m": 3.490263633665336e-14,
+          "min_raised_clearance_m": 0.14961128876271257,
+          "opening_ms_at_end": 350,
+          "peak_loose_table_interval_ns": 5.224837183803576e-06,
+          "preceding_20ms_table_force_range_n": [
+            0.07322055082873263,
+            0.11909388406252389
+          ],
+          "receiver_drop": null,
+          "search_exhausted_tick": null
+        },
+        "reset": false,
+        "target_ns": 1000,
+        "window_native_cost": null
+      },
+      "public_trajectory_sha256": "a0e42df2dc9c613e68ca658c124b0aeca0aa470549a1e4517321229130ffab2d",
+      "world_sdf_sha256": "a7f6e3f2a57fb163154734c2a6798a34cf8dc0cc8c4a6e24d71e466f6cef8129"
+    }
+  },
+  "whole_run_fine_native": {
+    "finite": {
+      "summary": {
+        "clock": "FineNative",
+        "events": {
+          "fast_landings_ns": [],
+          "guarded_landings_ns": [],
+          "rebound_m": 0.0,
+          "refined_steps": 0,
+          "requests_ns": [],
+          "requests_with_measured_contact_ns": [],
+          "window_impulse_ns": 0.0,
+          "window_steps": 0
+        },
+        "mode": "Finite",
+        "other_native_cost": {
+          "n": 4300000,
+          "p50_ns": 195771,
+          "p95_ns": 311101,
+          "p99_ns": 373511,
+          "total_ns": 938556284435
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.0,
+          "final_deck_descent_m": 0.0,
+          "final_deck_lateral_clearance_m": -0.15400058080918827,
+          "final_grip_n": 0.0,
+          "final_jaw_up_n": 0.0,
+          "final_material_gap_m": -2.8449465006019636e-15,
+          "final_table_n": 0.08240399999981761,
+          "first_opening_tick": 3110,
+          "first_pad_free_tick": 3135,
+          "fully_open_tick": 3459,
+          "max_downward_adjustment_m": 0.0011261389603193573,
+          "max_loose_gap_m": 0.0,
+          "min_raised_clearance_m": 0.14961785048866233,
+          "opening_ms_at_end": 350,
+          "peak_loose_table_interval_ns": 9.091189137224502e-08,
+          "preceding_20ms_table_force_range_n": [
+            0.07437356954711305,
+            0.11710922061473517
+          ],
+          "receiver_drop": null,
+          "search_exhausted_tick": null
+        },
+        "reset": false,
+        "target_ns": 1000,
+        "window_native_cost": null
+      },
+      "public_trajectory_sha256": "66cb27ae5d7663f3cd8912ec0910214210cb3481a02b1e6a3be245eb12b48789",
+      "world_sdf_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534"
+    },
+    "drop-early": {
+      "summary": {
+        "clock": "FineNative",
+        "events": {
+          "fast_landings_ns": [],
+          "guarded_landings_ns": [],
+          "rebound_m": 0.0,
+          "refined_steps": 0,
+          "requests_ns": [],
+          "requests_with_measured_contact_ns": [],
+          "window_impulse_ns": 0.0,
+          "window_steps": 80000
+        },
+        "mode": "DropEarly",
+        "other_native_cost": {
+          "n": 4520000,
+          "p50_ns": 189491,
+          "p95_ns": 293371,
+          "p99_ns": 361612,
+          "total_ns": 940949213288
+        },
+        "physical": {
+          "airborne_after_opening_s": 0.0,
+          "final_deck_descent_m": 0.04999999999925203,
+          "final_deck_lateral_clearance_m": -0.1540017834007737,
+          "final_grip_n": 1.6165425923682193,
+          "final_jaw_up_n": 0.08242045998255158,
+          "final_material_gap_m": 0.04696489823651172,
+          "final_table_n": 0.0,
+          "first_opening_tick": 3110,
+          "first_pad_free_tick": null,
+          "fully_open_tick": null,
+          "max_downward_adjustment_m": 0.004,
+          "max_loose_gap_m": null,
+          "min_raised_clearance_m": 0.14961785048866233,
+          "opening_ms_at_end": 9,
+          "peak_loose_table_interval_ns": null,
+          "preceding_20ms_table_force_range_n": [
+            0.07437356954711305,
+            0.11710922061473517
+          ],
+          "receiver_drop": {
+            "first_paused_tick": 3119,
+            "first_returning_table_load_tick": null,
+            "first_tick": 3118,
+            "opening_before_ms": 8,
+            "preceding_grip_n": [
+              0.7840435410356033,
+              0.7831449821395741
+            ]
+          },
+          "search_exhausted_tick": 4299
+        },
+        "reset": false,
+        "target_ns": 1000,
+        "window_native_cost": {
+          "n": 80000,
+          "p50_ns": 161770,
+          "p95_ns": 181581,
+          "p99_ns": 219951,
+          "total_ns": 13123600394
+        }
+      },
+      "public_trajectory_sha256": "5eb77de79097938bd03a664ff6d6690242e949449a52d855aa5a4fb8750bc56d",
+      "world_sdf_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534"
+    },
+    "drop-late": {
+      "error": "Error: \"after 3345183 native commits: swept surface self-contact has no resolved separating response\""
+    }
+  },
+  "full_material_fine_under_62500_ns_rigid": {
+    "finite": "Error: Faulted",
+    "drop-early": "Error: Faulted",
+    "drop-late": "Error: \"after 10041 native commits: swept surface self-contact has no resolved separating response\""
+  },
+  "timing_replicates": {
+    "pair-0-drop-late-coarse": {
+      "clock": "Coarse",
+      "mode": "DropLate",
+      "actuator_cost": {
+        "n": 4600,
+        "p50_ns": 3074349,
+        "p95_ns": 5108547,
+        "p99_ns": 6197539,
+        "total_ns": 15241596134
+      },
+      "window_native_cost": {
+        "n": 1280,
+        "p50_ns": 229310,
+        "p95_ns": 279831,
+        "p99_ns": 349411,
+        "total_ns": 289446609
+      },
+      "other_native_cost": {
+        "n": 72320,
+        "p50_ns": 190980,
+        "p95_ns": 319431,
+        "p99_ns": 377861,
+        "total_ns": 14952149525
+      }
+    },
+    "pair-1-drop-late-adaptive": {
+      "clock": "Adaptive",
+      "mode": "DropLate",
+      "actuator_cost": {
+        "n": 4600,
+        "p50_ns": 3286901,
+        "p95_ns": 5289916,
+        "p99_ns": 5809018,
+        "total_ns": 18051875752
+      },
+      "window_native_cost": {
+        "n": 1280,
+        "p50_ns": 293081,
+        "p95_ns": 362491,
+        "p99_ns": 10230802,
+        "total_ns": 535288746
+      },
+      "other_native_cost": {
+        "n": 72320,
+        "p50_ns": 204601,
+        "p95_ns": 329541,
+        "p99_ns": 362911,
+        "total_ns": 17516587006
+      }
+    },
+    "pair-2-drop-late-matched-fine": {
+      "clock": "MatchedFine",
+      "mode": "DropLate",
+      "actuator_cost": {
+        "n": 4600,
+        "p50_ns": 3048850,
+        "p95_ns": 4524974,
+        "p99_ns": 208767128,
+        "total_ns": 30503010168
+      },
+      "window_native_cost": {
+        "n": 1280,
+        "p50_ns": 13316082,
+        "p95_ns": 14912357,
+        "p99_ns": 15771290,
+        "total_ns": 16522875515
+      },
+      "other_native_cost": {
+        "n": 72320,
+        "p50_ns": 187730,
+        "p95_ns": 262361,
+        "p99_ns": 318701,
+        "total_ns": 13980134653
+      }
+    },
+    "pair-3-drop-late-matched-fine": {
+      "clock": "MatchedFine",
+      "mode": "DropLate",
+      "actuator_cost": {
+        "n": 4600,
+        "p50_ns": 3069710,
+        "p95_ns": 4294013,
+        "p99_ns": 232638944,
+        "total_ns": 32629782498
+      },
+      "window_native_cost": {
+        "n": 1280,
+        "p50_ns": 14771687,
+        "p95_ns": 16610462,
+        "p99_ns": 17672005,
+        "total_ns": 18217324384
+      },
+      "other_native_cost": {
+        "n": 72320,
+        "p50_ns": 191110,
+        "p95_ns": 263191,
+        "p99_ns": 331541,
+        "total_ns": 14412458114
+      }
+    },
+    "pair-4-drop-late-adaptive": {
+      "clock": "Adaptive",
+      "mode": "DropLate",
+      "actuator_cost": {
+        "n": 4600,
+        "p50_ns": 3401991,
+        "p95_ns": 4816535,
+        "p99_ns": 5307167,
+        "total_ns": 16819018731
+      },
+      "window_native_cost": {
+        "n": 1280,
+        "p50_ns": 283161,
+        "p95_ns": 326151,
+        "p99_ns": 9369570,
+        "total_ns": 506675255
+      },
+      "other_native_cost": {
+        "n": 72320,
+        "p50_ns": 210321,
+        "p95_ns": 301121,
+        "p99_ns": 335661,
+        "total_ns": 16312343476
+      }
+    },
+    "pair-5-drop-late-coarse": {
+      "clock": "Coarse",
+      "mode": "DropLate",
+      "actuator_cost": {
+        "n": 4600,
+        "p50_ns": 2565398,
+        "p95_ns": 3292131,
+        "p99_ns": 3786892,
+        "total_ns": 12750419194
+      },
+      "window_native_cost": {
+        "n": 1280,
+        "p50_ns": 202271,
+        "p95_ns": 245791,
+        "p99_ns": 282361,
+        "total_ns": 255798329
+      },
+      "other_native_cost": {
+        "n": 72320,
+        "p50_ns": 160700,
+        "p95_ns": 205401,
+        "p99_ns": 245441,
+        "total_ns": 12494620865
+      }
+    },
+    "pair-6-drop-early-coarse": {
+      "clock": "Coarse",
+      "mode": "DropEarly",
+      "actuator_cost": {
+        "n": 4600,
+        "p50_ns": 2526988,
+        "p95_ns": 3100570,
+        "p99_ns": 3410751,
+        "total_ns": 12371773594
+      },
+      "window_native_cost": {
+        "n": 1280,
+        "p50_ns": 155161,
+        "p95_ns": 163351,
+        "p99_ns": 172781,
+        "total_ns": 200012948
+      },
+      "other_native_cost": {
+        "n": 72320,
+        "p50_ns": 158681,
+        "p95_ns": 195761,
+        "p99_ns": 229151,
+        "total_ns": 12171760646
+      }
+    },
+    "pair-7-finite-coarse": {
+      "clock": "Coarse",
+      "mode": "Finite",
+      "actuator_cost": {
+        "n": 4300,
+        "p50_ns": 2975360,
+        "p95_ns": 3295140,
+        "p99_ns": 3638352,
+        "total_ns": 12426812091
+      },
+      "window_native_cost": null,
+      "other_native_cost": {
+        "n": 68800,
+        "p50_ns": 184711,
+        "p95_ns": 207450,
+        "p99_ns": 248551,
+        "total_ns": 12426812091
+      }
+    }
+  },
+  "release_executables_sha256": {
+    "accept": "b0017a84ba6d7b54e9310fb58d21ac509c5277dc8985b9458a9c839318c980b7",
+    "operator": "065dba0f1642cf5497f153873bfe1eba20fd8c80cd9042a585756a37c57fbd3c"
+  },
+  "change_coverage": {
+    "totals": {
+      "gz-sim-scene": {
+        "production": {
+          "lines": [
+            154,
+            155
+          ],
+          "regions": [
+            248,
+            253
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            302,
+            303
+          ],
+          "regions": [
+            469,
+            474
+          ]
+        }
+      },
+      "gz-sim-cli": {
+        "production": {
+          "lines": [
+            212,
+            216
+          ],
+          "regions": [
+            395,
+            415
+          ]
+        },
+        "including_tests": {
+          "lines": [
+            263,
+            267
+          ],
+          "regions": [
+            524,
+            544
+          ]
+        }
+      }
+    },
+    "files": {
+      "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+        "lines": [
+          8,
+          8
+        ],
+        "regions": [
+          15,
+          15
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown.rs": {
+        "lines": [
+          20,
+          20
+        ],
+        "regions": [
+          27,
+          29
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown/impact_clock.rs": {
+        "lines": [
+          235,
+          239
+        ],
+        "regions": [
+          482,
+          500
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable.rs": {
+        "lines": [
+          12,
+          13
+        ],
+        "regions": [
+          16,
+          18
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/config.rs": {
+        "lines": [
+          4,
+          4
+        ],
+        "regions": [
+          8,
+          9
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/landing_refinement.rs": {
+        "lines": [
+          138,
+          138
+        ],
+        "regions": [
+          224,
+          226
+        ]
+      },
+      "crates/gz-sim-scene/tests/private/finite_landing.rs": {
+        "lines": [
+          148,
+          148
+        ],
+        "regions": [
+          221,
+          221
+        ]
+      }
+    },
+    "executables": {
+      "existing-setdown": {
+        "build_id": "c9e7157dc0db5ccd38b2265311cdd811ab45a509",
+        "sha256": "0446a36a0618d594e9677bffc7ba6fe07a2416ed26d13dea69057d7390168b3e",
+        "passed": 7
+      },
+      "operator": {
+        "build_id": "c9e7157dc0db5ccd38b2265311cdd811ab45a509",
+        "sha256": "0446a36a0618d594e9677bffc7ba6fe07a2416ed26d13dea69057d7390168b3e",
+        "passed": 4
+      },
+      "policy": {
+        "build_id": "6c3a78902db9dde2fdd846e9d8dec259fbd1a09f",
+        "sha256": "48e57313e88c8833c07dfcf23ac0a1c0d7d0ea4f18038860788f5773f3acceda",
+        "passed": 4
+      },
+      "run-adaptive": {
+        "build_id": "65682b44d0f208f7336866d688dac77732fb2a49",
+        "sha256": "f3361c12365e332ce99e1012facf90ebe19a03c054f5a3f24e6c474b805d2dda",
+        "passed": 0
+      },
+      "run-coarse": {
+        "build_id": "65682b44d0f208f7336866d688dac77732fb2a49",
+        "sha256": "f3361c12365e332ce99e1012facf90ebe19a03c054f5a3f24e6c474b805d2dda",
+        "passed": 0
+      },
+      "run-fine": {
+        "build_id": "65682b44d0f208f7336866d688dac77732fb2a49",
+        "sha256": "f3361c12365e332ce99e1012facf90ebe19a03c054f5a3f24e6c474b805d2dda",
+        "passed": 0
+      },
+      "run-fine-native": {
+        "build_id": "65682b44d0f208f7336866d688dac77732fb2a49",
+        "sha256": "f3361c12365e332ce99e1012facf90ebe19a03c054f5a3f24e6c474b805d2dda",
+        "passed": 0
+      },
+      "run-matched-fine": {
+        "build_id": "65682b44d0f208f7336866d688dac77732fb2a49",
+        "sha256": "f3361c12365e332ce99e1012facf90ebe19a03c054f5a3f24e6c474b805d2dda",
+        "passed": 0
+      }
+    }
+  },
+  "native_webgpu": {
+    "body_poses_and_shapes_checked": 6550,
+    "captured_ms": {
+      "arrival": 3252.0,
+      "final": 4600.0,
+      "held": 1500.0,
+      "pre_withdrawal": 3150.0,
+      "rebound": 3297.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frames": 262,
+    "independent_particle_positions_checked": 3144,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 262,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10039%2F",
+    "stream_sha256": "38f8413d1e8b3130b6e85f0ed73c1d59270ecda3912cf9e216fc13226086bec4"
+  }
+}
