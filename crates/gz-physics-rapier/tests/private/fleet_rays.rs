@@ -1,0 +1,245 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use super::*;
+
+fn spec(x: f64) -> BodySpec {
+    BodySpec {
+        shape: Shape::Box {
+            half_extents: [0.45, 0.35, 0.1],
+        },
+        position: [x, 0., 0.],
+        velocity: [0.25, 0., 0.],
+        mass: Some(1.),
+    }
+}
+
+fn lane() -> (RapierBackend, Vec<BodyId>) {
+    let mut backend = RapierBackend::new_multifidelity([0., 0., -9.81]).unwrap();
+    let ids = (0..fleet_isolation::MIN_DECKS)
+        .map(|i| {
+            backend
+                .spawn_velocity_boundary(spec(i as f64), Default::default(), None)
+                .unwrap()
+        })
+        .collect();
+    (backend, ids)
+}
+
+// Independent exhaustive cast from live public body poses and native collider-local
+// offsets. It uses no fleet bounds, cached collider world pose, or candidate ordering.
+fn compare(
+    backend: &RapierBackend,
+    origin: [f64; 3],
+    dir: [f64; 3],
+    limit: f64,
+    exclude: Option<BodyId>,
+) -> Option<f64> {
+    let ray = Ray::new(origin.into(), dir.into());
+    let mut expected: Option<f64> = None;
+    for (id, (handle, ..)) in &backend.bodies {
+        if Some(*id) == exclude {
+            continue;
+        }
+        let state = backend.state(*id).unwrap();
+        let pose = Pose::from_parts(
+            state.position.into(),
+            Rotation::from_array(state.orientation),
+        );
+        for collider in backend.world.bodies[*handle].colliders() {
+            let collider = &backend.world.colliders[*collider];
+            let p = pose * collider.position_wrt_parent().unwrap();
+            if let Some(hit) = collider.shape().cast_ray(&p, &ray, limit, true) {
+                expected = Some(expected.map_or(hit, |other| other.min(hit)));
+            }
+        }
+    }
+    let actual = backend.cast_ray(origin, dir, limit, exclude).unwrap();
+    assert_eq!(actual, expected, "origin {origin:?}, dir {dir:?}");
+    actual
+}
+
+#[test]
+fn prescribed_ray_index_respects_edit_removal_late_spawn_and_reset() {
+    let (mut backend, ids) = lane();
+    let down = [0., 0., -1.];
+    backend.step(Duration::from_secs(1)).unwrap();
+    assert_eq!(
+        compare(&backend, [0.25, 0., 1.], down, 0.9, None),
+        Some(0.9)
+    );
+    assert!(backend.translation_rays.get().unwrap().is_some());
+    assert_eq!(compare(&backend, [0.25, 0., 0.], down, 1., None), Some(0.));
+    assert_eq!(
+        compare(&backend, [0.25, 0., 1.], down, 1., Some(ids[0])),
+        None
+    );
+    compare(&backend, [-2., 0.35, 0.1], [1., 0., 0.], 300., None);
+    compare(&backend, [-2., 0.350001, 0.1], [1., 0., 0.], 300., None);
+    compare(&backend, [1.1e6, 0., 1.], down, 1., None);
+    compare(&backend, [0., 0., 1.], down, 1.1e6, None);
+    let mut state = backend.state(ids[0]).unwrap();
+    state.position = [10., 0., 0.5];
+    backend.set_body_state(ids[0], state).unwrap();
+    assert!(backend.translation_rays.get().is_none());
+    assert_eq!(compare(&backend, [10., 0., 1.], down, 2., None), Some(0.4));
+    assert!(backend.translation_rays.get().unwrap().is_none());
+    assert!(backend.remove(ids[0]));
+    backend
+        .spawn_velocity_boundary(spec(-4.), Default::default(), None)
+        .unwrap();
+    compare(&backend, [-4., 0., 1.], down, 2., None);
+    backend.reset().unwrap();
+    compare(&backend, [-4., 0., 1.], down, 2., None);
+    assert!(backend.translation_rays.get().unwrap().is_some());
+    backend
+        .set_world_velocity(ids[1], [-0.75, 0., 0.], [0.; 3])
+        .unwrap();
+    backend.step(Duration::from_millis(100)).unwrap();
+    compare(&backend, [0.925, 0., 1.], down, 2., None);
+    assert!(backend.translation_rays.get().unwrap().is_none());
+}
+
+#[test]
+fn loaded_beams_follow_analytic_native_and_independently_moved_decks() {
+    let (mut backend, ids) = lane();
+    let payload = backend
+        .spawn(BodySpec {
+            position: [0., 0., 0.201],
+            velocity: [0.; 3],
+            shape: Shape::Box {
+                half_extents: [0.1; 3],
+            },
+            ..spec(0.)
+        })
+        .unwrap();
+    for _ in 0..80 {
+        backend.step(Duration::from_millis(10)).unwrap();
+    }
+    assert!(backend.fleet_isolation_stats().unwrap().analytic_decks > 200);
+    let down = [0., 0., -1.];
+    assert!(compare(&backend, [0.2, 0., 1.], down, 2., None).unwrap() < 0.8);
+    compare(&backend, [0.2, 0., 1.], down, 2., Some(payload));
+    compare(&backend, [255.2, 0., 1.], down, 2., None);
+    compare(&backend, [-1., 0.36, 0.], [1., 0., 0.], 300., None);
+    let d = std::f64::consts::FRAC_1_SQRT_2;
+    compare(&backend, [3., 0., 10.], [d, 0., -d], 25., None);
+    compare(&backend, [1.1e6, 0., 10.], down, 25., None);
+    let id = ids[200];
+    backend
+        .set_world_velocity(id, [0., 4., 0.], [0.; 3])
+        .unwrap();
+    for _ in 0..50 {
+        backend.step(Duration::from_millis(10)).unwrap();
+    }
+    let pos = backend.state(id).unwrap().position;
+    assert!(pos[1] > 1.9);
+    assert_eq!(
+        compare(&backend, [pos[0], pos[1], 1.], down, 2., None),
+        Some(0.9)
+    );
+    compare(&backend, [pos[0], 0., 1.], down, 2., None);
+    compare(&backend, [pos[0], pos[1], 1.], down, 2., Some(id));
+}
+
+#[test]
+fn offset_and_standalone_geometry_do_not_use_body_centered_bounds() {
+    let (mut backend, ids) = lane();
+    let h = backend.bodies[&ids[0]].0;
+    let c = backend.world.bodies[h].colliders()[0];
+    let offset = Pose::translation(0., 3., 0.);
+    backend.world.colliders[c].set_position_wrt_parent(offset);
+    backend
+        .bodies
+        .get_mut(&ids[0])
+        .unwrap()
+        .1
+        .collider
+        .set_position(offset);
+    compare(&backend, [0., 3., 1.], [0., 0., -1.], 1., None);
+    assert!(backend.translation_rays.get().unwrap().is_none());
+    backend
+        .spawn(BodySpec {
+            position: [0., 3., 0.198],
+            velocity: [0.; 3],
+            ..spec(0.)
+        })
+        .unwrap();
+    backend.step(Duration::from_millis(10)).unwrap();
+    assert!(backend.fleet_isolation_stats().is_none());
+    compare(&backend, [0., 3., 1.], [0., 0., -1.], 1., None);
+    let (mut backend, _) = lane();
+    backend.world.insert_collider(
+        ColliderBuilder::ball(0.5).translation(Vector::new(0., 3., 0.)),
+        None,
+    );
+    assert_eq!(
+        backend
+            .cast_ray([0., 3., 1.], [0., 0., -1.], 1., None)
+            .unwrap(),
+        Some(0.5)
+    );
+    assert!(backend.translation_rays.get().unwrap().is_none());
+}
+
+#[test]
+fn a_malformed_candidate_refuses_the_beam_even_after_a_valid_hit() {
+    for index in [0, 1, 255] {
+        let (mut backend, ids) = lane();
+        let payload = backend
+            .spawn(BodySpec {
+                position: [0., 0., 0.2],
+                velocity: [0.; 3],
+                shape: Shape::Box {
+                    half_extents: [0.1; 3],
+                },
+                ..spec(0.)
+            })
+            .unwrap();
+        backend.step(Duration::from_millis(10)).unwrap();
+        let bad = match index {
+            0 => payload,
+            1 => ids[0],
+            _ => ids[index],
+        };
+        let x = backend.state(bad).unwrap().position[0];
+        let handle = backend.bodies[&bad].0;
+        backend.world.bodies[handle].set_translation(Vector::NAN, false);
+        assert_eq!(
+            backend.cast_ray([x, 0., 1.], [0., 0., -1.], 2., None),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+    let (mut backend, ids) = lane();
+    let origin = [255., 0., 1.];
+    compare(&backend, origin, [0., 0., -1.], 2., None);
+    let handle = backend.bodies[&ids[255]].0;
+    backend.world.bodies[handle].set_translation(Vector::NAN, false);
+    assert_eq!(
+        backend.cast_ray(origin, [0., 0., -1.], 2., None),
+        Err(PhysicsError::InvalidValue)
+    );
+}
+
+#[test]
+fn a_rotated_prescribed_box_matches_the_native_shape_at_both_ends_of_its_motion() {
+    let (mut backend, _) = lane();
+    let angle = 0.635_f64;
+    let id = backend
+        .spawn_velocity_boundary(
+            spec(-3.),
+            RotationSpec {
+                orientation: [0., 0., (angle * 0.5).sin(), (angle * 0.5).cos()],
+                angular_velocity: [0.; 3],
+            },
+            None,
+        )
+        .unwrap();
+    for _ in 0..2 {
+        let x = backend.state(id).unwrap().position[0];
+        for y in [0., 0.3, 0.45, 0.6] {
+            compare(&backend, [x - 1., y, 0.], [1., 0., 0.], 2., None);
+        }
+        backend.step(Duration::from_millis(10)).unwrap();
+    }
+    assert!(backend.translation_rays.get().unwrap().is_some());
+}

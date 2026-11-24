@@ -19,6 +19,9 @@ struct Args {
     /// Launch the first payload with a one-tick native wrench at 1.20 s.
     #[arg(long)]
     launch: bool,
+    /// Display the origin and first solid hit of a downward beam following deck 0.
+    #[arg(long)]
+    range: bool,
     output: PathBuf,
 }
 
@@ -80,6 +83,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue;
         }
         let mut view = View::default();
+        let mut beam = None;
         let mut poses = Vec::new();
         for (i, (entity, name, payload)) in selected.iter().enumerate() {
             let pose = sim
@@ -93,6 +97,30 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if (x - expected).abs() > 1e-9 || (y - (n / columns) as f64 * 1.1).abs() > 1e-9 {
                     return Err("deck left commanded closed-form path".into());
                 }
+            }
+            if args.range && name == "deck_0" {
+                let origin = [x, y, 1.];
+                let distance = sim
+                    .world()
+                    .resource::<gz_physics::PhysicsBackend>()
+                    .cast_ray(origin, [0., 0., -1.], 2., None)?
+                    .ok_or("expected a downward return from the moving deck")?;
+                let hit = [x, y, 1. - distance];
+                view.cuboid(
+                    102,
+                    "range_origin",
+                    [x - 1.1, y - 1.1, 1.],
+                    [0.045; 3],
+                    [0.98, 0.82, 0.18, 1.],
+                );
+                view.cuboid(
+                    104,
+                    "range_hit",
+                    [x - 1.1, y - 1.1, hit[2]],
+                    [0.055; 3],
+                    [0.20, 1., 0.36, 1.],
+                );
+                beam = Some(json!({"origin":origin, "hit":hit, "distance_m":distance}));
             }
             let (size, color) = if *payload {
                 ([0.2; 3], [0.99, 0.56, 0.08, 1.])
@@ -129,7 +157,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .specific_force,
             )
         };
-        samples.push(json!({"tick":tick,"poses":poses,"imu_specific_force_mps2":imu}));
+        let mut sample = json!({"tick":tick,"poses":poses,"imu_specific_force_mps2":imu});
+        if let Some(beam) = beam {
+            sample["range"] = beam;
+        }
+        samples.push(sample);
         frames.push(view.finish_at(frames.len() as u64 + 1, tick * 10_000_000));
     }
     gz_sim_cli::export_archive(&out.join("replay"), Default::default(), frames)?;

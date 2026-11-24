@@ -9,8 +9,8 @@ use std::collections::HashMap;
 
 // Amortize constructing a second spatial index. Below this count the native
 // solver remains the normal path. This cutoff does not affect contact admission.
-const MIN_DECKS: usize = 256;
-const MAX_COORDINATE: f64 = 1.0e6;
+pub(super) const MIN_DECKS: usize = 256;
+pub(super) const MAX_COORDINATE: f64 = 1.0e6;
 const MAX_QUERY_SLACK: f64 = 0.25;
 // Two successive surveys must find an unguarded, contact-free deck before retirement.
 const SURVEY_INTERVAL: u8 = 16;
@@ -78,6 +78,7 @@ impl Isolation {
         let world = &backend.world;
         if backend.bodies.len() < MIN_DECKS
             || backend.bodies.len() >= u32::MAX as usize
+            || world.colliders.len() != backend.bodies.len()
             || world.broad_phase.adaptive_change_detection_margin
             || !world.impulse_joints.is_empty()
             || world.multibody_joints.iter().next().is_some()
@@ -94,7 +95,9 @@ impl Isolation {
         for (&id, (handle, spec, _, inertia, _)) in &backend.bodies {
             let body = &world.bodies[*handle];
             let cuboid = spec.collider.shape().as_cuboid()?;
-            if !spec.can_sleep
+            if *spec.collider.position() != Pose::IDENTITY
+                || body.colliders().len() != 1
+                || !spec.can_sleep
                 || spec.articulation.is_some()
                 || inertia.is_some_and(|v| v.center != [0.; 3])
                 || spec.mass.is_none()
@@ -342,6 +345,31 @@ impl Isolation {
             self.retired = self.retired.saturating_add(1);
             false
         });
+    }
+
+    pub(super) fn visit_ray_bodies(
+        &self,
+        ray: &ray::SolidRay,
+        mut visit: impl FnMut(RigidBodyHandle) -> Result<(), PhysicsError>,
+    ) -> Option<Result<(), PhysicsError>> {
+        let bounds = ray.moving_bounds(self.velocity * self.elapsed.as_secs_f64())?;
+        Some((|| {
+            // The index follows the common prescribed velocity. Edited decks and
+            // free payloads can be anywhere, so test their live geometry directly.
+            for body in &self.payloads {
+                visit(body.handle)?;
+            }
+            for &i in &self.native_rows {
+                visit(self.rows[i].handle)?;
+            }
+            for i in self.index.intersect_aabb(&bounds) {
+                let row = &self.rows[i as usize];
+                if row.start.is_some() {
+                    visit(row.handle)?;
+                }
+            }
+            Ok(())
+        })())
     }
 
     pub(super) fn translation(

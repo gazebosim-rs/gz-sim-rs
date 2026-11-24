@@ -16,6 +16,14 @@ pub(super) fn scene_with_columns(
     mixed: bool,
     columns: usize,
 ) -> Result<Simulation, Box<dyn Error>> {
+    scene_with_sensor(count, mixed, columns, true)
+}
+pub(super) fn scene_with_sensor(
+    count: usize,
+    mixed: bool,
+    columns: usize,
+    imu: bool,
+) -> Result<Simulation, Box<dyn Error>> {
     if columns == 0 {
         return Err("fleet requires at least one grid column".into());
     }
@@ -38,7 +46,7 @@ pub(super) fn scene_with_columns(
             xml,
             "<model name='deck_{i}'><pose>{x} {y} 0 0 0 0</pose><plugin name='gz::sim::systems::PrescribedMotion' filename='gz-sim-prescribed-motion-system'><linear_velocity>0.25 0 0</linear_velocity><angular_velocity>0 0 0</angular_velocity></plugin><link name='body'><collision name='collision'><geometry><box><size>1 1 0.2</size></box></geometry></collision><visual name='visual'><geometry><box><size>1 1 0.2</size></box></geometry></visual>",
         )?;
-        if i == 0 {
+        if imu && i == 0 {
             xml.push_str("<sensor name='imu' type='imu'><always_on>true</always_on><update_rate>100</update_rate><imu/></sensor>");
         }
         xml.push_str("</link></model>");

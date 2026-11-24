@@ -1,10 +1,12 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Read-only casts against admitted collision shapes, without a query cache.
+//! Read-only solid casts against current collision poses.
 use super::*;
+use rapier3d_f64::parry::partitioning::{Bvh, BvhBuildStrategy};
 
 /// Closest solid hit on a finite world-space ray, using the solver's f64
 /// Parry primitive geometry. Both endpoints are included.
+#[derive(Clone, Copy)]
 pub struct SolidRay {
     ray: Ray,
     limit: f64,
@@ -126,6 +128,24 @@ impl SolidRay {
         )
     }
 
+    /// Bounds of the complete beam in the indexed decks' starting frame.
+    /// The padding covers world/frame arithmetic and the permitted roundoff
+    /// when a previously native deck returns to this translation interval.
+    pub(super) fn moving_bounds(&self, offset: Vector) -> Option<Aabb> {
+        let bound = fleet_isolation::MAX_COORDINATE;
+        if self.ray.origin.abs().max_element() > bound
+            || self.limit > bound
+            || !offset.is_finite()
+            || offset.abs().max_element() > bound
+        {
+            return None;
+        }
+        let from = self.ray.origin - offset;
+        let to = (self.ray.origin + self.ray.dir * self.limit) - offset;
+        let pad = Vector::splat(128. * f64::EPSILON * bound);
+        Some(Aabb::new(from.min(to) - pad, from.max(to) + pad))
+    }
+
     pub fn distance(&self) -> Option<f64> {
         self.closest
     }
@@ -205,6 +225,52 @@ fn finite_cylinder_hit(
     Ok((enter <= leave).then_some(enter))
 }
 
+/// A pure translation interval has no native broad phase to query. Build a
+/// read-only index on its first bounded cast, while each native body still
+/// holds its start pose. Body edits, new entities, removals and reset invalidate it.
+pub(super) struct TranslationIndex {
+    tree: Bvh,
+    handles: Vec<RigidBodyHandle>,
+    velocity: Vector,
+}
+
+impl TranslationIndex {
+    fn build(backend: &RapierBackend) -> Option<Self> {
+        let world = &backend.world;
+        if world.colliders.len() != backend.bodies.len() || !backend.translation_epochs.is_empty() {
+            return None;
+        }
+        let mut velocity = None;
+        let mut handles = Vec::with_capacity(backend.bodies.len());
+        let mut leaves = Vec::with_capacity(backend.bodies.len());
+        for (handle, body) in world.bodies.iter() {
+            let [collider] = body.colliders() else {
+                return None;
+            };
+            let collider = &world.colliders[*collider];
+            let cuboid = collider.shape().as_cuboid()?;
+            let bound = fleet_isolation::MAX_COORDINATE;
+            if collider.position_wrt_parent() != Some(&Pose::IDENTITY)
+                || body.translation().abs().max_element() > bound
+                || cuboid.half_extents.max_element() > bound
+                || *velocity.get_or_insert(body.linvel()) != body.linvel()
+            {
+                return None;
+            }
+            leaves.push((
+                handles.len(),
+                collider.shape().compute_aabb(body.position()),
+            ));
+            handles.push(handle);
+        }
+        Some(Self {
+            tree: Bvh::from_iter(BvhBuildStrategy::Binned, leaves),
+            handles,
+            velocity: velocity?,
+        })
+    }
+}
+
 pub(super) fn cast(
     backend: &RapierBackend,
     origin: [f64; 3],
@@ -222,9 +288,11 @@ pub(super) fn cast(
                 .ok_or(PhysicsError::MissingBody)
         })
         .transpose()?;
-    for (_, collider) in backend.world.colliders.iter() {
+    // Candidate selection reads immutable ray geometry; the hit accumulator is independent.
+    let beam = ray;
+    let mut include = |collider: &Collider| {
         if excluded.is_some_and(|body| collider.parent() == Some(body)) {
-            continue;
+            return Ok(());
         }
         // Collider world poses can lag a body edit until the next pipeline run.
         // Compose current body/local frames rather than mutating contact or BVH
@@ -236,7 +304,32 @@ pub(super) fn cast(
         } else {
             *collider.position()
         };
-        ray.include(&pose, collider.shape())?;
+        ray.include(&pose, collider.shape())
+    };
+    let mut visit = |handle| {
+        let body: &RigidBody = &backend.world.bodies[handle];
+        include(&backend.world.colliders[body.colliders()[0]])
+    };
+    if let fleet_isolation::Dispatch::Active(fleet) = &backend.fleet_dispatch
+        && let Some(result) = fleet.visit_ray_bodies(&beam, &mut visit)
+    {
+        result?;
+    } else if let FleetClock::Translating(time) = backend.fleet_clock
+        && !backend.curves.authored()
+        && backend.bodies.len() >= fleet_isolation::MIN_DECKS
+        && backend.bodies.len() < u32::MAX as usize
+        && let Some(index) = backend
+            .translation_rays
+            .get_or_init(|| TranslationIndex::build(backend))
+        && let Some(bounds) = beam.moving_bounds(index.velocity * time.as_secs_f64())
+    {
+        for i in index.tree.intersect_aabb(&bounds) {
+            visit(index.handles[i as usize])?;
+        }
+    } else {
+        for (_, collider) in backend.world.colliders.iter() {
+            include(collider)?;
+        }
     }
     Ok(ray.distance())
 }
@@ -244,3 +337,7 @@ pub(super) fn cast(
 #[cfg(test)]
 #[path = "../tests/private/ray.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/fleet_rays.rs"]
+mod fleet_tests;

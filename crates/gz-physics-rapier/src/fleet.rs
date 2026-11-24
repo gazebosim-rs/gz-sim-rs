@@ -51,6 +51,7 @@ impl RapierBackend {
         let FleetClock::Translating(epoch) = self.fleet_clock else {
             return;
         };
+        self.translation_rays.take();
         if !epoch.is_zero() {
             self.translation_epochs.insert(handle, epoch);
         }
@@ -94,6 +95,7 @@ impl RapierBackend {
             }
             self.translation_epochs.clear();
             self.translation_rows.take();
+            self.translation_rays.take();
             self.fleet_clock = FleetClock::Coupled;
         }
     }
@@ -107,6 +109,7 @@ impl RapierBackend {
             fleet_isolation::Dispatch::Disabled
         };
         self.translation_rows.take();
+        self.translation_rays.take();
         self.translation_epochs.clear();
         if self.fleet_clock == FleetClock::Disabled {
             return;

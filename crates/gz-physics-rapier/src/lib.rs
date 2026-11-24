@@ -172,6 +172,7 @@ pub struct RapierBackend {
     fleet_resume_positions: std::collections::HashMap<RigidBodyHandle, Vector>,
     translation_epochs: std::collections::HashMap<RigidBodyHandle, Duration>,
     translation_rows: std::sync::OnceLock<Vec<fleet::TranslationRow>>,
+    translation_rays: std::sync::OnceLock<Option<ray::TranslationIndex>>,
     owner: Arc<()>,
     exchange_epoch: Arc<()>,
     world: PhysicsWorld,
@@ -414,6 +415,7 @@ impl RapierBackend {
             fleet_resume_positions: Default::default(),
             translation_epochs: Default::default(),
             translation_rows: Default::default(),
+            translation_rays: Default::default(),
             owner: Arc::new(()),
             exchange_epoch: Arc::new(()),
             world: PhysicsWorld {
@@ -919,6 +921,7 @@ impl DynamicBackend for RapierBackend {
                 self.pair_observer = None;
             }
             self.translation_rows.take();
+            self.translation_rays.take();
             self.translation_epochs.remove(&handle);
             self.curves.remove(id, handle);
             self.fleet_resume_positions.remove(&handle);
