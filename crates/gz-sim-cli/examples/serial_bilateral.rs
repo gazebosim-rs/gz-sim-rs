@@ -15,6 +15,7 @@ use serde::Serialize;
 use std::{
     borrow::Cow,
     error::Error,
+    io::Write,
     path::{Path, PathBuf},
 };
 
@@ -338,5 +339,6 @@ fn main() -> Result<()> {
     } else {
         serde_json::to_writer(&mut stdout, &samples)?;
     }
+    stdout.flush()?;
     Ok(())
 }
