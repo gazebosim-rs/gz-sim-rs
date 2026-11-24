@@ -7,6 +7,14 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Time the entire robot step during a jaw strike
+
+Applying 500 native solves only to the impact reduced the left-jaw run from 1,365 ms to 59.6 ms. The selected tick still took 59.0 ms at p95, while a missed parcel triggered no extra solves. Every one of 4,320 timed public steps matched its separately observed six-body control. [Timing, impact accuracy and native replay](measurements/local-manipulation/serial-impact-cost.md)
+
+## 2026-11-24 — Combined CPU and physical GPU qualification
+
+The frozen integration candidate passed 3,960 ordinary CPU tests and all four mandatory worker suites. The discrete GPU separately passed 77 cases. Ten of thirteen CPU-profile crates exceeded both 95% thresholds, with CLI, scene and distributed coverage still short. Changes covered 6,840/6,948 measured executable lines. [Frozen release results](measurements/local-manipulation/local-robot-release.md)
+
 ## 2026-11-24 — Apply a measured load to one of two new parts
 
 The CPU journal can apply a force to a particular parcel created during a run. A 60 N off-center push moved the selected 200 g parcel 29.87 mm and turned it 52.66° in 100 ms, while its twin fell straight. Recording every millisecond exposed the first tray contact at 147 ms. All 205 physics observations matched the equivalent wrench. Changed coverage reached 29/29 executable lines and 63/65 regions. [Native recordings, measured checks and reproduction](measurements/local-manipulation/spawned-parcel-load.md)
