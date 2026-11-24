@@ -542,3 +542,31 @@ fn only_distance_exhaustion_requests_temporal_subdivision() {
     ));
     assert!(shell.subdivide_on_budget);
 }
+
+#[test]
+fn a_rotating_separator_certifies_only_truly_clear_sweeps() {
+    let mut seed = 0xa39eeed9u64;
+    let mut next = || {
+        seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+        ((seed >> 11) as f64) * 2f64.powi(-52) - 1.
+    };
+    for vf in [false, true] {
+        let mut counts = [0; 2];
+        for _ in 0..512 {
+            let a = std::array::from_fn(|_| DVec3::new(next(), next(), next()));
+            let b = a.map(|u| u + 0.25 * DVec3::new(next(), next(), next()));
+            let witness = |p: &[DVec3; 4]| if vf { vertex_face(p) } else { edge_edge(p) };
+            let normals = [witness(&a).delta.normalize(), witness(&b).delta.normalize()];
+            let gap = 0.35;
+            let safe = interval::moving_plane(&a, &b, normals, if vf { 1 } else { 2 }, gap);
+            counts[usize::from(safe)] += 1;
+            if safe {
+                for i in 0..=64 {
+                    let x = std::array::from_fn(|j| a[j].lerp(b[j], f64::from(i) / 64.));
+                    assert!(reference(x, vf) > gap);
+                }
+            }
+        }
+        assert!(counts.into_iter().all(|n| n > 0));
+    }
+}

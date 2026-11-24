@@ -29,4 +29,4 @@ RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli 
   target/my-fold-recovery/mesh-7-1160-guard/replay
 ```
 
-The optional `--follow-dropped` switch continues the physical simulation after grasp loss. The five-column 1.25 N trial exposed an unresolved layered impact on the plane after escape. This post-escape collision is a separate solver qualification.
+The optional `--follow-dropped` switch continues through 1.2 s after the matched grip. The five-column 1.25 N overload can also run until the escaped sheet comes to rest. [Sliding and rest measurements](fold-rest.md)

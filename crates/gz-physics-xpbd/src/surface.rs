@@ -355,7 +355,7 @@ impl Surface {
     pub fn verify(&mut self, x: &[DVec3], p: &[Particle], gap: f64) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
         if self
-            .next_hit(x, p, gap, eps, (&mut 0, &mut 0), false)?
+            .next_hit(x, p, gap, eps, (&mut 0, &mut 0), self.retry_plane)?
             .is_some()
         {
             return Err(XpbdError::UnresolvedSurface);
@@ -533,7 +533,8 @@ impl Stencil {
             };
             let distance = endpoint.delta.length();
             let touching = distance <= gap + 4. * eps;
-            let supported = mode == SweepMode::SupportedShell && speed < 0.;
+            let supported =
+                mode == SweepMode::SupportedShell && (speed < 0. || end_gap < gap - eps);
             if distance > eps && endpoint.delta.dot(n) > 0. && (touching || supported) {
                 let penetrated = distance < gap - eps;
                 let lower = inner_gap();
@@ -800,6 +801,7 @@ fn entry_intervals(
             continue;
         }
         let mut clear = false;
+        let mut normals = [DVec3::ZERO; 2];
         for t in [lo, mid, hi] {
             *queries += 1;
             if *queries > MAX_DISTANCE_QUERIES {
@@ -811,6 +813,12 @@ fn entry_intervals(
                 return Err(XpbdError::UnresolvedSurface);
             }
             let n = w.delta / d;
+            if t == lo {
+                normals[0] = n;
+            }
+            if t == hi {
+                normals[1] = n;
+            }
             let separated = |p: [DVec3; 4]| {
                 p[..split]
                     .iter()
@@ -829,7 +837,7 @@ fn entry_intervals(
                 break;
             }
         }
-        if clear {
+        if clear || (material && interval::moving_plane(&a, &b, normals, split, gap)) {
             continue;
         }
         if mid <= lo || mid >= hi {

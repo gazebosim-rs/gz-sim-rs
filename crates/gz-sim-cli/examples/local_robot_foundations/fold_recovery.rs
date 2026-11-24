@@ -9,6 +9,7 @@ pub(crate) use landing::End;
 use std::time::Duration;
 
 const HORIZON: usize = 1200;
+const REST_LIMIT: usize = 3000;
 // Limit the commanded squeeze to the measured near-closure stroke range.
 const EXTRA_STROKE: f64 = 0.00015;
 const TIGHTEN_TICKS: usize = 30;
@@ -130,7 +131,14 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
     let mut actions = Recovery::default();
     let mut clearances = Vec::with_capacity(HORIZON);
     let mut landing = None;
-    for k in 1..=HORIZON {
+    let mut rest = landing::Rest::default();
+    let mut settled = None;
+    let mut captures_by_tick = vec![(0, frame)];
+    for k in 1..=if end == End::Rest {
+        REST_LIMIT
+    } else {
+        HORIZON
+    } {
         let (phase, force) = pulse(k, f64::from(peak_mn) * 0.001);
         let incoming = if end != End::Escape && actions.escaped.is_some() && landing.is_none() {
             Some(landing::particles(&grasp)?)
@@ -152,8 +160,9 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
         let margins = jaw_clearances(&grasp)?;
         actions.confirm_escape(k, &grasp.trace[last], margins);
         clearances.push(margins);
+        let landed = incoming.is_some() && grasp.trace[last].bench_up_n > 1e-9;
         if let Some(incoming) = incoming
-            && grasp.trace[last].bench_up_n > 1e-9
+            && landed
         {
             landing = Some(landing::impact(
                 k,
@@ -164,12 +173,22 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
                 grasp.weight_n,
             ));
         }
-        if (actions.escaped.is_some() && end == End::Escape)
-            || (landing.is_some() && end == End::FirstLanding)
-        {
-            if !k.is_multiple_of(STRIDE) {
-                arm_sheet::capture(&mut grasp.recording, &mut grasp.frames)?;
-            }
+        if end == End::Rest && landing.is_some() && rest.observe(k, &grasp, &grasp.trace[last])? {
+            settled = Some(k);
+        }
+        let stop = (actions.escaped.is_some() && end == End::Escape)
+            || (landed && end == End::FirstLanding)
+            || settled.is_some();
+        let capture_event = stop
+            || landed
+            || (matches!(end, End::Horizon | End::Rest) && actions.escaped == Some(k));
+        if capture_event && !k.is_multiple_of(STRIDE) {
+            arm_sheet::capture(&mut grasp.recording, &mut grasp.frames)?;
+        }
+        if capture_event || k.is_multiple_of(STRIDE) {
+            captures_by_tick.push((k, grasp.frames.len() - 1));
+        }
+        if stop {
             break;
         }
         if actions.tighten.is_none() && k.is_multiple_of(PERIOD) {
@@ -194,22 +213,37 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
         &dir.join("escape-clearance.json"),
         &serde_json::to_value(clearances)?,
     )?;
+    if end == End::Rest {
+        write_json(&dir.join("rest.json"), &rest.report())?;
+    }
     if let Some(impact) = &landing {
         write_json(&dir.join("landing.json"), impact)?;
     }
     let path = dir.join("frames.json");
     let mut manifest: Value = serde_json::from_slice(&fs::read(&path)?)?;
+    if matches!(end, End::Horizon | End::Rest) && actions.escaped.is_some() {
+        manifest["camera"] = json!("perspective");
+        manifest["follow_folded_sheet"] = json!(true);
+    }
     let captures = &mut manifest["captures"];
-    *captures = json!({"approach":0,"held":APPROACH/STRIDE,"baseline":frame,"end":frame + observed.div_ceil(STRIDE)});
+    *captures = json!({"approach":0,"held":APPROACH/STRIDE,"baseline":frame,"end":captures_by_tick.last().unwrap().1});
     for (name, event) in [
         ("peak", Some(RAMP + HOLD)),
         ("released", Some(2 * RAMP + HOLD)),
-        ("recovered", (observed == HORIZON).then_some(HORIZON)),
+        (
+            if actions.escaped.is_some() {
+                "horizon"
+            } else {
+                "recovered"
+            },
+            (observed == HORIZON).then_some(HORIZON),
+        ),
         ("tighten", actions.tighten),
         ("lower", actions.lower),
         ("open", actions.open),
         ("lost_aloft", actions.lost_aloft),
         ("escaped", actions.escaped),
+        ("settled", settled),
         (
             "first_landing",
             landing
@@ -219,7 +253,8 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
         ),
     ] {
         if let Some(tick) = event.filter(|tick| *tick <= observed) {
-            captures[name] = json!(frame + tick.div_ceil(STRIDE));
+            let at = captures_by_tick.partition_point(|&(k, _)| k < tick);
+            captures[name] = json!(captures_by_tick[at].1);
         }
     }
     write_json(&path, &manifest)?;
@@ -327,6 +362,10 @@ pub(crate) fn run(out: &Path, trial: Option<(usize, u32)>, end: End) -> Result<(
     let mut comparison = json!({"dt_ns":1000000,"horizon_ticks":HORIZON,"extra_stroke_m":EXTRA_STROKE,"cases":cases});
     if end != End::Escape {
         comparison["follow_dropped"] = json!(true);
+        if end == End::Rest {
+            comparison["stop_at_rest"] = json!(true);
+            comparison["horizon_ticks"] = json!(REST_LIMIT);
+        }
         comparison["stop_at_first_landing"] = json!(end == End::FirstLanding);
     }
     write_json(&out.join("comparison.json"), &comparison)

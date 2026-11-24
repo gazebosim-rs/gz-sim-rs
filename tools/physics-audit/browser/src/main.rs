@@ -36,6 +36,7 @@ fn sleep(ms: u64) {
 fn close(a: f64, b: f64) -> bool {
     (a - b).abs() < 1e-12
 }
+#[derive(Default)]
 struct Oracle {
     trace: Value,
     index: Value,
@@ -233,6 +234,8 @@ impl Oracle {
         Ok(())
     }
 }
+#[cfg(test)]
+mod focus_tests;
 struct Chrome {
     socket: WebSocket<TcpStream>,
     session: Option<String>,
@@ -358,6 +361,39 @@ impl Chrome {
         self.key_event("keyDown", key, code, vk, mods)?;
         self.key_event("keyUp", key, code, vk, mods)?;
         sleep(180);
+        Ok(())
+    }
+    fn focus_visual(&mut self, follow_sheet: bool, perspective: bool) -> Result<()> {
+        // In the folded-grasp scene the first material node follows the ten
+        // robot and support visuals in the expanded outliner.
+        self.click_at(196, if follow_sheet { 460 } else { 200 })?;
+        self.call(
+            "Input.dispatchMouseEvent",
+            json!({"type":"mouseMoved","x":743,"y":470}),
+        )?;
+        if perspective {
+            self.key("h", "KeyH", 72, 0)?;
+        }
+        self.key("f", "KeyF", 70, 0)?;
+        sleep(520);
+        if follow_sheet {
+            self.key_event("keyDown", "Shift", "ShiftLeft", 16, 8)?;
+            self.key("F", "KeyF", 70, 8)?;
+            self.key_event("keyUp", "Shift", "ShiftLeft", 16, 0)?;
+            for _ in 0..10 {
+                self.call(
+                    "Input.dispatchMouseEvent",
+                    json!({"type":"mouseWheel","x":745,"y":470,"deltaX":0,"deltaY":200}),
+                )?;
+                sleep(50);
+            }
+        } else if perspective {
+            self.call(
+                "Input.dispatchMouseEvent",
+                json!({"type":"mouseWheel","x":745,"y":470,"deltaX":0,"deltaY":140}),
+            )?;
+            sleep(280);
+        }
         Ok(())
     }
     fn click(&mut self, x: u32) -> Result<()> {
@@ -583,15 +619,7 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
         oracle: Oracle {
             trace,
             index,
-            scene_ticks: BTreeSet::new(),
-            ordinals: BTreeSet::new(),
-            last: None,
-            finished: false,
-            webgpu: false,
-            support_presence: BTreeMap::new(),
-            support_catalogs: BTreeSet::new(),
-            pending_scene: Value::Null,
-            pending_catalog: Value::Null,
+            ..Oracle::default()
         },
     };
     let target = chrome.call("Target.createTarget", json!({"url":"about:blank"}))?;
@@ -698,29 +726,10 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
         chrome.key("f", "KeyF", 70, 0)?;
         sleep(400);
     }
-    if authored && chrome.oracle.index["focus_first_visual"] == true {
+    let follow_sheet = chrome.oracle.index["follow_folded_sheet"] == true;
+    if authored && (chrome.oracle.index["focus_first_visual"] == true || follow_sheet) {
         chrome.capture(&output.join("overview.jpg"))?;
-        chrome.click_at(196, 200)?;
-        if chrome.oracle.index["focus_perspective"] == true {
-            chrome.call(
-                "Input.dispatchMouseEvent",
-                json!({"type":"mouseMoved","x":743,"y":470}),
-            )?;
-            chrome.key("h", "KeyH", 72, 0)?;
-        }
-        chrome.call(
-            "Input.dispatchMouseEvent",
-            json!({"type":"mouseMoved","x":743,"y":470}),
-        )?;
-        chrome.key("f", "KeyF", 70, 0)?;
-        sleep(520);
-        if chrome.oracle.index["focus_perspective"] == true {
-            chrome.call(
-                "Input.dispatchMouseEvent",
-                json!({"type":"mouseWheel","x":745,"y":470,"deltaX":0,"deltaY":140}),
-            )?;
-            sleep(280);
-        }
+        chrome.focus_visual(follow_sheet, chrome.oracle.index["focus_perspective"] == true)?;
     }
     chrome.capture(&output.join("initial.jpg"))?;
     for name in marks.remove(&0).into_iter().flatten() {

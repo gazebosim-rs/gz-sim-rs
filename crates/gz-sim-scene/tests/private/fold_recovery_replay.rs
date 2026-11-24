@@ -78,13 +78,74 @@ fn guarded_and_unguarded_native_traces_match_the_measured_timeline() -> Result<(
             let observed = post.len();
             let escaped = case[role]["escaped_after_tick"].as_u64();
             assert_eq!(case[role]["observed_postgrip_ticks"], observed);
-            let landing = if spec["stop_at_first_landing"] == true {
-                assert_eq!(spec["follow_dropped"], true);
-                let escaped = escaped.expect("landing follows geometric escape") as usize;
-                assert!(escaped < observed);
-                Some(check_first_landing(root, &name, post, escaped, dt)?)
+            let following = spec["follow_dropped"] == true;
+            let first = escaped.and_then(|e| {
+                let from = e as usize;
+                post[from..]
+                    .iter()
+                    .position(|t| scalar(&t["bench_up_n"]) > 1e-9)
+                    .map(|i| from + i + 1)
+            });
+            let expected = if spec["stop_at_first_landing"] == true {
+                assert!(following);
+                first.unwrap_or(horizon)
+            } else if spec["stop_at_rest"] == true {
+                let evidence = read(&root.join(&name).join("rest.json"))?;
+                let rows: Vec<(usize, f64, f64)> =
+                    serde_json::from_value(evidence["observations"].clone())?;
+                let samples: Vec<Vec<[f64; 3]>> =
+                    serde_json::from_value(evidence["quiet_particle_velocities_m_s"].clone())?;
+                let mut quiet = 0;
+                if let Some(first) = first {
+                    assert_eq!(rows.first().unwrap().0, first);
+                }
+                for (tick, max_speed, weight_ratio) in &rows {
+                    let t = &post[*tick - 1];
+                    near(
+                        *weight_ratio,
+                        scalar(&t["bench_up_n"]) / (9.81 * scalar(&t["mass_kg"])),
+                    );
+                    let squeeze: [f64; 2] = serde_json::from_value(t["jaw_squeeze_n"].clone())?;
+                    if *max_speed <= 0.001
+                        && (*weight_ratio - 1.).abs() <= 0.025
+                        && squeeze.iter().all(|n| n.abs() < 1e-9)
+                    {
+                        quiet += 1;
+                    } else {
+                        quiet = 0;
+                    }
+                    assert!(quiet < 50 || *tick == observed);
+                }
+                assert_eq!(quiet, samples.len());
+                assert_eq!(evidence["consecutive_ticks"], quiet);
+                for (v, row) in samples.iter().zip(&rows[rows.len() - quiet..]) {
+                    assert_eq!(v.len(), (4 * cols) as usize);
+                    let maximum = v
+                        .iter()
+                        .map(|v| DVec3::from(*v).length())
+                        .fold(0., f64::max);
+                    near(maximum, row.1);
+                }
+                if quiet == 50 {
+                    rows.last().unwrap().0
+                } else {
+                    horizon
+                }
+            } else if following {
+                horizon
             } else {
-                assert_eq!(observed as u64, escaped.unwrap_or(horizon as u64));
+                escaped.map_or(horizon, |e| e as usize)
+            };
+            assert_eq!(observed, expected);
+            let landing = if let Some(tick) = first.filter(|_| following) {
+                Some(check_first_landing(
+                    root,
+                    &name,
+                    &post[..tick],
+                    escaped.unwrap() as usize,
+                    dt,
+                )?)
+            } else {
                 None
             };
             assert!((20..=horizon).contains(&observed));
@@ -185,6 +246,52 @@ fn guarded_and_unguarded_native_traces_match_the_measured_timeline() -> Result<(
             assert_eq!(case[role]["first_250um_tick"], json!(first_slip));
             assert_eq!(case[role]["final_bilateral_ticks"], bilateral);
             assert_eq!(case[role]["final_bench_supported_ticks"], bench);
+            let slide = if following && first.is_some() && observed == horizon && observed >= 100 {
+                let tail = &run.trace[run.trace.len() - 101..];
+                let seconds = 100. * dt as f64 * 1e-9;
+                let mass = scalar(&tail[0]["mass_kg"]);
+                let normal = tail[1..]
+                    .iter()
+                    .map(|v| scalar(&v["bench_up_n"]))
+                    .sum::<f64>()
+                    / 100.;
+                let final_y = scalar(&tail[100]["momentum_y_kg_m_s"]) / mass;
+                let acceleration =
+                    (final_y - scalar(&tail[0]["momentum_y_kg_m_s"]) / mass) / seconds;
+                let supported = tail[1..]
+                    .iter()
+                    .filter(|v| scalar(&v["bench_up_n"]) > 1e-9)
+                    .count();
+                let residual = tail
+                    .windows(2)
+                    .map(|ab| {
+                        let v = &ab[1];
+                        let jaws: [f64; 2] =
+                            serde_json::from_value(v["jaw_side_reaction_n"].clone()).unwrap();
+                        (scalar(&v["momentum_y_kg_m_s"])
+                            - scalar(&ab[0]["momentum_y_kg_m_s"])
+                            - (scalar(&v["force_y_n"])
+                                - scalar(&v["bench_side_reaction_n"])
+                                - jaws.iter().sum::<f64>())
+                                * dt as f64
+                                * 1e-9)
+                            .abs()
+                    })
+                    .fold(0., f64::max);
+                assert!(residual < 1e-12);
+                if (cols, load, horizon) == (5, 1250, 1200) {
+                    assert_eq!(supported, 100);
+                    assert!((normal / (9.81 * mass) - 1.).abs() < 0.005);
+                    assert!((acceleration + 0.7 * 9.81).abs() < 0.03);
+                }
+                Some(
+                    json!({"terminal_y_speed_m_s":final_y,"loaded_ticks_of_final_100":supported,
+                    "mean_normal_n":normal,"lateral_deceleration_m_s2":-acceleration,
+                    "largest_lateral_balance_error_ns":residual}),
+                )
+            } else {
+                None
+            };
             results.push(json!({
                 "archive": name,
                 "observations": run.summary,
@@ -193,6 +300,7 @@ fn guarded_and_unguarded_native_traces_match_the_measured_timeline() -> Result<(
                 "independent_jaw_margin_checks": native_margin_checks,
                 "terminal_jaw_margins_m": margins.last(),
                 "first_landing": landing,
+                "last_100ms_slide": slide,
                 "first_250um_tick": first_slip,
                 "first_loss_in_air_tick": lost,
                 "verified_bench_support_ms_at_open": support_at_open.map(|t| t as f64 * dt as f64 * 1e-6),

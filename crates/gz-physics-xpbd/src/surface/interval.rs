@@ -163,3 +163,26 @@ pub(super) fn clear_edges(a: [DVec3; 4], b: [DVec3; 4], gap: f64) -> bool {
         && edge_clear(line(2, 0), e, g2)
         && edge_clear(line(3, 0), e, g2)
 }
+
+/// A time-varying separating axis for two linearly swept convex features.
+/// The projection of each vertex pair onto a linearly interpolated normal
+/// is quadratic. Its three Bernstein coefficients bound the whole interval.
+/// Convexity also bounds the normal length by its larger endpoint length.
+pub(super) fn moving_plane(
+    a: &[DVec3; 4],
+    b: &[DVec3; 4],
+    normals: [DVec3; 2],
+    split: usize,
+    gap: f64,
+) -> bool {
+    let [n0, n1] = normals;
+    let threshold = gap * n0.length().max(n1.length());
+    (0..split).all(|i| {
+        (split..4).all(|j| {
+            let d0 = a[i] - a[j];
+            let d1 = b[i] - b[j];
+            let floor = threshold + 128. * f64::EPSILON * (threshold + d0.length() + d1.length());
+            d0.dot(n0) > floor && d1.dot(n1) > floor && (d0.dot(n1) + d1.dot(n0)) * 0.5 > floor
+        })
+    })
+}
