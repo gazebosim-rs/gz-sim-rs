@@ -23,6 +23,7 @@ struct Trial {
 struct CornerView {
     y: f64,
     end_tick: usize,
+    show_sticking: bool,
 }
 impl CornerView {
     fn points(self) -> [(&'static str, DVec3, &'static str); 2] {
@@ -39,6 +40,39 @@ impl CornerView {
             ),
         ]
     }
+    fn sticking(self, batch: &CarryGripperBatch) -> [bool; 2] {
+        let (Some(link), Some(loads)) = (batch.free_box_link(), batch.spatial_shelf_loads()) else {
+            return [false; 2];
+        };
+        let q = DQuat::from_array(link.orientation);
+        self.points().map(|(_, corner, _)| {
+            let i = usize::from(corner.x > 0.) + 2 * usize::from(corner.y > 0.);
+            let j = DVec3::from(loads.world_impulses[i]);
+            let v = DVec3::from(link.linear) + DVec3::from(link.angular).cross(q * corner);
+            j.z > 0. && j.x.hypot(j.y) < 0.449 * j.z && v.x.hypot(v.y) < 5e-6
+        })
+    }
+    /// The native recorder preserves visual identities. Each green indicator
+    /// lives inside the opaque parcel until its material vertex is holding.
+    fn show_static_friction(
+        self,
+        b: &CarryGripperBatch,
+        frame: &mut String,
+    ) -> Result<(), Box<dyn Error>> {
+        let mut scene: Value = serde_json::from_str(frame)?;
+        let visuals = scene["visuals"].as_array_mut().unwrap();
+        for ((name, _, _), holding) in self.points().into_iter().zip(self.sticking(b)) {
+            if holding {
+                let corner = format!("default::parcel::ball::{name}");
+                let p =
+                    visuals.iter().find(|v| v["name"] == corner).unwrap()["translation"].clone();
+                let indicator = format!("{corner}_holding");
+                visuals.iter_mut().find(|v| v["name"] == indicator).unwrap()["translation"] = p;
+            }
+        }
+        *frame = serde_json::to_string(&scene)?;
+        Ok(())
+    }
     fn sdf(self, src: &str) -> String {
         let mut markers = String::new();
         for (name, p, rgb) in self.points() {
@@ -46,6 +80,11 @@ impl CornerView {
                 r#"<visual name="{name}"><pose>{} {} {} 0 0 0</pose><geometry><sphere><radius>0.0035</radius></sphere></geometry><material><diffuse>{rgb} 1</diffuse></material></visual>"#,
                 p.x, p.y, p.z
             );
+            if self.show_sticking {
+                markers += &format!(
+                    r#"<visual name="{name}_holding"><geometry><sphere><radius>0.0043</radius></sphere></geometry><material><diffuse>0.10 1.0 0.28 1.0</diffuse></material></visual>"#
+                );
+            }
         }
         src.replace(
             r#"<visual name="marker">"#,
@@ -60,9 +99,19 @@ fn visual_pose(tick: usize, b: &CarryGripperBatch, marks: Option<CornerView>) ->
         let q = DQuat::from_array(serde_json::from_value(transform["rotation"].clone()).unwrap());
         let pos =
             DVec3::from_array(serde_json::from_value(transform["translation"].clone()).unwrap());
-        for (name, p, _) in marks.points() {
+        let holding = if marks.show_sticking {
+            marks.sticking(b)
+        } else {
+            [false; 2]
+        };
+        for ((name, p, _), holding) in marks.points().into_iter().zip(holding) {
             frame["poses"][name] =
                 json!({"translation":(pos+q*p).to_array(),"rotation":q.to_array()});
+            if marks.show_sticking {
+                let location = if holding { pos + q * p } else { pos };
+                frame["poses"][format!("{name}_holding")] =
+                    json!({"translation":location.to_array(),"rotation":q.to_array()});
+            }
         }
     }
     frame
@@ -150,12 +199,16 @@ fn run(
                     || (2165..=2180).contains(&tick)
                     || (2155..=2350).contains(&tick) && tick % 3 == 0
                 {
-                    frames.push(gz_sim_cli::primitive_frame(
+                    let mut frame = gz_sim_cli::primitive_frame(
                         &sim,
                         &sdf,
                         "default",
                         frames.len() as u64 + 1,
-                    )?);
+                    )?;
+                    if let Some(view) = marks.filter(|m| m.show_sticking) {
+                        view.show_static_friction(b, &mut frame.0)?;
+                    }
+                    frames.push(frame);
                 }
             }
             let Some(body) = b.free_box() else { continue };
@@ -364,8 +417,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         ("yaw_plus", "0.003 0.006 0.045", "0.009 0.002 0.004"),
         ("yaw_minus", "0.003 -0.006 0.045", "0.009 -0.002 0.004"),
     ] {
-        let marked =
-            only.is_some_and(|key| matches!(key.as_str(), "corner-window" | "reload-window"));
+        let marked = only.is_some_and(|key| {
+            matches!(
+                key.as_str(),
+                "corner-window" | "reload-window" | "stick-window"
+            )
+        });
         if only.is_some_and(|key| key != name && !(marked && name.starts_with("oblique_"))) {
             continue;
         }
@@ -376,7 +433,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             src = src.replace("<mu>0.45</mu><mu2>0.45</mu2>", "<mu>0</mu><mu2>0</mu2>");
         }
         let marks = marked.then_some(CornerView {
-            end_tick: if only.is_some_and(|s| s == "reload-window") {
+            show_sticking: only.is_some_and(|s| s == "stick-window"),
+            end_tick: if only.is_some_and(|s| s == "reload-window" || s == "stick-window") {
                 2245
             } else {
                 2206

@@ -4,18 +4,30 @@
 //! World angular momentum is integrated directly. Each sliding contact has
 //! traction opposite its own point velocity and zero normal acceleration.
 use super::*;
+#[path = "stick.rs"]
+pub(super) mod stick;
 
 const GRAVITY: Vector = Vector::new(0., 0., -9.81);
 const MU: f64 = 0.45;
 
 #[derive(Clone, Copy)]
-struct Body {
+pub(super) struct Body {
     center: Vector,
     q: Rotation,
     velocity: Vector,
     momentum: Vector,
 }
 impl Body {
+    fn from_state(seed: &State) -> Self {
+        let q = Rotation::from_array(seed.orientation);
+        Self {
+            center: Vector::from_array(seed.position) + q * OFFSET,
+            q,
+            velocity: seed.center_velocity.into(),
+            momentum: q * (MOMENTS * (q.inverse() * Vector::from_array(seed.omega))),
+        }
+    }
+
     fn inv_i(self, torque: Vector) -> Vector {
         self.q * ((self.q.inverse() * torque) / MOMENTS)
     }
@@ -56,7 +68,7 @@ impl Body {
             let v = self.point_velocity(r);
             let tangent = Vector::new(v.x, v.y, 0.);
             // This reference only covers uninterrupted sliding.
-            assert!(tangent.length() > 0.02);
+            assert!(tangent.length_squared() > 0.);
             Vector::Z - MU * tangent.normalize()
         })
     }
@@ -119,15 +131,9 @@ pub(super) fn integrate(
     anchor: usize,
     end: usize,
     mut count: usize,
-) -> Value {
+) -> (Body, Value) {
     let (seed, _) = observed[&anchor];
-    let q = Rotation::from_array(seed.orientation);
-    let mut b = Body {
-        center: Vector::from_array(seed.position) + q * OFFSET,
-        q,
-        velocity: seed.center_velocity.into(),
-        momentum: q * (MOMENTS * (q.inverse() * Vector::from_array(seed.omega))),
-    };
+    let mut b = Body::from_state(seed);
     let incoming_gap = ids.map(|i| b.gap(i));
     let incoming_normal_speed = ids.map(|i| b.point_velocity(b.arm(i)).z);
     let dt = DT / steps as f64;
@@ -190,14 +196,17 @@ pub(super) fn integrate(
         }));
     }
     assert!(max_yaw < 0.005 && max_origin < 8e-6 && max_load < 0.75e-6);
-    json!({
-        "anchor": anchor,
-        "steps_per_ms": steps,
-        "corner_ids": ids,
-        "initial_gap_m": incoming_gap,
-        "initial_normal_speed_m_s": incoming_normal_speed,
-        "reload": event,
-        "device_max_error": {"yaw_deg": max_yaw, "link_m": max_origin, "corner_impulse_ns": max_load},
-        "rows": rows
-    })
+    (
+        b,
+        json!({
+            "anchor": anchor,
+            "steps_per_ms": steps,
+            "corner_ids": ids,
+            "initial_gap_m": incoming_gap,
+            "initial_normal_speed_m_s": incoming_normal_speed,
+            "reload": event,
+            "device_max_error": {"yaw_deg": max_yaw, "link_m": max_origin, "corner_impulse_ns": max_load},
+            "rows": rows
+        }),
+    )
 }

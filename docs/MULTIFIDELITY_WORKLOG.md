@@ -2468,3 +2468,7 @@ At 2.193 s one GPU corner was already supported and the second was 339 µm above
 ## 2026-11-24 — Sliding on two shelf corners after a glancing strike
 
 The corner returned at 2.205 s in both mirrored GPU releases. Through 2.215 s the existing device law agreed with a separate sliding-contact calculation within 0.00388° of yaw, 6.18 µm of link motion and 0.561 µN·s of per-corner impulse. A matched Rapier run directed friction differently at the returning corner and differed by 0.251° at 2.215 s. Both native recordings passed 2,450 visual pose checks each. The next physics check is the transition from sliding to sticking. [Signed loads, three matched restarts, coverage and gz-web-rs replays](measurements/local-manipulation/gpu-shelf-reload.md)
+
+## 2026-11-24 — The shelf edge stops sliding
+
+In both mirrored releases, the independent control found one corner stopped 787.648 µs after the 2.240 s match and the other stopped 0.628 µs later. Both device corners were still sliding at 750 µs and were holding by the next readback at 875 µs, with less than 4.47 µm/s of residual slip. Adding 20 mm/s kept both corners sliding. All 50 hardware and corner tests passed and each native replay checked 2,800 visual poses. The next local check is the rolling edge’s transition to a new contact or loss of support. [Control convergence, force checks and native gz-web-rs recordings](measurements/local-manipulation/gpu-shelf-stick.md)
