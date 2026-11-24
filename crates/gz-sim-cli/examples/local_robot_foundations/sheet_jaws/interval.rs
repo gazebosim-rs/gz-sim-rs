@@ -3,7 +3,8 @@
 //! Replay the same measured rigid jaw path from a complete, matched soft state.
 use super::*;
 use gz_physics_xpbd::{
-    Boundary, PlaneImpulseProbe, RigidMobility, SoftBody, step_coupled_damped_pads,
+    Boundary, ParticleBoundaryImpulse, PlaneImpulseProbe, RigidMobility, SoftBody,
+    step_coupled_damped_pads,
 };
 use std::time::Duration;
 
@@ -51,13 +52,30 @@ fn jaw_states(sim: &Simulation, ids: [u64; 2]) -> Result<[BodyState; 2]> {
     Ok([state(sim, ids[0])?, state(sim, ids[1])?])
 }
 
-fn check_table_total(tick: usize, observed: DVec3, table: DVec3) -> Result<()> {
-    if !observed.is_finite() || observed.distance(table) > 1e-13 * (1. + table.length()) {
+fn table_readings(
+    tick: usize,
+    readings: &[ParticleBoundaryImpulse],
+    table: DVec3,
+    display_loads: &mut [f64],
+) -> Result<Vec<serde_json::Value>> {
+    let mut observed = DVec3::ZERO;
+    let mut nodes = Vec::with_capacity(readings.len());
+    for load in readings {
+        let normal = -DVec3::from_array(load.normal);
+        let tangent = -DVec3::from_array(load.tangent);
+        observed += normal + tangent;
+        display_loads[load.particle] += normal.z;
+        nodes.push(json!({"node":load.particle,"normal_ns":normal.to_array(),"tangent_ns":tangent.to_array()}));
+    }
+    if !observed.is_finite()
+        || !table.is_finite()
+        || observed.distance(table) > 1e-13 * (1. + table.length())
+    {
         return Err(
             format!("particle readings do not sum to the table impulse at tick {tick}").into(),
         );
     }
-    Ok(())
+    Ok(nodes)
 }
 
 pub(super) fn run(
@@ -172,16 +190,7 @@ pub(super) fn run(
                 "min_table_gap_m": lowest.position[2] - arm_sheet::BENCH - arm_sheet::RADIUS,
             });
             if index == 0 {
-                let mut observed = DVec3::ZERO;
-                let mut nodes = Vec::new();
-                for load in probe.readings()? {
-                    let normal = -DVec3::from_array(load.normal);
-                    let tangent = -DVec3::from_array(load.tangent);
-                    observed += normal + tangent;
-                    display_loads[load.particle] += normal.z;
-                    nodes.push(json!({"node":load.particle,"normal_ns":normal.to_array(),"tangent_ns":tangent.to_array()}));
-                }
-                check_table_total(tick, observed, table)?;
+                let nodes = table_readings(tick, probe.readings()?, table, &mut display_loads)?;
                 if !nodes.is_empty() {
                     sample["table_particle_impulses"] = json!(nodes);
                 }
@@ -226,8 +235,19 @@ mod tests {
     #[test]
     fn a_missing_sideways_impulse_cannot_pass_the_independent_total() {
         let normal = DVec3::Z * 0.0001;
-        for unreported in [DVec3::Y * 0.00001, DVec3::splat(f64::NAN)] {
-            assert!(check_table_total(11, normal + unreported, normal).is_err());
+        let bad = DVec3::splat(f64::NAN);
+        for (observed, expected) in [
+            (normal + DVec3::Y * 0.00001, normal),
+            (bad, normal),
+            (normal, bad),
+        ] {
+            let reading = ParticleBoundaryImpulse {
+                boundary: 2,
+                particle: 0,
+                normal: (-observed).to_array(),
+                tangent: [0.; 3],
+            };
+            assert!(table_readings(11, &[reading], expected, &mut [0.]).is_err());
         }
     }
     #[test]
