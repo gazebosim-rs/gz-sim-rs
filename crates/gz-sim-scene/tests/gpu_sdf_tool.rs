@@ -572,3 +572,6 @@ fn loaded_hinge_must_start_within_its_authored_travel() {
 
 #[path = "support/gpu_free_object.rs"]
 mod free_object;
+
+#[path = "support/gpu_parallel_gripper.rs"]
+mod parallel_gripper;

@@ -1024,7 +1024,10 @@ fn load_world_with_automatic_owner(
         ),
     };
     #[cfg(feature = "gpu-batch")]
-    let gpu_tool_scene = matches!(gpu_plan, Some(gpu_scene::LoadedPlan::Tool(_)));
+    let gpu_tool_scene = matches!(
+        gpu_plan,
+        Some(gpu_scene::LoadedPlan::Tool(_) | gpu_scene::LoadedPlan::Gripper(_))
+    );
     #[cfg(not(feature = "gpu-batch"))]
     let gpu_tool_scene = false;
     let mut context = SceneContext {

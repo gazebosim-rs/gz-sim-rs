@@ -13,6 +13,7 @@ pub use gz_physics_gpu::{
 };
 pub mod automatic;
 mod config;
+pub mod parallel_gripper;
 pub mod planar_tool;
 mod planar_tool_config;
 mod resident;
@@ -20,6 +21,7 @@ pub(super) use config::{Plan, is_plugin};
 pub(super) enum LoadedPlan {
     Mixed(Plan),
     Tool(planar_tool_config::Plan),
+    Gripper(Box<parallel_gripper::Plan>),
 }
 impl LoadedPlan {
     pub(super) fn load(
@@ -31,12 +33,19 @@ impl LoadedPlan {
         if let [plugin] = w.plugins.as_slice()
             && is_plugin(plugin)
             && let Ok(doc) = roxmltree::Document::parse(&plugin.xml)
-            && doc.root_element().children().any(|n| {
-                n.has_tag_name("environment") && n.attribute("profile") == Some("planar-tool")
-            })
         {
-            return planar_tool_config::Plan::load(sdf, w, step, adapter, doc.root_element())
-                .map(Self::Tool);
+            let root = doc.root_element();
+            if root.children().any(|n| {
+                n.has_tag_name("environment") && n.attribute("profile") == Some("parallel-gripper")
+            }) {
+                return parallel_gripper::Plan::load(sdf, w, step, adapter, root)
+                    .map(|p| Self::Gripper(Box::new(p)));
+            }
+            if root.children().any(|n| {
+                n.has_tag_name("environment") && n.attribute("profile") == Some("planar-tool")
+            }) {
+                return planar_tool_config::Plan::load(sdf, w, step, adapter, root).map(Self::Tool);
+            }
         }
         Plan::load(sdf, w, step, adapter).map(Self::Mixed)
     }
@@ -52,6 +61,7 @@ pub(super) fn install_loaded(
 ) -> Result<(), LoadError> {
     match plan {
         LoadedPlan::Mixed(p) => install(sim, p, links, worker),
+        LoadedPlan::Gripper(p) => parallel_gripper::install(sim, *p, links),
         LoadedPlan::Tool(p) => planar_tool::install(sim, p, links),
     }
 }
@@ -112,24 +122,41 @@ impl GpuSceneObservations {
 }
 /// Owning allocation of the single physical GPU population installed in this world.
 pub(crate) fn physics_owner(world: &bevy_ecs::world::World) -> Option<MixedBatchOwner> {
-    match (
-        world.get_resource::<MixedBatch>(),
-        world.get_resource::<gz_physics_gpu::SpherePairBlockBatch>(),
-        world.get_resource::<gz_physics_gpu::PlanarToolBatch>(),
-        world.get_resource::<gz_physics_gpu::PlanarObjectBatch>(),
-    ) {
-        (Some(m), None, None, None) => Some(m.owner()),
-        (None, Some(b), None, None) => Some(b.owner()),
-        (None, None, Some(b), None) => Some(b.owner()),
-        (None, None, None, Some(b)) => Some(b.owner()),
-        _ => None,
-    }
+    let mut owners = [
+        world.get_resource::<MixedBatch>().map(|b| b.owner()),
+        world
+            .get_resource::<gz_physics_gpu::SpherePairBlockBatch>()
+            .map(|b| b.owner()),
+        world
+            .get_resource::<gz_physics_gpu::PlanarToolBatch>()
+            .map(|b| b.owner()),
+        world
+            .get_resource::<gz_physics_gpu::PlanarObjectBatch>()
+            .map(|b| b.owner()),
+        world
+            .get_resource::<gz_physics_gpu::ParallelGripperBatch>()
+            .map(|b| b.owner()),
+    ]
+    .into_iter()
+    .flatten();
+    let owner = owners.next()?;
+    owners.next().is_none().then_some(owner)
+}
+/// Loaded GPU worlds expose fixed membership and read-only lifecycle catalogs in the viewer.
+pub fn fixed_population(sim: &Simulation) -> bool {
+    let w = sim.world();
+    w.contains_resource::<GpuSceneBindings>()
+        || w.contains_resource::<planar_tool::ToolBindings>()
+        || parallel_gripper::registered(w)
 }
 /// Committed execution owners of the loaded physical population (CPU, GPU).
 pub fn execution_counts(sim: &Simulation) -> Option<(usize, usize)> {
     if let Some(batch) = checked_mixed(sim) {
         let cpu = batch.cpu_environments();
         return Some((cpu, batch.environments().len() - cpu));
+    }
+    if parallel_gripper::registered(sim.world()) {
+        return parallel_gripper::count(sim).map(|n| (0, n));
     }
     if let Some(n) = planar_tool::count(sim) {
         return Some((0, n));
@@ -148,6 +175,9 @@ pub fn environment_placement(
 ) -> Result<ExecutionPlacement, gz_physics_gpu::GpuError> {
     if let Some(batch) = checked_mixed(sim) {
         return batch.execution_placement(id);
+    }
+    if parallel_gripper::registered(sim.world()) {
+        return parallel_gripper::observe(sim, id).map(|_| ExecutionPlacement::Gpu);
     }
     if planar_tool::count(sim).is_some() {
         return planar_tool::observe(sim, id).map(|_| ExecutionPlacement::Gpu);

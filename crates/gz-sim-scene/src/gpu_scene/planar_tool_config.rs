@@ -46,7 +46,7 @@ fn near(v: [f64; 3], w: [f64; 3]) -> bool {
 fn exact_x(v: [f64; 3]) -> bool {
     v[0].is_finite() && v[1].abs() <= 1e-10 && v[2].abs() <= 1e-10
 }
-fn law(c: &sdformat::Collision) -> Result<f64, LoadError> {
+pub(super) fn law(c: &sdformat::Collision) -> Result<f64, LoadError> {
     if c.surface.source.is_none() {
         Ok(0.5)
     } else {
@@ -55,7 +55,7 @@ fn law(c: &sdformat::Collision) -> Result<f64, LoadError> {
             .ok_or_else(|| err("tool contact requires isotropic Coulomb friction"))
     }
 }
-fn plane(
+pub(super) fn plane(
     sdf: &sdformat::Sdf,
     w: &sdformat::World,
     m: &sdformat::Model,

@@ -93,6 +93,13 @@ pub fn install_planar_object(
     install_arm(sim, batch)
 }
 
+pub fn install_parallel_gripper(
+    sim: &mut Simulation,
+    batch: super::ParallelGripperBatch,
+) -> Result<(), GpuError> {
+    install_arm(sim, batch)
+}
+
 fn install_arm<T: Pod + Send + Sync>(
     sim: &mut Simulation,
     batch: ResidentBatch<T>,

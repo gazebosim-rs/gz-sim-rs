@@ -653,6 +653,10 @@ pub(super) fn removal_order(world: &World, bodies: &BTreeSet<BodyId>) -> Option<
 
 pub(super) fn bindings_valid(world: &World) -> bool {
     #[cfg(feature = "gpu-batch")]
+    if crate::gpu_scene::parallel_gripper::registered(world) {
+        return crate::gpu_scene::parallel_gripper::valid(world);
+    }
+    #[cfg(feature = "gpu-batch")]
     if let Some(valid) = crate::gpu_scene::planar_tool::joint_bindings_valid(world) {
         return valid;
     }
