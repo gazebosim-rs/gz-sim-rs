@@ -108,10 +108,15 @@ fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
                 let geometry = world
                     .get::<VisualGeometry>(entity)
                     .ok_or_else(unsupported)?;
-                if !matches!(
-                    geometry.0.as_ref(),
-                    Geometry::Box { .. } | Geometry::Sphere { .. } | Geometry::Mesh(_)
-                ) {
+                let editable = match geometry.0.as_ref() {
+                    Geometry::Box { .. } | Geometry::Sphere { .. } | Geometry::Mesh(_) => true,
+                    Geometry::Cylinder { .. } | Geometry::Capsule { .. } => world
+                        .get_resource::<PhysicsBackend>()
+                        .and_then(|b| b.downcast_ref::<MultiFidelityBackend>())
+                        .is_some(),
+                    _ => false,
+                };
+                if !editable {
                     return Err(unsupported());
                 }
             }

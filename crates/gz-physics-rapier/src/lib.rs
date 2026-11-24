@@ -55,6 +55,7 @@ pub use landing_row_order::{LandingRowCounts, LandingRowOrder};
 mod compound;
 mod material;
 pub use compound::RigidSurfaceWitness;
+use material::PrimitiveSurface;
 pub use material::{IsotropicFriction, MaterialLinkMotion, Restitution};
 mod contact_prediction;
 mod fleet;
@@ -655,7 +656,17 @@ impl RapierBackend {
         mode: PrimitiveMode,
         friction: Option<IsotropicFriction>,
     ) -> Result<BodyId, PhysicsError> {
-        self.spawn_primitive_geometry(spec, rotational, inertia, mode, friction, &[])
+        self.spawn_primitive_geometry(
+            spec,
+            rotational,
+            inertia,
+            mode,
+            PrimitiveSurface {
+                friction,
+                ..Default::default()
+            },
+            &[],
+        )
     }
 
     fn spawn_primitive_geometry(
@@ -664,7 +675,7 @@ impl RapierBackend {
         rotational: RotationSpec,
         inertia: Option<Inertia>,
         mode: PrimitiveMode,
-        friction: Option<IsotropicFriction>,
+        surface: PrimitiveSurface,
         parts: &[gz_physics::CollisionSpec],
     ) -> Result<BodyId, PhysicsError> {
         let kinematic = matches!(
@@ -702,9 +713,7 @@ impl RapierBackend {
                 inertia.map_or(Vector::ZERO, |i| Vector::from(i.center)),
             )?
         };
-        if let Some(material) = friction {
-            material.apply(&mut shape);
-        }
+        surface.apply(&mut shape);
         if let PrimitiveMode::AwakeBox { friction, .. } = mode {
             self.require_separated_box(&shape, spec.position, orientation)?;
             shape.set_friction(friction);

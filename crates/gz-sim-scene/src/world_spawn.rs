@@ -19,6 +19,7 @@ pub struct ModelTemplate {
     source_visual_id: u64,
     collider: Collider,
     friction: Option<f64>,
+    restitution: Option<gz_physics_multifidelity::Restitution>,
     collision_pose: WorldPose,
     visual_pose: WorldPose,
     geometry: Arc<Geometry>,
@@ -158,7 +159,7 @@ pub fn prepare_model_template(
     if model.links.len() != 1
         || !model.joints.is_empty()
         || !model.models.is_empty()
-        || !model.plugins.is_empty()
+        || !model.plugins.iter().all(contact_material::is_plugin)
     {
         return Err(unsupported());
     }
@@ -170,6 +171,17 @@ pub fn prepare_model_template(
     {
         return Err(unsupported());
     }
+    let local_native = backend.downcast_ref::<MultiFidelityBackend>().is_some();
+    let restitution = if model.plugins.is_empty() {
+        None
+    } else if local_native {
+        contact_material::parse(model, PhysicsEngine::MultiFidelity)
+            .map_err(|_| unsupported())?
+            .get(&link.name)
+            .copied()
+    } else {
+        return Err(unsupported());
+    };
     let collision = &link.collisions[0];
     if backend.engine() == "multifidelity"
         && collision.surface.source.is_some()
@@ -183,6 +195,18 @@ pub fn prepare_model_template(
             half_extents: size.map(|value| value * 0.5),
         }),
         Geometry::Sphere { radius } => Collider::Primitive(Shape::Sphere { radius: *radius }),
+        Geometry::Cylinder { radius, length } if local_native => {
+            Collider::Primitive(Shape::Cylinder {
+                radius: *radius,
+                half_height: length * 0.5,
+            })
+        }
+        Geometry::Capsule { radius, length } if local_native => {
+            Collider::Primitive(Shape::Capsule {
+                radius: *radius,
+                half_length: length * 0.5,
+            })
+        }
         Geometry::Mesh(_) if world.resource::<PhysicsBackend>().engine() == "multifidelity" => {
             return Err(unsupported());
         }
@@ -235,6 +259,7 @@ pub fn prepare_model_template(
             .ok_or_else(unsupported)?
             .get(),
         collider,
+        restitution,
         friction: collision
             .surface
             .source
@@ -338,19 +363,35 @@ fn spawn_template_body(
         angular_velocity: [0.0; 3],
     };
     let body = match &template.collider {
-        Collider::Primitive(shape) => super::spawn_surface_link(
-            backend,
-            BodySpec {
+        Collider::Primitive(shape) => {
+            let spec = BodySpec {
                 shape: *shape,
                 position: pose.translation,
                 velocity: [0.0; 3],
                 mass: template.mass,
-            },
-            rotation,
-            template.inertia,
-            false,
-            template.friction,
-        )?,
+            };
+            if let Some(restitution) = template.restitution {
+                backend
+                    .downcast_mut::<MultiFidelityBackend>()
+                    .ok_or(WorldEditError::InvalidScene)?
+                    .spawn_restituting_link(
+                        spec,
+                        rotation,
+                        template.inertia,
+                        template.friction.map(IsotropicFriction::new).transpose()?,
+                        restitution,
+                    )?
+            } else {
+                super::spawn_surface_link(
+                    backend,
+                    spec,
+                    rotation,
+                    template.inertia,
+                    false,
+                    template.friction,
+                )?
+            }
+        }
         Collider::Mesh(mesh) => backend.spawn_mesh_link(
             MeshBodySpec {
                 vertices: &mesh.vertices,

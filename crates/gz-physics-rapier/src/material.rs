@@ -49,6 +49,23 @@ impl Restitution {
         shape.set_restitution_combine_rule(CoefficientCombineRule::Max);
     }
 }
+#[derive(Default)]
+pub(super) struct PrimitiveSurface {
+    pub(super) friction: Option<IsotropicFriction>,
+    pub(super) restitution: Option<Restitution>,
+}
+
+impl PrimitiveSurface {
+    pub(super) fn apply(self, shape: &mut Collider) {
+        if let Some(friction) = self.friction {
+            friction.apply(shape);
+        }
+        if let Some(restitution) = self.restitution {
+            restitution.apply(shape);
+        }
+    }
+}
+
 impl RapierBackend {
     /// Set the restitution on a link's live shape and its immutable reset recipe
     /// during world construction, before any native contact history exists.
@@ -69,6 +86,28 @@ impl RapierBackend {
             value.apply(&mut self.world.colliders[ch]);
         }
         Ok(())
+    }
+
+    /// Construct a free or fixed link with its impact material before inserting its collider.
+    pub fn spawn_restituting_link(
+        &mut self,
+        spec: BodySpec,
+        rotation: RotationSpec,
+        inertia: Inertia,
+        friction: Option<IsotropicFriction>,
+        restitution: Restitution,
+    ) -> Result<BodyId, PhysicsError> {
+        self.spawn_primitive_geometry(
+            spec,
+            rotation,
+            Some(inertia),
+            PrimitiveMode::Ordinary,
+            PrimitiveSurface {
+                friction,
+                restitution: Some(restitution),
+            },
+            &[],
+        )
     }
 
     /// Use the same material on the live and reset construction shapes.

@@ -67,7 +67,17 @@ impl RapierBackend {
             MaterialLinkMotion::Prescribed => PrimitiveMode::Prescribed,
             MaterialLinkMotion::Articulation => PrimitiveMode::Articulation,
         };
-        self.spawn_primitive_geometry(body, rotation, Some(inertia), mode, friction, parts)
+        self.spawn_primitive_geometry(
+            body,
+            rotation,
+            Some(inertia),
+            mode,
+            PrimitiveSurface {
+                friction,
+                ..Default::default()
+            },
+            parts,
+        )
     }
 
     /// Set Rapier's global geometric slop in world meters. It bounds the inset

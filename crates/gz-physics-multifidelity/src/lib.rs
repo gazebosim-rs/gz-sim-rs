@@ -1557,6 +1557,20 @@ impl MultiFidelityBackend {
             .map_err(engine_error)
     }
 
+    /// Construct a free or fixed native link with its authored normal restitution.
+    pub fn spawn_restituting_link(
+        &mut self,
+        spec: BodySpec,
+        rotation: RotationSpec,
+        inertia: Inertia,
+        friction: Option<IsotropicFriction>,
+        restitution: Restitution,
+    ) -> Result<BodyId, PhysicsError> {
+        self.solver
+            .spawn_restituting_link(spec, rotation, inertia, friction, restitution)
+            .map_err(engine_error)
+    }
+
     /// Admit a primitive with an explicit isotropic contact material.
     pub fn spawn_material_link(
         &mut self,

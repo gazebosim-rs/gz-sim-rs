@@ -1022,3 +1022,72 @@ fn a_rebounding_parcel_replays_the_normal_impulse_after_separation_and_reset() {
         assert!(String::from_utf8_lossy(&bad.stderr).contains("ContactMaterial"));
     }
 }
+
+#[test]
+fn curved_deliveries_keep_their_authored_collision_response_and_repeat_after_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let raw = include_str!("../../../examples/worlds/local_curved_delivery.sdf");
+    let world = file(dir, "delivery.sdf", raw);
+    let journal = file(
+        dir,
+        "delivery.json",
+        include_str!("../../../examples/replay/curved_delivery.json"),
+    );
+    let rows = success(run(&world, &journal, &[]));
+    let xml = roxmltree::Document::parse(raw).unwrap();
+    let mut twins = String::new();
+    for (name, position) in [("cylinder", "-0.15"), ("capsule", "0.15")] {
+        let model = xml
+            .descendants()
+            .find(|n| n.has_tag_name("model") && n.attribute("name") == Some(name))
+            .unwrap();
+        let pose = model
+            .children()
+            .find(|n| n.has_tag_name("pose"))
+            .unwrap()
+            .text()
+            .unwrap();
+        twins.push_str(
+            &raw[model.range()]
+                .replace(
+                    &format!("model name=\"{name}\""),
+                    &format!("model name=\"twin_{name}\""),
+                )
+                .replace(pose, &format!("{position} -0.12 0.25 0 0 0")),
+        );
+    }
+    let control = file(
+        dir,
+        "authored.sdf",
+        &raw.replace("</world>", &format!("{twins}</world>")),
+    );
+    let drop = file(
+        dir,
+        "drop.json",
+        r#"{"seed":"curved-delivery","commands":[{"op":"step","count":750}]}"#,
+    );
+    let authored = success(run(&control, &drop, &[]));
+    let loads = |row: &Value| {
+        row["pair_reactions_ns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|p| p[0] == 0 && p[1].as_u64().unwrap() >= 3 && p[2].as_f64().unwrap() > 0.)
+            .map(|p| p[2].as_f64().unwrap())
+            .collect::<Vec<_>>()
+    };
+    for tick in 1..=750 {
+        let now = record(&rows, 4, tick + 10);
+        assert_eq!(loads(now), loads(record(&authored, 1, tick)));
+        // Reset reserves new public IDs for the next two deliveries.
+        assert_eq!(loads(now), loads(record(&rows, 11, tick + 10)));
+    }
+    let impact = loads(record(&rows, 4, 182));
+    assert_eq!(impact.len(), 2);
+    assert!(impact.iter().all(|j| (0.76..0.79).contains(j)));
+    assert_eq!(
+        record(&rows, 6, 760)["entities"],
+        record(&rows, 0, 0)["entities"]
+    );
+}
