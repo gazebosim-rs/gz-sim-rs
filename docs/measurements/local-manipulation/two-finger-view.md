@@ -45,6 +45,8 @@ cargo run --locked --release --manifest-path tools/physics-audit/browser/Cargo.t
   "$study/result/epoch-0" "$study/archive-index.json" "$study/screenshots" 11432
 ```
 
+The portable recording includes the original Rust sampler behind the independent link observations. To regenerate those samples in a separate checkout, copy `sampler/pose_sampler.rs` from the unpacked bundle to `crates/gz-sim-scene/tests/two_finger_pose_sampler.rs`. Set `NATIVE_POSE_DUMP` to an absolute output filename, then run `cargo test --locked --release -p gz-sim-scene --test two_finger_pose_sampler scratch_export`. It writes wrist, left pad, right pad and parcel poses in that order at every tenth physics tick, including the initial state.
+
 ## Recorded evidence
 
 The recording used the local CPU Rapier configuration and the public deterministic command journal.
