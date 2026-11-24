@@ -346,3 +346,6 @@ fn parcel_first_preserves_signed_weight_support_on_each_pad() {
         near(held.tangent_z[i] / 0.02, MASS * GRAVITY / 2., 0.002);
     }
 }
+
+#[path = "support/pad_patch.rs"]
+mod pad_patch;
