@@ -37,3 +37,5 @@ done
 ```
 
 A refused native solve records its tick and solver diagnostic. A completed run records the native clock, actuator count, particle positions, signed reactions and native replay. Each of the two stiffer-pad recordings shown above passed the independent replay geometry check and browser comparison of 3,425 poses and shapes, including rewind.
+
+The recording comparator also rejects incompatible authored scenes, clocks, initial particle positions, incomplete simulations and duplicate rates. On revision 218de7b its four release tests passed and it independently reproduced all three selections from the physical recordings. Runs against damaged and incomplete records exercised its error paths. Across the comparator change LLVM covered 126/126 production lines and 249/254 regions (98.03%).
