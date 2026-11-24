@@ -12,37 +12,55 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev cmake curl gnupg pkg-config mesa-vulkan-drivers libvulkan1
-      - name: Install the locked native client packages from the signed snapshot
-        shell: bash
-        run: |
-          python3 - <<'PYCODE'
-          import json
-          from pathlib import Path
-          import subprocess
-          lock = json.loads(Path('planning/zenoh-native-lock.json').read_text())
-          apt = Path('artifacts/zenoh-ci-apt').resolve()
-          subprocess.run(['sh', 'reference/apt-sources.sh', str(apt), lock['platform']['ubuntu_snapshot']], check=True)
-          for name in ['lists/partial', 'archives/partial', 'preferences.d']:
-              (apt / name).mkdir(parents=True, exist_ok=True)
-          preferences = apt / 'snapshot.pref'
-          preferences.write_text('Package: *\nPin: origin snapshot.ubuntu.com\nPin-Priority: 1001\n')
-          options = ['-o', 'Acquire::Retries=3',
-                     '-o', 'Acquire::Languages=none',
-                     '-o', 'Dir::Etc::sourcelist=/dev/null',
-                     '-o', f'Dir::Etc::preferences={preferences}',
-                     '-o', f'Dir::Etc::preferencesparts={apt}/preferences.d',
-                     '-o', f'Dir::Etc::sourceparts={apt}/sources.list.d',
-                     '-o', f'Dir::State::lists={apt}/lists',
-                     '-o', f'Dir::Cache::archives={apt}/archives']
-          subprocess.run(['sudo', 'apt-get', *options, '--error-on=any', 'update'], check=True)
-          packages = [f'{name}={version}' for name, version in lock['packages'].items()]
-          subprocess.run(['sudo', 'apt-get', *options, 'install', '-y', '--allow-downgrades', *packages], check=True)
-          PYCODE
-      - name: Build and validate the selected Zenoh client reference
+      - name: Authenticate the archived Ubuntu snapshot and install the locked client packages
         shell: bash
         run: |
           python3 scripts/stage-zenoh-package-metadata.py
           python3 scripts/bootstrap-zenoh-native.py --verify-packages-only
+          metadata="$PWD/artifacts/zenoh-native-package-metadata"
+          apt="$PWD/artifacts/zenoh-ci-apt"
+          mkdir "$apt"
+          mkdir -p "$apt"/{lists/partial,archives/partial,preferences.d,sources.list.d}
+          for suite in noble noble-updates noble-security; do
+            dist="$apt/repo/dists/$suite"
+            mkdir -p "$dist"/{main,universe}/binary-amd64
+            cp "$metadata/$suite.InRelease" "$dist/InRelease"
+            for component in main universe; do
+              cp "$metadata/$suite-$component.Packages.xz" "$dist/$component/binary-amd64/Packages.xz"
+            done
+          done
+          # APT reads indexes exclusively from the signed archive. Only .deb payloads may use HTTPS mirrors.
+          snapshot=$(python3 -c 'import json; print(json.load(open("planning/zenoh-native-lock.json"))["platform"]["ubuntu_snapshot"])')
+          printf 'file:%s/repo/\ttype:index\n' "$apt" > "$apt/mirrors"
+          printf 'https://archive.ubuntu.com/ubuntu/\tpriority:1 type:deb\n' >> "$apt/mirrors"
+          printf 'https://snapshot.ubuntu.com/ubuntu/%s/\tpriority:2 type:deb\n' "$snapshot" >> "$apt/mirrors"
+          cat > "$apt/sources.list.d/ubuntu.sources" <<EOF
+          Types: deb
+          URIs: mirror+file:$apt/mirrors
+          Suites: noble noble-updates noble-security
+          Components: main universe
+          Architectures: amd64
+          Targets: Packages
+          By-Hash: no
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          Check-Valid-Until: no
+          EOF
+          printf 'Package: *\nPin: release o=Ubuntu\nPin-Priority: 1001\n' > "$apt/snapshot.pref"
+          options=(-o Acquire::Retries=3 -o Acquire::Languages=none -o Acquire::CompressionTypes::Order=xz
+                   -o Dir::Etc::sourcelist=/dev/null -o "Dir::Etc::sourceparts=$apt/sources.list.d"
+                   -o "Dir::Etc::preferences=$apt/snapshot.pref" -o "Dir::Etc::preferencesparts=$apt/preferences.d"
+                   -o "Dir::State::lists=$apt/lists" -o "Dir::Cache::archives=$apt/archives")
+          sudo apt-get "${options[@]}" --error-on=any update
+          pins=$(python3 -c 'import json; print(*(f"{k}={v}" for k,v in json.load(open("planning/zenoh-native-lock.json"))["packages"].items()), sep="\n")')
+          mapfile -t packages <<< "$pins"
+          sudo apt-get "${options[@]}" -y --allow-downgrades install "${packages[@]}"
+      - name: Check that APT rejects a damaged transitive package
+        run: |
+          rustc --edition=2024 --test tests/zenoh_signed_apt.rs -o artifacts/check-signed-apt
+          artifacts/check-signed-apt
+      - name: Build and validate the selected Zenoh client reference
+        shell: bash
+        run: |
           python3 - <<'PYCODE'
           import hashlib
           import json

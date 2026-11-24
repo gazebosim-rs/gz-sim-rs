@@ -2255,3 +2255,9 @@ The frozen candidate passed 3,861 headless tests, 2,805 renderer tests and all e
 ## 2026-11-23 — Measuring each corner of the cloth at touchdown
 
 At 1,000 exchanges per millisecond corner 11 touched first. At 2,000 the sheet arrived tilted the opposite way, corner 0 hit 127.5 µs earlier, and contact took 282.5 µs to spread across the bottom plane. The individual readings reproduced the total table impulse on every native step and explain the opposite sideways impulses. The 0.1 mm trajectory target remains open. [Measured contact sequence, coverage and two native replays](measurements/local-manipulation/cloth-table-particles.md)
+
+## 2026-11-23 — Restore the signed Ubuntu bootstrap for hosted robot qualification
+
+The job stopped before compiling the simulator when the Ubuntu snapshot service returned HTTP 500/502 for repository indexes. CI now verifies the archived three signed releases and six exact package indexes before APT uses them. APT authenticates the archives a second time and selects package payloads by their signed records from the Ubuntu archive or the dated snapshot. [Original failed run](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/45337993773)
+
+A disposable Ubuntu 24.04 instance restored ten intentionally removed packages, including three transitive dependencies, and verified all sixteen direct package versions. The unmodified reference builder compiled all six pinned Gazebo libraries and validated the Zenoh client. With network access disabled, APT rejected a changed release signature, a changed package index and a changed 121,674-byte dependency with its original length. Restoring the correct dependency allowed installation. A Rust regression repeats the dependency check as an unprivileged user in hosted CI. [Package digests and native build receipt](measurements/local-manipulation/signed-ci-bootstrap.json)
