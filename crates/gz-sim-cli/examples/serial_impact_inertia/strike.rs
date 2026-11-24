@@ -201,7 +201,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn replay_matches_endpoint_visuals_and_brackets_the_native_load() -> Result<()> {
+    fn replay_matches_endpoint_visuals_and_brackets_the_native_load() {
         let mut trial = Args::try_parse_from([
             "study",
             "--ticks",
@@ -219,35 +219,42 @@ mod tests {
             "1.75",
             "--gap-um",
             "50",
-        ])?
+        ])
+        .unwrap()
         .trial;
-        let reference = run(trial.clone())?;
-        let folder = tempfile::tempdir()?;
+        let reference = run(trial.clone()).unwrap();
+        let folder = tempfile::tempdir().unwrap();
         let path = folder.path().join("capture");
         trial.replay = Some(path.clone());
-        let mut observed = audit(trial.clone())?;
+        let mut observed = audit(trial.clone()).unwrap();
         assert_eq!(observed.pulses.len(), 1);
         let events = &observed.samples;
         let on = events.iter().position(|s| s.jaw_impulse_ns > 0.).unwrap();
         assert_eq!(events[on - 1].end_ns as u128, observed.pulses[0].start_ns);
         assert_eq!(events[on].end_ns - events[on - 1].end_ns, 15_625);
         assert!(events.windows(2).all(|w| w[0].end_ns < w[1].end_ns));
-        let raw = std::fs::read_to_string(path.join("frames.jsonl"))?;
+        let raw = std::fs::read_to_string(path.join("frames.jsonl")).unwrap();
         let decoded = raw
             .lines()
             .skip(1)
             .map(serde_json::from_str::<Value>)
-            .collect::<std::result::Result<Vec<_>, _>>()?
+            .collect::<std::result::Result<Vec<_>, _>>()
+            .unwrap()
             .into_iter()
             .filter(|r| r["kind"] == "frame")
             .map(|r| serde_json::from_str(r["scene"].as_str().unwrap()))
-            .collect::<std::result::Result<Vec<Value>, _>>()?;
+            .collect::<std::result::Result<Vec<Value>, _>>()
+            .unwrap();
         let xml = fixture(&trial);
-        let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
-        let (mut ordinary, _, _) = load_robot(&trial, &xml)?;
-        ordinary.step_exact(1)?;
-        let end: Value =
-            serde_json::from_str(&gz_sim_cli::primitive_frame(&ordinary, &sdf, "default", 1)?.0)?;
+        let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources).unwrap();
+        let (mut ordinary, _, _) = load_robot(&trial, &xml).unwrap();
+        ordinary.step_exact(1).unwrap();
+        let end: Value = serde_json::from_str(
+            &gz_sim_cli::primitive_frame(&ordinary, &sdf, "default", 1)
+                .unwrap()
+                .0,
+        )
+        .unwrap();
         let drawn = decoded.last().unwrap()["visuals"].as_array().unwrap();
         for b in end["visuals"].as_array().unwrap() {
             let a = drawn.iter().find(|a| a["name"] == b["name"]).unwrap();
@@ -281,15 +288,40 @@ mod tests {
                 .is_err()
         );
         assert!(observed.verify(&reference.samples[0], &[]).is_err());
-        Ok(())
     }
 
     #[test]
-    fn an_unloaded_first_tick_has_zero_pulses_and_ends_on_the_public_clock() -> Result<()> {
-        let trial = Args::try_parse_from(["study", "--miss", "--right", "--substeps", "20"])?.trial;
-        let observed = audit(trial)?;
+    fn invalid_visual_data_and_an_unwritable_recording_are_reported() {
+        let mut trial = Args::try_parse_from(["study", "--miss"]).unwrap().trial;
+        let observed = audit(trial.clone()).unwrap();
+        for (scene, catalog) in [
+            ("{", "{}"),
+            ("{}", "{"),
+            (
+                r#"{"visuals":[{"name":"default::parcel::box::visual","translation":[1,2]}]}"#,
+                "{}",
+            ),
+            (
+                r#"{"visuals":[{"name":"default::parcel::box::visual","translation":[1,2,3],"rotation":[0]}]}"#,
+                "{}",
+            ),
+        ] {
+            assert!(frames(&observed, &(scene.into(), catalog.into())).is_err());
+        }
+        let occupied = tempfile::NamedTempFile::new().unwrap();
+        trial.replay = Some(occupied.path().to_owned());
+        assert!(audit(trial.clone()).is_err());
+        trial.guide_hz = Some(-1.);
+        assert!(audit(trial).is_err());
+    }
+
+    #[test]
+    fn an_unloaded_first_tick_has_zero_pulses_and_ends_on_the_public_clock() {
+        let trial = Args::try_parse_from(["study", "--miss", "--right", "--substeps", "20"])
+            .unwrap()
+            .trial;
+        let observed = audit(trial).unwrap();
         assert!(observed.pulses.is_empty());
         assert_eq!(observed.samples.last().unwrap().end_ns, 1_000_000);
-        Ok(())
     }
 }
