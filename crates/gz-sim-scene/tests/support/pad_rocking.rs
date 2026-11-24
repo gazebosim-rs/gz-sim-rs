@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::{MASS, Rig, named};
 use glam::{DQuat, DVec3};
-use gz_physics::{BodyState, PhysicsBackend};
-use gz_physics_multifidelity::MultiFidelityBackend;
+use gz_physics::{BodyId, BodyState, PhysicsBackend};
+use gz_physics_multifidelity::{MultiFidelityBackend, RigidContactPatch};
 use gz_sim_core::EntityId;
 
 const WORLD: &str = include_str!("../../../../examples/worlds/local_rocking_pad_grasp.sdf");
@@ -27,11 +27,20 @@ pub(super) fn pad_impulses(rig: &Rig) -> [Patch; 2] {
         .resource::<PhysicsBackend>()
         .downcast_ref::<MultiFidelityBackend>()
         .unwrap();
+    sum_pad_impulses(rig.parcel, rig.pads, engine.rigid_contact_patches())
+}
+
+pub(super) fn sum_pad_impulses(
+    parcel: BodyId,
+    pads: [BodyId; 2],
+    patches: Vec<RigidContactPatch>,
+) -> [Patch; 2] {
     let mut result = [Patch::default(); 2];
-    for patch in engine.rigid_contact_patches() {
-        let parcel_a = patch.a == rig.parcel;
+    for patch in patches {
+        let parcel_a = patch.a == parcel;
+        assert!(parcel_a || patch.b == parcel);
         let pad = if parcel_a { patch.b } else { patch.a };
-        let side = rig.pads.iter().position(|id| *id == pad).unwrap();
+        let side = pads.iter().position(|id| *id == pad).unwrap();
         let row = &mut result[side];
         let sign = if parcel_a { 1. } else { -1. };
         for point in patch.points {

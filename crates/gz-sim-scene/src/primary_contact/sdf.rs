@@ -21,6 +21,7 @@ pub(super) enum Projection {
 }
 pub(super) struct NamedPair {
     pub incoming_face: Option<DVec3>,
+    pub returning_pad: bool,
     pub follow_planar_edge: bool,
     pub follow_sliding_vertex: bool,
     pub follow_sticking_point: bool,
@@ -277,6 +278,7 @@ pub(crate) fn parse(
             }
             "pair" => {
                 let mut incoming_face = None;
+                let mut returning_pad = false;
                 let mut foot = None;
                 let mut support = None;
                 let mut refresh = None;
@@ -354,7 +356,8 @@ pub(crate) fn parse(
                             })?);
                         }
                         "guard_opponent" if opposing_name.is_none() => opposing_name = Some(v),
-                        "incoming_face" if incoming_face.is_none() => {
+                        "incoming_face" | "returning_pad_face" if incoming_face.is_none() => {
+                            returning_pad = a.tag_name().name() == "returning_pad_face";
                             incoming_face = Some(match v {
                                 "+x" => DVec3::X,
                                 "-x" => DVec3::NEG_X,
@@ -854,6 +857,7 @@ pub(crate) fn parse(
                 }
                 pairs.push(NamedPair {
                     incoming_face,
+                    returning_pad,
                     follow_planar_edge: follow.unwrap_or(false),
                     follow_sliding_vertex: vertex.unwrap_or(false),
                     follow_sticking_point: sticking_point.unwrap_or(false),
@@ -930,6 +934,13 @@ pub(crate) fn parse(
             ));
         }
     };
+    if pairs.iter().any(|p| p.returning_pad)
+        && (touching.is_some() || early_face.is_some() || speed_stop_joint.is_some())
+    {
+        return Err(err(
+            "returning_pad_face uses the authored native_steps grid and does not accept a cold-face or speed-stop schedule",
+        ));
+    }
     if early_face.is_some() && (pairs.is_empty() || pairs.iter().any(|p| p.incoming_face.is_none()))
     {
         return Err(err("early face timing requires incoming_face pairs"));

@@ -1331,3 +1331,99 @@ fn held_joint_force_survives_pause_adds_to_one_tick_effort_and_clears_on_reset()
     );
     assert!(!run(&wrong, &journal, &[]).status.success());
 }
+
+#[test]
+fn returning_pad_peak_and_a_one_tick_load_share_the_public_clock() {
+    let scratch = tempfile::tempdir().unwrap();
+    let dir = scratch.path();
+    let xml = include_str!("../../../examples/worlds/local_refined_rocking_pad_grasp.sdf");
+    // A free 1 kg body in a separate island measures exactly how long a queued
+    // force acted, independently of any contact measurement.
+    let probe = r#"<model name="probe"><link name="body">
+      <pose>0 2 0 0 0 0</pose>
+      <inertial><mass>1</mass><inertia><ixx>0.00004</ixx><iyy>0.00004</iyy><izz>0.00004</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.01</radius></sphere></geometry></collision>
+      <visual name="ball"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>1 1 1 1</diffuse></material></visual>
+      </link></model>"#;
+    let xml = file(
+        dir,
+        "grip.sdf",
+        &xml.replace("</world>", &format!("{probe}</world>")),
+    );
+    let input = include_str!("../../../examples/replay/refined_rocking_pad_grasp.json");
+    let rows = success(run(&xml, &file(dir, "initial.json", input), &[]));
+    let hit = rows
+        .iter()
+        .find(|r| {
+            r["refinement"]["pad_impacts"][0]["peak_normal_force_n"]
+                .as_f64()
+                .is_some_and(|f| f > 150.0)
+        })
+        .expect("return strike must be resolved");
+    let tick = hit["step"].as_u64().unwrap();
+    assert_eq!(hit["time_ns"], tick * 200_000);
+    assert_eq!(hit["refinement"]["native_steps"], 200);
+    let impacts = hit["refinement"]["pad_impacts"].as_array().unwrap();
+    assert_eq!(impacts.len(), 2);
+    assert_ne!(impacts[0]["support"], impacts[1]["support"]);
+    for pad in impacts {
+        assert_eq!(pad["foot"], 3);
+        let peak_end = pad["peak_end_ns"].as_u64().unwrap();
+        assert!((1..=200_000).contains(&peak_end) && peak_end.is_multiple_of(1_000));
+        assert!(
+            pad["angular_impulse_on_foot_nms"][1]
+                .as_f64()
+                .unwrap()
+                .abs()
+                > 1e-7
+        );
+    }
+    // Split the final step command at the observed strike. A pause may expose
+    // the queued load without spending a native or public step.
+    let mut sequence: Value = serde_json::from_str(input).unwrap();
+    let commands = sequence["commands"].as_array_mut().unwrap();
+    commands.last_mut().unwrap()["count"] = json!(tick - 1 - 1000);
+    commands.extend([
+        json!({"op":"wrench","link":"default::probe::body","force":[0,100,0],"torque":[0,0,0]}),
+        json!({"op":"paused_tick"}),
+        json!({"op":"step","count":1}),
+        json!({"op":"step","count":2}),
+    ]);
+    let archive = dir.join("probe");
+    let source = file(dir, "loaded.json", &sequence.to_string());
+    let measured = success(run(
+        &xml,
+        &source,
+        &["--record", archive.to_str().unwrap(), "--record-every", "1"],
+    ));
+    let queued = record(&measured, 6, tick - 1);
+    let paused = record(&measured, 7, tick - 1);
+    shared(queued, paused, STATE);
+    assert_eq!(paused["pending_wrenches"], 1);
+    let resumed = record(&measured, 8, tick);
+    assert_eq!(resumed["pending_wrenches"], 0);
+    assert_eq!(resumed["refinement"], hit["refinement"]);
+    let mut coast = Vec::new();
+    for row in fs::read_to_string(archive.join("epoch-0/frames.jsonl"))
+        .unwrap()
+        .lines()
+    {
+        let row: Value = serde_json::from_str(row).unwrap();
+        if row["kind"] != "frame" {
+            continue;
+        }
+        let frame: Value = serde_json::from_str(row["scene"].as_str().unwrap()).unwrap();
+        if frame["nanoseconds"].as_u64().unwrap() >= tick * 200_000 {
+            let ball = frame["visuals"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|v| v["name"] == "default::probe::body::ball")
+                .unwrap();
+            coast.push(ball["translation"][1].as_f64().unwrap());
+        }
+    }
+    assert_eq!(coast.len(), 3);
+    // F Δt / m = 0.020 m/s, so the next two 200 µs ticks cover 8 µm.
+    assert!((coast[2] - coast[0] - 8e-6).abs() < 1e-12);
+}

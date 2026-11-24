@@ -91,6 +91,17 @@ struct RefinedContact {
     active_at_end: bool,
 }
 
+/// A peak is the mean over one native solve. Its time is the end of that
+/// solve, measured from the start of the current public tick.
+#[derive(Serialize)]
+struct PadImpact {
+    foot: u64,
+    support: u64,
+    peak_normal_force_n: f64,
+    peak_end_ns: u128,
+    angular_impulse_on_foot_nms: Option<[f64; 3]>,
+}
+
 #[derive(Serialize)]
 struct RefinedStep {
     native_steps: u32,
@@ -99,6 +110,8 @@ struct RefinedStep {
     pgs_iterations: Option<usize>,
     relaxation_iterations: Option<usize>,
     requested_pairs: Vec<RefinedContact>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pad_impacts: Vec<PadImpact>,
 }
 
 impl From<&gz_sim_scene::primary_contact::Refinement> for RefinedStep {
@@ -106,6 +119,17 @@ impl From<&gz_sim_scene::primary_contact::Refinement> for RefinedStep {
         Self {
             native_steps: r.interval.native_steps,
             speed_stop_floor: r.speed_stop_floor,
+            pad_impacts: r
+                .pad_impacts
+                .iter()
+                .map(|p| PadImpact {
+                    foot: p.foot.raw(),
+                    support: p.support.raw(),
+                    peak_normal_force_n: p.peak_normal_force_n,
+                    peak_end_ns: p.peak_end.as_nanos(),
+                    angular_impulse_on_foot_nms: p.angular_impulse_on_foot,
+                })
+                .collect(),
             solver_iterations: r.solver.temporal,
             pgs_iterations: r.solver.pgs,
             relaxation_iterations: r.solver.relaxation,

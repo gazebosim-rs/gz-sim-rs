@@ -162,6 +162,14 @@ fn prescribed_foot_and_disconnected_foot_skip_selection() {
 #[test]
 fn invalid_configuration_is_rejected_during_loading() {
     let invalid = [
+        (SDF.replace("</pair>", "<returning_pad_face>+z</returning_pad_face></pair><early_face_step_ns>100</early_face_step_ns><early_face_max_steps>4</early_face_max_steps>"), "native_steps grid"),
+        (
+            SDF.replace(
+                "</pair>",
+                "<returning_pad_face>+z</returning_pad_face></pair>",
+            ),
+            "authored reduced pad stiffness",
+        ),
         (SDF.replace(PAIR, &format!("{PAIR}{PAIR}")), "unique"),
         (
             SDF.replace("default::lift::pad", "default::missing"),
@@ -1082,4 +1090,54 @@ fn release_tail_authoring_requires_a_complete_positive_coarser_window() {
             .is_err()
         );
     }
+}
+
+#[test]
+fn returning_pad_requires_the_resident_slider_and_rebinds_after_reset() {
+    let mut sim = load(include_str!(
+        "../../../examples/worlds/local_refined_rocking_pad_grasp.sdf"
+    ));
+    let jaw = id(&sim, "gripper::left_slide");
+    let entity = entity_by_id(sim.world(), jaw).unwrap();
+    let joint = sim
+        .world()
+        .get::<gz_sim_scene::JointHandle>(entity)
+        .unwrap()
+        .id();
+    let child = sim
+        .world()
+        .resource::<PhysicsBackend>()
+        .joint_child(joint)
+        .unwrap();
+    assert!(
+        sim.world_mut()
+            .resource_mut::<PhysicsBackend>()
+            .remove_joint(joint)
+    );
+    sim.world_mut().despawn(entity);
+    let resumed = sim.step_exact(1);
+    assert!(resumed.is_ok(), "{:?}", sim.fault());
+    assert!(last_refinement(&sim).is_none());
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    let backend = sim
+        .world()
+        .resource::<PhysicsBackend>()
+        .downcast_ref::<gz_physics_multifidelity::MultiFidelityBackend>()
+        .unwrap();
+    assert_eq!(backend.pad_joint(child), Some(joint));
+    let right = id(&sim, "gripper::right_slide");
+    gz_sim_scene::set_joint_force(&mut sim, jaw, 3.).unwrap();
+    gz_sim_scene::set_joint_force(&mut sim, right, 3.).unwrap();
+    sim.step_exact(1000).unwrap();
+    let parcel = id(&sim, "parcel::body");
+    queue_link_world_wrench(&mut sim, parcel, [0.; 3], [0., 6., 0.]).unwrap();
+    let selected = first(&mut sim);
+    assert_eq!(selected.epoch, 1);
+    assert!(
+        selected
+            .pad_impacts
+            .iter()
+            .all(|p| p.peak_normal_force_n > 100.)
+    );
+    assert_eq!(selected.pad_impacts.len(), 2);
 }

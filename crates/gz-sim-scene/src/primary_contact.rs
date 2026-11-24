@@ -6,12 +6,15 @@
 mod early_face;
 use early_face::EarlyFace;
 mod geometry;
+mod returning_pad;
+use returning_pad::CornerHistory;
+pub use returning_pad::PadImpact;
 pub(crate) mod sdf;
 use crate::{BodyHandle, Gravity, JointHandle, LinkCenterOfMass, LoadError, Name};
 use bevy_ecs::prelude::*;
 use geometry::BoxShape;
-use glam::DVec3;
-use gz_physics::{BodyId, BodyState, DynamicBackend, PhysicsBackend, PhysicsReset};
+use glam::{DQuat, DVec3};
+use gz_physics::{BodyId, BodyState, DynamicBackend, JointId, PhysicsBackend, PhysicsReset};
 use gz_physics_multifidelity::{
     ContactIntervalReceipt, ContactSegment, ContactSolverIterations, MultiFidelityBackend,
 };
@@ -91,6 +94,8 @@ pub struct Refinement {
     pub start_time: Duration,
     pub sim_time: Duration,
     pub requested_pairs: Vec<RequestedPair>,
+    /// Enrolled pad pairs sampled during a returning-corner refinement.
+    pub pad_impacts: Vec<PadImpact>,
     /// Actual fine prefix and remaining impact grid, present only on an admitted separated face.
     pub early_face_schedule: Option<[ContactSegment; 2]>,
     /// The actually used three-part schedule when a positive reaction and separating
@@ -238,6 +243,8 @@ struct SupportPressure {
     pad: BodyState,
 }
 struct Pair {
+    returning_pad: Option<JointId>,
+    corners: CornerHistory,
     incoming_face: Option<DVec3>,
     strike_latched: bool,
     follow_planar_edge: bool,
@@ -379,11 +386,11 @@ fn selected_interval(
     ordinary: ContactSegment,
     early: Option<&[ContactSegment; 2]>,
     fresh: &[(BodyId, BodyId)],
-    observer: Option<&mut RefinedObserver>,
+    observer: Option<&mut dyn FnMut(gz_physics_multifidelity::ContactSubstep<'_>)>,
 ) -> Result<(ContactIntervalReceipt, u64), gz_physics::PhysicsError> {
     let segments = early.map_or(std::slice::from_ref(&ordinary), |pair| pair.as_slice());
     if let Some(probe) = observer {
-        native.observe_contact_schedule(time.dt, segments, fresh, |s| probe.sample(time, s))
+        native.observe_contact_schedule(time.dt, segments, fresh, probe)
     } else if early.is_some() {
         native.step_contact_schedule(time.dt, segments, fresh)
     } else if fresh.is_empty() {
@@ -418,6 +425,7 @@ pub fn set_enabled(sim: &mut Simulation, enabled: bool) -> Result<(), PolicyErro
     if p.enabled != enabled {
         p.enabled = enabled;
         for binding in &mut p.pairs {
+            binding.corners = CornerHistory::default();
             binding.strike_latched = false;
             binding.armed = false;
             binding.tracking_geometry = false;
@@ -503,6 +511,16 @@ pub(crate) fn install(
     for p in plan.pairs {
         let foot = resolve(&p.foot, p.foot_half)?;
         let pad = resolve(&p.support, p.pad_half)?;
+        let returning_pad = if p.returning_pad {
+            Some(native.pad_joint(pad.body).ok_or_else(|| {
+                invalid(
+                    &p.support,
+                    "returning_pad_face requires an authored reduced pad stiffness",
+                )
+            })?)
+        } else {
+            None
+        };
         if native.is_dynamic(foot.body) != Some(true) {
             return Err(invalid(&p.foot, "foot must be a dynamic rigid body"));
         }
@@ -568,6 +586,8 @@ pub(crate) fn install(
             })
             .transpose()?;
         pairs.push(Pair {
+            returning_pad,
+            corners: CornerHistory::default(),
             incoming_face: p.incoming_face,
             strike_latched: false,
             opponent,
@@ -668,9 +688,18 @@ fn reset(world: &mut World) {
             p.pressure_history = None;
             p.inspect_initial_bearing = true;
             p.release_active = false;
+            p.corners = CornerHistory::default();
             p.strike_latched = false;
             p.foot.rebind(world);
             p.pad.rebind(world);
+            if let Some(id) = &mut p.returning_pad
+                && let Some(native) = world
+                    .resource::<PhysicsBackend>()
+                    .downcast_ref::<MultiFidelityBackend>()
+                && let Some(new_id) = native.pad_joint(p.pad.body)
+            {
+                *id = new_id;
+            }
             if let Some(link) = &mut p.opponent {
                 link.rebind(world);
             }
@@ -780,6 +809,7 @@ fn advance(
         let foot_link = group[0].foot;
         if !foot_link.present(&links) || native.is_dynamic(foot_link.body) != Some(true) {
             for p in group {
+                p.corners = CornerHistory::default();
                 p.strike_latched = false;
                 p.armed = false;
                 p.tracking_geometry = false;
@@ -808,6 +838,7 @@ fn advance(
             if !p.pad.present(&links)
                 || p.incoming_face.is_none() && native.is_dynamic(p.pad.body) != Some(false)
             {
+                p.corners = CornerHistory::default();
                 p.strike_latched = false;
                 p.armed = false;
                 p.tracking_geometry = false;
@@ -825,6 +856,34 @@ fn advance(
                 return;
             };
             if let Some(face) = p.incoming_face {
+                if let Some(joint) = p.returning_pad {
+                    if native.joint_child(joint) != Some(p.pad.body) {
+                        p.corners = CornerHistory::default();
+                        continue;
+                    }
+                    // A new corner can strike while its opposite edge is carrying load.
+                    let reaction = match native.normal_reaction_on(p.foot.body, p.pad.body) {
+                        Ok(reaction) => reaction,
+                        Err(e) => {
+                            fault.report(e);
+                            return;
+                        }
+                    };
+                    let normal = DQuat::from_array(pad.orientation) * face;
+                    let loaded = reaction.is_some_and(|r| {
+                        r.loaded_at_end && DVec3::from(r.impulse).dot(normal) > 0.
+                    });
+                    if p.corners.select(
+                        loaded,
+                        face,
+                        (foot, p.foot.shape),
+                        (pad, p.pad.shape),
+                        time.dt.as_secs_f64(),
+                    ) {
+                        requests.push(start + j);
+                    }
+                    continue;
+                }
                 if let Some(arrival) = geometry::incoming_face(
                     &mut p.strike_latched,
                     face,
@@ -1234,6 +1293,32 @@ fn advance(
     } else {
         None
     };
+    let mut pad_impacts = Vec::new();
+    if requests
+        .iter()
+        .any(|&i| policy.pairs[i].returning_pad.is_some())
+    {
+        pad_impacts.extend(
+            policy
+                .pairs
+                .iter()
+                .filter(|p| {
+                    p.returning_pad
+                        .is_some_and(|id| native.joint_child(id) == Some(p.pad.body))
+                        && p.foot.present(&links)
+                        && native.is_dynamic(p.foot.body) == Some(true)
+                        && p.pad.present(&links)
+                })
+                .map(|p| PadImpact::new(p.foot.body, p.pad.body)),
+        );
+    }
+    let observe = observer.is_some() || !pad_impacts.is_empty();
+    let mut sample = |step: gz_physics_multifidelity::ContactSubstep<'_>| {
+        PadImpact::sample_all(&mut pad_impacts, &step);
+        if let Some(external) = observer.as_deref_mut() {
+            external.sample(*time, step);
+        }
+    };
     let mut released_face_schedule = None;
     let receipt = if !returning_features.is_empty()
         || !timing_pairs.is_empty()
@@ -1310,14 +1395,8 @@ fn advance(
         } else {
             (floor, native.ordinary_contact_iterations())
         };
-        let result = if let Some(probe) = observer.as_deref_mut().filter(|_| selected) {
-            native.advance_box_contacts(
-                time.dt,
-                calls,
-                iterations,
-                actions,
-                Some(&mut |s| probe.sample(*time, s)),
-            )
+        let result = if observe && selected {
+            native.advance_box_contacts(time.dt, calls, iterations, actions, Some(&mut sample))
         } else {
             native.advance_box_contacts(time.dt, calls, iterations, actions, None)
         };
@@ -1401,14 +1480,14 @@ fn advance(
             early_face_schedule.and_then(|s| policy.early_face?.after_release(s, separated_face?));
         let outcome = if let Some((segments, fallback)) = staged {
             let pair = policy.pairs[requests[0]].key();
-            let result = if let Some(probe) = observer.as_deref_mut() {
+            let result = if observe {
                 native.step_after_box_release(
                     time.dt,
                     &segments,
                     pair,
                     fallback,
                     &fresh,
-                    Some(&mut |s| probe.sample(*time, s)),
+                    Some(&mut sample),
                 )
             } else {
                 native.step_after_box_release(time.dt, &segments, pair, fallback, &fresh, None)
@@ -1430,7 +1509,7 @@ fn advance(
                 },
                 early_face_schedule.as_ref(),
                 &fresh,
-                observer.as_deref_mut(),
+                observe.then_some(&mut sample),
             )
         };
         match outcome {
@@ -1748,6 +1827,7 @@ fn advance(
             start_time: time.start_time,
             sim_time: time.sim_time,
             requested_pairs,
+            pad_impacts,
             early_face_schedule: early_face_schedule.filter(|_| released_face_schedule.is_none()),
             released_face_schedule,
             solver,

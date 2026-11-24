@@ -69,6 +69,13 @@ impl RapierBackend {
         self.insert_robot_joint(parent, child, anchor, joint, Solver::Reduced)
     }
 
+    /// Joint providing the authored contact coating on this reduced slider child.
+    pub fn pad_joint(&self, child: BodyId) -> Option<JointId> {
+        self.joints.records.iter().find_map(|(&id, row)| {
+            (row.initial.child == child && row.initial.pad_stiffness_n_m.is_some()).then_some(id)
+        })
+    }
+
     /// Configure a bounded reduced slider child's contact stiffness in N/m before
     /// the first step. The reset recipe preserves the coating on this link.
     pub fn set_initial_pad_stiffness(

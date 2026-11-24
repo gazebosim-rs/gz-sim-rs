@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Catch a returning gripper edge between commands
+
+Three of 2,250 public ticks switched to fine physics as the block rocked back onto the fingers. The measured peak rose from 71.36 N to 193.40 N on the left and from 71.65 N to 193.39 N on the right. The continuously fine run measured 193.91 N on each pad. With the same incoming state, both peak values and the time of the strike matched the fine solver. The 200 µs gripper clock stayed fixed through the strike and through a separate queued-force and pause test. [Measurements, timing and coverage](measurements/local-manipulation/pad-impact-refinement.md) · [Three measured gz-web-rs replays](measurements/local-manipulation/pad-impact-refinement-view.md)
+
+Against continuous fine stepping from rest, both pads’ normal impulses were within 0.38% and angular impulses within 0.47%. The peak came 137 µs early and the largest pitch difference was 0.211°. Reversing the pulse or changing its strength kept the peak error below 0.7%. The p95 step cost was 15.80 µs, and the selected impact ticks took a median of 2.29 ms each. All four changed production crates cleared 95% changed-line and region coverage. The next phase will trace the pre-impact motion that accounts for the early strike and check the cost of correcting it.
+
 ## 2026-11-24 — Rock a parcel from its faces onto its edges and back
 
 Two fingers kept their grip on a block as it rocked 14.48° and reseated on both faces. A taller block exposed two artificial changes in the grip. The solver transferred stiffness from unloaded corners to the loaded edge and used a stale point of application as the parcel rotated. With both corrected, the left pad’s force changed by less than 0.0005 N at each 100 µs transition, down from 0.337 N outward and 0.254 N on return. The p95 cost over the tall maneuver was 15.32 µs per Bevy step, compared with 15.23 µs before. [Physics, costs and controls](measurements/local-manipulation/pad-rocking.md) · [Measured gz-web-rs replays](measurements/local-manipulation/pad-rocking-view.md)

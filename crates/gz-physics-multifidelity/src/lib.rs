@@ -1703,6 +1703,11 @@ impl MultiFidelityBackend {
             .add_robot_joint(parent, child, anchor, joint)
             .map_err(engine_error)
     }
+    /// Joint providing the authored contact coating on this reduced slider child.
+    pub fn pad_joint(&self, child: BodyId) -> Option<JointId> {
+        self.solver.pad_joint(child)
+    }
+
     /// Set the normal contact stiffness in N/m on a bounded reduced slider during construction.
     pub fn set_initial_pad_stiffness(
         &mut self,

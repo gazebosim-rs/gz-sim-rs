@@ -551,3 +551,6 @@ mod pad_transient;
 
 #[path = "support/pad_rocking.rs"]
 mod pad_rocking;
+
+#[path = "support/pad_edge_impact.rs"]
+mod pad_edge_impact;
