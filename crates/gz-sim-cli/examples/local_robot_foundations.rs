@@ -109,6 +109,12 @@ enum Study {
         #[arg(long, default_value_t = 2)]
         substeps: usize,
     },
+    /// Compare recorded grasps with the finest two exchange rates and select the lowest passing rate.
+    SheetJawConvergence {
+        /// Multiple recordings produced by sheet-jaws, for the same jaw and pad.
+        #[arg(required = true, num_args = 3..)]
+        recordings: Vec<PathBuf>,
+    },
     /// Compare nine folded-sheet mass and stiffness combinations on two material clocks.
     SheetSweep { output: PathBuf },
     /// Lift and release a flexible cable with the driven arm, and measure both jaw reactions.
@@ -303,6 +309,13 @@ fn main() -> Result<()> {
                 exchanges_per_ms,
             )
         }),
+        Study::SheetJawConvergence { recordings } => {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&sheet_jaws::convergence::compare(&recordings)?)?
+            );
+            Ok(())
+        }
         Study::SheetSweep { output } => write_new(&output, sheet_sweep::run),
         Study::ArmCable { output } => write_new(&output, arm_cable::run),
         Study::ArmSwitch { output } => write_new(&output, arm_switching::run),

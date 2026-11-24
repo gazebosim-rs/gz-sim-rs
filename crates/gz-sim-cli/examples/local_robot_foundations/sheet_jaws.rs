@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Keep the sheet and 1 ms robot controller fixed while varying jaw density and pad stiffness.
+#[path = "sheet_jaws/convergence.rs"]
+pub(super) mod convergence;
 use super::*;
 use crate::arm_sheet::{Case, NOMINAL_FLARE, SheetStepFault};
 
@@ -58,6 +60,17 @@ fn scene(scale: f64, compliance: f64, case: Case) -> Result<String> {
     Ok(xml)
 }
 
+fn timed_scene(scale: f64, compliance: f64, case: Case, exchanges_per_ms: usize) -> Result<String> {
+    if exchanges_per_ms == 0 || !1_000_000_usize.is_multiple_of(exchanges_per_ms) {
+        return Err("exchange count must divide one million nanoseconds exactly".into());
+    }
+    let native_dt = 0.001 / exchanges_per_ms as f64;
+    Ok(scene(scale, compliance, case)?.replace(
+        "<max_step_size>0.001</max_step_size>",
+        &format!("<max_step_size>{native_dt}</max_step_size>"),
+    ))
+}
+
 pub(super) fn run(
     out: &Path,
     scale: f64,
@@ -70,14 +83,7 @@ pub(super) fn run(
         substeps,
         ..Default::default()
     };
-    if exchanges_per_ms == 0 || !1_000_000_usize.is_multiple_of(exchanges_per_ms) {
-        return Err("exchange count must divide one million nanoseconds exactly".into());
-    }
-    let native_dt = 0.001 / exchanges_per_ms as f64;
-    let xml = scene(scale, compliance, case)?.replace(
-        "<max_step_size>0.001</max_step_size>",
-        &format!("<max_step_size>{native_dt}</max_step_size>"),
-    );
+    let xml = timed_scene(scale, compliance, case, exchanges_per_ms)?;
     // With the same position stiffness, this preserves the continuous-time
     // damping ratio of an unloaded jaw. Both force and speed limits remain active.
     let damping = if tune_damping {
