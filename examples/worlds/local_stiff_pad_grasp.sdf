@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="local" type="ignored"><max_step_size>0.0001</max_step_size></physics>
+    <model name="gripper">
+      <plugin name="gz::sim::systems::ContactMaterial" filename="gz-sim-contact-material-system">
+        <normal_stiffness link="left">30000</normal_stiffness>
+        <normal_stiffness link="right">30000</normal_stiffness>
+      </plugin>
+      <plugin name="gz::sim::systems::ReducedScalarJoints" filename="gz-sim-reduced-scalar-joints-system"/>
+      <plugin name="gz::sim::systems::ApplyJointForce" filename="gz-sim-apply-joint-force-system">
+        <joint_name>left_slide</joint_name>
+      </plugin>
+      <plugin name="gz::sim::systems::ApplyJointForce" filename="gz-sim-apply-joint-force-system">
+        <joint_name>right_slide</joint_name>
+      </plugin>
+      <link name="wrist">
+        <pose>0 0 0.38 0 0 0</pose>
+        <inertial><mass>0.4</mass><inertia><ixx>2.66666666666667e-05</ixx><iyy>0.000283333333333333</iyy><izz>0.000283333333333333</izz></inertia></inertial>
+        <collision name="rail"><geometry><box><size>0.09 0.02 0.02</size></box></geometry><surface><friction><ode><mu>0.5</mu><mu2>0.5</mu2></ode></friction></surface></collision>
+        <visual name="rail"><geometry><box><size>0.09 0.02 0.02</size></box></geometry><material><diffuse>0.25 0.56 0.78 1</diffuse></material></visual>
+      </link>
+      <joint name="hinge" type="revolute"><parent>world</parent><child>wrist</child>
+        <axis><xyz>0 0 1</xyz></axis>
+      </joint>
+      <link name="left">
+        <pose>-0.025 0 0.30 0 0 0</pose>
+        <inertial><mass>0.08</mass><inertia><ixx>7.26666666666667e-05</ixx><iyy>6.93333333333333e-05</iyy><izz>8.66666666666667e-06</izz></inertia></inertial>
+        <collision name="pad"><geometry><box><size>0.02 0.03 0.10</size></box></geometry><surface><friction><ode><mu>0.5</mu><mu2>0.5</mu2></ode></friction></surface></collision>
+        <visual name="pad"><geometry><box><size>0.02 0.03 0.10</size></box></geometry><material><diffuse>0.97 0.52 0.12 1</diffuse></material></visual>
+      </link>
+      <joint name="left_slide" type="prismatic"><parent>wrist</parent><child>left</child>
+        <axis><xyz>1 0 0</xyz><limit><lower>-0.008</lower><upper>0.008</upper></limit></axis>
+      </joint>
+      <link name="right">
+        <pose>0.025 0 0.30 0 0 0</pose>
+        <inertial><mass>0.08</mass><inertia><ixx>7.26666666666667e-05</ixx><iyy>6.93333333333333e-05</iyy><izz>8.66666666666667e-06</izz></inertia></inertial>
+        <collision name="pad"><geometry><box><size>0.02 0.03 0.10</size></box></geometry><surface><friction><ode><mu>0.5</mu><mu2>0.5</mu2></ode></friction></surface></collision>
+        <visual name="pad"><geometry><box><size>0.02 0.03 0.10</size></box></geometry><material><diffuse>0.15 0.72 0.48 1</diffuse></material></visual>
+      </link>
+      <joint name="right_slide" type="prismatic"><parent>wrist</parent><child>right</child>
+        <axis><xyz>-1 0 0</xyz><limit><lower>-0.008</lower><upper>0.008</upper></limit></axis>
+      </joint>
+    </model>
+    <model name="parcel">
+      <link name="body">
+        <pose>0 0 0.30 0 0 0</pose>
+        <inertial><mass>0.2</mass><inertia><ixx>1.8e-05</ixx><iyy>1.8e-05</iyy><izz>1.8e-05</izz></inertia></inertial>
+        <collision name="sphere"><geometry><sphere><radius>0.015</radius></sphere></geometry><surface><friction><ode><mu>0.5</mu><mu2>0.5</mu2></ode></friction></surface></collision>
+        <visual name="sphere"><geometry><sphere><radius>0.015</radius></sphere></geometry><material><diffuse>0.85 0.22 0.24 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

@@ -1,7 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Rigid restitution on named collision links. The pinned SDF producer does
-//! not yet expose the standard surface/bounce element.
+//! Local material overrides on named collision links.
 use crate::{LoadError, PhysicsEngine};
 use gz_physics_multifidelity::Restitution;
 use sdformat::{Model, Plugin};
@@ -12,10 +11,16 @@ pub(super) fn is_plugin(plugin: &Plugin) -> bool {
         && plugin.filename == "gz-sim-contact-material-system"
 }
 
+#[derive(Default)]
+pub(super) struct LinkMaterial {
+    pub restitution: Option<Restitution>,
+    pub normal_stiffness: Option<f64>,
+}
+
 pub(super) fn parse(
     model: &Model,
     engine: PhysicsEngine,
-) -> Result<BTreeMap<String, Restitution>, LoadError> {
+) -> Result<BTreeMap<String, LinkMaterial>, LoadError> {
     let mut values = BTreeMap::new();
     let mut plugins = model.plugins.iter().filter(|p| is_plugin(p));
     let Some(plugin) = plugins.next() else {
@@ -23,7 +28,7 @@ pub(super) fn parse(
     };
     let invalid = || LoadError::Unsupported {
         entity: model.scoped_name.clone(),
-        feature: "ContactMaterial requires unique collision link names and restitution between zero and one in local multi-fidelity physics",
+        feature: "ContactMaterial requires one value per property and collision link: restitution in [0, 1], or positive normal_stiffness in N/m on a reduced prismatic pad",
     };
     if plugins.next().is_some() || engine != PhysicsEngine::MultiFidelity {
         return Err(invalid());
@@ -42,7 +47,7 @@ pub(super) fn parse(
         if node.is_comment() || (node.is_text() && node.text().unwrap_or("").trim().is_empty()) {
             continue;
         }
-        if !node.has_tag_name("restitution")
+        if !node.is_element()
             || node.namespaces().next().is_some()
             || node.attributes().len() != 1
             || !node.children().all(|n| n.is_text())
@@ -50,21 +55,36 @@ pub(super) fn parse(
             return Err(invalid());
         }
         let link = node.attribute("link").ok_or_else(invalid)?;
-        let value = node
-            .text()
-            .unwrap_or("")
-            .trim()
-            .parse()
-            .ok()
-            .and_then(|x| Restitution::new(x).ok())
-            .ok_or_else(invalid)?;
         if !model
             .links
             .iter()
             .any(|l| l.name == link && !l.collisions.is_empty())
-            || values.insert(link.to_owned(), value).is_some()
         {
             return Err(invalid());
+        }
+        let value = node
+            .text()
+            .unwrap_or("")
+            .trim()
+            .parse::<f64>()
+            .map_err(|_| invalid())?;
+        let material = values.entry(link.to_owned()).or_default();
+        match node.tag_name().name() {
+            "restitution" if material.restitution.is_none() => {
+                material.restitution = Some(Restitution::new(value).map_err(|_| invalid())?);
+            }
+            "normal_stiffness"
+                if material.normal_stiffness.is_none()
+                    && value.is_finite()
+                    && value > 0.
+                    && model
+                        .plugins
+                        .iter()
+                        .any(crate::joints::is_scalar_tree_plugin) =>
+            {
+                material.normal_stiffness = Some(value);
+            }
+            _ => return Err(invalid()),
         }
     }
     if values.is_empty() {

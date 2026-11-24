@@ -1468,7 +1468,8 @@ fn build_model(
             "TPE nested models",
         )?;
     }
-    let restitution = contact_material::parse(model, context.engine)?;
+    let materials = contact_material::parse(model, context.engine)?;
+    let mut pad_stiffness = Vec::new();
     let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
     let prescribed = prescribed_motion::parse(model, context.engine, top_level)?;
     // The DampedSole loader has admitted at most one moving tree. All other
@@ -2021,16 +2022,21 @@ fn build_model(
                 }
             }
         };
-        if let Some(&value) = restitution.get(&link.name) {
+        if let Some(material) = materials.get(&link.name) {
             let body = id.ok_or_else(|| LoadError::Unsupported {
                 entity: name.clone(),
-                feature: "restitution requires a physical link",
+                feature: "contact material requires a physical link",
             })?;
-            backend
-                .as_mut()
-                .and_then(|b| b.downcast_mut::<MultiFidelityBackend>())
-                .expect("validated ContactMaterial engine")
-                .set_initial_restitution(body, value)?;
+            if let Some(value) = material.restitution {
+                backend
+                    .as_mut()
+                    .and_then(|b| b.downcast_mut::<MultiFidelityBackend>())
+                    .expect("validated ContactMaterial engine")
+                    .set_initial_restitution(body, value)?;
+            }
+            if let Some(stiffness) = material.normal_stiffness {
+                pad_stiffness.push((body, stiffness));
+            }
         }
         let local = sdf.pose_of(name, &model.scoped_name)?;
         let link_entity = spawn_node(sim, Some(model_entity), name, EntityKind::Link, local, pose)?;
@@ -2342,6 +2348,13 @@ fn build_model(
             backend,
             construction,
         )?;
+        for (pad, stiffness) in pad_stiffness {
+            // A pad is bound to its own reduced slider after the graph exists.
+            backend
+                .downcast_mut::<MultiFidelityBackend>()
+                .expect("validated ContactMaterial engine")
+                .set_initial_pad_stiffness(pad, stiffness)?;
+        }
         if let Some(root_index) = reduced_plan.as_ref().and_then(|plan| plan.switchable_root) {
             let root = context.links[&model.links[root_index].scoped_name];
             let plan = reduced_plan.as_ref().expect("constructed switchable root");

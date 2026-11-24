@@ -178,7 +178,7 @@ pub fn prepare_model_template(
         contact_material::parse(model, PhysicsEngine::MultiFidelity)
             .map_err(|_| unsupported())?
             .get(&link.name)
-            .copied()
+            .and_then(|m| m.restitution)
     } else {
         return Err(unsupported());
     };
