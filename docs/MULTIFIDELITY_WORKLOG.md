@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Measuring actuator work and angular impulse on a loaded robot
+
+The robot now reports downstream linear momentum, angular momentum about a chosen world point and kinetic energy, including links moving independently. Running four native solves per unchanged 1 ms actuator tick reduced the disturbed wrist’s peak energy discrepancy from 2.071 to 0.517 mJ and its angular impulse discrepancy from 0.173 to 0.044 mN·m·s. Both controls repeated at all three physics rates. [Six comparisons, qualification and native playback](measurements/local-manipulation/wrist-work-balance.md)
+
 ## 2026-11-23 — The folded-sheet gripper selects finer material time as it lands
 
 Across a full 4.6 s transfer, the opt-in local solver refined 80 native intervals. Its first rebound was within 0.015 mm of continuous fine material time from the same incoming state, at about 3% of the cost over the impact window. All five requests had physical contact, and the policy stayed off during ordinary placement and early retained withdrawal. [Full results, controls and replay](measurements/local-manipulation/sheet-adaptive-landing.md)
