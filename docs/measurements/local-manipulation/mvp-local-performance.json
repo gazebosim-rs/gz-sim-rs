@@ -1,0 +1,328 @@
+{
+  "hardware": {
+    "processor": "AMD Ryzen 9 9950X3D",
+    "logical_cpu_one_thread": [
+      5
+    ],
+    "logical_cpus_eight_threads": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "os": "Linux 7.0.0-43-generic x86_64"
+  },
+  "build": {
+    "base": "1311332a4f29df047df3b82f8410a8417b6b31f8",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "features": "gz-sim-cli --no-default-features",
+    "profile": "release",
+    "lock_sha256": "0ab50949211f513f6845b6f11eff97323fe121e5ce75198b00c35a5f6cdaaa88",
+    "sdf_sha256": "8d5c180681929f285fb888eb635a6b4a77314d1be27a11d9a149e80c64b6d029",
+    "measured_candidate": "836bbcd8f6aae6c80568c11c2579fc835c319f75",
+    "benchmark_binary_sha256": "8e12281b988532f4e4fab2358243527918843a6f40cca8839a92a3592a7af4b2"
+  },
+  "workload": {
+    "file": "examples/worlds/local_robot_capped_spindle.sdf",
+    "public_dt_s": 0.001,
+    "ticks": 10000,
+    "recording_stride_ticks": 40,
+    "start_and_end_included": true,
+    "controller_commands": "identical held jaw/spindle forces, 30-tick wrist effort, one final wake impulse",
+    "timing_array_order": [
+      "always_dynamic",
+      "switched"
+    ]
+  },
+  "physics": {
+    "dynamic": {
+      "carried_peak_abs_speed_rad_s": [
+        0.6000032367463485,
+        0.2200002865240885
+      ],
+      "carried_ticks": 1050,
+      "final_support_n": 1.9619998951888882,
+      "first_jaw": [
+        [
+          1274,
+          0.09704572841073947
+        ],
+        [
+          1274,
+          0.10204183655137958
+        ]
+      ],
+      "held_impulses_ns": [
+        0.00938075133167883,
+        0.009369361465752058,
+        0.0,
+        0.0
+      ],
+      "lift_m": 0.1265951618180413,
+      "loaded_refusal": null,
+      "park_at": [],
+      "parked_ticks": 0,
+      "peak_abs_speed_rad_s": [
+        0.6000055095747523,
+        0.2200002865240885
+      ],
+      "peak_wrist_rad": 0.006554304275633083,
+      "release_support_ns": 0.011101767675430873,
+      "retained_command": null,
+      "wake_at": []
+    },
+    "max_all_link_angular_velocity_error_rad_s": 0.0032310771341812214,
+    "max_all_link_position_error_m": 4.790105440068609e-06,
+    "max_all_link_rotation_error_rad": 1.508530444377527e-05,
+    "max_all_link_velocity_error_m_s": 0.0011222720374758609,
+    "max_angular_momentum_error_kg_m2_s": 4.259586894737826e-05,
+    "max_coordinate_error": [
+      2.2003523447722273e-09,
+      3.257620395658023e-09,
+      4.4569512702707925e-07,
+      3.685965277721787e-07,
+      8.476743539527663e-07
+    ],
+    "max_coordinate_rate_error": [
+      5.20847039980149e-06,
+      8.07664965882856e-06,
+      0.0028754105258232874,
+      0.0011513411003388628,
+      0.0007236798814617249
+    ],
+    "max_impulse_error_ns": [
+      1.5022724918212216e-07,
+      1.2705038118787648e-07,
+      8.018819022525409e-07,
+      2.1688317471428228e-07
+    ],
+    "max_kinetic_plus_gravitational_energy_error_j": 9.352224877190451e-06,
+    "max_linear_momentum_error_kg_m_s": 7.706817293763566e-05,
+    "public_steps": 10000,
+    "simulated_seconds": 10.0,
+    "switched": {
+      "carried_peak_abs_speed_rad_s": [
+        0.6000032367436607,
+        0.2200002865225042
+      ],
+      "carried_ticks": 1050,
+      "final_support_n": 1.9620001737938957,
+      "first_jaw": [
+        [
+          1274,
+          0.09704557818349029
+        ],
+        [
+          1274,
+          0.10204196360176077
+        ]
+      ],
+      "held_impulses_ns": [
+        0.009380751331413075,
+        0.009369361466292591,
+        0.0,
+        0.0
+      ],
+      "lift_m": 0.1265951618103166,
+      "loaded_refusal": "fidelity transition deferred: mounted robot has an external contact",
+      "park_at": [
+        1000,
+        9000
+      ],
+      "parked_ticks": 750,
+      "peak_abs_speed_rad_s": [
+        0.6000055095748897,
+        0.2200002865225042
+      ],
+      "peak_wrist_rad": 0.006554304275655287,
+      "release_support_ns": 0.011101767674768621,
+      "retained_command": [
+        12.0,
+        12.0,
+        2.0
+      ],
+      "wake_at": [
+        1251,
+        9501
+      ]
+    }
+  },
+  "runs": {
+    "one-1": {
+      "full_step_p95_ns": [
+        797072,
+        783492
+      ],
+      "park_window_p95_ns": [
+        1166283,
+        28950
+      ],
+      "full_step_wall_ns": [
+        6268164189,
+        5783508983
+      ],
+      "load_run_record_wall_seconds": [
+        6.32449881,
+        5.829509761
+      ],
+      "compute_threads": 1,
+      "full_step_realtime_factor": [
+        1.595363442704484,
+        1.7290541139287445
+      ],
+      "load_run_record_realtime_factor": [
+        1.5811529577946115,
+        1.7154101133685367
+      ]
+    },
+    "one-2": {
+      "full_step_p95_ns": [
+        1099173,
+        751781
+      ],
+      "park_window_p95_ns": [
+        780162,
+        29560
+      ],
+      "full_step_wall_ns": [
+        7479561354,
+        5671508714
+      ],
+      "load_run_record_wall_seconds": [
+        7.571258054,
+        5.74577588
+      ],
+      "compute_threads": 1,
+      "full_step_realtime_factor": [
+        1.336976799401758,
+        1.7631992657112932
+      ],
+      "load_run_record_realtime_factor": [
+        1.3207844625922982,
+        1.7404089906827345
+      ]
+    },
+    "one-3": {
+      "full_step_p95_ns": [
+        823142,
+        760011
+      ],
+      "park_window_p95_ns": [
+        928092,
+        31280
+      ],
+      "full_step_wall_ns": [
+        6182546059,
+        5629292694
+      ],
+      "load_run_record_wall_seconds": [
+        6.250503482,
+        5.672588625
+      ],
+      "compute_threads": 1,
+      "full_step_realtime_factor": [
+        1.6174566116564373,
+        1.7764221090615047
+      ],
+      "load_run_record_realtime_factor": [
+        1.599871118990283,
+        1.7628635991561965
+      ]
+    },
+    "eight": {
+      "full_step_p95_ns": [
+        1054493,
+        991073
+      ],
+      "park_window_p95_ns": [
+        882152,
+        40770
+      ],
+      "full_step_wall_ns": [
+        6987626350,
+        6431316846
+      ],
+      "load_run_record_wall_seconds": [
+        7.266866383,
+        6.486955819
+      ],
+      "compute_threads": 8,
+      "full_step_realtime_factor": [
+        1.4311011349369016,
+        1.5548915159139711
+      ],
+      "load_run_record_realtime_factor": [
+        1.3761089681508185,
+        1.541555126783884
+      ]
+    }
+  },
+  "median_three_one_thread": {
+    "full_step_p95_ns": [
+      823142,
+      760011
+    ],
+    "park_window_p95_ns": [
+      928092,
+      29560
+    ],
+    "full_step_wall_ns": [
+      6268164189,
+      5671508714
+    ],
+    "load_run_record_wall_seconds": [
+      6.32449881,
+      5.74577588
+    ],
+    "full_step_realtime_factor": [
+      1.595363442704484,
+      1.7631992657112932
+    ],
+    "load_run_record_realtime_factor": [
+      1.5811529577946115,
+      1.7404089906827345
+    ]
+  },
+  "checks": {
+    "dynamic_all_archives_sha256": {
+      "frames.jsonl": "604d9d6f24a502e4f258e27dbc3c09228f52dc23048411a4094ba32770a44683",
+      "manifest.json": "c10a638e27eac9b5eed4ed38f3bf7565e47dd2f29270dfbdd8459deb8acf5b3c"
+    },
+    "switched_all_archives_sha256": {
+      "frames.jsonl": "9eee077c266591d4f2b366fc6d3cd2f5a6751b91e3671f0f25d64ec14d826d08",
+      "manifest.json": "dae02928b6ad42a997de4ac16dd4409c52b584280fce4687879b7ac566325150"
+    },
+    "native_viewer": {
+      "dynamic": {
+        "body_poses_and_shapes_checked": 3765,
+        "frames": 251,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0
+      },
+      "switched": {
+        "body_poses_and_shapes_checked": 3765,
+        "frames": 251,
+        "renderer": "WebGPU",
+        "reset_ms": 0.0
+      }
+    },
+    "example_changed_lines": {
+      "file": "crates/gz-sim-cli/examples/parked_spindle.rs",
+      "measured": 28,
+      "covered": 28,
+      "regions_starting_on_changed_lines": 73,
+      "regions_covered": 70,
+      "method": "llvm-cov on release example and example unit-test binaries; union of source coordinates against base 1311332. Covers capped and default runs, both-output archive refusal, and fresh vs reset."
+    },
+    "tests": {
+      "parked_spindle_example": 4,
+      "public_wrist_journal": 1,
+      "public_journal_suite": 24
+    },
+    "prior_candidate_agreement": "Both archives and all non-timing comparison fields also matched four development runs before the final rebuild."
+  }
+}

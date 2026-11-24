@@ -1,3 +1,7 @@
+## Local CPU robot physics
+
+Build the Rust simulator, drive an upstream Gazebo robot, or watch the gripper pick up a parcel in gz-web-rs. [Run the local CPU physics preview](docs/LOCAL_CPU_MVP.md)
+
 ## Current development: M76 CameraInfo projection offsets
 
 [M76](docs/M76_DELIVERY.md) adds finite signed explicit SDF projection tx/ty only to
