@@ -535,3 +535,14 @@ fn an_engine_without_prescribed_boundaries_cannot_silently_create_dynamic_contac
     assert_eq!(backend.state(payload), Some(state));
     assert!(backend.steps.is_empty());
 }
+
+#[test]
+fn unsupported_trigger_queries_refuse_before_numeric_validation() {
+    assert_eq!(
+        Recorder::default().bodies_overlapping_aabb([f64::NAN; 3], [0.; 3]),
+        Err(PhysicsError::Unsupported {
+            engine: "recorder",
+            capability: "body AABB overlap"
+        })
+    );
+}

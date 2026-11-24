@@ -281,3 +281,19 @@ fn limited_joint_validation_is_atomic_and_tiny_persistent_motion_refuses_a_hold(
     }
     assert!(world.joint_state(hinge).unwrap().position > 0.0);
 }
+
+#[test]
+fn zero_volume_gates_keep_the_link_identity_across_both_fidelity_switches() {
+    let mut world = MultiFidelityBackend::new([0.; 3]).unwrap();
+    let (root, child, _) = assembly(&mut world, 0.7);
+    for tier in [Dynamic, Prescribed, Dynamic] {
+        world.switch_articulation(root, tier, DT).unwrap();
+        world.step(DT).unwrap();
+        for id in [root, child] {
+            let mut at = world.state(id).unwrap().position;
+            assert_eq!(world.bodies_overlapping_aabb(at, at).unwrap(), [id]);
+            at[1] += 0.201;
+            assert!(world.bodies_overlapping_aabb(at, at).unwrap().is_empty());
+        }
+    }
+}
