@@ -243,3 +243,52 @@ fn a_rotated_prescribed_box_matches_the_native_shape_at_both_ends_of_its_motion(
     }
     assert!(backend.translation_rays.get().unwrap().is_some());
 }
+
+#[test]
+fn native_beam_keeps_the_tip_of_a_rotating_box_and_checks_invalid_off_ray_poses() {
+    let (mut world, _) = lane();
+    let cargo = |x| BodySpec {
+        shape: Shape::Box {
+            half_extents: [0.8, 0.04, 0.04],
+        },
+        position: [x, 0., 3.],
+        velocity: [0.; 3],
+        mass: Some(1.),
+    };
+    let near = world.spawn(cargo(0.)).unwrap();
+    let far = world.spawn(cargo(200.)).unwrap();
+    let mut state = world.state(near).unwrap();
+    state.orientation = Rotation::from_rotation_z(std::f64::consts::FRAC_PI_2).to_array();
+    world.set_body_state(near, state).unwrap();
+    world.step(Duration::from_millis(10)).unwrap();
+    let center = world.state(near).unwrap().position;
+    let origin = [center[0], center[1] + 0.79, center[2] + 1.];
+    let down = [0., 0., -1.];
+    assert!(compare(&world, origin, down, 1., None).is_some());
+    let beam = SolidRay::new(origin, down, 1.).unwrap();
+    let fleet_isolation::Dispatch::Active(group) = &world.fleet_dispatch else {
+        panic!("loaded boxes must use selective native contact");
+    };
+    let mut candidates = Vec::new();
+    group
+        .visit_ray_bodies(&beam, &world.world, |h| {
+            candidates.push(h);
+            Ok(())
+        })
+        .unwrap()
+        .unwrap();
+    assert!(candidates.contains(&world.bodies[&near].0));
+    let far_handle = world.bodies[&far].0;
+    assert!(!candidates.contains(&far_handle));
+    world.world.bodies[far_handle].set_translation(Vector::NAN, false);
+    assert_eq!(
+        world.cast_ray(origin, down, 1., None),
+        Err(PhysicsError::InvalidValue)
+    );
+    assert!(
+        world
+            .cast_ray(origin, down, 1., Some(far))
+            .unwrap()
+            .is_some()
+    );
+}
