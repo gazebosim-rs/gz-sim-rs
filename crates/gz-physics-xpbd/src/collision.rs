@@ -862,6 +862,9 @@ impl Contacts {
             let b = &boundaries[c.boundary];
             // A spring pad uses a finite force through this endpoint. Only a
             // rigid support imposes an additional nonclosing velocity constraint.
+            if b.normal_compliance > 0. {
+                continue;
+            }
             let point = x[c.particle];
             let center = b.origin + time.t1 * b.velocity;
             let tolerance = 1e-9 * time.radius
