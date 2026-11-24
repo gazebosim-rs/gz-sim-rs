@@ -119,16 +119,23 @@ pub(super) fn against_fine(a: &Run) -> Result<Comparison<'_>> {
         a.trial.first_native_steps
     };
     let fork = |substeps| {
-        run(Trial {
-            substeps,
-            automatic: false,
-            impact_iterations: None,
-            impact_pgs: None,
-            first_native_steps: first,
-            stop_guard: false,
-            replay: None,
-            ..a.trial.clone()
-        })
+        run_with_first_solver(
+            Trial {
+                substeps,
+                automatic: false,
+                impact_iterations: None,
+                impact_pgs: None,
+                first_native_steps: first,
+                stop_guard: false,
+                replay: None,
+                ..a.trial.clone()
+            },
+            if first.is_some() {
+                a.first_solver
+            } else {
+                None
+            },
+        )
     };
     let b = fork(4000)?;
     let c = fork(8000)?;

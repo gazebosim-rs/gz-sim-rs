@@ -295,6 +295,8 @@ struct Run {
     tensors_kg_m2: [[f64; 3]; 5],
     native_left_tensor_kg_m2: [[f64; 3]; 3],
     native_robot_mass_kg: f64,
+    #[serde(skip)]
+    first_solver: Option<gz_physics_multifidelity::ContactSolverIterations>,
     initial_patch_points: usize,
     incoming: Vec<State>,
     samples: Vec<Sample>,
@@ -345,6 +347,13 @@ fn load_robot(trial: &Trial, xml: &str) -> Result<(Simulation, Vec<BodyId>, [Ent
 }
 
 fn run(trial: Trial) -> Result<Run> {
+    run_with_first_solver(trial, None)
+}
+
+fn run_with_first_solver(
+    trial: Trial,
+    first_solver: Option<gz_physics_multifidelity::ContactSolverIterations>,
+) -> Result<Run> {
     let xml = fixture(&trial);
     let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
     let (mut sim, bodies, joint) = load_robot(&trial, &xml)?;
@@ -390,7 +399,11 @@ fn run(trial: Trial) -> Result<Run> {
                 let segment = ContactSegment {
                     duration: clock.dt,
                     native_steps: if clock.start_time.is_zero() { first } else { n },
-                    iterations: native.ordinary_contact_iterations(),
+                    iterations: if clock.start_time.is_zero() {
+                        first_solver.unwrap_or_else(|| native.ordinary_contact_iterations())
+                    } else {
+                        native.ordinary_contact_iterations()
+                    },
                 };
                 *impact = Impact::default();
                 if let Err(e) = native.observe_contact_schedule(clock.dt, &[segment], &[], |cut| {
@@ -401,6 +414,7 @@ fn run(trial: Trial) -> Result<Run> {
             },
         );
     }
+    let mut first_selected_solver = None;
     let mut samples = Vec::new();
     let mut frames = Vec::new();
     for ms in 0..=trial.ticks {
@@ -408,6 +422,9 @@ fn run(trial: Trial) -> Result<Run> {
             sim.step_exact(1)?;
             let selected = gz_sim_scene::primary_contact::last_refinement(&sim)
                 .filter(|p| p.sim_time == sim.elapsed());
+            if ms == 1 {
+                first_selected_solver = selected.map(|r| r.solver);
+            }
             let native_steps = selected.map_or(
                 if uniform && ms == 1 {
                     first
@@ -477,6 +494,7 @@ fn run(trial: Trial) -> Result<Run> {
         trial,
         native_left_tensor_kg_m2,
         native_robot_mass_kg,
+        first_solver: first_selected_solver,
         initial_patch_points,
         incoming,
         samples,

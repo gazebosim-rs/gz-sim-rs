@@ -17,7 +17,8 @@ fn repeat(reference: &Run, xml: &str) -> Result<Vec<u128>> {
     let (mut sim, bodies, _) = load_robot(trial, xml)?;
     sim.initialize_schedules()?;
     let calls = trial.substeps;
-    if calls > 1 && !trial.automatic {
+    let first = trial.first_native_steps.unwrap_or(calls);
+    if (calls > 1 || first > 1) && !trial.automatic {
         // Match the observed fine reference without collecting every native
         // manifold for analysis inside its clocked interval.
         assert_eq!(
@@ -32,7 +33,11 @@ fn repeat(reference: &Run, xml: &str) -> Result<Vec<u128>> {
                 let native = backend.downcast_mut::<MultiFidelityBackend>().unwrap();
                 if let Err(error) = native.step_contact_interval(
                     clock.dt,
-                    calls,
+                    if clock.start_time.is_zero() {
+                        first
+                    } else {
+                        calls
+                    },
                     native.ordinary_contact_iterations(),
                 ) {
                     fault.report(error);

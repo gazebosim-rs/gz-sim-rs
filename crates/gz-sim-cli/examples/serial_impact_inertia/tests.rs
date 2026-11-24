@@ -223,6 +223,8 @@ fn timing_compares_every_native_body_without_changing_the_actuator_clock() -> Re
     for options in [
         &[][..],
         &["--automatic", "--substeps", "4"][..],
+        &["--first-native-steps", "12"][..],
+        &["--first-native-steps", "1", "--substeps", "4"][..],
         &["--passive-spindle", "capped", "--substeps", "4"][..],
     ] {
         let a = Args::try_parse_from(
@@ -296,5 +298,30 @@ fn impact_iteration_budget_only_applies_to_the_selected_interval() -> Result<()>
         [40, 1, 1]
     );
     assert!(run.samples[0].impact.left_ns > 0.);
+    Ok(())
+}
+
+#[test]
+fn matched_spindle_tail_preserves_the_actual_first_contact_solver() -> Result<()> {
+    let trial = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--automatic",
+        "--stop-guard",
+        "--substeps",
+        "4",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "16",
+        "--ticks",
+        "2",
+    ])?
+    .trial;
+    let measured = run(trial)?;
+    let comparison = compare::against_fine(&measured)?;
+    assert_eq!(comparison.primary.refined_public_ms[0], 1);
+    assert!(comparison.primary.left_ns > 0.);
     Ok(())
 }
