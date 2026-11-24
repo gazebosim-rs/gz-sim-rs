@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Catch a slipping off-center parcel on a rising gripper with sampled feedback.
+#[path = "closed_loop_carry/payload.rs"]
+mod payload;
 #[path = "closed_loop_carry/rig.rs"]
 mod rig;
 
@@ -8,7 +10,8 @@ use bevy_tasks::{ComputeTaskPool, TaskPoolBuilder};
 use clap::{Parser, ValueEnum};
 use gz_sim_scene::grasp_guard::{SlipCatch, SlipCatchConfig, SlipCatchState, SlipLiftInterlock};
 use gz_sim_scene::{PhysicsEngine, load_world_with_sdf_step};
-use rig::{DT, Rig};
+pub(crate) use rig::Grid;
+use rig::{BASE, DT, Rig};
 use serde::Serialize;
 use serde_json::json;
 use std::{
@@ -81,13 +84,6 @@ impl Case {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub(crate) enum Grid {
-    Adaptive,
-    Fine,
-}
-
 #[derive(Parser)]
 #[command(about)]
 struct Args {
@@ -111,6 +107,16 @@ fn main() -> Result<()> {
     run(args.case, args.grid, &args.output)
 }
 
+fn world(case: Case) -> Result<String> {
+    let scale = if case == Case::Heavy { 0.26 / 0.20 } else { 1. };
+    payload::world(
+        BASE,
+        scale,
+        case == Case::Mirror,
+        (case == Case::Slick).then_some(0.4),
+    )
+}
+
 pub(crate) fn run(case: Case, grid: Grid, output: &Path) -> Result<()> {
     let name = output
         .file_name()
@@ -123,7 +129,7 @@ pub(crate) fn run(case: Case, grid: Grid, output: &Path) -> Result<()> {
         .prefix(name)
         .rand_bytes(0)
         .tempdir_in(parent)?;
-    let xml = rig::world(case)?;
+    let xml = world(case)?;
     let name = "local_offset_gripper_carry.sdf";
     let sdf = sdformat::load_str(&xml, name, &sdformat::NoResources)?;
     let parcel = sdf.worlds[0]
@@ -267,7 +273,7 @@ pub(crate) fn run(case: Case, grid: Grid, output: &Path) -> Result<()> {
         final_slip = baseline.map_or(0., |h| h - relative_z);
         max_slip = max_slip.max(final_slip);
         let mut sample = json!({
-                "time_ns":time_ns,"slip_m":final_slip,"parcel_com_z_m":obs.parcel_z,"pad_z_m":obs.pad_z,
+                "time_ns":time_ns,"slip_m":final_slip,"parcel_com_z_m":obs.parcel_z,"parcel_vz_m_s":obs.parcel_vz,"pad_vertical_force_n":obs.vertical_total_n,"pad_z_m":obs.pad_z,
                 "force_n":force,"next_force_n":next_force,"requested_squeeze_n":guard.as_ref().map(SlipCatch::force_n),
                 "lift_force_n":lift,"next_lift_force_n":next_lift,
                 "sampled":sampled,"state":state,"normal_force_n":obs.normal,"vertical_friction_n":obs.friction,

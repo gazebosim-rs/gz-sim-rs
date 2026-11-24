@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+Watch one finger lose its grip during a lift, or compare a load-confirmed set-down with an attempted placement over the wrong receiver. [Twenty local robot phases in gz-web-rs](measurements/local-manipulation/regrasp-setdown-view.md) · [Measurements and run commands](measurements/local-manipulation/regrasp-setdown.md)
+
 The moving gripper senses a parcel slipping, tightens both fingers, and can reduce lift effort when the fingers reach their force limit. Compare a catch driven by tactile contact with the same parcel sliding without feedback. [Watch all ten phases](measurements/local-manipulation/slip-catch-view.md) · [Run the experiment and compare with fine physics](measurements/local-manipulation/slip-catch.md)
 
 A vertical gripper carries a parcel with its weight offset toward one finger. Compare the full-strength lift, the weakened grip and a shove that rocks the parcel during travel. [Open the carry recordings](measurements/local-manipulation/offset-carry-view.md) · [Grip threshold and measured slip](measurements/local-manipulation/offset-carry.md)

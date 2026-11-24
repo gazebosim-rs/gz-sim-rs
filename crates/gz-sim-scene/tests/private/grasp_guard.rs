@@ -128,3 +128,30 @@ fn set_down_requires_new_continuous_receiver_load_before_opening() {
     );
     assert_eq!(arm.observe(dt, sliding, 0., weight), RetentionCommand::Open);
 }
+
+#[test]
+fn receiver_must_carry_the_load_continuously_across_its_own_clock() {
+    let mut gate = SupportedRelease::default();
+    let tick = Duration::from_micros(200);
+    let weight = 2.;
+    let impulse = weight * tick.as_secs_f64();
+    for (bad, permitted) in [
+        (None, true),
+        (Some(1.51 * impulse), true),
+        (Some(0.79 * impulse), true),
+        (Some(-impulse), true),
+        (Some(f64::NAN), true),
+        (Some(impulse), false),
+    ] {
+        for _ in 0..99 {
+            assert!(!gate.observe_checked(tick, Some(impulse), weight, true));
+        }
+        assert!(!gate.observe_checked(tick, bad, weight, permitted));
+    }
+    // 19.8 ms loaded, one paused callback, then the final 0.2 ms.
+    assert!(!gate.observe_checked(Duration::from_micros(19_800), Some(0.0396), weight, true));
+    assert!(!gate.observe_checked(Duration::ZERO, None, weight, false));
+    assert!(gate.observe_checked(tick, Some(1.5 * impulse), weight, true));
+    assert!(gate.observe_checked(Duration::ZERO, None, weight, false));
+    assert!(!gate.observe_checked(tick, None, weight, true));
+}

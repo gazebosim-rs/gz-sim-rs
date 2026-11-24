@@ -71,6 +71,25 @@ pub struct SupportedRelease {
 }
 
 impl SupportedRelease {
+    /// Qualify a placement on the designated receiver. Pass its signed upward
+    /// impulse over this committed interval and the result of the footprint
+    /// or clearance check. Require 80–150% of the known weight throughout the
+    /// confirmation window. Missing data or an impact clears the window.
+    /// A paused simulation leaves the previous decision intact.
+    pub fn observe_checked(
+        &mut self,
+        dt: Duration,
+        upward_impulse_ns: Option<f64>,
+        weight_n: f64,
+        permits_opening: bool,
+    ) -> bool {
+        let upper_ns = 1.5 * (weight_n * dt.as_secs_f64());
+        let qualified = upward_impulse_ns
+            .filter(|impulse| permits_opening && *impulse <= upper_ns)
+            .unwrap_or(0.);
+        self.observe(dt, qualified, weight_n)
+    }
+
     /// Supply the impulse on the parcel along world up from the selected
     /// support in this committed interval. Side contact contributes no lift.
     pub fn observe(&mut self, dt: Duration, upward_impulse_ns: f64, weight_n: f64) -> bool {
@@ -143,13 +162,17 @@ impl GraspRetention {
     }
 }
 
+mod contact_recovery;
 mod contact_slip;
 mod deck_margin;
+mod recovery_placement;
 mod setdown;
 mod slip_catch;
 mod slip_lift_interlock;
+pub use contact_recovery::{ContactRecovery, ContactRecoveryConfig, RecoveryState};
 pub use contact_slip::bilateral_slip_velocity;
 pub use deck_margin::FiniteDeckMargin;
+pub use recovery_placement::{PlacementDrive, PlacementPhase, PlacementReading, RecoveryPlacement};
 pub use setdown::{SetdownCommand, SupportedSetdown};
 pub use slip_catch::{SlipCatch, SlipCatchConfig, SlipCatchState};
 pub use slip_lift_interlock::SlipLiftInterlock;

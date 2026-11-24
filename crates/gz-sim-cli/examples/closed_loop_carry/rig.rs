@@ -1,81 +1,18 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-use super::{Case, Grid, Result};
-use bevy_ecs::prelude::{Res, ResMut, Resource};
+use super::Result;
 use glam::{DQuat, DVec3};
 use gz_physics::{BodyId, PhysicsBackend};
-use gz_physics_multifidelity::{ContactIntervalReceipt, MultiFidelityBackend};
-use gz_sim_core::{EntityId, Phase, Simulation, UpdateInfo};
-use gz_sim_scene::{BodyHandle, Name, primary_contact, set_joint_force};
-use std::time::Duration;
+use gz_physics_multifidelity::MultiFidelityBackend;
+use gz_sim_core::{EntityId, Simulation};
+use gz_sim_scene::{BodyHandle, Name, set_joint_force};
 
-const BASE: &str = include_str!("../../../../examples/worlds/local_offset_gripper_carry.sdf");
-pub const DT: Duration = Duration::from_micros(200);
+pub const BASE: &str = include_str!("../../../../examples/worlds/local_offset_gripper_carry.sdf");
 
-/// Vary physical parameters of the same authored robot. For a heavier rigid
-/// parcel at the same dimensions, scale its entire inertia tensor with mass.
-pub fn world(case: Case) -> Result<String> {
-    let doc = roxmltree::Document::parse(BASE)?;
-    let parcel = doc
-        .descendants()
-        .find(|n| n.has_tag_name("model") && n.attribute("name") == Some("parcel"))
-        .unwrap();
-    let inertial = parcel
-        .descendants()
-        .find(|n| n.has_tag_name("inertial"))
-        .unwrap();
-    let mut edits = Vec::new();
-    for node in doc.descendants().filter(|n| n.is_text()) {
-        let parent = node.parent().unwrap();
-        let tag = parent.tag_name().name();
-        let value = match case {
-            Case::Slick if matches!(tag, "mu" | "mu2") => Some("0.4".to_string()),
-            Case::Mirror if tag == "pose" && parent.parent() == Some(inertial) => {
-                Some("-0.0045 0 0 0 0 0".to_string())
-            }
-            Case::Heavy
-                if parent.ancestors().any(|n| n == inertial)
-                    && matches!(tag, "mass" | "ixx" | "iyy" | "izz" | "ixy" | "iyz" | "ixz") =>
-            {
-                Some((node.text().unwrap().parse::<f64>()? * (0.26 / 0.20)).to_string())
-            }
-            _ => None,
-        };
-        if let Some(value) = value {
-            edits.push((node.range(), value));
-        }
-    }
-    let mut xml = BASE.to_owned();
-    for (range, value) in edits.into_iter().rev() {
-        xml.replace_range(range, &value);
-    }
-    Ok(xml)
-}
-
-#[derive(Resource, Default)]
-struct FineTick(ContactIntervalReceipt);
-
-pub fn configure(sim: &mut Simulation, grid: Grid) -> Result<()> {
-    if grid == Grid::Fine {
-        assert_eq!(
-            sim.remove_systems_in_set(Phase::PhysicsStep, Phase::PhysicsStep)?,
-            1
-        );
-        sim.world_mut().init_resource::<FineTick>();
-        sim.add_systems(
-            Phase::PhysicsStep,
-            |t: Res<UpdateInfo>, mut p: ResMut<PhysicsBackend>, mut receipt: ResMut<FineTick>| {
-                receipt.0 = p
-                    .downcast_mut::<MultiFidelityBackend>()
-                    .unwrap()
-                    .step_contact_interval(t.dt, 200, 4)
-                    .unwrap();
-            },
-        );
-    }
-    Ok(())
-}
+#[path = "interval.rs"]
+mod interval;
+pub(crate) use interval::{DT, Grid, configure};
 
 pub struct Rig {
     slides: [u64; 2],
@@ -87,6 +24,8 @@ pub struct Rig {
 
 pub struct Reading {
     pub parcel_z: f64,
+    pub parcel_vz: f64,
+    pub vertical_total_n: [f64; 2],
     pub pad_z: f64,
     pub normal: [f64; 2],
     pub friction: [f64; 2],
@@ -125,7 +64,11 @@ impl Rig {
     }
 
     pub fn grip(&self, sim: &mut Simulation, force: f64) -> Result<()> {
-        for joint in self.slides {
+        self.drive_jaws(sim, [force; 2])
+    }
+
+    pub fn drive_jaws(&self, sim: &mut Simulation, forces: [f64; 2]) -> Result<()> {
+        for (joint, force) in self.slides.into_iter().zip(forces) {
             set_joint_force(sim, joint, force)?;
         }
         Ok(())
@@ -145,25 +88,20 @@ impl Rig {
             .map(|&id| engine.state(id).unwrap().position[2])
             .sum::<f64>()
             / 2.;
-        let tick = sim
-            .world()
-            .get_resource::<FineTick>()
-            .map(|f| &f.0)
-            .or_else(|| {
-                primary_contact::last_refinement(sim)
-                    .filter(|r| r.sim_time == sim.elapsed())
-                    .map(|r| &r.interval)
-            });
+        let tick = interval::last(sim);
         let mut normal = [0.; 2];
         let mut friction = [0.; 2];
-        let mut add = |a, b, impulse, tangent: f64| {
+        let mut total = [0.; 2];
+        let mut add = |a, b, impulse, normal_z: f64, tangent: f64| {
             if let Some(i) = self
                 .pads
                 .iter()
                 .position(|&id| (a, b) == (id, self.parcel) || (a, b) == (self.parcel, id))
             {
                 normal[i] += impulse / DT.as_secs_f64();
-                friction[i] += if a == self.parcel { tangent } else { -tangent } / DT.as_secs_f64();
+                let sign = if a == self.parcel { 1. } else { -1. };
+                friction[i] += sign * tangent / DT.as_secs_f64();
+                total[i] += sign * (normal_z + tangent) / DT.as_secs_f64();
             }
         };
         if let Some(tick) = tick {
@@ -172,6 +110,7 @@ impl Rig {
                     p.a,
                     p.b,
                     p.normal_impulse,
+                    p.normal_impulse_on_a[2],
                     p.tangent_impulse_on_a.unwrap()[2],
                 );
             }
@@ -183,6 +122,7 @@ impl Rig {
                         patch.a,
                         patch.b,
                         point.normal_impulse,
+                        patch.normal_on_a[2] * point.normal_impulse,
                         point.tangent_impulse_on_a.unwrap()[2],
                     );
                 }
@@ -190,6 +130,8 @@ impl Rig {
         }
         Reading {
             parcel_z,
+            parcel_vz: body.velocity[2],
+            vertical_total_n: total,
             pad_z,
             normal,
             friction,

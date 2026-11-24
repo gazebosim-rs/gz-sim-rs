@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Twenty local phases from one lost finger contact to a supported set-down
+
+The gripper recovered from left and right disturbances during a lift and caught two interruptions at 219.4 and 253.0 ms. A short loss of pressure data left the physical grasp steady. A lasting contact loss triggered lowering after 24 ms. The nominal gripper carried the parcel onto the intended pedestal, opened at 542.2 ms against 542.0 ms continuously fine, and cleared both fingers at 548.8 ms. Six guided placements succeeded and four adverse receiver setups ended with the fingers still closed on both grids. [Twenty phase results, timing and verification](measurements/local-manipulation/regrasp-setdown.md) · [Watch the robot in gz-web-rs](measurements/local-manipulation/regrasp-setdown-view.md)
+
+An extra trial kept a failed finger open. The parcel fell onto the pedestal at 0.58 m/s and exposed a controller that could mistake the stand carrying weight for permission to release. The corrected controller checks for guidance before touchdown and reported the unguided landing on both grids. An independent momentum check across 149,958 public intervals closed within 2.71 × 10⁻¹⁴ N·s. Both new scene controllers reached 100% line and region coverage and all changed executable Rust files cleared 95% in both measures. The largest remaining guided height discrepancy was 0.146 mm with the 260 g parcel, where opening differed by 4.0 ms. Next, resolve the discrepancy that develops during braking and jaw reacquisition before deck contact. [Measurements and control comparisons](measurements/local-manipulation/regrasp-setdown.json)
+
 ## 2026-11-24 — Ten local phases of catching a slipping parcel
 
 The rising gripper tightened when it sensed the parcel sliding. The 200 g parcel slipped 0.462 mm, compared with 10.090 mm with feedback off and 0.464 mm in continuously fine physics with feedback on. Two simulated tactile pads also caught it using relative motion at their loaded surfaces. Their estimate of slip stayed within 4.5 µm of the independently measured parcel displacement. [Ten phases, force balance and regression checks](measurements/local-manipulation/slip-catch.md) · [Watch in gz-web-rs](measurements/local-manipulation/slip-catch-view.md)
