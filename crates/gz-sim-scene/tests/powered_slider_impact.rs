@@ -253,6 +253,28 @@ fn driven_slider_impacts_both_sides_of_a_physical_travel_limit() {
                         mirror * ball.velocity[0] - c.approach * SPEED,
                         ball.velocity[1],
                     );
+                // With positive restitution the sphere separates until the end of
+                // these short trials. A plastic contact may continue transferring
+                // drive force, outside a single instantaneous-impact solution.
+                let final_error = (restitution > 0.).then(|| {
+                    let end = 120e-6;
+                    let ideal = h.at_end(c, end);
+                    let ball_start = DVec2::new(-c.approach * 0.02405, L + 0.02);
+                    let ball_expected = ball_start + DVec2::X * (c.approach * SPEED * end)
+                        - h.impulse * h.normal / MP * (end - h.time);
+                    let ball_position = DVec2::new(ball.position[0] * mirror, ball.position[1]);
+                    [
+                        (prev.theta - ideal[0]).abs(),
+                        (prev.s - ideal[1]).abs(),
+                        ball_position.distance(ball_expected),
+                    ]
+                });
+                if let Some([hinge, slide, sphere]) = final_error {
+                    // Allow two public steps of contact-time uncertainty at the
+                    // approach speed, expressed as arc length for the hinge.
+                    let allowed = 2. * SPEED * dt;
+                    assert!(L * hinge < allowed && slide < allowed && sphere < allowed);
+                }
                 assert!((dp + total).length() < 1e-10);
                 assert!((0. ..=f64::from(ns) + 1.).contains(&(f64::from(end) - h.time * 1e9)));
                 // Drive work can change the relative speed across the reporting
@@ -294,6 +316,7 @@ fn driven_slider_impacts_both_sides_of_a_physical_travel_limit() {
                         "inferred_stop_impulse":stop,"analytic_collision_stop_impulse":h.stop_impulse,
                         "hinge_rad_s":w,"ideal_hinge_at_end":ew,"slider_mps":u,"ideal_slider_at_end":eu,
                         "first_position_m_normalized":first_position,"ideal_first_tick_stop_impulse":expected_stop,
+                        "final_abs_error_120us":final_error,
                         "actual_50us":[before_50us.theta,before_50us.s,before_50us.w,before_50us.u],"ideal_50us":ideal_50us,
                         "max_stop_overshoot_m":peaks,"stop_loaded_before_ns":prior_stop,"stop_loaded_after_ns":later_stop,
                         "next_stop_expected_ns":h.next_stop(c).map(|t|t*1e9)
