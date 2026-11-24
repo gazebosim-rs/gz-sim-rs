@@ -152,9 +152,18 @@ pub(crate) fn compare(paths: &[PathBuf]) -> Result<Value> {
             return Err("incompatible sheet weights".into());
         }
         let mut maximum = 0_f64;
+        let mut worst_sample = None;
+        let mut first_outside = None;
         for (a, b) in r.frames.iter().zip(&reference.frames) {
-            for (x, y) in a.positions.iter().zip(&b.positions) {
-                maximum = maximum.max(DVec3::from(*x).distance((*y).into()));
+            for (particle, (x, y)) in a.positions.iter().zip(&b.positions).enumerate() {
+                let error = DVec3::from(*x).distance((*y).into());
+                if error > maximum {
+                    maximum = error;
+                    worst_sample = Some((a.time_ns, particle));
+                }
+                if error > POSE_TOLERANCE_M && first_outside.is_none() {
+                    first_outside = Some((a.time_ns, particle));
+                }
             }
         }
         let load_error = std::array::from_fn::<_, 2, _>(|i| {
@@ -166,7 +175,17 @@ pub(crate) fn compare(paths: &[PathBuf]) -> Result<Value> {
         if pass {
             acceptable.push(rate);
         }
-        entries.push(json!({"exchanges_per_ms":rate,"soft_steps_per_exchange":r.substeps,"passes_against_finest":pass,"max_particle_error_m":maximum,"jaw_load_error_fraction_of_weight":load_error,"mean_hold_jaw_load_n":m.mean_hold_jaw_up_n,"p95_physics_cost_per_actuator_period_ns":m.step_p95_ns}));
+        let location =
+            |(time_ns, particle): (u64, usize)| json!({"time_ns":time_ns,"particle":particle});
+        entries.push(json!({
+            "exchanges_per_ms": rate, "soft_steps_per_exchange": r.substeps,
+            "passes_against_finest": pass, "max_particle_error_m": maximum,
+            "first_particle_outside_tolerance": first_outside.map(location),
+            "max_particle_error_location": worst_sample.map(location),
+            "jaw_load_error_fraction_of_weight": load_error,
+            "mean_hold_jaw_load_n": m.mean_hold_jaw_up_n,
+            "p95_physics_cost_per_actuator_period_ns": m.step_p95_ns
+        }));
     }
     let verified = verification.trial.completed && acceptable.contains(&verification_rate);
     // Require every measured finer rate to pass as well. One lucky coarse match
@@ -252,6 +271,16 @@ mod tests {
             v[70]["positions"][1][2] = json!(0.00011);
         })?;
         let report = compare(&records)?;
+        for key in [
+            "first_particle_outside_tolerance",
+            "max_particle_error_location",
+        ] {
+            assert_eq!(
+                report["trials"][2][key],
+                json!({"time_ns":1_750_000_000_u64,"particle":1})
+            );
+            assert!(report["trials"][3][key].is_null());
+        }
         assert_eq!(report["reference_checked"], false);
         assert!(report["selected_exchanges_per_ms"].is_null());
         alter(&records[2], "jaw-contact.json", |v| {
