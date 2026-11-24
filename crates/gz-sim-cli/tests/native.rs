@@ -229,3 +229,7 @@ fn second_termination_signal_exits_when_final_output_is_blocked() {
     );
     assert!(stopped.stderr.is_empty(), "{stopped:?}");
 }
+
+#[cfg(unix)]
+#[path = "private/local_contact_replay.rs"]
+mod local_contact_replay;

@@ -176,6 +176,12 @@ pub(super) struct Bridge {
     published_generation: u64,
 }
 
+fn next_scene_sequence(current: u64) -> io::Result<u64> {
+    current
+        .checked_add(1)
+        .ok_or_else(|| io::Error::other("gzweb sequence exhausted"))
+}
+
 impl Bridge {
     pub(super) fn new(
         sim: &Simulation,
@@ -337,9 +343,17 @@ impl Bridge {
         })
     }
 
-    pub(super) fn finish_recording(&mut self) -> io::Result<()> {
+    pub(super) fn finish_recording(&mut self, sim: &Simulation, world: &str) -> io::Result<()> {
         if let Some(recording) = self.recording.take() {
-            recording.finish()?;
+            // Display updates are throttled; the final committed state may be newer.
+            let sequence = next_scene_sequence(self.sequence)?;
+            let scene = snapshot::extract_with_assets(sim, world, sequence, self.assets.as_ref())?;
+            let catalog = self
+                .lifecycle
+                .as_ref()
+                .expect("recording requires lifecycle")
+                .catalog(sim, &scene)?;
+            return recording.finish(&scene, &catalog);
         }
         Ok(())
     }
@@ -445,10 +459,7 @@ impl Bridge {
         if let Some(lifecycle) = &mut self.lifecycle
             && !lifecycle.pending.is_empty()
         {
-            let sequence = self
-                .sequence
-                .checked_add(1)
-                .ok_or_else(|| io::Error::other("gzweb sequence exhausted"))?;
+            let sequence = next_scene_sequence(self.sequence)?;
             lifecycle.apply(server, world, sequence, &mut self.assets)?;
         }
         Ok(())
@@ -481,10 +492,7 @@ impl Bridge {
         {
             return Ok(());
         }
-        self.sequence = self
-            .sequence
-            .checked_add(1)
-            .ok_or_else(|| io::Error::other("gzweb sequence exhausted"))?;
+        self.sequence = next_scene_sequence(self.sequence)?;
         let scene = match &self.assets {
             Some(assets) => snapshot::extract_with_assets(sim, world, self.sequence, Some(assets))?,
             None => snapshot::extract(sim, world, self.sequence)?,

@@ -74,7 +74,10 @@ fn real_native_browser_mutations_motion_reset_and_raw_outcomes_are_recorded_befo
         json!({"version":1,"kind":"control","request_id":5,"action":"reset"}),
     );
     assert_eq!(reset["ok"], true);
-    fixture.bridge.finish_recording().unwrap();
+    fixture
+        .bridge
+        .finish_recording(fixture.server.simulation(), "default")
+        .unwrap();
     let frames = super::super::recording::admitted_frames(&path).unwrap();
     assert_eq!(frames.len(), 6);
     assert_eq!(frames[0]["scene"]["epoch"], 0);
@@ -132,7 +135,9 @@ fn public_recording_constructor_preserves_native_state_and_refuses_existing_outp
         &path,
     )
     .unwrap();
-    bridge.finish_recording().unwrap();
+    bridge
+        .finish_recording(fixture.server.simulation(), "default")
+        .unwrap();
     drop(bridge);
     let frames = super::super::recording::admitted_frames(&path).unwrap();
     assert_eq!(frames.len(), 1);
@@ -155,4 +160,47 @@ fn public_recording_constructor_preserves_native_state_and_refuses_existing_outp
         super::super::recording::admitted_frames(&path).unwrap(),
         frames
     );
+}
+
+#[test]
+fn a_failed_final_snapshot_or_catalog_never_seals_an_earlier_cut() {
+    for condition in ["sequence", "world", "model"] {
+        let fixture = Fixture::new(true);
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("unsealed");
+        let mut sim = fixture.server.into_simulation();
+        let mut bridge = Bridge::new_recording(&sim, "default", 0, &fixture.sdf, &path).unwrap();
+        if condition == "sequence" {
+            bridge.sequence = u64::MAX;
+            bridge.connected.store(1, Ordering::Release);
+            assert!(bridge.publish(&sim, "default", Vec::new()).is_err());
+        }
+        if condition == "model" {
+            let model = sim
+                .world()
+                .iter_entities()
+                .find(|entity| {
+                    entity.get::<gz_sim_scene::EntityKind>()
+                        == Some(&gz_sim_scene::EntityKind::Model)
+                })
+                .unwrap()
+                .id();
+            sim.world_mut()
+                .entity_mut(model)
+                .remove::<gz_sim_scene::Name>();
+        }
+        let world = if condition == "world" {
+            "x".repeat(257)
+        } else {
+            "default".into()
+        };
+        assert!(
+            bridge.finish_recording(&sim, &world).is_err(),
+            "{condition}"
+        );
+        assert!(
+            super::super::recording::admitted_frames(&path).is_err(),
+            "{condition}"
+        );
+    }
 }

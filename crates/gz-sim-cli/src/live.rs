@@ -427,7 +427,7 @@ fn run_session(
         termination.wait_until(deadline);
     }
     if let Some(viewer) = &mut viewer {
-        viewer.finish_recording()?;
+        viewer.finish_recording(runtime.server().simulation(), world)?;
     }
     Ok((runtime.into_simulation(), completed))
 }

@@ -62,7 +62,13 @@ impl Capture {
         self.previous = key;
         Ok(())
     }
-    pub fn finish(self) -> io::Result<()> {
+    pub fn finish(mut self, scene: &Scene, catalog: &Catalog) -> io::Result<()> {
+        let final_key = (scene.recording_key()?, catalog.recording_key()?);
+        if final_key != self.previous {
+            // Physics has finished. Let a full writer queue drain before sealing the archive.
+            self.recorder
+                .submit_offline(snapshot::encode(scene)?, catalog.replay_encode()?)?;
+        }
         self.recorder.finish()
     }
 }
