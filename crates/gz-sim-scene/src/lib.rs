@@ -87,7 +87,7 @@ mod noise;
 pub use joints::{
     BallJointSample, JointDefinition, JointHandle, JointSample, UniversalJointSample,
 };
-pub use local_replay::load_local_replay_world;
+pub use local_replay::{load_local_replay_world, load_local_replay_world_with_runtime};
 
 mod inputs;
 pub use inputs::{

@@ -1091,3 +1091,43 @@ fn curved_deliveries_keep_their_authored_collision_response_and_repeat_after_res
         record(&rows, 0, 0)["entities"]
     );
 }
+
+#[test]
+fn contact_solver_selection_is_part_of_the_verified_execution_profile() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let world = file(
+        dir,
+        "parts.sdf",
+        include_str!("../../../examples/worlds/local_curved_delivery.sdf"),
+    );
+    let commands = file(
+        dir,
+        "delivery.json",
+        include_str!("../../../examples/replay/curved_delivery.json"),
+    );
+    let trace = dir.join("per-point.trace");
+    let trace = trace.to_str().unwrap();
+    success(run(
+        &world,
+        &commands,
+        &["--rapier-per-point-friction", "--trace", trace],
+    ));
+    success(run(
+        &world,
+        &commands,
+        &[
+            "--rapier-per-point-friction",
+            "--verify",
+            trace,
+            "--threads",
+            "8",
+        ],
+    ));
+    let mismatch = run(&world, &commands, &["--verify", trace]);
+    assert!(!mismatch.status.success());
+    assert!(String::from_utf8_lossy(&mismatch.stderr).contains("line 1"));
+    let first: Value =
+        serde_json::from_str(fs::read_to_string(trace).unwrap().lines().next().unwrap()).unwrap();
+    assert_eq!(first["rapier_per_point_friction"], true);
+}

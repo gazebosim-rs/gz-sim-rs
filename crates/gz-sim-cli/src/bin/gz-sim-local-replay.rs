@@ -39,6 +39,9 @@ struct Args {
     /// Save every Nth advancing step (default 10). Lifecycle and final frames are always saved.
     #[arg(long, requires = "record", value_parser = clap::value_parser!(u64).range(1..))]
     record_every: Option<u64>,
+    /// Use one Coulomb friction constraint per rigid contact point.
+    #[arg(long)]
+    rapier_per_point_friction: bool,
     /// Host compute-pool size; the authoritative local CPU solve is serial.
     #[arg(long, default_value_t=1, value_parser=clap::value_parser!(u8).range(1..=64))]
     threads: u8,
@@ -294,7 +297,17 @@ fn run(args: Args) -> Result<()> {
         return Err("exactly one inline SDF world is required".into());
     };
     let seed = Sha256::digest(journal.seed.as_bytes()).into();
-    let mut sim = gz_sim_scene::load_local_replay_world(&xml, &source, &world.name, seed)?;
+    let runtime = gz_sim_scene::WorldRuntimeOptions {
+        rapier_per_point_friction: args.rapier_per_point_friction,
+        ..Default::default()
+    };
+    let mut sim = gz_sim_scene::load_local_replay_world_with_runtime(
+        &xml,
+        &source,
+        &world.name,
+        seed,
+        runtime,
+    )?;
     sim.set_paused(true);
     let mut sink = Sink {
         output: match &args.trace {
@@ -310,13 +323,17 @@ fn run(args: Args) -> Result<()> {
             .map(|f| BufReader::new(f).lines()),
         line: 0,
     };
-    sink.emit(&serde_json::json!({
+    let mut profile = serde_json::json!({
         "profile": "local-cpu-v1", "binary_sha256": build_id()?, "platform": "linux-x86_64", "cpu": cpu_id()?,
         "cargo_lock_sha256": digest(include_bytes!("../../../../Cargo.lock")), "package": env!("CARGO_PKG_VERSION"),
         "numerics": "native serial Rapier f64/enhanced-determinism", "compiled_gpu_batch": cfg!(feature="gpu-batch"),
         "compiled_distributed": cfg!(feature="distributed-physics"), "world_sha256": digest(&xml), "journal_sha256": digest(&bytes),
         "seed": journal.seed, "step_ns": sim.step_duration().as_nanos()
-    }))?;
+    });
+    if args.rapier_per_point_friction {
+        profile["rapier_per_point_friction"] = true.into();
+    }
+    sink.emit(&profile)?;
     let record_every = args.record_every.unwrap_or(10);
     let mut capture = if let Some(path) = args.record {
         Some(Capture {

@@ -10,6 +10,17 @@ pub fn load_local_replay_world(
     world: &str,
     seed: [u8; 32],
 ) -> Result<Simulation, LoadError> {
+    load_local_replay_world_with_runtime(xml, source, world, seed, WorldRuntimeOptions::default())
+}
+
+/// Construct the seeded local replay world with the application's native solver settings.
+pub fn load_local_replay_world_with_runtime(
+    xml: &str,
+    source: &str,
+    world: &str,
+    seed: [u8; 32],
+    runtime: WorldRuntimeOptions<'_>,
+) -> Result<Simulation, LoadError> {
     let mut sim = load_world_with_automatic_owner(
         xml,
         source,
@@ -21,7 +32,7 @@ pub fn load_local_replay_world(
             noise_seed: seed,
             distributed_worker: None,
         },
-        WorldRuntimeOptions::default(),
+        runtime,
         None,
         true,
         #[cfg(feature = "distributed-physics")]
