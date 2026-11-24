@@ -2269,3 +2269,7 @@ A disposable Ubuntu 24.04 instance restored ten intentionally removed packages, 
 ## 2026-11-23 — Read the floor load on each local cloth or cable particle
 
 An SDF material can now publish the normal and friction impulses each particle puts on the floor. Across 1,500 particle readings the worst discrepancy from independent momentum accounting was 5.55 × 10⁻¹⁷ N·s. Removing a separate support, resetting the world and subdividing a public tick preserved the floor identity and integrated readings. Both changed production crates exceeded 98% line and region coverage. [Measurement, portable recording and gz-web-rs replay](measurements/local-manipulation/local-floor-impulses.md)
+
+## 2026-11-23 — The closed gripper tips the folded sheet before release
+
+Both resolutions put the same corner down near 2.521 s and pressed the 8.4 g sheet onto the table with about 1.23 N on average. When the sheet lifted again, the two runs already had opposite spin. A simultaneous hinge-damping trial gave 0.331 mm disagreement versus 0.328 mm with the existing law. Moving the entire experiment by 25 cm changed the trajectory by less than 1 µm. The original solver remains in use. [Measurements, controls and three native replays](measurements/local-manipulation/cloth-preload-study.md)
