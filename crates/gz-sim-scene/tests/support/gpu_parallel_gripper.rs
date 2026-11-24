@@ -13,14 +13,14 @@ fn unsupported_mechanisms_do_not_silently_select_another_backend() {
         (
             "profile=\"parallel-gripper\"",
             "profile=\"parallel-gripper\" extra=\"x\"",
-            "three-model",
+            "independent gripper world",
         ),
         (
             "0.001</max_step_size>",
             "0.002</max_step_size>",
-            "three-model",
+            "independent gripper world",
         ),
-        ("0 0 -9.81", "0.1 0 -9.81", "three-model"),
+        ("0 0 -9.81", "0.1 0 -9.81", "independent gripper world"),
         ("model=\"gripper\"", "model=\"absent\"", "unknown gripper"),
         ("object=\"parcel\"", "object=\"table\"", "free solid sphere"),
         ("left=\"left_slider\"", "left=\"unknown\"", "unknown slider"),
@@ -189,4 +189,145 @@ fn loaded_gripper_lifts_without_ground_releases_and_repeats() {
     assert!(sim.step_exact(1).is_err());
     assert!(matches!(read(&sim, 12), Err(GpuError::StaleBoundary)));
     assert!(command(&mut sim, 12, [0.; 3]).is_err());
+}
+
+#[path = "../../examples/support/gripper_population.rs"]
+mod population;
+
+#[test]
+fn independent_grippers_require_disjoint_geometry_and_unique_owners() {
+    let base = population::xml(2);
+    for (a, b, want) in [
+        (
+            "id=\"1\" profile",
+            "id=\"0\" profile",
+            "duplicate gripper environment id",
+        ),
+        ("0.16 0.08 ", "0.16 0.01 ", "disjoint lateral swept volumes"),
+        (
+            "object=\"parcel_0001\"",
+            "object=\"parcel_0000\"",
+            "duplicate gripper or sphere ownership",
+        ),
+        (
+            "model=\"gripper_0001\"",
+            "model=\"gripper_0000\"",
+            "duplicate gripper or sphere ownership",
+        ),
+        (
+            "plane=\"table::base\"",
+            "plane=\"table::other\"",
+            "shared table",
+        ),
+    ] {
+        let s = base.replace(a, b);
+        assert_ne!(s, base);
+        let err = load(&s, Some("absent adapter")).err().unwrap().to_string();
+        assert!(err.contains(want), "{a}: {err}");
+    }
+}
+#[test]
+#[ignore = "requires named f64 Vulkan adapter"]
+fn distinct_grippers_publish_all_joints_and_target_only_the_named_environment() {
+    use gz_sim_scene::{
+        JointStateSample,
+        gpu_scene::parallel_gripper::{observations, set_population_targets},
+    };
+    let mut sim = load(
+        &population::xml(12),
+        Some(&std::env::var("GZ_GPU_ADAPTER").unwrap()),
+    )
+    .unwrap();
+    assert_eq!(execution_counts(&sim), Some((0, 12)));
+    assert!(matches!(
+        command(&mut sim, 99, [0.; 3]),
+        Err(GpuError::UnknownEnvironment(99))
+    ));
+    let original: Vec<_> = observations(&sim).unwrap().map(|(_, l)| l.target).collect();
+    assert!(matches!(
+        set_population_targets(&mut sim, &[]),
+        Err(GpuError::GripperActionCount { .. })
+    ));
+    let mut commands = vec![[0., 0., 0.]; 12];
+    commands[11][0] = f64::NAN;
+    assert!(matches!(
+        set_population_targets(&mut sim, &commands),
+        Err(GpuError::InvalidArmTarget(11))
+    ));
+    assert_eq!(
+        original,
+        observations(&sim)
+            .unwrap()
+            .map(|(_, l)| l.target)
+            .collect::<Vec<_>>()
+    );
+    commands[11][0] = 0.;
+    set_population_targets(&mut sim, &commands).unwrap();
+    command(&mut sim, 2, [0.06, 0., 0.]).unwrap();
+    for _ in 0..12 {
+        sim.step_exact(1).unwrap();
+    }
+    let rows: Vec<_> = observations(&sim).unwrap().collect();
+    for (i, (id, l)) in rows.iter().enumerate() {
+        assert_eq!(*id, i as u64);
+        if i == 2 {
+            assert!(l.position[0] > 0.029);
+        } else {
+            assert_eq!(l.position[0], 0.028);
+        }
+    }
+    let sensors: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter_map(|e| e.get::<JointStateSample>())
+        .collect();
+    assert_eq!(sensors.len(), 12);
+    assert!(
+        sensors
+            .iter()
+            .all(|s| s.joints.len() == 3 && s.time.as_millis() == 12)
+    );
+    let extra = sim.world_mut().spawn(gz_sim_scene::EntityKind::Joint).id();
+    assert!(matches!(
+        set_population_targets(&mut sim, &commands),
+        Err(GpuError::StaleBoundary)
+    ));
+    assert!(matches!(observations(&sim), Err(GpuError::StaleBoundary)));
+    sim.world_mut().despawn(extra);
+}
+
+#[test]
+#[ignore = "requires named f64 Vulkan adapter"]
+fn streamed_actions_reproduce_the_authored_load_and_release_at_every_tick() {
+    use gz_sim_scene::gpu_scene::parallel_gripper::{observations, set_population_targets};
+    let xml = population::xml(8);
+    let name = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut scheduled = load(&xml, Some(&name)).unwrap();
+    let mut reversed = population::streamed(&xml);
+    let nodes: Vec<_> = roxmltree::Document::parse(&reversed)
+        .unwrap()
+        .descendants()
+        .filter(|n| n.has_tag_name("environment"))
+        .map(|n| n.range())
+        .collect();
+    let order: String = nodes.iter().rev().map(|r| &reversed[r.clone()]).collect();
+    reversed.replace_range(nodes[0].start..nodes.last().unwrap().end, &order);
+    let mut live = load(&reversed, Some(&name)).unwrap();
+    for tick in 1..=1000 {
+        let actions: [_; 8] = std::array::from_fn(|i| population::action(i, tick));
+        set_population_targets(&mut live, &actions).unwrap();
+        scheduled.step_exact(1).unwrap();
+        live.step_exact(1).unwrap();
+        for ((a, l), (b, r)) in observations(&scheduled)
+            .unwrap()
+            .zip(observations(&live).unwrap())
+        {
+            assert_eq!(a, b);
+            assert_eq!(l.position, r.position);
+            assert_eq!(l.ball, r.ball);
+            assert_eq!(l.speed, r.speed);
+            assert_eq!(l.normal_impulse, r.normal_impulse);
+            assert_eq!(l.tangent_impulse, r.tangent_impulse);
+        }
+    }
 }

@@ -15,6 +15,7 @@ fn metadata() -> JointStatePublication {
         model_name: "arm".into(),
         topic: "/m18/joint_state".into(),
         joints: vec![JointStateJointPublication {
+            kind: gz_sim_scene::JointStateKind::Revolute,
             id: 11,
             name: "hinge".into(),
             parent: "base".into(),
@@ -1241,4 +1242,20 @@ fn paired_channels_cannot_alias_each_other_after_remapping_before_world_io() {
     assert_eq!(prepared.len(), 2);
     assert!(prepared.contains_key(&active.network_config.topic_key("/chosen/dynamic").unwrap()));
     assert!(prepared.contains_key(&active.network_config.topic_key("/chosen/static").unwrap()));
+}
+
+#[test]
+fn slider_packets_retain_prismatic_type_and_meter_coordinates() {
+    let mut m = metadata();
+    m.joints[0].kind = gz_sim_scene::JointStateKind::Prismatic;
+    let state = sample();
+    let msg = packet(&m, 7, &state).unwrap();
+    assert_eq!(
+        msg.joint[0].r#type,
+        gz_sim_proto::msgs::joint::Type::Prismatic as i32
+    );
+    assert_eq!(
+        msg.joint[0].axis1.as_ref().unwrap().position,
+        state.joints[0].position
+    );
 }

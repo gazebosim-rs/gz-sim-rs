@@ -39,6 +39,9 @@ const WIDTH: usize = 52;
 const _: () = assert!(size_of::<ParallelGripperLane>() == 8 * WIDTH);
 pub type ParallelGripperBatch = ResidentBatch<ParallelGripperLane>;
 impl ParallelGripperLane {
+    fn accepts_target(&self, target: [f64; 3]) -> bool {
+        (0..3).all(|i| (self.lower[i]..=self.upper[i]).contains(&target[i]))
+    }
     pub fn valid(self) -> bool {
         let finite = bytemuck::cast_ref::<_, [f64; WIDTH]>(&self)
             .iter()
@@ -103,10 +106,34 @@ impl ParallelGripperBatch {
             .committed
             .get_mut(index)
             .ok_or(GpuError::InvalidArmTarget(index))?;
-        if !(0..3).all(|i| (l.lower[i]..=l.upper[i]).contains(&target[i])) {
+        if !l.accepts_target(target) {
             return Err(GpuError::InvalidArmTarget(index));
         }
         l.target = target;
+        self.upload_needed = true;
+        Ok(())
+    }
+    /// Install displacements from each initial slider pose in physical row order.
+    /// A malformed action leaves all previously accepted targets intact.
+    pub fn set_displacements(&mut self, actions: &[[f64; 3]]) -> Result<(), GpuError> {
+        if actions.len() != self.committed.len() {
+            return Err(GpuError::GripperActionCount {
+                expected: self.committed.len(),
+                actual: actions.len(),
+            });
+        }
+        let absolute = |lane: &ParallelGripperLane, delta: &[f64; 3]| {
+            std::array::from_fn(|j| lane.position[j] + delta[j])
+        };
+        for (index, (lane, delta)) in self.initial.iter().zip(actions).enumerate() {
+            if !lane.accepts_target(absolute(lane, delta)) {
+                return Err(GpuError::InvalidArmTarget(index));
+            }
+        }
+        for ((current, initial), delta) in self.committed.iter_mut().zip(&self.initial).zip(actions)
+        {
+            current.target = absolute(initial, delta);
+        }
         self.upload_needed = true;
         Ok(())
     }

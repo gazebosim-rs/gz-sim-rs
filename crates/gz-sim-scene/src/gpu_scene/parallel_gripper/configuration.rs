@@ -32,8 +32,12 @@ fn plain(l: &sdformat::Link) -> bool {
 }
 pub(crate) struct Plan {
     pub(super) adapter: String,
-    pub(super) id: u64,
     pub(super) floor: String,
+    pub(super) rows: Vec<Row>,
+}
+pub(super) struct Row {
+    pub(super) id: u64,
+    half_width: f64,
     pub(super) lane: ParallelGripperLane,
     pub(super) links: [String; 4],
     pub(super) poses: [Transform; 4],
@@ -53,50 +57,99 @@ impl Plan {
             .filter(|s| !s.trim().is_empty())
             .ok_or_else(|| reason("select hardware with --gpu-adapter NAME"))?;
         let nodes: Vec<_> = root.children().filter(Node::is_element).collect();
-        let [env] = nodes.as_slice() else {
-            return Err(reason("one gripper environment per SDF world"));
-        };
         require(
-            config::shape(root, &["name", "filename"], true)
-                && config::shape(
-                    *env,
-                    &[
-                        "id", "profile", "model", "object", "plane", "lift", "left", "right",
-                    ],
-                    true,
-                )
-                && w.models.len() == 3
+            !nodes.is_empty()
+                && config::shape(root, &["name", "filename"], true)
+                && w.models.len() == 2 * nodes.len() + 1
                 && w.joints.is_empty()
                 && dt == gz_physics_gpu::STEP
                 && w.gravity[0] == 0.
                 && w.gravity[1] == 0.
                 && w.gravity[2] <= 0.,
             &w.name,
-            "three-model gripper world, vertical gravity and a 1 ms clock",
+            "independent gripper world, vertical gravity and a 1 ms clock",
         )?;
-        let id = attr(*env, "id")?
-            .parse()
-            .map_err(|_| reason("invalid environment id"))?;
-        let model = |name: &str| {
-            w.models
-                .iter()
-                .find(|m| m.name == name)
-                .ok_or_else(|| reason("unknown gripper or sphere model"))
-        };
-        let m = model(attr(*env, "model")?)?;
-        let obj = model(attr(*env, "object")?)?;
         let mut floors = w.models.iter().filter(|m| m.is_static);
         let f = floors.next().ok_or_else(|| reason("missing table"))?;
-        let (floor, ground, floor_mu) = planar_tool_config::plane(sdf, w, f)?;
         require(
-            floors.next().is_none()
-                && floor == format!("{}::{}", w.name, attr(*env, "plane")?)
-                && m.name != obj.name
-                && !m.is_static
+            floors.next().is_none(),
+            &w.name,
+            "one static table required",
+        )?;
+        let (floor, ground, floor_mu) = planar_tool_config::plane(sdf, w, f)?;
+        let models: BTreeMap<_, _> = w.models.iter().map(|m| (m.name.as_str(), m)).collect();
+        let mut claimed = BTreeSet::new();
+        let mut rows = BTreeMap::new();
+        let mut strips = Vec::with_capacity(nodes.len());
+        for env in nodes {
+            require(
+                env.has_tag_name("environment")
+                    && config::shape(
+                        env,
+                        &[
+                            "id", "profile", "model", "object", "plane", "lift", "left", "right",
+                        ],
+                        true,
+                    )
+                    && env.attribute("profile") == Some("parallel-gripper")
+                    && format!("{}::{}", w.name, attr(env, "plane")?) == floor,
+                &w.name,
+                "independent gripper world needs a named profile and shared table",
+            )?;
+            let model = |k: &str| {
+                models
+                    .get(attr(env, k)?)
+                    .copied()
+                    .ok_or_else(|| reason("unknown gripper or sphere model"))
+            };
+            let m = model("model")?;
+            let obj = model("object")?;
+            require(
+                claimed.insert(&m.name) && claimed.insert(&obj.name),
+                &m.name,
+                "duplicate gripper or sphere ownership",
+            )?;
+            let row = Row::load(sdf, w, env, m, obj, ground, floor_mu)?;
+            let y = row.poses[3].translation[1];
+            strips.push((y - row.half_width, y + row.half_width));
+            require(
+                rows.insert(row.id, row).is_none(),
+                &m.name,
+                "duplicate gripper environment id",
+            )?;
+        }
+        strips.sort_by(|a, b| a.0.total_cmp(&b.0));
+        require(
+            strips.windows(2).all(|w| w[0].1 < w[1].0),
+            &w.name,
+            "gripper environments require disjoint lateral swept volumes",
+        )?;
+        Ok(Self {
+            adapter: adapter.to_owned(),
+            floor,
+            rows: rows.into_values().collect(),
+        })
+    }
+}
+impl Row {
+    fn load(
+        sdf: &sdformat::Sdf,
+        w: &sdformat::World,
+        env: Node<'_, '_>,
+        m: &sdformat::Model,
+        obj: &sdformat::Model,
+        ground: f64,
+        floor_mu: f64,
+    ) -> Result<Self, LoadError> {
+        let id = attr(env, "id")?
+            .parse()
+            .map_err(|_| reason("invalid environment id"))?;
+        require(
+            !m.is_static
                 && m.joints.len() == 3
                 && m.links.len() == 3
                 && m.models.is_empty()
-                && m.plugins.is_empty()
+                && m.plugins.iter().all(joint_state_publisher::is_plugin)
                 && !m.enable_wind
                 && !m.self_collide
                 && m.raw_namespace.is_none(),
@@ -115,7 +168,7 @@ impl Plan {
             "ordinary dynamic sphere with gravity and no sensors required",
         )?;
         let joint = |key: &str| -> Result<&sdformat::Joint, LoadError> {
-            let name = attr(*env, key)?;
+            let name = attr(env, key)?;
             m.joints
                 .iter()
                 .find(|j| j.name == name)
@@ -186,6 +239,7 @@ impl Plan {
             upper: [0.; 3],
         };
         let mut local = [Transform::default(); 3];
+        let mut half_width = ball.radius;
         for i in 0..3 {
             let j = joints[i];
             let l = links[i];
@@ -243,6 +297,7 @@ impl Plan {
                     &l.name,
                     "centered finite pad covering the sphere's width required",
                 )?;
+                half_width = half_width.max(size[1] * 0.5);
                 lane.half_size[i - 1] = [size[0] * 0.5, size[2] * 0.5];
                 lane.friction[i - 1] = ball_mu.min(planar_tool_config::law(c)?);
             }
@@ -291,9 +346,8 @@ impl Plan {
             "invalid drive or gripper geometry, initial contact or travel envelope",
         )?;
         Ok(Self {
-            adapter: adapter.into(),
             id,
-            floor,
+            half_width,
             lane,
             links: names,
             poses,

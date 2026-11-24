@@ -77,7 +77,12 @@ fn packet(
         if joint.id != value.id || !value.position.is_finite() || !value.velocity.is_finite() {
             return None;
         }
+        let kind = match joint.kind {
+            gz_sim_scene::JointStateKind::Revolute => gz_sim_proto::msgs::joint::Type::Revolute,
+            gz_sim_scene::JointStateKind::Prismatic => gz_sim_proto::msgs::joint::Type::Prismatic,
+        };
         joints.push(Joint {
+            r#type: kind as i32,
             id: wire_id(joint.id)?,
             name: joint.name.clone(),
             parent: joint.parent.clone(),

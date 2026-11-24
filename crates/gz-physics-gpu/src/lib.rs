@@ -169,6 +169,8 @@ pub enum GpuError {
     EmptyBatch,
     #[error("initial lane {0} violates the fixture's numeric or geometry bounds")]
     InvalidLane(usize),
+    #[error("expected {expected} gripper actions, received {actual}")]
+    GripperActionCount { expected: usize, actual: usize },
     #[error("unknown arm lane or nonfinite servo target for lane {0}")]
     InvalidArmTarget(usize),
     #[error("unknown free sphere or invalid center impulse in lane {0}")]

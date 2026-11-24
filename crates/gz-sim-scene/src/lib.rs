@@ -44,7 +44,8 @@ pub use joint_controller::{
     set_joint_position_response_period,
 };
 pub use joint_state_publisher::{
-    JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
+    JointStateJointPublication, JointStateKind, JointStatePublication, JointStateSample,
+    JointStateValue,
 };
 pub use odometry_publisher::{
     GroundTruthOdometryDimensions, GroundTruthOdometryError, GroundTruthOdometryNoise,
@@ -1119,13 +1120,20 @@ fn load_world_with_automatic_owner(
         if gpu_tool_scene {
             for model in &world.models {
                 if let Some(plan) = joint_state_publisher::parse(model)? {
+                    let member = context.links[&model.links[0].scoped_name];
+                    let entity =
+                        gz_sim_core::entity_by_id(sim.world(), member).expect("loaded GPU link");
                     let model_entity = sim
                         .world()
-                        .iter_entities()
-                        .find(|e| e.get::<Name>().is_some_and(|n| n.0 == model.scoped_name))
-                        .expect("loaded model")
-                        .id();
-                    plan.validate(model, &sim, Some("gpu-planar"), (true, model.is_static))?;
+                        .get::<ChildOf>(entity)
+                        .expect("loaded GPU model")
+                        .parent();
+                    let engine = if gpu_scene::parallel_gripper::registered(sim.world()) {
+                        "gpu-gripper"
+                    } else {
+                        "gpu-planar"
+                    };
+                    plan.validate(model, &sim, Some(engine), (true, model.is_static))?;
                     joint_state_publisher::build(&sdf, &mut sim, model, model_entity, None, &plan)?;
                 }
             }

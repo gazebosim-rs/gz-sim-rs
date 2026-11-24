@@ -444,6 +444,7 @@ fn configuration(value: &native::NativeConfiguration) -> JointStatePublication {
         );
         if joint.selected {
             joints.push(JointStateJointPublication {
+                kind: gz_sim_scene::JointStateKind::Revolute,
                 id: joint.entity,
                 name: joint.name.into(),
                 parent: joint.parent_link.into(),

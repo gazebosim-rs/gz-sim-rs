@@ -77,3 +77,7 @@ required-features = ["gpu-batch"]
 [[example]]
 name = "gpu_sdf_tool"
 required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_gripper_population"
+required-features = ["gpu-batch"]

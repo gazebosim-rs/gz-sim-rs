@@ -13,9 +13,17 @@ pub struct JointStatePublication {
     pub joints: Vec<JointStateJointPublication>,
 }
 
+/// Single-axis joints supported by the built-in state publisher.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum JointStateKind {
+    Revolute,
+    Prismatic,
+}
+
 /// Native joint pose is construction pose relative to the child, not world pose.
 #[derive(Clone, Debug, PartialEq)]
 pub struct JointStateJointPublication {
+    pub kind: JointStateKind,
     pub id: u64,
     pub name: String,
     pub parent: String,
@@ -196,7 +204,7 @@ impl Plan {
         placement: (bool, bool),
     ) -> Result<(), LoadError> {
         require(
-            matches!(engine, Some("rapier" | "gpu-planar"))
+            matches!(engine, Some("rapier" | "gpu-planar" | "gpu-gripper"))
                 && placement.0
                 && !placement.1
                 && model.models.is_empty()
@@ -205,17 +213,24 @@ impl Plan {
             "joint-state requires a supported top-level dynamic model",
         )?;
         require(
-            sim.world()
-                .iter_entities()
-                .filter(|e| e.contains::<Publisher>())
-                .count()
-                < 8,
+            engine == Some("gpu-gripper")
+                || sim
+                    .world()
+                    .iter_entities()
+                    .filter(|e| e.contains::<Publisher>())
+                    .count()
+                    < 8,
             &model.scoped_name,
             "multiple joint-state models",
         )?;
         require(
             model.joints.iter().all(|j| {
-                j.kind == sdformat::JointKind::Revolute
+                j.kind
+                    == if engine == Some("gpu-gripper") {
+                        sdformat::JointKind::Prismatic
+                    } else {
+                        sdformat::JointKind::Revolute
+                    }
                     && j.axis.is_some()
                     && j.axis2.is_none()
                     && (j.parent == "world" || model.links.iter().any(|link| link.name == j.parent))
@@ -240,7 +255,10 @@ pub(super) fn build(
         let scoped = format!("{}::{name}", model.scoped_name);
         let node = sim
             .world()
-            .iter_entities()
+            .get::<Children>(model_entity)
+            .into_iter()
+            .flat_map(|children| children.iter())
+            .filter_map(|child| sim.world().get_entity(child).ok())
             .find(|node| node.get::<Name>().is_some_and(|n| n.0 == scoped))
             .ok_or_else(|| invalid(model, "missing joint-state joint"))?;
         require(
@@ -270,6 +288,11 @@ pub(super) fn build(
             .expect("plan checked joint name");
         let axis = joint.axis.as_ref().expect("validated revolute axis");
         metadata.push(JointStateJointPublication {
+            kind: if joint.kind == sdformat::JointKind::Prismatic {
+                JointStateKind::Prismatic
+            } else {
+                JointStateKind::Revolute
+            },
             id: node.get::<EntityId>().expect("loaded joint identity").get(),
             name: name.clone(),
             parent: joint.parent.clone(),
@@ -403,6 +426,7 @@ fn sample(world: &mut World) {
         .filter(|e| e.contains::<Publisher>())
         .map(|e| e.id())
         .collect();
+    let mut checked_bindings = None;
     for entity in models {
         let publisher = world.get::<Publisher>(entity).expect("selected publisher");
         let suppressed = publisher
@@ -412,7 +436,7 @@ fn sample(world: &mut World) {
         if suppressed {
             continue;
         }
-        let value = if joints::bindings_valid(world) {
+        let value = if *checked_bindings.get_or_insert_with(|| joints::bindings_valid(world)) {
             reading(world, entity, publisher, time)
         } else {
             None
