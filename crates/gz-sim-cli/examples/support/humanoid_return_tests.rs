@@ -6,6 +6,9 @@ use gz_physics::DynamicBackend;
 use gz_sim_scene::distributed_hinge::GroundedRobotPool;
 use std::{fs, path::Path, process::Command};
 
+#[path = "humanoid_return_cli.rs"]
+mod returned_cli;
+
 fn verify_native(a: &Simulation, b: &Simulation, stand: &Stand) -> Result<()> {
     let here = a.world().resource::<PhysicsBackend>();
     let other = b.world().resource::<PhysicsBackend>();
@@ -173,12 +176,23 @@ fn loaded_robot_returns_to_native_fences_workers_and_recovers_held_input() -> Re
     assert!(
         load_returned_grounded_robot_world(&changed, "robot.sdf", "default", copy.path()).is_err()
     );
+    let cli = std::env::var_os("GZ_RETURN_LOCAL_CLI")
+        .map(|exe| returned_cli::RobotCli::new(exe, &released, &xml, &changed))
+        .transpose()?;
+    if let Some(cli) = &cli {
+        cli.check(&local, 0)?;
+    }
     let mut restored = reopen(copy.path())?;
     for tick in 3598..=4130 {
         for sim in [&mut local, &mut moved, &mut restored] {
             sim.step_exact(1)?;
         }
         record(&local, tick)?;
+        if let Some(cli) = &cli
+            && matches!(tick, 3598 | 3617 | 3820)
+        {
+            cli.check(&local, tick - 3597)?;
+        }
         verify_native(&local, &moved, &stand)?;
         verify_native(&local, &restored, &stand)?;
         if tick == 3820 {

@@ -151,7 +151,7 @@ fn run_cases(
     directory: &Path,
     label: &str,
     cases: &[impl AsRef<str>],
-    witness: Option<(&str, &Path)>,
+    inputs_env: &[(&str, &Path)],
 ) -> Result<u128> {
     let stdout = directory.join(format!("{label}.stdout"));
     let stderr = directory.join(format!("{label}.stderr"));
@@ -174,7 +174,7 @@ fn run_cases(
             "GZ_ROBOT_LOADED_CUT",
             inputs.join("grounded/push.gzgroundedrobot"),
         );
-    if let Some((key, path)) = witness {
+    for (key, path) in inputs_env {
         command.env(key, path);
     }
     let start = Instant::now();
@@ -226,13 +226,29 @@ fn real_worker_fixtures() -> Result<()> {
         let digest = sha256(&suite)?;
         let humanoid = source == "gz-sim-cli/examples/humanoid_stand.rs";
         let returned = directory.join("worker-returned-humanoid.gzgroundedrobot");
+        let cli = humanoid
+            .then(|| {
+                executable(
+                    &artifacts,
+                    &root.join("crates/gz-sim-cli/src/main.rs"),
+                    &target,
+                    false,
+                )
+            })
+            .transpose()?;
+        let input_env = cli.as_ref().map(|path| {
+            [
+                ("GZ_ROBOT_RETURN_WITNESS", returned.as_path()),
+                ("GZ_RETURN_LOCAL_CLI", path.as_path()),
+            ]
+        });
         let mut elapsed = run_cases(
             &suite,
             &worker,
             &directory,
             &label,
             &cases,
-            humanoid.then_some(("GZ_ROBOT_RETURN_WITNESS", returned.as_path())),
+            input_env.as_ref().map_or(&[][..], |vars| vars.as_slice()),
         )?;
         let mut cut_hash = None;
         if humanoid {
@@ -246,13 +262,16 @@ fn real_worker_fixtures() -> Result<()> {
                 &directory,
                 "worker-returned-humanoid",
                 &following,
-                Some(("GZ_ROBOT_RETURN_SOURCE", &returned)),
+                &[("GZ_ROBOT_RETURN_SOURCE", &returned)],
             )?;
             cases.extend(following.map(str::to_owned));
             elapsed += extra;
             cut_hash = Some(sha256(&returned)?);
         }
         let mut row = json!({"sha256":digest, "cases":cases, "milliseconds":elapsed});
+        if let Some(path) = cli {
+            row["local_cli_sha256"] = Value::from(sha256(&path)?);
+        }
         if let Some(hash) = cut_hash {
             row["returned_checkpoint_sha256"] = Value::from(hash);
         }
