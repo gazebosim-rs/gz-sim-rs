@@ -7,6 +7,10 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — Cloth on a translating turntable
+
+A rectangular turntable carried its inner cloth through a three-radian turn while the outer cloth slid off at 160 ms. Both material resolutions agreed on the release tick, with a maximum 0.060 mm difference in the outer trajectory. Measured deck forces and moments matched the cloth momentum balance through release. This uses axial rotation and one-way contact. A freely tipping support with two-way cloth loads remains open. [Measurements, tests, coverage and gz-web-rs playback](measurements/local-manipulation/cloth-turntable.md)
+
 ## 2026-11-23 — Cloth on a moving finite deck
 
 A deck moving at 0.4 m/s carried one 100 g sheet while a second slid off and fell. The sliding sheet lost its last measured support after 230 ms. While fully supported, it tracked the analytical solution within 0.037 mm. Reset reproduced both trajectories and the signed deck loads. A rotating or accelerating deck remains outside this straight-line qualification. [Measurements, coverage and native gz-web-rs replay](measurements/local-manipulation/cloth-conveyor.md)
