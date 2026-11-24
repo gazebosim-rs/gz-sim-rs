@@ -2247,3 +2247,7 @@ Two independently advanced sheets left the jaws 0.5 µs apart and reached the ta
 ## 2026-11-23 — A spherical wrist rests and wakes under load
 
 A balanced 2 kg hand entered the cheaper tier for 300 ticks and woke on the first commanded torque. Its largest positional difference from continuous dynamics was under 3 × 10⁻¹⁵ m. Reloading reproduced all 1,500 states. In a separate strike the first contact impulse and both post-impact readings matched exactly. The eligibility test also caught an inverted hand, an off-center descendant and a rotated slider that could move away from its stop. [Measurements, coverage and native replay](measurements/local-manipulation/hanging-ball-wrist.md)
+
+## 2026-11-23 — Combined release checks for the deterministic local robot candidate
+
+The frozen candidate passed 3,861 headless tests, 2,805 renderer tests and all eight additional physical qualification suites. Both strict release profiles missed the 95% coverage gate. The same binaries passed 65 physical RTX tests, taking GPU physics to 96.30% of lines and 95.57% of regions. The remaining local CLI and scene gaps, absent feature-specific sources and exact per-crate results are recorded in the [release measurements](measurements/local-manipulation/replay-release-gate.md).

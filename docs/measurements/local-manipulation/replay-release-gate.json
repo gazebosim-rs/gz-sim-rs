@@ -1,0 +1,1023 @@
+{
+  "candidate": "bdef251828799cf934b31adfbf48307379f636e7",
+  "tree": "918f017f3cc0b564045ecef12b012b95fbbef450",
+  "diff_base": "438b0afb6128951c2b7148a2d969231304fd356d",
+  "artifact_directory": "artifacts/local-implementation/integration-audit/gate-bdef25182879-dqltcOKl",
+  "profiles": {
+    "headless": {
+      "harnesses": 802,
+      "passed": 3861,
+      "failed": 0,
+      "ignored": 150,
+      "selected_physical_cases": 49,
+      "crates": {
+        "gz-assets": {
+          "counters": {
+            "lines": [
+              964,
+              1000
+            ],
+            "regions": [
+              1713,
+              1790
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-physics": {
+          "counters": {
+            "lines": [
+              16230,
+              16814
+            ],
+            "regions": [
+              27727,
+              28638
+            ]
+          },
+          "changed_lines": [
+            3,
+            3
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-physics-distributed": {
+          "counters": {
+            "lines": [
+              31779,
+              35689
+            ],
+            "regions": [
+              49525,
+              58366
+            ]
+          },
+          "changed_lines": [
+            55,
+            55
+          ],
+          "missing": [
+            "crates/gz-physics-distributed/src/barrier_trace.rs",
+            "crates/gz-physics-distributed/src/barrier_trace_sched.rs",
+            "crates/gz-physics-distributed/src/floating_tree/automatic/rotor.rs",
+            "crates/gz-physics-distributed/src/multi_sphere/timing.rs",
+            "crates/gz-physics-distributed/src/physics/partition/trace.rs"
+          ],
+          "syntax_proved": []
+        },
+        "gz-physics-multifidelity": {
+          "counters": {
+            "lines": [
+              1907,
+              1987
+            ],
+            "regions": [
+              1964,
+              2037
+            ]
+          },
+          "changed_lines": [
+            83,
+            83
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-physics-rapier": {
+          "counters": {
+            "lines": [
+              29102,
+              30355
+            ],
+            "regions": [
+              47952,
+              50345
+            ]
+          },
+          "changed_lines": [
+            1483,
+            1517
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-physics-tpe": {
+          "counters": {
+            "lines": [
+              220,
+              221
+            ],
+            "regions": [
+              310,
+              312
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-physics-xpbd": {
+          "counters": {
+            "lines": [
+              11065,
+              11490
+            ],
+            "regions": [
+              19362,
+              20096
+            ]
+          },
+          "changed_lines": [
+            1291,
+            1317
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-sensors": {
+          "counters": {
+            "lines": [
+              549,
+              554
+            ],
+            "regions": [
+              738,
+              745
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-sim-cli": {
+          "counters": {
+            "lines": [
+              7832,
+              8338
+            ],
+            "regions": [
+              13434,
+              14482
+            ]
+          },
+          "changed_lines": [
+            473,
+            477
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-sim-core": {
+          "counters": {
+            "lines": [
+              409,
+              417
+            ],
+            "regions": [
+              593,
+              610
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-sim-proto": {
+          "counters": {
+            "lines": [
+              189,
+              190
+            ],
+            "regions": [
+              329,
+              340
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": [
+            "crates/gz-sim-proto/src/lib.rs"
+          ]
+        },
+        "gz-sim-scene": {
+          "counters": {
+            "lines": [
+              28497,
+              30389
+            ],
+            "regions": [
+              43551,
+              47267
+            ]
+          },
+          "changed_lines": [
+            1789,
+            1848
+          ],
+          "missing": [
+            "crates/gz-sim-scene/src/gpu_scene/automatic/policy.rs",
+            "crates/gz-sim-scene/src/gpu_scene/automatic.rs",
+            "crates/gz-sim-scene/src/gpu_scene/config.rs",
+            "crates/gz-sim-scene/src/gpu_scene/planar_tool/population.rs",
+            "crates/gz-sim-scene/src/gpu_scene/planar_tool.rs",
+            "crates/gz-sim-scene/src/gpu_scene/planar_tool_config.rs",
+            "crates/gz-sim-scene/src/gpu_scene/resident.rs",
+            "crates/gz-sim-scene/src/gpu_scene.rs"
+          ],
+          "syntax_proved": []
+        },
+        "gz-sim-server": {
+          "counters": {
+            "lines": [
+              12412,
+              12807
+            ],
+            "regions": [
+              18399,
+              19297
+            ]
+          },
+          "changed_lines": [
+            22,
+            22
+          ],
+          "missing": [
+            "crates/gz-sim-server/src/gpu_control/placement.rs",
+            "crates/gz-sim-server/src/gpu_control.rs"
+          ],
+          "syntax_proved": []
+        }
+      },
+      "exit": 1
+    },
+    "renderer": {
+      "harnesses": 759,
+      "passed": 2805,
+      "failed": 0,
+      "ignored": 212,
+      "selected_physical_cases": 20,
+      "crates": {
+        "gz-camera-output": {
+          "counters": {
+            "lines": [
+              1674,
+              1698
+            ],
+            "regions": [
+              2314,
+              2398
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-physics-gpu": {
+          "counters": {
+            "lines": [
+              2226,
+              5858
+            ],
+            "regions": [
+              4064,
+              10002
+            ]
+          },
+          "changed_lines": [
+            532,
+            868
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-render-client": {
+          "counters": {
+            "lines": [
+              423,
+              431
+            ],
+            "regions": [
+              655,
+              670
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-render-frame": {
+          "counters": {
+            "lines": [
+              209,
+              213
+            ],
+            "regions": [
+              292,
+              296
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-render-protocol": {
+          "counters": {
+            "lines": [
+              182,
+              185
+            ],
+            "regions": [
+              274,
+              280
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-render-scene": {
+          "counters": {
+            "lines": [
+              346,
+              347
+            ],
+            "regions": [
+              425,
+              426
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-render-worker": {
+          "counters": {
+            "lines": [
+              570,
+              576
+            ],
+            "regions": [
+              686,
+              699
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-renderer": {
+          "counters": {
+            "lines": [
+              973,
+              993
+            ],
+            "regions": [
+              1207,
+              1251
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": [
+            "crates/gz-renderer/src/lib.rs"
+          ]
+        },
+        "gz-sim-cli": {
+          "counters": {
+            "lines": [
+              7837,
+              8343
+            ],
+            "regions": [
+              13437,
+              14485
+            ]
+          },
+          "changed_lines": [
+            477,
+            481
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-sim-core": {
+          "counters": {
+            "lines": [
+              415,
+              417
+            ],
+            "regions": [
+              599,
+              610
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": []
+        },
+        "gz-sim-proto": {
+          "counters": {
+            "lines": [
+              189,
+              190
+            ],
+            "regions": [
+              329,
+              340
+            ]
+          },
+          "changed_lines": [
+            0,
+            0
+          ],
+          "missing": [],
+          "syntax_proved": [
+            "crates/gz-sim-proto/src/lib.rs"
+          ]
+        },
+        "gz-sim-scene": {
+          "counters": {
+            "lines": [
+              29623,
+              32628
+            ],
+            "regions": [
+              45246,
+              50834
+            ]
+          },
+          "changed_lines": [
+            2315,
+            2824
+          ],
+          "missing": [],
+          "syntax_proved": []
+        }
+      },
+      "exit": 1
+    }
+  },
+  "hardware": {
+    "adapter": "NVIDIA GeForce RTX 5090, 595.99.02",
+    "passed": 65,
+    "target_count": 14,
+    "native_worker": {
+      "case": "stock_gpu_worker_flushes_the_last_contact_and_exits_on_input_eof",
+      "worker": "/review-scratch/gz-sim-index-h1jr2s2y/repo/target/coverage/debug/gz_pair_worker",
+      "sha256": "0b23579ea22af26ea307244f116a9919d69abd933931723a9a40e68763a1cb80",
+      "elf_build_id": "71f8c2c5095ff123b2a5cf6a9c21175d312c2df9",
+      "matched_raw": [
+        "3573230-8531803035565640339_0.profraw"
+      ]
+    },
+    "matched": {
+      "gpu_only_files": {
+        "crates/gz-sim-scene/src/gpu_scene.rs": {
+          "software": {
+            "regions": [
+              76,
+              554
+            ],
+            "lines": [
+              57,
+              369
+            ]
+          },
+          "combined": {
+            "regions": [
+              521,
+              554
+            ],
+            "lines": [
+              352,
+              369
+            ]
+          }
+        },
+        "crates/gz-sim-scene/src/gpu_scene/automatic.rs": {
+          "software": {
+            "regions": [
+              38,
+              352
+            ],
+            "lines": [
+              39,
+              233
+            ]
+          },
+          "combined": {
+            "regions": [
+              340,
+              352
+            ],
+            "lines": [
+              228,
+              233
+            ]
+          }
+        },
+        "crates/gz-sim-scene/src/gpu_scene/automatic/policy.rs": {
+          "software": {
+            "regions": [
+              160,
+              162
+            ],
+            "lines": [
+              122,
+              124
+            ]
+          },
+          "combined": {
+            "regions": [
+              161,
+              162
+            ],
+            "lines": [
+              123,
+              124
+            ]
+          }
+        },
+        "crates/gz-sim-scene/src/gpu_scene/config.rs": {
+          "software": {
+            "regions": [
+              692,
+              723
+            ],
+            "lines": [
+              463,
+              481
+            ]
+          },
+          "combined": {
+            "regions": [
+              697,
+              723
+            ],
+            "lines": [
+              469,
+              481
+            ]
+          }
+        },
+        "crates/gz-sim-scene/src/gpu_scene/planar_tool.rs": {
+          "software": {
+            "regions": [
+              15,
+              638
+            ],
+            "lines": [
+              9,
+              379
+            ]
+          },
+          "combined": {
+            "regions": [
+              591,
+              638
+            ],
+            "lines": [
+              360,
+              379
+            ]
+          }
+        },
+        "crates/gz-sim-scene/src/gpu_scene/planar_tool/population.rs": {
+          "software": {
+            "regions": [
+              7,
+              71
+            ],
+            "lines": [
+              5,
+              43
+            ]
+          },
+          "combined": {
+            "regions": [
+              62,
+              71
+            ],
+            "lines": [
+              37,
+              43
+            ]
+          }
+        },
+        "crates/gz-sim-scene/src/gpu_scene/planar_tool_config.rs": {
+          "software": {
+            "regions": [
+              744,
+              793
+            ],
+            "lines": [
+              432,
+              462
+            ]
+          },
+          "combined": {
+            "regions": [
+              763,
+              793
+            ],
+            "lines": [
+              459,
+              462
+            ]
+          }
+        },
+        "crates/gz-sim-scene/src/gpu_scene/resident.rs": {
+          "software": {
+            "regions": [
+              5,
+              171
+            ],
+            "lines": [
+              3,
+              100
+            ]
+          },
+          "combined": {
+            "regions": [
+              141,
+              171
+            ],
+            "lines": [
+              91,
+              100
+            ]
+          }
+        },
+        "crates/gz-sim-server/src/gpu_control.rs": {
+          "software": {
+            "regions": [
+              0,
+              157
+            ],
+            "lines": [
+              0,
+              125
+            ]
+          },
+          "combined": {
+            "regions": [
+              149,
+              157
+            ],
+            "lines": [
+              116,
+              125
+            ]
+          }
+        },
+        "crates/gz-sim-server/src/gpu_control/placement.rs": {
+          "software": {
+            "regions": [
+              0,
+              75
+            ],
+            "lines": [
+              0,
+              47
+            ]
+          },
+          "combined": {
+            "regions": [
+              73,
+              75
+            ],
+            "lines": [
+              46,
+              47
+            ]
+          }
+        }
+      },
+      "binaries": 794,
+      "extra_raw": 34,
+      "unchanged_source_files": 209,
+      "strict_profile": "software renderer, reported independently",
+      "counts_software_hardware_total": {
+        "gz-camera-output": {
+          "regions": [
+            2314,
+            2314,
+            2398
+          ],
+          "lines": [
+            1674,
+            1674,
+            1698
+          ]
+        },
+        "gz-physics-gpu": {
+          "regions": [
+            4064,
+            9559,
+            10002
+          ],
+          "lines": [
+            2226,
+            5641,
+            5858
+          ]
+        },
+        "gz-render-client": {
+          "regions": [
+            655,
+            655,
+            670
+          ],
+          "lines": [
+            423,
+            423,
+            431
+          ]
+        },
+        "gz-render-frame": {
+          "regions": [
+            292,
+            292,
+            296
+          ],
+          "lines": [
+            209,
+            209,
+            213
+          ]
+        },
+        "gz-render-protocol": {
+          "regions": [
+            274,
+            274,
+            280
+          ],
+          "lines": [
+            182,
+            182,
+            185
+          ]
+        },
+        "gz-render-scene": {
+          "regions": [
+            425,
+            425,
+            426
+          ],
+          "lines": [
+            346,
+            346,
+            347
+          ]
+        },
+        "gz-render-worker": {
+          "regions": [
+            686,
+            686,
+            699
+          ],
+          "lines": [
+            570,
+            570,
+            576
+          ]
+        },
+        "gz-renderer": {
+          "regions": [
+            1207,
+            1207,
+            1251
+          ],
+          "lines": [
+            973,
+            973,
+            993
+          ]
+        },
+        "gz-sim-cli": {
+          "regions": [
+            13437,
+            13438,
+            14485
+          ],
+          "lines": [
+            7837,
+            7837,
+            8343
+          ]
+        },
+        "gz-sim-core": {
+          "regions": [
+            599,
+            600,
+            610
+          ],
+          "lines": [
+            415,
+            416,
+            417
+          ]
+        },
+        "gz-sim-proto": {
+          "regions": [
+            329,
+            329,
+            340
+          ],
+          "lines": [
+            189,
+            189,
+            190
+          ]
+        },
+        "gz-sim-scene": {
+          "regions": [
+            45246,
+            46855,
+            50834
+          ],
+          "lines": [
+            29623,
+            30645,
+            32628
+          ]
+        },
+        "gz-sim-server": {
+          "regions": [
+            0,
+            222,
+            232
+          ],
+          "lines": [
+            0,
+            162,
+            172
+          ]
+        }
+      }
+    },
+    "changed": {
+      "software": {
+        "gz-physics-gpu": [
+          532,
+          868
+        ],
+        "gz-sim-cli": [
+          477,
+          481
+        ],
+        "gz-sim-scene": [
+          2315,
+          2824
+        ]
+      },
+      "with_hardware": {
+        "gz-physics-gpu": [
+          866,
+          868
+        ],
+        "gz-sim-cli": [
+          477,
+          481
+        ],
+        "gz-sim-scene": [
+          2742,
+          2824
+        ]
+      }
+    }
+  },
+  "feature_trace": {
+    "features": [
+      "barrier-trace",
+      "lane-trace",
+      "sphere-pair-trace"
+    ],
+    "cases": [
+      [
+        "gz_physics_distributed",
+        "physics::partition::trace::tests::observed_threads_and_receipts_match_published_worlds"
+      ],
+      [
+        "barrier_trace",
+        "scoped_clocks_distinguish_reply_ready_from_collection"
+      ],
+      [
+        "multi_sphere_ownership",
+        "a_contact_on_the_first_tick_and_queued_cancellation_recover_exactly"
+      ]
+    ],
+    "timing_rows": 199,
+    "roles": [
+      "disk",
+      "rpc",
+      "submit",
+      "worker"
+    ],
+    "file_counts": {
+      "crates/gz-physics-distributed/src/barrier_trace.rs": {
+        "lines": [
+          115,
+          179
+        ],
+        "regions": [
+          166,
+          279
+        ]
+      },
+      "crates/gz-physics-distributed/src/barrier_trace_sched.rs": {
+        "lines": [
+          18,
+          18
+        ],
+        "regions": [
+          45,
+          58
+        ]
+      },
+      "crates/gz-physics-distributed/src/multi_sphere/timing.rs": {
+        "lines": [
+          61,
+          69
+        ],
+        "regions": [
+          82,
+          93
+        ]
+      },
+      "crates/gz-physics-distributed/src/physics/partition/trace.rs": {
+        "lines": [
+          130,
+          133
+        ],
+        "regions": [
+          222,
+          239
+        ]
+      }
+    }
+  },
+  "receipt_sha256": {
+    "before.txt": "98b3575c1373fd57a27574c4fb11f2e1846b5bd322ab485de7b687e70d277e39",
+    "after.txt": "0065258b3e67e0db803abac2f087cce296918edfa06992de3f3732a197b83952",
+    "gate-daemon.log": "ee06fca4fec674dd14fcce293b10151e787441950c8b89a8d03b884ed03be671",
+    "renderer-daemon.log": "535e9ba6eb664b96abd885bbeea1fa9e7cdb84304106746e5b5368435e0c41cd",
+    "renderer-daemon.status": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "headless-all-crates.json": "b8e8b44befe39f6e95bcec30b93dbdaa05ff32ca61244022de98f047521a1b3c",
+    "renderer-all-crates.json": "36079cd00ab44c8ee3b53c4aa7acab77aa5cb621973280a6fe78630d59e2a7e9",
+    "headless-scope.json": "3b9a3a236d50e327f07adc0430f42bf2b098c787d927aee807fd4e61a7e0559b",
+    "renderer-scope.json": "2a11d081f5d38f91b8b99fa6d2050c9c3893dc4a84c47a679d7cf6e0f6df55f0",
+    "profiles/headless/frozen-object-paths.json": "e0260fa1f2a0c0700cf182d79b88722722cffdb509c852fb4a5fd244cac598fe",
+    "profiles/renderer/bound-objects.json": "be4ac227a29a631694d8e5f9ff77eed68ea1606128788767b99698d5e7bb5d19",
+    "profiles/rapier-runtime/result.json": "2c777b7b85171cb7a2c443adae10319f9a1a307f7a4480f74765bacb6b25944c",
+    "profiles/headless/coverage.json": "f647ee028e15c8359baaacb93db921bfde1129c000db96252d6818d592af8331",
+    "profiles/renderer/coverage.json": "7c0437baefc71c9cdd7cb9e3d85d606e25e9648d21fb305108a960f8389ba96d",
+    "trace/receipt.json": "d7c46589f14c2be7e3bbfb41bb1c6f2a16b25174769c54c7de2f5be45af85f67",
+    "hardware/native-worker.json": "900abb82eddc2ef990dce783f17570f5cc651e65f876fbe0dc7095adbb1020f4",
+    "hardware/gpu-hardware.json": "bb259c60384678d5a82accfdc135235887836916ef9dd6cb6a6896287e519e66",
+    "hardware/complement.json": "854dce5f3586c95734788bf56c268f490271c31e06ac1ee06626fca4b8c232fe",
+    "hardware/changed.json": "8ee27d709e20ce368b6b148ceafd2d560d50c0e6a40752acd0cd42f8653a10f5"
+  }
+}
