@@ -97,7 +97,12 @@ enum Study {
     /// Compare how quickly three cloth corners settle at different bending damping levels.
     HingeDamping { output: PathBuf },
     /// Compare static holding and downhill sliding of two material strips.
-    MaterialIncline { output: PathBuf },
+    MaterialIncline {
+        output: PathBuf,
+        /// Material subdivisions per ten-millisecond public step.
+        #[arg(long, default_value_t = 1)]
+        substeps: u32,
+    },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
     /// Measure the stability of a folded-sheet grasp with lighter jaws or stiffer pads.
@@ -295,7 +300,9 @@ fn main() -> Result<()> {
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),
         Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
-        Study::MaterialIncline { output } => write_new(&output, material_incline::run),
+        Study::MaterialIncline { output, substeps } => {
+            write_new(&output, |out| material_incline::run(out, substeps))
+        }
         Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
         Study::SheetJaws {
             output,

@@ -561,13 +561,10 @@ fn a_material_strip_holds_below_the_friction_limit_and_slides_above_it() {
                 let ax = if moving { 3. } else { 0. };
                 for (i, node) in cloth.particles().iter().enumerate() {
                     let travel = node.position[0] - [-0.125, 0.125][i] - 0.1 * belt;
-                    let bound = if moving {
-                        0.55 * dt.as_secs_f64()
-                    } else {
-                        1e-12
-                    };
+                    // Semi-implicit Euler updates position with the end velocity.
+                    let expected = 0.5 * ax * 0.1 * (0.1 + dt.as_secs_f64());
                     assert!(
-                        (travel - 0.005 * ax).abs() < bound,
+                        (travel - expected).abs() < 1e-11,
                         "travel {travel} at {dt_ms} ms, drive {drive}, belt {belt}"
                     );
                     near(node.velocity.into(), DVec3::X * (belt + 0.1 * ax), 1e-10);

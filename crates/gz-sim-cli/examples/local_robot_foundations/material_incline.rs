@@ -6,14 +6,20 @@ use gz_sim_scene::deformable::bodies;
 const WORLD: &str = include_str!("../../../../examples/worlds/local_material_incline.sdf");
 const MATERIALS: [&str; 2] = ["gripping", "sliding"];
 
-pub(super) fn run(out: &Path) -> Result<()> {
-    record_world(out, WORLD)
+pub(super) fn run(out: &Path, substeps: u32) -> Result<()> {
+    let world = WORLD.replace("substeps=\"1\"", &format!("substeps=\"{substeps}\""));
+    record_world(out, &world)
 }
 
 fn record_world(out: &Path, world: &str) -> Result<()> {
     let mut recording = Recording::new(world, "local_material_incline.sdf", "default")?;
     let downhill = DVec3::new(1., 0., -0.25).normalize();
     let normal = DVec3::new(0.25, 0., 1.).normalize();
+    let step = recording.sim.step_duration();
+    let substeps = MATERIALS.map(|name| {
+        gz_sim_scene::deformable::material_snapshot(&recording.sim, name)
+            .map(|strip| strip.config().substeps)
+    });
     let mut frames = Vec::new();
     let mut trace = Vec::new();
     let mut final_distances = [0.; 2];
@@ -59,14 +65,15 @@ fn record_world(out: &Path, world: &str) -> Result<()> {
             }
             if pass == 0 {
                 trace.push(state);
-                frames.push(json!({"time_ns":tick*10_000_000,"positions":points}));
+                frames.push(json!({"time_ns":tick as u128*step.as_nanos(),"positions":points}));
                 recording.capture()?;
             } else if state != trace[tick] {
                 return Err("reset changed an incline position, velocity or reaction".into());
             }
         }
     }
-    let expected = 9.81 * (-downhill.z - 0.1 * normal.z) * 0.8;
+    let duration = step.as_secs_f64() * 80.;
+    let expected = 9.81 * (-downhill.z - 0.1 * normal.z) * duration;
     if final_distances[0].abs() > 1e-9 || (final_speeds[1] - expected).abs() > 1e-9 {
         return Err(format!(
             "incline disagreement, held travel {} m and sliding speed {} m/s",
@@ -86,7 +93,7 @@ fn record_world(out: &Path, world: &str) -> Result<()> {
     )?;
     write_json(
         &out.join("incline.json"),
-        &json!({"slope":0.25, "static_plane_friction":[0.55,0.1],"sliding_friction":0.1, "step_ns":10_000_000, "reset_states":trace.len(),"distance_m":final_distances,"speed_m_s":final_speeds,"sliding_analytic_speed_m_s":expected,"support_impulse_ns":impulses.map(|j| j.to_array())}),
+        &json!({"slope":0.25, "static_plane_friction":[0.55,0.1],"sliding_friction":0.1, "step_ns":step.as_nanos(),"material_substeps":substeps,"sliding_analytic_distance_m":0.5*expected*duration, "reset_states":trace.len(),"distance_m":final_distances,"speed_m_s":final_speeds,"sliding_analytic_speed_m_s":expected,"support_impulse_ns":impulses.map(|j| j.to_array())}),
     )?;
     fs::write(out.join("world.sdf"), world)?;
     Ok(())
@@ -123,7 +130,7 @@ mod tests {
             } else {
                 fs::create_dir(path)?;
             }
-            assert!(run(dir.path()).is_err());
+            assert!(run(dir.path(), 1).is_err());
         }
         Ok(())
     }
@@ -131,7 +138,7 @@ mod tests {
     #[test]
     fn the_authored_incline_sticks_slides_and_resets() -> Result<()> {
         let dir = tempfile::tempdir()?;
-        run(dir.path())?;
+        run(dir.path(), 1)?;
         let r: Value = serde_json::from_slice(&fs::read(dir.path().join("incline.json"))?)?;
         assert_eq!(r["reset_states"], 81);
         for coefficient in ["-0.2", "0.05", "bad"] {
@@ -142,6 +149,26 @@ mod tests {
             assert!(Recording::new(&invalid, "invalid.sdf", "default").is_err());
         }
         assert!(r["distance_m"][1].as_f64().unwrap() > 0.44);
+        Ok(())
+    }
+
+    #[test]
+    fn sliding_distance_converges_at_fixed_public_clock() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        assert!(run(dir.path(), 0).is_err());
+        for n in [1, 2, 4, 8] {
+            let output = dir.path().join(n.to_string());
+            run(&output, n)?;
+            let r: Value = serde_json::from_slice(&fs::read(output.join("incline.json"))?)?;
+            assert_eq!(r["step_ns"], 10_000_000);
+            assert_eq!(r["material_substeps"], json!([n, n]));
+            assert_eq!(r["reset_states"], 81);
+            let distance = r["distance_m"][1].as_f64().unwrap();
+            let reference = r["sliding_analytic_distance_m"].as_f64().unwrap();
+            let speed = r["sliding_analytic_speed_m_s"].as_f64().unwrap();
+            let euler_error = 0.5 * speed * 0.01 / f64::from(n);
+            assert!((distance - reference - euler_error).abs() < 1e-9);
+        }
         Ok(())
     }
 }
