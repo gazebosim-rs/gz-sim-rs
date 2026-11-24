@@ -366,7 +366,7 @@ fn absent_or_faulted_material_has_no_integrated_constraint_sample() {
     let empty = Simulation::new(Duration::from_millis(1)).unwrap();
     assert!(shell_constraint_impulses(&empty, "sheet").is_none());
     for xml in [BASE.to_owned(), clock("3")] {
-        let mut sim = load(&xml).unwrap();
+        let sim = load(&xml).unwrap();
         assert!(shell_constraint_impulses(&sim, "missing").is_none());
         sim.world()
             .resource::<StepFault>()

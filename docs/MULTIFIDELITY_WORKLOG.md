@@ -2173,3 +2173,7 @@ Reusing proven clear separation between cloth features reduced the damped grippe
 ## 2026-11-23 — Separating jaw release from the sheet hitting the table
 
 The two finest runs released both jaws within 2 µs of one another. Their first table impulses agreed within 0.4%, but by 2.710 s one corner differed by 0.200 mm. Repeating the same jaw motion showed that the cloth and table contact produced most of the subsequent divergence within each matched run. An independent regression fixed a one-tick delay when material reaches a plane or sphere exactly at the tick boundary. [Matched releases, native replays and tests](measurements/local-manipulation/folded-sheet-release-contact.md)
+
+## 2026-11-23 — Rigid and material exchanges on the public gripper clock
+
+The gripper held an 8.4 g folded sheet with 16 rigid/material solves inside each 1 ms Bevy tick. Its jaws carried 41.20 and 41.21 mN and released the sheet onto the bench. At both 16 and 64 exchanges, particle positions and velocities matched independent fine simulations at all 3,400 public endpoints. The maximum torque disagreement was 3.19 × 10⁻¹⁶ N·m. Loaded reset reproduced the pending pad reactions and pickup. Strict release Clippy passed with 474/489 changed production lines and 883/924 regions covered. [Measurements, scope and three native replays](measurements/local-manipulation/public-gripper-exchanges.md)
