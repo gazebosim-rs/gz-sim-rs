@@ -662,6 +662,7 @@ fn actual_native_joint_state_multiplicity_preserves_all_66_models_and_108_joint_
                     });
                 }
                 let sample = JointStateSample {
+                    second_axes: Vec::new(),
                     time: Duration::from_nanos(u64::try_from(value.sim_ns).unwrap()),
                     // Epoch/revision are Rust-only encoder inputs, not captured native state.
                     epoch: 0,

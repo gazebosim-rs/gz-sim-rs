@@ -112,6 +112,7 @@
       <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
         <joint_name>travel</joint_name>
         <joint_name>spindle</joint_name>
+        <joint_name>wrist</joint_name>
         <joint_name>close_left</joint_name>
         <joint_name>close_right</joint_name>
         <update_rate>100</update_rate>

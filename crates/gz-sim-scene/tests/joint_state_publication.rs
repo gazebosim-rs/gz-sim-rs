@@ -140,19 +140,18 @@ fn the_local_transfer_robot_publishes_its_sliders_and_spindle_and_repeats_after_
             PhysicsEngine::MultiFidelity,
         )
     };
-    // An unrequested universal wrist is valid in this robot; a scalar
-    // publication cannot silently substitute one of its axes if it is requested.
-    let unsupported = TRANSFER.replace(
-        "<joint_name>travel</joint_name>",
-        "<joint_name>wrist</joint_name>",
+    let filtered = TRANSFER.replace("        <joint_name>wrist</joint_name>\n", "");
+    let mut single_axes = make(&filtered).unwrap();
+    single_axes.step_exact(10).unwrap();
+    assert!(
+        single_axes
+            .world()
+            .iter_entities()
+            .find_map(|n| n.get::<JointStateSample>())
+            .unwrap()
+            .second_axes
+            .is_empty()
     );
-    assert!(matches!(
-        make(&unsupported),
-        Err(gz_sim_scene::LoadError::Unsupported {
-            feature: "joint-state publisher requires supported single-axis joints",
-            ..
-        })
-    ));
     let mut sim = make(TRANSFER).unwrap();
     let model = sim
         .world()
@@ -172,13 +171,14 @@ fn the_local_transfer_robot_publishes_its_sliders_and_spindle_and_repeats_after_
             .iter()
             .map(|j| j.name.as_str())
             .collect::<Vec<_>>(),
-        ["travel", "spindle", "close_left", "close_right"]
+        ["travel", "spindle", "wrist", "close_left", "close_right"]
     );
     assert_eq!(
         config.joints.iter().map(|j| j.kind).collect::<Vec<_>>(),
         [
             JointStateKind::Prismatic,
             JointStateKind::Screw,
+            JointStateKind::Universal,
             JointStateKind::Prismatic,
             JointStateKind::Prismatic
         ]
@@ -213,10 +213,22 @@ fn the_local_transfer_robot_publishes_its_sliders_and_spindle_and_repeats_after_
             let sample = sim.world().get::<JointStateSample>(model).unwrap();
             assert_eq!(sample.time, Duration::from_millis(tick));
             assert_eq!(sample.epoch, sim.epoch());
-            assert_eq!(sample.joints.len(), 4);
+            assert_eq!(sample.joints.len(), 5);
+            assert_eq!(sample.second_axes.len(), 1);
             for (reading, joint) in sample.joints.iter().zip(&config.joints) {
                 assert_eq!(reading.id, joint.id);
                 let entity = gz_sim_core::entity_by_id(sim.world(), joint.id).unwrap();
+                if joint.kind.has_second_axis() {
+                    let wrist = sim
+                        .world()
+                        .get::<gz_sim_scene::UniversalJointSample>(entity)
+                        .unwrap();
+                    let second = sample.second_axes[0];
+                    assert_eq!(second.id, reading.id);
+                    assert_eq!([reading.position, second.position], wrist.state.position);
+                    assert_eq!([reading.velocity, second.velocity], wrist.state.velocity);
+                    continue;
+                }
                 let native = sim
                     .world()
                     .resource::<PhysicsBackend>()
@@ -229,10 +241,11 @@ fn the_local_transfer_robot_publishes_its_sliders_and_spindle_and_repeats_after_
             }
             let screw_travel = 0.50 / std::f64::consts::TAU * sample.joints[1].position;
             assert!((gap(&sim) - initial_gap - screw_travel).abs() < 2e-5);
-            readings.push(sample.joints.clone());
+            readings.push((sample.joints.clone(), sample.second_axes.clone()));
         }
-        assert!(readings[2][0].position > 1e-5);
-        assert!(readings[2][1].position > 0.001);
+        assert!(readings[2].0[0].position > 1e-5);
+        assert!(readings[2].0[1].position > 0.001);
+        assert!(readings[2].1[0].velocity.abs() > 0.001);
         passes.push(readings);
     }
     assert_eq!(passes[0], passes[1]);

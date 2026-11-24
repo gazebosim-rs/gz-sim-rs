@@ -802,6 +802,7 @@ fn selected_metadata_128_boundary_and_129_refusal_preserve_unrestricted_limits_a
         })
         .collect();
     let sample = JointStateSample {
+        second_axes: Vec::new(),
         time: Duration::from_millis(20),
         epoch: 0,
         revision: 1,
