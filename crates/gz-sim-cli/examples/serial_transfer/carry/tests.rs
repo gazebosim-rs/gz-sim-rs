@@ -4,12 +4,16 @@ use super::*;
 use gz_sim_scene::EntityKind;
 
 fn offset_fixture(kg: f64, mu: f64, offset_mm: f64) -> Result<String> {
+    diagonal_fixture(kg, mu, offset_mm, 0.)
+}
+fn diagonal_fixture(kg: f64, mu: f64, x_mm: f64, y_mm: f64) -> Result<String> {
     let xml = crate::payload::tests::fixture(kg, mu)?;
     let (workcell, parcel) = xml.split_once("<model name=\"parcel\">").unwrap();
-    let offset = offset_mm / 1000.;
+    let x = x_mm / 1000.;
+    let y = y_mm / 1000.;
     let parcel = parcel.replacen(
         "<inertial>",
-        &format!("<inertial><pose>{offset} 0 0 0 0 0</pose>"),
+        &format!("<inertial><pose>{x} {y} 0 0 0 0</pose>"),
         1,
     );
     let xml = format!("{workcell}<model name=\"parcel\">{parcel}");
@@ -20,7 +24,7 @@ fn offset_fixture(kg: f64, mu: f64, offset_mm: f64) -> Result<String> {
         .find(|m| m.name == "parcel")
         .unwrap()
         .links[0];
-    assert_eq!(link.inertial.pose.transform.translation, [offset, 0., 0.]);
+    assert_eq!(link.inertial.pose.transform.translation, [x, y, 0.]);
     Ok(xml)
 }
 fn world(xml: &str) -> Result<Simulation> {
@@ -33,9 +37,15 @@ fn world(xml: &str) -> Result<Simulation> {
     )?)
 }
 fn repeated(xml: &str, trial: Trial, ms: u64) -> Result<Outcome> {
+    repeated_pull(xml, trial, ms, None)
+}
+fn repeated_pull(xml: &str, trial: Trial, ms: u64, pull: Option<pull::Pull>) -> Result<Outcome> {
     let sdf = sdformat::load_str(xml, "carry.sdf", &sdformat::NoResources)?;
     let mut sim = world(xml)?;
     configure(&mut sim, trial, ms)?;
+    if let Some(p) = pull {
+        p.install(&mut sim, trial)?;
+    }
     let run = |sim: &mut Simulation| -> Result<_> {
         let route = Passage::bind(sim, &sdf)?;
         let mut frames = Vec::new();
@@ -241,6 +251,258 @@ fn serial_offset_matrix() -> Result<()> {
                 }
             }
         }
+    }
+    Ok(())
+}
+
+#[test]
+fn repeated_slip_selects_the_first_reachable_station_or_holds_both_axes() -> Result<()> {
+    let xml = Trial::GuardedCarry.xml();
+    for (wall_y, expected) in [(0.1, Some("pickup")), (0., None)] {
+        let xml = xml.replace("<pose>0 0.23 0.5535", &format!("<pose>0 {wall_y} 0.5535"));
+        let mut sim = world(&xml)?;
+        configure(&mut sim, Trial::GuardedCarry, 4000)?;
+        sim.step_exact(1)?;
+        let body = |name| part(&sim, name)?.body(&sim);
+        let links = Links {
+            body: body("parcel::box")?,
+            pads: [body("gripper::left")?, body("gripper::right")?],
+            stations: [
+                body("stand::post")?,
+                body("receiver::shelf")?,
+                body("obstacle::bar")?,
+            ],
+            jaws: [
+                part(&sim, "gripper::close_left")?.id,
+                part(&sim, "gripper::close_right")?.id,
+            ],
+            spindle: part(&sim, "gripper::spindle")?,
+            rail: part(&sim, "gripper::travel")?,
+        };
+        let mut supervisor = Supervisor::new(&sim, Trial::GuardedCarry, WEIGHT, links)?;
+        let sdf = sdformat::load_str(&xml, "route.sdf", &sdformat::NoResources)?;
+        let route = Passage::bind(&sim, &sdf)?;
+        supervisor.route = Some(Return {
+            tick: MOVE_START,
+            station: 1,
+            start: 0.26,
+            demand: None,
+        });
+        supervisor.verify_return(&mut sim, MOVE_START, 0.26, &route)?;
+        assert_eq!(supervisor.report.return_station, expected);
+        assert_eq!(
+            supervisor.report.hold_on_blocked_return_m,
+            expected.is_none().then_some(0.26)
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn a_late_diagonal_parcel_lands_on_verified_receiver_support() -> Result<()> {
+    let xml = diagonal_fixture(0.4, 0.35, 10., 8.)?;
+    let command = "6200,65,8".parse::<pull::Pull>()?;
+    let guarded = repeated_pull(&xml, Trial::GuardedCarry, 4000, Some(command))?;
+    let control = repeated_pull(&xml, Trial::ObserveCarry, 4000, Some(command))?;
+    let g = guarded.carry.unwrap();
+    assert_eq!(g.first_alarm_ms, control.carry.unwrap().first_alarm_ms);
+    assert_eq!(g.return_station, Some("receiver"));
+    assert!(g.load_at_open_n.unwrap() >= 0.94 * 3.924 && g.sustained_at_open_ms == Some(30));
+    assert!(g.recovery_no_pad_ticks == 0 && g.parcel_obstacle_impulse_ns == 0.);
+    assert!(guarded.final_pad_load_n == 0. && (guarded.final_shelf_load_n - 3.924).abs() < 0.001);
+    assert!(control.release_tick.is_none());
+    let a = serde_json::to_value(guarded.pull.unwrap())?;
+    let b = serde_json::to_value(control.pull.unwrap())?;
+    assert_eq!(a["incoming"], b["incoming"]);
+    assert_eq!(a["first_alarm"], b["first_alarm"]);
+    assert_ne!(a["repeated_alarm"], b["repeated_alarm"]);
+    Ok(())
+}
+
+#[test]
+#[ignore = "32 ordinary diagonal offset, slip, and sham trials repeated after reset"]
+fn serial_receiver_matrix() -> Result<()> {
+    let output = std::env::var_os("GZ_SERIAL_RECEIVER_OUTPUT").map(PathBuf::from);
+    if let Some(dir) = &output {
+        std::fs::create_dir(dir)?;
+    }
+    for x in [-10, 10] {
+        for y in [-8, 8] {
+            let xml = diagonal_fixture(0.4, 0.35, x as f64, y as f64)?;
+            for when in [4450, 6200] {
+                for force in [0, 8] {
+                    let pulse = format!("{when},65,{force}").parse::<pull::Pull>()?;
+                    for (trial, tag) in [
+                        (Trial::GuardedCarry, "guarded"),
+                        (Trial::ObserveCarry, "observe"),
+                    ] {
+                        let result = repeated_pull(&xml, trial, 4000, Some(pulse))?;
+                        if let Some(dir) = &output {
+                            let tag = format!("x{x:+}-y{y:+}-t{when}-n{force}-{tag}");
+                            std::fs::write(dir.join(format!("{tag}.sdf")), &xml)?;
+                            std::fs::write(
+                                dir.join(format!("{tag}.json")),
+                                serde_json::to_vec_pretty(&result)?,
+                            )?;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
+#[ignore = "paired release step timings on the diagonal parcel, use fixed CPU affinity"]
+fn serial_receiver_step_cost() -> Result<()> {
+    use bevy_ecs::prelude::{Res, ResMut};
+    use gz_sim_core::{Phase, UpdateInfo};
+    use std::time::Instant;
+    #[derive(Resource, Default)]
+    struct Cost {
+        prior: Option<Instant>,
+        ns: Vec<u64>,
+    }
+    let xml = diagonal_fixture(0.4, 0.35, 10., 8.)?;
+    let sdf = sdformat::load_str(&xml, "cost.sdf", &sdformat::NoResources)?;
+    let policies = [
+        (Trial::GuardedCarry, 0),
+        (Trial::ObserveCarry, 8),
+        (Trial::GuardedCarry, 8),
+    ];
+    let mut blocks = Vec::new();
+    for order in [[0, 1, 2], [2, 0, 1], [1, 2, 0]] {
+        for i in order {
+            let (trial, force) = policies[i];
+            let mut sim = world(&xml)?;
+            configure(&mut sim, trial, 4000)?;
+            format!("6200,65,{force}")
+                .parse::<pull::Pull>()?
+                .install(&mut sim, trial)?;
+            sim.world_mut().init_resource::<Cost>();
+            // Consecutive ingress times include the completed Bevy step and the
+            // ordinary contact checks, control and capture before the next solve.
+            sim.add_systems(
+                Phase::Ingress,
+                |clock: Res<UpdateInfo>, mut c: ResMut<Cost>| {
+                    let now = Instant::now();
+                    if let Some(last) = c.prior.replace(now)
+                        && (6201..=10201).contains(&clock.iteration)
+                    {
+                        c.ns.push(now.duration_since(last).as_nanos() as u64);
+                    }
+                },
+            );
+            let route = Passage::bind(&sim, &sdf)?;
+            let mut frames = 0;
+            let mut captured = Vec::new();
+            let o = drive(
+                &mut sim,
+                trial,
+                Some(route),
+                payload::weight(&sdf)?,
+                true,
+                |s| {
+                    frames += 1;
+                    captured.push(gz_sim_cli::primitive_frame(s, &sdf, "default", frames)?);
+                    Ok(())
+                },
+            )?;
+            let mut costs = sim.world_mut().remove_resource::<Cost>().unwrap().ns;
+            assert_eq!(costs.len(), 4001);
+            costs.sort_unstable();
+            blocks.push(
+                serde_json::json!({"mode":format!("{trial:?}"),"downward_n":force,
+                "p50_ns":costs[costs.len().div_ceil(2)-1],
+                "p95_ns":costs[(95*costs.len()).div_ceil(100)-1],
+                "p99_ns":costs[(99*costs.len()).div_ceil(100)-1],
+                "frames": captured.len(), "shelf_release_ms":o.release_tick,
+                "recovery_open_ms":o.carry.unwrap().supported_open_ms}),
+            );
+        }
+    }
+    if let Some(file) = std::env::var_os("GZ_SERIAL_RECEIVER_COST") {
+        std::fs::write(file, serde_json::to_vec_pretty(&blocks)?)?;
+    }
+    Ok(())
+}
+
+#[test]
+#[ignore = "per-tick independent parcel motion against a matched no-pull trajectory"]
+fn serial_receiver_slip_trace() -> Result<()> {
+    use bevy_ecs::prelude::{Query, Res, ResMut};
+    use gz_sim_core::{Phase, UpdateInfo};
+    #[derive(Resource, Default)]
+    struct Trace(Vec<glam::DVec3>);
+    let mut cases = Vec::new();
+    for x in [-10, 10] {
+        for y in [-8, 8] {
+            for first in [4450, 6200] {
+                let xml = diagonal_fixture(0.4, 0.35, x as f64, y as f64)?;
+                let sdf = sdformat::load_str(&xml, "motion.sdf", &sdformat::NoResources)?;
+                let trace = |trial: Trial, force: u8| -> Result<_> {
+                    let mut sim = world(&xml)?;
+                    configure(&mut sim, trial, 4000)?;
+                    format!("{first},65,{force}")
+                        .parse::<pull::Pull>()?
+                        .install(&mut sim, trial)?;
+                    let hand = part(&sim, "gripper::palm")?.entity;
+                    let object = part(&sim, "parcel::box")?.entity;
+                    sim.world_mut().init_resource::<Trace>();
+                    sim.add_systems(
+                        Phase::Finalize,
+                        move |clock: Res<UpdateInfo>,
+                              poses: Query<&WorldPose>,
+                              mut rows: ResMut<Trace>| {
+                            if (first - 1..=first + 164).contains(&clock.iteration) {
+                                let h = poses.get(hand).unwrap();
+                                let p = poses.get(object).unwrap();
+                                rows.0.push(
+                                    glam::DQuat::from_array(h.rotation).inverse()
+                                        * (glam::DVec3::from_array(p.translation)
+                                            - glam::DVec3::from_array(h.translation)),
+                                );
+                            }
+                        },
+                    );
+                    let route = Passage::bind(&sim, &sdf)?;
+                    let state = drive(
+                        &mut sim,
+                        trial,
+                        Some(route),
+                        payload::weight(&sdf)?,
+                        true,
+                        |_| Ok(()),
+                    )?;
+                    let path = sim.world_mut().remove_resource::<Trace>().unwrap().0;
+                    assert_eq!(path.len(), 166);
+                    Ok((state.carry.unwrap().first_alarm_ms, path))
+                };
+                let (_, sham) = trace(Trial::GuardedCarry, 0)?;
+                let (alarm, guarded) = trace(Trial::GuardedCarry, 8)?;
+                let (control_alarm, control) = trace(Trial::ObserveCarry, 8)?;
+                let index = alarm.unwrap() - (first - 1) as usize;
+                assert_eq!(alarm, control_alarm);
+                assert_eq!(sham[0], guarded[0]);
+                assert_eq!(guarded[..=index], control[..=index]);
+                let relative_mm = |path: &[glam::DVec3]| {
+                    path.iter()
+                        .zip(&sham)
+                        .map(|(p, s)| 1000. * p.distance(*s))
+                        .collect::<Vec<_>>()
+                };
+                let g = relative_mm(&guarded);
+                let c = relative_mm(&control);
+                assert!(g[index] > 0. && g[165] < c[165]);
+                cases.push(serde_json::json!({"x_mm":x,"y_mm":y,"first_ms":first,"first_sample_ms":first-1,"samples":166,
+            "alarm_ms":alarm,"alarm_position_difference_mm":g[index],
+            "guarded_palm_relative_difference_mm":g,"fixed_palm_relative_difference_mm":c}));
+            }
+        }
+    }
+    if let Some(file) = std::env::var_os("GZ_SERIAL_RECEIVER_MOTION") {
+        std::fs::write(file, serde_json::to_vec(&cases)?)?;
     }
     Ok(())
 }

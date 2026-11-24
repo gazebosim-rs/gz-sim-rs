@@ -204,6 +204,7 @@ fn incompletely_observed_obstacle_routes_never_issue_the_next_rail_command() -> 
                 output: output.clone(),
                 world: None,
                 travel_ms: 4000,
+                pull: None,
             },
             XML
         )
@@ -309,5 +310,27 @@ fn return_projection_tests_only_the_remaining_signed_travel() -> Result<()> {
     assert!(cast(-0.05)?.is_none());
     let hit = cast(-0.46)?.expect("obstacle on return to the pickup");
     assert!((0.14..0.23).contains(&hit.travel_m), "{hit:?}");
+    Ok(())
+}
+
+#[test]
+fn missing_return_geometry_refuses_an_unobserved_route() -> Result<()> {
+    let xml = Trial::GuardedCarry.xml();
+    let sdf = sdformat::load_str(xml, "path.sdf", &sdformat::NoResources)?;
+    let mut sim = load_world_with_sdf_step(
+        xml,
+        "path.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )?;
+    let route = Passage::bind(&sim, &sdf)?;
+    let face = route.moving[0].collision;
+    sim.world_mut().entity_mut(face).remove::<WorldPose>();
+    assert!(route.path_clear(&sim, 0.1).is_err());
+    sim.world_mut()
+        .entity_mut(route.wall.collision)
+        .remove::<WorldPose>();
+    assert!(route.path_clear(&sim, 0.1).is_err());
     Ok(())
 }

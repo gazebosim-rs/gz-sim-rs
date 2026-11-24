@@ -16,6 +16,24 @@ struct BoxPart {
     shape: Cuboid,
 }
 impl BoxPart {
+    fn sweep_distance(
+        &self,
+        pose: &Pose,
+        wall: &BoxPart,
+        wall_pose: &Pose,
+        span: f64,
+    ) -> Result<Option<f64>> {
+        Ok(query::cast_shapes(
+            pose,
+            Vector::Y * span.signum(),
+            &self.shape,
+            wall_pose,
+            Vector::ZERO,
+            &wall.shape,
+            ShapeCastOptions::with_max_time_of_impact(span.abs()),
+        )?
+        .map(|hit| hit.time_of_impact))
+    }
     fn gap(&self, pose: &Pose, wall: &BoxPart, wall_pose: &Pose) -> Result<f64> {
         let gap = query::distance(pose, &self.shape, wall_pose, &wall.shape)?.distance;
         if gap == 0.
@@ -156,6 +174,21 @@ impl Passage {
             outcome,
         })
     }
+    pub(super) fn path_clear(&self, sim: &Simulation, span: f64) -> Result<bool> {
+        let wall = self.wall.pose(sim)?;
+        for part in &self.moving {
+            let pose = part.pose(sim)?;
+            if part.gap(&pose, &self.wall, &wall)? <= 0.
+                || (span != 0.
+                    && part
+                        .sweep_distance(&pose, &self.wall, &wall, span)?
+                        .is_some())
+            {
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    }
     pub(super) fn recheck(&mut self, sim: &mut Simulation) -> Result<()> {
         let dt = sim.step_duration();
         let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
@@ -235,18 +268,10 @@ impl Passage {
                 }
             }
             if let Some(span) = sweep
-                && let Some(hit) = query::cast_shapes(
-                    &pose,
-                    Vector::Y * span.signum(),
-                    &moving.shape,
-                    &wall,
-                    Vector::ZERO,
-                    &self.wall.shape,
-                    ShapeCastOptions::with_max_time_of_impact(span.abs()),
-                )?
-                && first.is_none_or(|(_, d)| hit.time_of_impact < d)
+                && let Some(hit) = moving.sweep_distance(&pose, &self.wall, &wall, span)?
+                && first.is_none_or(|(_, d)| hit < d)
             {
-                first = Some((&moving.name, hit.time_of_impact));
+                first = Some((&moving.name, hit));
             }
         }
         if let Some((part, travel)) = first {

@@ -22,6 +22,8 @@ mod carry;
 mod obstacle;
 #[path = "serial_transfer/payload.rs"]
 mod payload;
+#[path = "serial_transfer/pull.rs"]
+mod pull;
 #[path = "support/rigid_tactile.rs"]
 mod rigid_tactile;
 use obstacle::{Passage, PassageOutcome};
@@ -79,6 +81,9 @@ struct Args {
     /// Time for the 460 mm quintic command in the two carry trials.
     #[arg(long, default_value_t = 4000, value_parser=clap::value_parser!(u64).range(1..=4000))]
     travel_ms: u64,
+    /// Optional downward force at the parcel center of mass, given as first_ms,duration_ms,force_N.
+    #[arg(long)]
+    pull: Option<pull::Pull>,
 }
 
 #[derive(Clone, Copy)]
@@ -121,6 +126,8 @@ struct Outcome {
     payload: Option<payload::Loads>,
     #[serde(skip_serializing_if = "Option::is_none")]
     carry: Option<carry::Measurements>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pull: Option<pull::Measurements>,
     lift_mm: f64,
     lateral_payload_at_arrival_mm: f64,
     lateral_carriage_at_arrival_mm: f64,
@@ -232,6 +239,11 @@ fn drive(
         None
     };
     let mut out = Outcome {
+        pull: sim
+            .world()
+            .get_resource::<pull::Pull>()
+            .copied()
+            .map(pull::Measurements::new),
         payload: measure_payload.then(|| payload::Loads::new(weight)),
         ..Default::default()
     };
@@ -277,6 +289,9 @@ fn drive(
             && let Some(route) = &mut passage
         {
             route.recheck(sim)?;
+        }
+        if let Some(pull) = &mut out.pull {
+            pull.before_step(sim, tick, parcel, rail)?;
         }
         sim.step_exact(1)?;
         let p = parcel.pose(sim)?.translation;
@@ -342,14 +357,24 @@ fn drive(
             out.lateral_payload_at_arrival_mm = 1000. * (p[1] - initial[1]);
             out.lateral_carriage_at_arrival_mm = 1000. * (carriage - start_car);
         }
-        if let Some(active) = &mut carry {
+        if let (Some(active), Some(route)) = (&mut carry, &passage) {
             active.update(
                 sim,
                 tick,
                 carriage - start_car,
                 [&source, &target],
-                passage.as_ref().is_some_and(Passage::aborted),
+                route.aborted(),
             )?;
+            active.verify_return(sim, tick, carriage - start_car, route)?;
+            if let Some(pull) = &mut out.pull {
+                pull.after_alarm(
+                    sim,
+                    parcel,
+                    rail,
+                    active.report.first_alarm_ms == Some(tick),
+                    active.report.repeated_alarm_ms == Some(tick),
+                )?;
+            }
         }
         if !carry.as_ref().is_some_and(carry::Supervisor::recovering)
             && tick >= LOWER
@@ -399,7 +424,11 @@ fn drive(
         let event = passage
             .as_ref()
             .is_some_and(|g| g.outcome.abort_tick == Some(tick) || out.release_tick == Some(tick));
-        if tick % 40 == 0 || event || carry.as_ref().is_some_and(|s| s.event(tick)) {
+        if tick % 40 == 0
+            || event
+            || out.pull.as_ref().is_some_and(|p| p.boundary(tick))
+            || carry.as_ref().is_some_and(|s| s.event(tick))
+        {
             capture(sim)?;
         }
     }
@@ -419,6 +448,9 @@ fn record(args: Args, xml: &str) -> Result<Outcome> {
         PhysicsEngine::MultiFidelity,
     )?;
     carry::configure(&mut sim, args.trial, args.travel_ms)?;
+    if let Some(pull) = args.pull {
+        pull.install(&mut sim, args.trial)?;
+    }
     let mut frames = Vec::new();
     let passage = args
         .trial
@@ -710,6 +742,7 @@ mod tests {
             output: path.clone(),
             world: None,
             travel_ms: 4000,
+            pull: None,
         };
         assert!(record(args(), "<sdf").is_err());
         assert!(

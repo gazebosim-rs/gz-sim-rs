@@ -31,8 +31,8 @@ pub(super) struct Measurements {
     observed_peak_forward_acceleration_m_s2: f64,
     observed_peak_braking_m_s2: f64,
     peak_pad_slip_m_s: [f64; 2],
-    first_alarm_ms: Option<usize>,
-    repeated_alarm_ms: Option<usize>,
+    pub(super) first_alarm_ms: Option<usize>,
+    pub(super) repeated_alarm_ms: Option<usize>,
     extra_jaw_effort_n: f64,
     hold_on_blocked_return_m: Option<f64>,
     return_station: Option<&'static str>,
@@ -116,6 +116,29 @@ impl Supervisor {
         ]
         .contains(&Some(tick))
     }
+    pub(super) fn verify_return(
+        &mut self,
+        sim: &mut Simulation,
+        tick: usize,
+        travel: f64,
+        passage: &Passage,
+    ) -> Result<()> {
+        let Some(r) = self.route.as_mut().filter(|r| r.tick == tick) else {
+            return Ok(());
+        };
+        for station in [r.station, 1 - r.station] {
+            if passage.path_clear(sim, station as f64 * DISTANCE - travel)? {
+                r.station = station;
+                self.report.return_station = Some(["pickup", "receiver"][station]);
+                return Ok(());
+            }
+        }
+        let q = spindle_position(sim, self.links.spindle)?;
+        set_joint_controller_command(sim, self.links.spindle.id, q)?;
+        self.report.hold_on_blocked_return_m = Some(travel);
+        self.report.return_station = None;
+        Ok(())
+    }
     pub(super) fn command_rail(
         &self,
         sim: &mut Simulation,
@@ -198,7 +221,6 @@ impl Supervisor {
                     self.report.repeated_alarm_ms = Some(tick);
                     if self.feedback {
                         let station = usize::from(travel > DISTANCE / 2.);
-                        self.report.return_station = Some(["pickup", "receiver"][station]);
                         self.route = Some(Return {
                             tick,
                             start: travel,
