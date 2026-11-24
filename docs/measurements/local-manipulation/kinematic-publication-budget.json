@@ -1708,5 +1708,19 @@
     "pages-local": "a3f16077bf709796f9307ee61aec30b07816b5519bb1bc20d5c90f41fb30b92e",
     "pages-selective": "227aa043534a62158db85c367e0880658313eff6a291d8383fc0010b90afafaf"
   },
-  "archive_sha256": "0b90299753fae227915786445d59d6ad5d2152d558dc6b41f3da26000b30db22"
+  "portable_axis_smoke": {
+    "300": {
+      "workers": 8,
+      "restored": true,
+      "mutable_world_poses": 1201,
+      "mutable_model_locals": 300
+    },
+    "8193": {
+      "workers": 8,
+      "restored": true,
+      "mutable_world_poses": 32773,
+      "mutable_model_locals": 8193
+    }
+  },
+  "archive_sha256": "c4a22c027175010c3b0ee5a529e42df67f13b833d97b5e28961957231a8b0a0e"
 }

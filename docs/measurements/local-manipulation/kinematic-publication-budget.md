@@ -70,7 +70,7 @@ The narrower trial also reproduced 136,880,680 public world/local pose pairs, 34
 
 ## Reproduce
 
-The archive contains the native playback, individual timings, sampled Linux page receipts, both experimental source patches, stage instrumentation, a Rust process-pair driver and the two Rust write probes. In a disposable checkout at `d3ade09`, copy `bench/publication_pages.rs` and `bench/publication_axis.rs` into `crates/gz-sim-cli/examples/` and their two helper files into that directory's `support/` subdirectory.
+The packaged write-only probe also restored all values and ticks on 300- and 8,193-deck controls, including initial task-pool setup for the smaller world. The archive contains the native playback, individual timings, sampled Linux page receipts, both experimental source patches, stage instrumentation, a Rust process-pair driver and the two Rust write probes. In a disposable checkout at `d3ade09`, copy `bench/publication_pages.rs` and `bench/publication_axis.rs` into `crates/gz-sim-cli/examples/` and their two helper files into that directory's `support/` subdirectory.
 
 ```sh
 export RUSTC_WRAPPER=
