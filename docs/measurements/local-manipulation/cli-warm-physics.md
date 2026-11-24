@@ -19,3 +19,7 @@ GZ_MULTI_TEST_WORKER="$PWD/target/debug/physics_worker" RUSTC_WRAPPER= \
 An independently stepped Bevy robot supplied a reference while its twin returned from three workers to the ordinary local solver at 3,597 ms. At the cut it carried a pending −0.125 N·m joint effort and a [4.75, −17.5, 1.25] N chest force. The release test now launches the actual stock `gz-sim-rs --returned-robot-session` command on a separate copy of the saved state. Four independent CLI processes reproduced the printed positions of all 32 links, including the floor, at 3,597, 3,598, 3,617 and 3,820 ms. The CLI refused the different authored force schedule, the wrong physics backend and a 2 ms step. Every invocation preserved the original checkpoint bytes. The optimized Ubuntu test ran in 22.67 seconds, including all 533 existing full-physics comparisons and the reset. The seven frozen CLI processes gained ten lines and thirteen regions in the original headless report.
 
 The native replay shows all 32 visuals for 224 consecutive milliseconds from the restored local CLI. Its input was the acknowledged scene from a newly connected operator after every individual physical step. [Open the walking robot in gz-web-rs](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11347%2F)
+
+Chromium checked 7,168 native poses and shapes, including the first resumed millisecond, then rewound to the physical checkpoint at 3,597 ms.
+
+![The local walking robot twenty milliseconds after reopening its loaded state](cli-warm-return.jpg)
