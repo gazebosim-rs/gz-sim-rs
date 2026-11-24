@@ -495,6 +495,23 @@ pub fn queue_universal_joint_effort(
         .map_err(input_error)
 }
 
+/// Accumulate one advancing step of spherical-joint torque (N·m). The solver
+/// samples the parent joint frame at the step boundary. Pause retains the input
+/// and reset discards it.
+pub fn queue_ball_joint_effort(
+    sim: &mut Simulation,
+    id: u64,
+    torque: [f64; 3],
+) -> Result<(), InputError> {
+    let (_, joint) = joint_target(sim, id, torque[0])?;
+    sim.world_mut()
+        .resource_mut::<PhysicsBackend>()
+        .downcast_mut::<gz_physics_multifidelity::MultiFidelityBackend>()
+        .ok_or(InputError::InvalidPhysics)?
+        .add_ball_effort(joint, torque)
+        .map_err(input_error)
+}
+
 pub(super) fn apply_joint_forces(
     time: Res<UpdateInfo>,
     mut backend: ResMut<PhysicsBackend>,

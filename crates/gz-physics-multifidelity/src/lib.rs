@@ -1625,6 +1625,13 @@ impl MultiFidelityBackend {
             .map_err(engine_error)
     }
 
+    /// Accumulate one step of spherical joint torque in the parent joint frame.
+    pub fn add_ball_effort(&mut self, id: JointId, torque: [f64; 3]) -> Result<(), PhysicsError> {
+        self.solver
+            .add_ball_effort(id, torque)
+            .map_err(engine_error)
+    }
+
     /// Three-axis relative rotation and velocity for a spherical joint.
     pub fn ball_joint_state(&self, id: JointId) -> Option<BallJointState> {
         self.solver.ball_joint_state(id)

@@ -182,19 +182,6 @@ impl Construction {
     pub(super) fn wide_universal(self) -> bool {
         matches!(self.motion, JointMotion::Universal(s) if s.limits.into_iter().flatten().any(|[lo,hi]|hi-lo > FRAC_PI_2))
     }
-    pub(super) fn universal_frames(
-        self,
-        world: &PhysicsWorld,
-        bodies: &BTreeMap<BodyId, BodyEntry>,
-    ) -> (Rotation, Rotation) {
-        let parent = self.parent.map_or(Rotation::IDENTITY, |p| {
-            *world.bodies[bodies[&p].0].rotation()
-        });
-        (
-            parent * self.frame1.rotation,
-            *world.bodies[bodies[&self.child].0].rotation() * self.frame2.rotation,
-        )
-    }
 }
 
 impl Joints {
@@ -205,7 +192,7 @@ impl Joints {
     ) {
         for (id, rows) in &self.universal_springs {
             let joint = &self.records[id];
-            let (parent, child) = joint.initial.universal_frames(world, bodies);
+            let (parent, child) = joint.initial.world_joint_frames(world, bodies);
             let angles = joint.measured_angles(parent.inverse() * child);
             for (i, row) in rows.iter().enumerate() {
                 if let Some((law, handle)) = row {
@@ -231,7 +218,7 @@ impl Joints {
             let JointMotion::Universal(settings) = c.motion else {
                 unreachable!()
             };
-            let (parent, child) = c.universal_frames(world, bodies);
+            let (parent, child) = c.world_joint_frames(world, bodies);
             let angles = joint.measured_angles(parent.inverse() * child);
             for (axis, angle) in angles.into_iter().enumerate() {
                 let Some(range) = settings.limits[axis] else {
@@ -321,7 +308,7 @@ impl RapierBackend {
         if !matches!(c.motion, JointMotion::Universal(_)) {
             return None;
         }
-        let (parent, child) = c.universal_frames(&self.world, &self.bodies);
+        let (parent, child) = c.world_joint_frames(&self.world, &self.bodies);
         let omega = self.world.bodies[self.bodies[&c.child].0].angvel()
             - c.parent.map_or(Vector::ZERO, |p| {
                 self.world.bodies[self.bodies[&p].0].angvel()
@@ -353,7 +340,7 @@ impl RapierBackend {
         };
         let old = self
             .joints
-            .universal_efforts
+            .angular_efforts
             .get(&id)
             .copied()
             .unwrap_or_default();
@@ -365,7 +352,9 @@ impl RapierBackend {
         }) {
             return Err(PhysicsError::InvalidValue);
         }
-        self.joints.universal_efforts.insert(id, sum);
+        self.joints
+            .angular_efforts
+            .insert(id, Vector::new(sum[0], sum[1], 0.));
         Ok(())
     }
 }

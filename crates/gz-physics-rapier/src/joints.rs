@@ -204,7 +204,7 @@ struct Joint {
 pub(super) struct Joints {
     records: BTreeMap<JointId, Joint>,
     efforts: BTreeMap<JointId, f64>,
-    universal_efforts: BTreeMap<JointId, [f64; 2]>,
+    angular_efforts: BTreeMap<JointId, Vector>,
     universal_springs: BTreeMap<JointId, universal::SpringRows>,
     projected_universal: BTreeMap<JointId, ImpulseJointHandle>,
     universal_motors: BTreeMap<(JointId, usize), ImpulseJointHandle>,
@@ -222,7 +222,7 @@ impl Default for Joints {
         Self {
             records: BTreeMap::new(),
             efforts: BTreeMap::new(),
-            universal_efforts: BTreeMap::new(),
+            angular_efforts: BTreeMap::new(),
             universal_springs: BTreeMap::new(),
             projected_universal: BTreeMap::new(),
             universal_motors: BTreeMap::new(),
@@ -331,10 +331,14 @@ impl Joints {
                 }
             }
         }
-        for (&id, &[first, second]) in &self.universal_efforts {
+        for (&id, &effort) in &self.angular_efforts {
             let c = self.records[&id].initial;
-            let (parent, child) = c.universal_frames(world, bodies);
-            let torque = (parent * Vector::X) * first + (child * Vector::Y) * second;
+            let (parent, child) = c.world_joint_frames(world, bodies);
+            let torque = if matches!(c.motion, JointMotion::Ball) {
+                parent * effort
+            } else {
+                (parent * Vector::X) * effort.x + (child * Vector::Y) * effort.y
+            };
             loads.entry(c.child).or_default().1 += torque;
             if let Some(p) = c.parent.filter(|p| bodies[p].1.mass.is_some()) {
                 loads.entry(p).or_default().1 -= torque;
@@ -354,7 +358,7 @@ impl Joints {
     pub(super) fn has_effort_for(&self, members: &[(BodyId, RigidBodyHandle)]) -> bool {
         self.efforts
             .keys()
-            .chain(self.universal_efforts.keys())
+            .chain(self.angular_efforts.keys())
             .any(|id| {
                 members
                     .iter()
@@ -364,13 +368,13 @@ impl Joints {
 
     pub(super) fn consume_efforts(&mut self) {
         self.efforts.clear();
-        self.universal_efforts.clear();
+        self.angular_efforts.clear();
     }
 
     pub(super) fn update(&mut self, world: &PhysicsWorld, bodies: &BTreeMap<BodyId, BodyEntry>) {
         for joint in self.records.values_mut() {
             if matches!(joint.initial.motion, JointMotion::Universal(_)) {
-                let (parent, child) = joint.initial.universal_frames(world, bodies);
+                let (parent, child) = joint.initial.world_joint_frames(world, bodies);
                 joint.update_universal_angles(parent.inverse() * child);
                 continue;
             }
@@ -525,7 +529,7 @@ impl Joints {
             speed_caps,
             screws,
             efforts: BTreeMap::new(),
-            universal_efforts: BTreeMap::new(),
+            angular_efforts: BTreeMap::new(),
             anchor,
             world_roots,
             next: initial.next,
@@ -566,7 +570,7 @@ impl Joints {
         self.screws.retain(|id, _| self.records.contains_key(id));
         self.wide_universal
             .retain(|id| self.records.contains_key(id));
-        self.universal_efforts
+        self.angular_efforts
             .retain(|id, _| self.records.contains_key(id));
         self.efforts.retain(|id, _| self.records.contains_key(id));
         survivors
@@ -919,7 +923,7 @@ impl RapierBackend {
             return false;
         };
         self.joints.efforts.remove(&id);
-        self.joints.universal_efforts.remove(&id);
+        self.joints.angular_efforts.remove(&id);
         self.joints.wide_universal.remove(&id);
         if let Some(caps) = self.joints.speed_caps.remove(&id) {
             for cap in caps.into_iter().flatten() {

@@ -192,7 +192,7 @@ impl RapierBackend {
                 .motor_axes
                 .is_empty()
                 || self.joints.efforts.contains_key(&joint_id)
-                || self.joints.universal_efforts.contains_key(&joint_id)
+                || self.joints.angular_efforts.contains_key(&joint_id)
                 || (0..2).any(|axis| self.joints.universal_motors.contains_key(&(joint_id, axis)))
             {
                 return Err(defer("mounted robot has a pending input or active motor"));

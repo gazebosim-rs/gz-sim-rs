@@ -86,9 +86,9 @@ pub use joints::{
 
 mod inputs;
 pub use inputs::{
-    InputError, JointForceCommand, queue_joint_effort, queue_link_force_at_point,
-    queue_link_world_velocity, queue_link_world_wrench, queue_universal_joint_effort,
-    set_joint_force,
+    InputError, JointForceCommand, queue_ball_joint_effort, queue_joint_effort,
+    queue_link_force_at_point, queue_link_world_velocity, queue_link_world_wrench,
+    queue_universal_joint_effort, set_joint_force,
 };
 
 mod schedule;

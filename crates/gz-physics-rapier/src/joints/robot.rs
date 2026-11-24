@@ -156,6 +156,30 @@ impl RapierBackend {
             .any(|j| j.initial.robot && (j.initial.child == body || j.initial.parent == Some(body)))
     }
 
+    /// Accumulate one step of torque in N·m, expressed in the parent joint frame.
+    pub fn add_ball_effort(&mut self, id: JointId, torque: [f64; 3]) -> Result<(), PhysicsError> {
+        let joint = self
+            .joints
+            .records
+            .get(&id)
+            .ok_or(PhysicsError::MissingJoint)?;
+        if !matches!(joint.initial.motion, JointMotion::Ball) {
+            return Err(PhysicsError::InvalidJoint);
+        }
+        let old = self
+            .joints
+            .angular_efforts
+            .get(&id)
+            .copied()
+            .unwrap_or_default();
+        let sum = old + Vector::from_array(torque);
+        if !sum.is_finite() {
+            return Err(PhysicsError::InvalidValue);
+        }
+        self.joints.angular_efforts.insert(id, sum);
+        Ok(())
+    }
+
     pub fn ball_joint_state(&self, id: JointId) -> Option<BallJointState> {
         let joint = self.joints.records.get(&id)?.initial;
         if !matches!(joint.motion, JointMotion::Ball) {
@@ -175,6 +199,20 @@ impl RapierBackend {
 }
 
 impl Construction {
+    pub(super) fn world_joint_frames(
+        self,
+        world: &PhysicsWorld,
+        bodies: &BTreeMap<BodyId, BodyEntry>,
+    ) -> (Rotation, Rotation) {
+        let parent = self.parent.map_or(Rotation::IDENTITY, |p| {
+            *world.bodies[bodies[&p].0].rotation()
+        });
+        (
+            parent * self.frame1.rotation,
+            *world.bodies[bodies[&self.child].0].rotation() * self.frame2.rotation,
+        )
+    }
+
     pub(super) fn motor_axis(self) -> JointAxis {
         if matches!(self.motion, JointMotion::Prismatic) {
             JointAxis::LinX
