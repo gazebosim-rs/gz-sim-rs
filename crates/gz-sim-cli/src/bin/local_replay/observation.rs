@@ -51,6 +51,34 @@ struct LinkLoad {
     world_torque_nm: [f64; 3],
 }
 
+/// Impulses delivered to the lower-numbered native body, in world axes.
+#[derive(Serialize)]
+struct PairImpulse {
+    a: u64,
+    b: u64,
+    #[serde(skip)]
+    normal_sum_ns: f64,
+    normal_on_a_ns: [f64; 3],
+    tangent_on_a_ns: Option<[f64; 3]>,
+}
+
+impl PairImpulse {
+    fn add_point(&mut self, normal: [f64; 3], magnitude: f64, tangent: Option<[f64; 3]>) {
+        self.normal_sum_ns += magnitude;
+        for (sum, axis) in self.normal_on_a_ns.iter_mut().zip(normal) {
+            *sum += magnitude * axis;
+        }
+        // An unloaded Coulomb point contributes zero even when the grouped
+        // rigid solver does not publish individual tangential impulses.
+        if magnitude != 0. || tangent.is_some() {
+            self.tangent_on_a_ns = self
+                .tangent_on_a_ns
+                .zip(tangent)
+                .map(|(sum, t)| std::array::from_fn(|i| sum[i] + t[i]));
+        }
+    }
+}
+
 #[derive(Serialize)]
 struct RefinedContact {
     foot_link: u64,
@@ -129,6 +157,8 @@ pub(super) struct State {
     imu_samples: usize,
     /// Native body IDs in ascending pair order, with summed normal impulse in N·s.
     pair_reactions_ns: Vec<(u64, u64, f64)>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pair_impulses: Vec<PairImpulse>,
     #[serde(skip_serializing_if = "Option::is_none")]
     refinement: Option<RefinedStep>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -276,9 +306,14 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
     let mut contact_points = 0;
     let mut reactions = std::collections::BTreeMap::new();
     for patch in solver.rigid_contact_patches() {
-        let reaction = reactions
-            .entry((patch.a.raw(), patch.b.raw()))
-            .or_insert(0.);
+        let (a, b) = (patch.a.raw(), patch.b.raw());
+        let reaction = reactions.entry((a, b)).or_insert(PairImpulse {
+            a,
+            b,
+            normal_sum_ns: 0.,
+            normal_on_a_ns: [0.; 3],
+            tangent_on_a_ns: Some([0.; 3]),
+        });
         contacts.item((
             patch.a.raw(),
             patch.b.raw(),
@@ -286,7 +321,11 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
             patch.points.len(),
         ));
         for point in patch.points {
-            *reaction += point.normal_impulse;
+            reaction.add_point(
+                patch.normal_on_a,
+                point.normal_impulse,
+                point.tangent_impulse_on_a,
+            );
             delivered_normal_ns += point.normal_impulse;
             contact_points += 1;
             contacts.item((
@@ -324,7 +363,17 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         reactions.clear();
         delivered_normal_ns = 0.;
         for pair in &r.interval.pairs {
-            reactions.insert((pair.a.raw(), pair.b.raw()), pair.normal_impulse);
+            let (a, b) = (pair.a.raw(), pair.b.raw());
+            reactions.insert(
+                (a, b),
+                PairImpulse {
+                    a,
+                    b,
+                    normal_sum_ns: pair.normal_impulse,
+                    normal_on_a_ns: pair.normal_impulse_on_a,
+                    tangent_on_a_ns: pair.tangent_impulse_on_a,
+                },
+            );
             delivered_normal_ns += pair.normal_impulse;
         }
     }
@@ -355,11 +404,41 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         link_loads,
         imu_samples,
         pair_reactions_ns: reactions
-            .into_iter()
-            .map(|((a, b), ns)| (a, b, ns))
+            .values()
+            .map(|p| (p.a, p.b, p.normal_sum_ns))
             .collect(),
+        pair_impulses: reactions.into_values().collect(),
         contact_points,
         delivered_normal_ns,
         stored_normal_ns,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn opposing_faces_add_pressure_and_cancel_force_without_inventing_friction() {
+        for unknown_first in [false, true] {
+            let mut load = PairImpulse {
+                a: 1,
+                b: 2,
+                normal_sum_ns: 0.,
+                normal_on_a_ns: [0.; 3],
+                tangent_on_a_ns: Some([0.; 3]),
+            };
+            let face = [1., 0., 0.];
+            let applied = [0., -0.2, 0.];
+            load.add_point(face, 0., None);
+            load.add_point(face, 1., Some(applied));
+            assert_eq!(load.tangent_on_a_ns, Some(applied));
+            for unknown in [unknown_first, !unknown_first] {
+                load.add_point([-1., 0., 0.], 0.5, (!unknown).then_some(applied));
+            }
+            assert_eq!(load.normal_sum_ns, 2.);
+            assert_eq!(load.normal_on_a_ns, [0.; 3]);
+            assert_eq!(load.tangent_on_a_ns, None);
+        }
+    }
 }

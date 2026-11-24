@@ -948,13 +948,54 @@ fn a_refined_impact_replays_its_full_impulse_and_drops_stale_step_receipts() {
             .iter()
             .any(|p| p[2] == hit["normal_impulse_ns"])
     );
+    let support_pair = |row: &Value| {
+        row["pair_impulses"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|p| p["a"] == 0 && p["b"] == 2)
+            .unwrap()
+            .clone()
+    };
+    let smooth = support_pair(first);
+    assert!(smooth["tangent_on_a_ns"].is_null());
+    assert_eq!(smooth["normal_on_a_ns"][2].as_f64(), Some(-j));
+
+    let rough_xml = raw.replace("<mu>0</mu><mu2>0</mu2>", "<mu>0.5</mu><mu2>0.5</mu2>");
+    let rough_world = file(dir, "rough.sdf", &rough_xml);
+    let rough = success(run(
+        &rough_world,
+        &journal,
+        &["--rapier-per-point-friction"],
+    ));
+    let rough_tick = record(&rough, 1, 1);
+    let on_pad = support_pair(rough_tick);
+    let on_parcel = &rough_tick["refinement"]["requested_pairs"][0];
+    assert!(on_pad["tangent_on_a_ns"][0].as_f64().unwrap() > 0.01);
+    for (pad, parcel) in [
+        ("normal_on_a_ns", "normal_on_foot_ns"),
+        ("tangent_on_a_ns", "tangent_on_foot_ns"),
+    ] {
+        for axis in 0..3 {
+            assert_eq!(
+                on_pad[pad][axis].as_f64().unwrap(),
+                -on_parcel[parcel][axis].as_f64().unwrap()
+            );
+        }
+    }
     let paused = record(&rows, 2, 1);
     let repeated = record(&rows, 5, 1);
     for other in [paused, repeated] {
         shared(
             first,
             other,
-            &["refinement", "pair_reactions_ns", "contacts", "physics"],
+            &[
+                "refinement",
+                "pair_reactions_ns",
+                "pair_impulses",
+                "contacts",
+                "physics",
+            ],
         );
     }
     assert!(record(&rows, 3, 2).get("refinement").is_none());
