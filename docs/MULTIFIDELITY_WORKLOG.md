@@ -2111,3 +2111,7 @@ Four native stabilization passes reduced the unwanted upward velocity at the end
 ## 2026-11-23 — Resolving self-contact inside a stiff folded-sheet grasp
 
 The stiff spring jaws now continue past the 640 ms pickup state where a closing cloth edge used to stop the simulation. Six exchange rates completed the full pickup and release with the same actuator clock. The measured force split between the two jaws still varies considerably, so this extreme compliance remains outside the qualified range. The exact failed state passed at four material resolutions, all 190 XPBD tests passed and the solver change reached 100% executable line and region coverage. [Signed forces, native replays and regression](measurements/local-manipulation/spring-pad-endpoint.md)
+
+## 2026-11-23 — Restoring the rigid gripper's tactile readings
+
+Rigid fingertips now report the normal and friction impulse on each cloth particle. Both jaws measured 0.825 N of squeeze and shared the sheet weight, and the existing motion and replay stayed byte-identical. A twelve-rate comparison against 1,000 exchanges per millisecond needed 500 to place every recorded node within 0.1 mm. At that setting each simulated millisecond cost 131 ms p95 on the shared host. This is a measured accuracy limit for the light, rigid jaws. [Forces, timings, coverage and replays](measurements/local-manipulation/hard-jaw-tactile.md)
