@@ -41,7 +41,9 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                 && model.joints.iter().all(|j| {
                     matches!(
                         j.kind,
-                        sdformat::JointKind::Revolute
+                        sdformat::JointKind::Fixed
+                            | sdformat::JointKind::Ball
+                            | sdformat::JointKind::Revolute
                             | sdformat::JointKind::Prismatic
                             | sdformat::JointKind::Screw
                             | sdformat::JointKind::Universal

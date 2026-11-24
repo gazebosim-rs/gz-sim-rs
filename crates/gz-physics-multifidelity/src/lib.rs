@@ -1690,6 +1690,11 @@ impl MultiFidelityBackend {
             .map_err(engine_error)
     }
 
+    /// Sum of torques awaiting the next spherical-joint solve in parent joint axes.
+    pub fn pending_ball_effort(&self, id: JointId) -> Option<[f64; 3]> {
+        self.solver.pending_ball_effort(id)
+    }
+
     /// Accumulate one step of spherical joint torque in the parent joint frame.
     pub fn add_ball_effort(&mut self, id: JointId, torque: [f64; 3]) -> Result<(), PhysicsError> {
         self.solver

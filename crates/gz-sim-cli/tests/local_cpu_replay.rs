@@ -325,3 +325,60 @@ fn report_corrupt_inputs_missing_files_and_capture_the_last_unsampled_step() {
         assert!(!run(&world, &j, &[]).status.success(), "{commands}");
     }
 }
+
+#[test]
+fn spherical_wrist_commands_accumulate_survive_pause_and_replay_after_reset() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = file(
+        dir,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/gravity_wrist.sdf"),
+    );
+    let journal = file(
+        dir,
+        "wrist.json",
+        include_str!("../../../examples/replay/ball_wrist.json"),
+    );
+    let rows = success(run(&xml, &journal, &["--threads", "1"]));
+    assert_eq!(rows, success(run(&xml, &journal, &["--threads", "8"])));
+    let queued = record(&rows, 2, 0);
+    let paused = record(&rows, 3, 0);
+    shared(queued, paused, STATE);
+    let wrists = paused["wrists"].as_array().unwrap();
+    let held = wrists
+        .iter()
+        .position(|j| !j["pending_torque_nm"].is_null())
+        .unwrap();
+    let free = 1 - held;
+    assert_eq!(wrists.len(), 2);
+    assert_eq!(wrists[held]["pending_torque_nm"], json!([18., -24., 12.]));
+    assert_ne!(record(&rows, 1, 0)["inputs"], paused["inputs"]);
+    assert_eq!(
+        record(&rows, 7, 500)["wrists"][held]["pending_torque_nm"],
+        json!([0., 0., 0.])
+    );
+    let reset = record(&rows, 9, 0);
+    assert!(reset["wrists"][held]["pending_torque_nm"].is_null());
+    for step in 1..=240 {
+        let before = record(&rows, 4, step);
+        let replayed = record(&rows, 13, step);
+        assert!(before["wrists"][held]["pending_torque_nm"].is_null());
+        shared(
+            before,
+            replayed,
+            &["wrists", "physics", "contacts", "inputs", "scene"],
+        );
+    }
+    let first = &record(&rows, 4, 1)["wrists"];
+    assert_ne!(
+        first[held]["angular_velocity_rad_s"],
+        first[free]["angular_velocity_rad_s"]
+    );
+    let miss = file(
+        dir,
+        "wrong-kind",
+        r#"{"seed":"w","commands":[{"op":"ball_torque","joint":"default::held::clamp","torque_nm":[1,2,3]}]}"#,
+    );
+    assert!(!run(&xml, &miss, &[]).status.success());
+}

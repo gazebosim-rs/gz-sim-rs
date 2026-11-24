@@ -180,6 +180,11 @@ impl RapierBackend {
         Ok(())
     }
 
+    /// Sum of spherical-joint torques queued for the next advance, in the parent joint axes.
+    pub fn pending_ball_effort(&self, id: JointId) -> Option<[f64; 3]> {
+        self.joints.angular_efforts.get(&id).map(|v| v.to_array())
+    }
+
     pub fn ball_joint_state(&self, id: JointId) -> Option<BallJointState> {
         let joint = self.joints.records.get(&id)?.initial;
         if !matches!(joint.motion, JointMotion::Ball) {

@@ -59,6 +59,10 @@ enum Command {
         joint: String,
         value: f64,
     },
+    BallTorque {
+        joint: String,
+        torque_nm: [f64; 3],
+    },
     Wrench {
         link: String,
         force: [f64; 3],
@@ -278,6 +282,10 @@ fn run(args: Args) -> Result<()> {
             Command::Target { joint, value } => {
                 let id = entity_id(&sim, joint)?;
                 gz_sim_scene::set_joint_controller_command(&mut sim, id, *value)?;
+            }
+            Command::BallTorque { joint, torque_nm } => {
+                let id = entity_id(&sim, joint)?;
+                gz_sim_scene::queue_ball_joint_effort(&mut sim, id, *torque_nm)?;
             }
             Command::Wrench {
                 link,

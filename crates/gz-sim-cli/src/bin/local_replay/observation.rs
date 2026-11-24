@@ -4,7 +4,10 @@ use super::{Result, Simulation};
 use gz_physics::PhysicsBackend;
 use gz_physics_multifidelity::MultiFidelityBackend;
 use gz_sim_core::EntityId;
-use gz_sim_scene::{BodyHandle, ImuSample, JointSample, Name, UniversalJointSample, WorldPose};
+use gz_sim_scene::{
+    BallJointSample, BodyHandle, ImuSample, JointHandle, JointSample, Name, UniversalJointSample,
+    WorldPose,
+};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
@@ -25,6 +28,14 @@ impl Signature {
 }
 
 #[derive(Serialize)]
+struct Wrist {
+    id: u64,
+    orientation_xyzw: [f64; 4],
+    angular_velocity_rad_s: [f64; 3],
+    pending_torque_nm: Option<[f64; 3]>,
+}
+
+#[derive(Serialize)]
 pub(super) struct State {
     command: usize,
     epoch: u64,
@@ -36,6 +47,8 @@ pub(super) struct State {
     contacts: String,
     inputs: String,
     imu: String,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    wrists: Vec<Wrist>,
     /// Aggregate physical checks for qualification and fault isolation.
     pub(crate) held_targets: usize,
     pub(crate) pending_wrenches: usize,
@@ -62,6 +75,7 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
     let mut physics = Signature::default();
     let mut inputs = Signature::default();
     let mut imu = Signature::default();
+    let mut wrists = Vec::new();
     let mut held_targets = 0;
     let mut pending_wrenches = 0;
     let mut imu_samples = 0;
@@ -85,6 +99,23 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         }
         if let Some(j) = e.get::<JointSample>() {
             physics.item((id, j.state.position.to_bits(), j.state.velocity.to_bits()));
+        }
+        if let (Some(j), Some(handle)) = (e.get::<BallJointSample>(), e.get::<JointHandle>()) {
+            let pending = solver.pending_ball_effort(handle.id());
+            if let Some(torque) = pending {
+                inputs.item((id, "ball_torque_nm", torque.map(bits)));
+            }
+            physics.item((
+                id,
+                j.state.orientation.map(bits),
+                j.state.angular_velocity.map(bits),
+            ));
+            wrists.push(Wrist {
+                id,
+                orientation_xyzw: j.state.orientation,
+                angular_velocity_rad_s: j.state.angular_velocity,
+                pending_torque_nm: pending,
+            });
         }
         if let Some(j) = e.get::<UniversalJointSample>() {
             physics.item((id, j.state.position.map(bits), j.state.velocity.map(bits)));
@@ -168,6 +199,7 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         contacts: contacts.finish(),
         inputs: inputs.finish(),
         imu: imu.finish(),
+        wrists,
         held_targets,
         pending_wrenches,
         imu_samples,
