@@ -39,6 +39,7 @@ pub(crate) struct Plan {
 pub(super) struct Row {
     pub(super) id: u64,
     half_width: f64,
+    pub(super) payload_half: Option<[f64; 3]>,
     pub(super) lane: ParallelGripperLane,
     pub(super) links: [String; 4],
     pub(super) poses: [Transform; 4],
@@ -164,15 +165,23 @@ impl Row {
             "single ordinary three-slider model and named fixed plane required",
         )?;
         let (ball_name, data) = config::model_shape_with_inertia(sdf, w, obj, track.is_some())?;
-        let config::ShapeData::Sphere(ball) = data else {
-            return Err(reason("free solid sphere required"));
+        let (payload_position, radius, transverse, payload_half) = match data {
+            config::ShapeData::Sphere(s) => (s.position, s.radius, s.radius, None),
+            config::ShapeData::Box { position, half } => (position, 0., half[1], Some(half)),
+            _ => {
+                return Err(reason(if track.is_some() {
+                    "dynamic free payload required"
+                } else {
+                    "free solid sphere required"
+                }));
+            }
         };
         let ball_link = &obj.links[0];
         let ball_mu = planar_tool_config::law(&ball_link.collisions[0])?;
         require(
             plain(ball_link),
             &ball_name,
-            "ordinary dynamic sphere with gravity and no sensors required",
+            "ordinary dynamic sphere or carried box with gravity and no sensors required",
         )?;
         let joint = |key: &str| -> Result<&sdformat::Joint, LoadError> {
             let name = attr(env, key)?;
@@ -211,7 +220,7 @@ impl Row {
             (poses[1].translation[2] - poses[2].translation[2]).abs() < 1e-12
                 && poses[..3].iter().all(|p| {
                     centered([p.rotation[0], p.rotation[1], p.rotation[2]])
-                        && (p.translation[1] - ball.position[1]).abs() < 1e-12
+                        && (p.translation[1] - payload_position[1]).abs() < 1e-12
                 }),
             &m.name,
             "axis-aligned coplanar sliders with level finger centers required",
@@ -226,11 +235,11 @@ impl Row {
             speed: [0.; 3],
             mass: links.map(|l| l.inertial.mass),
             half_size: [[0.; 2]; 2],
-            ball: [ball.position[0], ball.position[2]],
+            ball: [payload_position[0], payload_position[2]],
             velocity: [0.; 2],
             angle: 0.,
             spin: 0.,
-            radius: ball.radius,
+            radius,
             ball_mass: ball_link.inertial.mass,
             gravity: -w.gravity[2],
             ground,
@@ -246,7 +255,7 @@ impl Row {
             upper: [0.; 3],
         };
         let mut local = [Transform::default(); 3];
-        let mut half_width = ball.radius;
+        let mut half_width = transverse;
         for i in 0..3 {
             let j = joints[i];
             let l = links[i];
@@ -294,7 +303,7 @@ impl Row {
                     return Err(reason("only finite box fingertip collisions are supported"));
                 };
                 require(
-                    size[1] >= 2. * ball.radius
+                    size[1] >= 2. * transverse
                         && identity(sdf.resolve_pose(
                             &c.pose,
                             &m.scoped_name,
@@ -302,7 +311,7 @@ impl Row {
                             &names[i],
                         )?),
                     &l.name,
-                    "centered finite pad covering the sphere's width required",
+                    "centered finite pad covering the payload width required",
                 )?;
                 half_width = half_width.max(size[1] * 0.5);
                 lane.half_size[i - 1] = [size[0] * 0.5, size[2] * 0.5];
@@ -349,13 +358,14 @@ impl Row {
             }
         }
         require(
-            driven.len() == 3 && lane.valid(),
+            driven.len() == 3 && (payload_half.is_some() || lane.valid()),
             &m.name,
             "invalid drive or gripper geometry, initial contact or travel envelope",
         )?;
         Ok(Self {
             id,
             half_width,
+            payload_half,
             lane,
             links: names,
             poses,

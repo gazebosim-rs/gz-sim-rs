@@ -4,6 +4,8 @@
 use gz_physics_gpu::{CarryGripperBatch, CarryGripperLane};
 use serde_json::json;
 use std::{error::Error, fs, path::Path, time::Instant};
+#[path = "support/carry_gripper/box_pickup.rs"]
+mod box_pickup;
 #[path = "support/carry_gripper/eccentric.rs"]
 mod eccentric;
 #[path = "support/carry_gripper/fixture.rs"]
@@ -76,6 +78,7 @@ fn poses(tick: usize, l: &CarryGripperLane) -> serde_json::Value {
         json!({"translation":[x,y,z],"rotation":[0.,s,0.,c]})
     };
     let h = l.hand;
+    let angle = h.angle + l.box_heading;
     let [z, left, right] = h.position;
     let [x, bz] = h.ball;
     json!({"time_ns":tick*1_000_000,"poses":{
@@ -87,8 +90,8 @@ fn poses(tick: usize, l: &CarryGripperLane) -> serde_json::Value {
         "carriage":pose(l.track,0.,z+0.08,0.),
         "left":pose(left,0.,z,0.),"left_stem":pose(left,0.,z+0.044,0.),
         "right":pose(right,0.,z,0.),"right_stem":pose(right,0.,z+0.044,0.),
-        "sphere":pose(x,0.,bz,h.angle),
-        "marker":pose(x+0.014*h.angle.cos(),0.015,bz+0.014*h.angle.sin(),h.angle)
+        "sphere":pose(x,0.,bz,angle),
+        "marker":pose(x+0.014*angle.cos(),0.015,bz+0.014*angle.sin(),angle)
     }})
 }
 fn run(adapter: &str, dir: &Path) -> Result<(), Box<dyn Error>> {
@@ -265,6 +268,11 @@ fn run(adapter: &str, dir: &Path) -> Result<(), Box<dyn Error>> {
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
+    if let [adapter, dir, mode] = args.as_slice()
+        && mode == "box"
+    {
+        return box_pickup::run(adapter, Path::new(dir));
+    }
     if let [adapter, dir, mode] = args.as_slice()
         && mode == "eccentric"
     {

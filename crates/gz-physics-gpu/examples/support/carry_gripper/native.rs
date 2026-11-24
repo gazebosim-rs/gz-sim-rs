@@ -13,6 +13,9 @@ pub struct Native {
 }
 impl Native {
     pub fn new(l: &CarryGripperLane, n: usize) -> Self {
+        Self::create(l, n, false)
+    }
+    pub fn create(l: &CarryGripperLane, n: usize, lock_transverse: bool) -> Self {
         let h = &l.hand;
         let mut world = PhysicsWorld::new();
         world.gravity = -Vector::Z * h.gravity;
@@ -99,15 +102,34 @@ impl Native {
         let ball = world.insert_body(
             RigidBodyBuilder::dynamic()
                 .translation(Vector::new(h.ball[0], 0., h.ball[1]))
+                .rotation(-Vector::Y * (l.box_heading + h.angle))
+                .enabled_rotations(!lock_transverse, true, !lock_transverse)
+                .enabled_translations(true, !lock_transverse, true)
                 .can_sleep(false),
         );
+        let (geometry, moments) = if l.box_half == [0.; 2] {
+            (
+                ColliderBuilder::ball(h.radius),
+                Vector::splat(l.angular_inertia),
+            )
+        } else {
+            let [x, z] = l.box_half;
+            let y = super::fixture::BOX_HALF_WIDTH;
+            (
+                ColliderBuilder::cuboid(x, y, z),
+                Vector::new(
+                    h.ball_mass * (y * y + z * z) / 3.,
+                    l.angular_inertia,
+                    h.ball_mass * (x * x + y * y) / 3.,
+                ),
+            )
+        };
+        let (s, c) = l.box_heading.sin_cos();
+        let [x, z] = l.com_offset;
+        let local_com = Vector::new(c * x + s * z, 0., c * z - s * x);
         let shape = world.insert_collider(
             mat(
-                ColliderBuilder::ball(h.radius).mass_properties(MassProperties::new(
-                    Vector::new(l.com_offset[0], 0., l.com_offset[1]),
-                    h.ball_mass,
-                    Vector::splat(l.angular_inertia),
-                )),
+                geometry.mass_properties(MassProperties::new(local_com, h.ball_mass, moments)),
                 1.,
             ),
             Some(ball),
@@ -132,6 +154,20 @@ impl Native {
             [pos.x, pos.z],
             [vel.x, vel.z],
         )
+    }
+    pub fn spatial_box(&self, l: &CarryGripperLane, gpu_angle: f64) -> [f64; 4] {
+        let body = &self.world.bodies[self.ball];
+        let rot = body.rotation();
+        let axes = [rot * Vector::X, rot * Vector::Y, rot * Vector::Z];
+        let [x, z] = l.box_half;
+        let extent = x * axes[0].z.abs()
+            + super::fixture::BOX_HALF_WIDTH * axes[1].z.abs()
+            + z * axes[2].z.abs();
+        let tilt = axes[1].y.clamp(-1., 1.).acos();
+        let error = rot
+            .angle_between(Rotation::from_rotation_y(-gpu_angle))
+            .abs();
+        [extent, body.translation().y, tilt, error]
     }
     pub fn pad_velocity(&self) -> [[f64; 2]; 2] {
         [self.bodies[2], self.bodies[3]].map(|id| {

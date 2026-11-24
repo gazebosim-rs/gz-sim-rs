@@ -42,7 +42,7 @@ impl ParallelGripperLane {
     fn accepts_target(&self, target: [f64; 3]) -> bool {
         (0..3).all(|i| (self.lower[i]..=self.upper[i]).contains(&target[i]))
     }
-    pub fn valid(self) -> bool {
+    pub(super) fn mechanism_valid(self) -> bool {
         let finite = bytemuck::cast_ref::<_, [f64; WIDTH]>(&self)
             .iter()
             .all(|x| x.is_finite());
@@ -51,10 +51,9 @@ impl ParallelGripperLane {
                 .mass
                 .iter()
                 .chain(self.half_size.iter().flatten())
-                .chain([&self.radius, &self.ball_mass])
+                .chain([&self.ball_mass])
                 .all(|&x| x > 0. && x.recip().is_finite())
             && (self.mass.iter().sum::<f64>() * self.gravity).is_finite()
-            && (2.5 / (self.ball_mass * self.radius * self.radius)).is_normal()
             && self.gravity >= 0.
             && self.friction.iter().all(|x| (0. ..=1.).contains(x))
             && (0..3).all(|i| {
@@ -67,6 +66,15 @@ impl ParallelGripperLane {
             })
             && self.lower[0] - self.half_size[0][1].max(self.half_size[1][1]) > self.ground
             && self.upper[1] + self.half_size[0][0] < self.lower[2] - self.half_size[1][0]
+            && self.normal_impulse == [0.; 3]
+            && self.tangent_impulse == [0.; 3]
+            && self.support_impulse == [0.; 2]
+    }
+    pub fn valid(self) -> bool {
+        self.mechanism_valid()
+            && self.radius > 0.
+            && self.radius.recip().is_finite()
+            && (2.5 / (self.ball_mass * self.radius * self.radius)).is_normal()
             && self.ball[1] - self.ground >= self.radius - 1e-14
             && (0..2).all(|i| {
                 let gap = box_gap(
@@ -82,9 +90,6 @@ impl ParallelGripperLane {
                 .0;
                 gap.is_finite() && gap >= -1e-14
             })
-            && self.normal_impulse == [0.; 3]
-            && self.tangent_impulse == [0.; 3]
-            && self.support_impulse == [0.; 2]
     }
 }
 impl ParallelGripperBatch {

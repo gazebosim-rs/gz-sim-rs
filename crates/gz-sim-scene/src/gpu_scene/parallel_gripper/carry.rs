@@ -204,10 +204,10 @@ impl Plan {
                     &link.scoped_name,
                 )?)
                 && (shelf_pose.translation[1] - row.poses[3].translation[1]).abs()
-                    + row.lane.radius
+                    + row.payload_half.map_or(row.lane.radius, |s| s[1])
                     <= size[1] * 0.5,
             &receiving.name,
-            "horizontal static shelf covering the sphere's transverse width required",
+            "horizontal static shelf covering the full transverse width required",
         )?;
         let mut drives = env.children().filter(|n| n.has_tag_name("track-drive"));
         let drive = drives.next().ok_or_else(|| reason("missing rail drive"))?;
@@ -235,14 +235,35 @@ impl Plan {
         let applied = tensor * direction;
         let angular_inertia = direction.dot(applied);
         let trace = ix + iy + iz;
-        let radius = row.lane.radius;
+        let box_half = row.payload_half.map_or([0.; 2], |s| [s[0], s[2]]);
+        let payload_size = box_half[0].max(box_half[1]).max(row.lane.radius);
+        let bound = if let Some(half) = row.payload_half {
+            let rotation = DQuat::from_array(mass_pose.rotation).inverse();
+            [DVec3::X, DVec3::Y, DVec3::Z]
+                .into_iter()
+                .enumerate()
+                .all(|(i, axis)| {
+                    let n = rotation * axis;
+                    let second_moment = (trace * 0.5 - n.dot(tensor * n)) / body.inertial.mass
+                        + mass_pose.translation[i].powi(2);
+                    second_moment <= half[i] * half[i] * (1. + 64. * f64::EPSILON)
+                })
+        } else {
+            trace * 0.5 <= body.inertial.mass * (row.lane.radius.powi(2) - center.length_squared())
+        };
         require(
-            center.y.abs() <= 64. * f64::EPSILON * radius
+            center.y.abs() <= 64. * f64::EPSILON * payload_size
                 && (applied - direction * angular_inertia).length() <= 64. * f64::EPSILON * trace
-                && trace * 0.5 <= body.inertial.mass * (radius * radius - center.length_squared()),
+                && bound,
             &body.scoped_name,
-            "carried sphere needs an in-plane mass center and a transverse principal axis with mass moments inside its shell",
+            "carried body needs an in-plane mass center and a transverse principal axis with mass moments inside its geometry",
         )?;
+        let x_axis = initial_rotation * DVec3::X;
+        let box_heading = if row.payload_half.is_some() {
+            x_axis.z.atan2(x_axis.x)
+        } else {
+            0.
+        };
         let lane = CarryGripperLane {
             com_offset: [center.x, center.z],
             angular_inertia,
@@ -264,6 +285,9 @@ impl Plan {
             shelf_normal: 0.,
             shelf_tangent: 0.,
             shelf_up: 0.,
+            box_half,
+            box_heading,
+            point_impulse: [[0.; 2]; 4],
         };
         require(
             lane.valid() && row.commands.is_empty(),
@@ -483,11 +507,12 @@ pub(super) fn prepare(world: &mut World) {
         target[1] = m.lift;
     }
     if b.receipt.is_none() && tick > b.policy.after {
-        let clearance = h.ball[1] - h.radius - l.shelf_center[1] - l.shelf_half[1];
+        let [width, height] = l.payload_reach();
+        let clearance = h.ball[1] - height - l.shelf_center[1] - l.shelf_half[1];
         let force = l.shelf_up / gz_physics_gpu::STEP.as_secs_f64();
-        let supported = (h.ball[0] - l.shelf_center[0]).abs() < l.shelf_half[0] - h.radius
+        let supported = (h.ball[0] - l.shelf_center[0]).abs() < l.shelf_half[0] - width
             && clearance.abs() <= b.policy.gap
-            && h.velocity[1].abs() <= b.policy.speed
+            && l.settling_speed() <= b.policy.speed
             && force >= b.policy.fraction * h.ball_mass * h.gravity
             && force <= b.policy.maximum_fraction * h.ball_mass * h.gravity
             && force > 0.

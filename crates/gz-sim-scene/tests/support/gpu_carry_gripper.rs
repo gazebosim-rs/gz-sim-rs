@@ -381,3 +381,118 @@ fn carrying_solver_resolves_the_rotated_authored_mass_frame() {
         }
     }
 }
+
+const BOX_CARRY: &str = include_str!("../../../../examples/gpu_box_gripper.sdf");
+#[test]
+fn finite_box_requires_transverse_symmetry_and_inertia_inside_its_shape() {
+    for (from, to, want) in [
+        (
+            "object=\"parcel\"",
+            "object=\"table\"",
+            "dynamic free payload",
+        ),
+        ("0 0 0.020 0 0 0", "0 0 0.020 0.1 0 0", "transverse axis"),
+        ("0.048 0.024 0.040", "0.048 0.08 0.040", "covering"),
+        ("0.0000192</izz>", "0.000037</izz>", "mass moments"),
+        ("0 0 0.020 0 0 0", "0 0 0.015 0 0 0", "clear the shelf"),
+        ("0 0 0.020 0 0 0", "0.18 0 0.02 0 0 0", "clear the shelf"),
+    ] {
+        let source = BOX_CARRY.replace(from, to);
+        assert_ne!(source, BOX_CARRY);
+        let err = load(&source, Some("unavailable"))
+            .err()
+            .unwrap()
+            .to_string();
+        assert!(err.contains(want), "{to}: {err}");
+    }
+}
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn ordinary_box_carry_reports_both_face_impulses_and_resets() {
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(BOX_CARRY, Some(&adapter)).unwrap();
+    let mut first = Vec::new();
+    for epoch in 0..2 {
+        if epoch != 0 {
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+        }
+        let mut paired = [0; 2];
+        let mut support = 0.;
+        for tick in 1..=1000 {
+            sim.step_exact(1).unwrap();
+            let (l, release) = carry::observe(&sim, 12).unwrap();
+            assert!(release.is_none());
+            assert_eq!(l.box_half, [0.024, 0.020]);
+            assert_eq!(l.hand.radius, 0.);
+            for s in 0..4 {
+                let expected = [
+                    l.hand.normal_impulse[0],
+                    l.hand.normal_impulse[1],
+                    l.hand.normal_impulse[2],
+                    l.shelf_normal,
+                ][s];
+                assert!((l.point_impulse[s].iter().sum::<f64>() - expected).abs() < 1e-13);
+            }
+            for (n, imp) in paired.iter_mut().zip(l.point_impulse) {
+                if imp[0].min(imp[1]) > 1e-9 {
+                    *n += 1;
+                }
+            }
+            if tick >= 801 {
+                let center = l.hand.ball[0];
+                let half = l.payload_reach()[0];
+                let left = l.hand.position[1] + l.hand.half_size[0][0];
+                let right = l.hand.position[2] - l.hand.half_size[1][0];
+                assert!(
+                    ((center - half) - left).abs() < 1e-7 && (right - (center + half)).abs() < 1e-7
+                );
+                support += l.hand.support_impulse.iter().sum::<f64>() / 0.2;
+                assert!(
+                    l.hand.ball[1] - l.payload_reach()[1] > 0.09 && l.hand.normal_impulse[2] == 0.
+                );
+            }
+            let frame = (l.hand.ball, l.hand.angle, l.hand.spin, l.point_impulse);
+            if epoch == 0 {
+                first.push(frame)
+            } else {
+                assert_eq!(first[tick - 1], frame);
+            }
+        }
+        assert!(paired.into_iter().all(|v| v > 850));
+        assert!((support - 0.08 * 9.81).abs() < 0.0001);
+    }
+}
+
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn a_carried_cuboid_settles_on_the_finite_named_shelf_before_opening() {
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(BOX_CARRY, Some(&adapter)).unwrap();
+    let mut initial = *carry::observe(&sim, 12).unwrap().0;
+    initial.hand.spin = 2.;
+    assert!((initial.settling_speed() - 0.048).abs() < 1e-14);
+    let mut open = None;
+    for t in 1..=2300 {
+        sim.step_exact(1).unwrap();
+        let (l, r) = carry::observe(&sim, 12).unwrap();
+        if let Some(r) = r
+            && open.is_none()
+        {
+            assert_eq!(r.tick, t);
+            assert_eq!(r.sustained_ticks, 24);
+            assert!(
+                r.upward_force_n >= 0.65 * 0.08 * 9.81 && r.upward_force_n <= 1.4 * 0.08 * 9.81
+            );
+            assert!(r.clearance_m.abs() < 0.0008);
+            open = Some(t);
+        }
+        if t >= 2101 {
+            let [width, height] = l.payload_reach();
+            assert!((l.hand.ball[0] - l.shelf_center[0]).abs() + width < l.shelf_half[0]);
+            assert!((l.hand.ball[1] - height - 0.014).abs() < 1e-7);
+            assert!((l.shelf_up / 0.001 - 0.08 * 9.81).abs() < 1e-5);
+            assert_eq!(l.hand.normal_impulse, [0.; 3]);
+        }
+    }
+    assert!(open.is_some_and(|t| (1300..1600).contains(&t)));
+}

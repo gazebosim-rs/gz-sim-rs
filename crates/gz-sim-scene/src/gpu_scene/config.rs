@@ -37,6 +37,7 @@ fn vector(x: Option<&str>) -> Option<[f64; 3]> {
 }
 pub(super) enum ShapeData {
     Sphere(SolidSphere),
+    Box { position: [f64; 3], half: [f64; 3] },
     Plane { normal: [f64; 3], offset: f64 },
 }
 fn shapes(
@@ -126,6 +127,19 @@ pub(super) fn model_shape_with_inertia(
                 velocity: [0.; 3],
                 angular_velocity: [0.; 3],
             })
+        }
+        Geometry::Box { size } if planar_payload && !m.is_static => {
+            let orientation = DQuat::from_array(p.rotation);
+            require(
+                (orientation * DVec3::Y - DVec3::Y).length() < 1e-12
+                    && size.iter().all(|v| v.is_finite() && *v > 0.),
+                link,
+                "planar box payload requires its transverse axis aligned with the fingertip width",
+            )?;
+            ShapeData::Box {
+                position: p.translation,
+                half: size.map(|v| v * 0.5),
+            }
         }
         Geometry::Plane { normal, size } if m.is_static => {
             let local = DVec3::from_array(*normal);

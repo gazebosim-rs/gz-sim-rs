@@ -92,6 +92,39 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut rows = Vec::new();
     let eccentric = include_str!("../../../examples/gpu_eccentric_gripper.sdf");
     let (ticks, cases) = match options {
+        [mode] if mode == "box-place" => (
+            2300,
+            vec![(
+                "box_placement",
+                include_str!("../../../examples/gpu_box_gripper.sdf").to_owned(),
+            )],
+        ),
+        [mode] if mode == "box" => {
+            let source = include_str!("../../../examples/gpu_box_gripper.sdf");
+            let angle = 0.24_f64;
+            let height = 0.024 * angle.sin() + 0.020 * angle.cos();
+            (
+                1000,
+                vec![
+                    ("flat_box", source.to_owned()),
+                    (
+                        "tipped_box",
+                        source.replace(
+                            "0 0 0.020 0 0 0",
+                            &format!("0 0 {height:.17} 0 {} 0", -angle),
+                        ),
+                    ),
+                    (
+                        "slippery_box",
+                        source.replace("<mu>0.6</mu><mu2>0.6", "<mu>0.035</mu><mu2>0.035"),
+                    ),
+                    (
+                        "missed_box",
+                        source.replace("0 0 0.020 0 0 0", "0.105 0 0.020 0 0 0"),
+                    ),
+                ],
+            )
+        }
         [mode] if mode == "eccentric" => (
             1000,
             vec![
@@ -123,9 +156,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 ),
             ],
         ),
-        _ => return Err("expected optional eccentric mode".into()),
+        _ => return Err("expected optional eccentric or box mode".into()),
     };
     for (name, s) in cases {
+        if options.first().is_some_and(|mode| mode == "box") {
+            fs::write(Path::new(output).join(format!("{name}.sdf")), &s)?;
+        }
         rows.push(measure(&s, name, adapter, ticks)?);
     }
     let out = serde_json::to_vec_pretty(&rows)?;
