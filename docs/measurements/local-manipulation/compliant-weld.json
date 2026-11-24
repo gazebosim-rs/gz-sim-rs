@@ -1,0 +1,228 @@
+{
+  "compound": {
+    "first_above_0_01_ns": [
+      235,
+      0.010355710554712625
+    ],
+    "first_contact": [
+      229,
+      1.7360489571759644e-10
+    ],
+    "max_angular_momentum_residual_nms": 1.203700921330073e-15,
+    "max_momentum_residual_ns": 1.6497220256539435e-15,
+    "max_weld_rotation_error_rad": 0.0,
+    "max_weld_shape_error_m": 0.0,
+    "max_weld_twist_error_m_s": 0.0,
+    "normal_impulse_ns": 7.144406720795834,
+    "p95_public_step_ns": 22390,
+    "peak_support_n": 264.2662212507954
+  },
+  "dt_ns": 500000,
+  "max_angular_momentum_nms": 4.591286384181144e-14,
+  "max_center_m": 4.967390593511466e-15,
+  "max_contact_angular_impulse_nms": 7.237196334122943e-15,
+  "max_contact_impulse_ns": 8.198178866695944e-14,
+  "max_linear_momentum_ns": 6.997003992087757e-13,
+  "max_normal_impulse_ns": 6.74876821094017e-14,
+  "max_rotation_rad": 3.818008212971152e-14,
+  "max_spin_rad_s": 1.570398503661586e-12,
+  "max_velocity_m_s": 3.4985019960438783e-13,
+  "ticks": 720,
+  "welded": {
+    "first_above_0_01_ns": [
+      235,
+      0.010355710554738565
+    ],
+    "first_contact": [
+      229,
+      1.736048958035682e-10
+    ],
+    "max_angular_momentum_residual_nms": 9.164944397725572e-16,
+    "max_momentum_residual_ns": 1.6497366184262143e-15,
+    "max_weld_rotation_error_rad": 3.161114103835876e-17,
+    "max_weld_shape_error_m": 5.653841453252908e-17,
+    "max_weld_twist_error_m_s": 5.79646888942316e-16,
+    "normal_impulse_ns": 7.144406720796375,
+    "p95_public_step_ns": 45860,
+    "peak_support_n": 264.26622125079115
+  },
+  "sdf": [
+    "examples/worlds/local_compliant_weld.sdf",
+    "examples/worlds/local_compliant_compound.sdf"
+  ],
+  "native_replays": {
+    "welded": {
+      "body_poses_and_shapes_checked": 543,
+      "captured_ms": {
+        "compression": 136.0,
+        "flight": 36.0,
+        "rocking": 182.0,
+        "settling": 278.0,
+        "touchdown": 116.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 181,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 181,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9922%2F",
+      "sha256_frames_jsonl": "0f074ec51df4d2ff0c4e3e83e8693e091d71330b14f6465b3f00165a6f020d93"
+    },
+    "compound": {
+      "body_poses_and_shapes_checked": 543,
+      "captured_ms": {
+        "compression": 136.0,
+        "flight": 36.0,
+        "rocking": 182.0,
+        "settling": 278.0,
+        "touchdown": 116.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 181,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 181,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9923%2F",
+      "sha256_frames_jsonl": "3c8aec2bdab0d189a0693173438a7ba0775039d3b569ec46c07080e4cc218773"
+    }
+  },
+  "upper_edge_control": {
+    "tick_ns": 500000,
+    "initial_clearance_m": 0.005,
+    "translation_m": 0.01,
+    "requested_force_n": [
+      10,
+      0,
+      0
+    ],
+    "rejection_time_ns": 0,
+    "retained_force_n": [
+      10,
+      0,
+      0
+    ],
+    "lateral_miss_offset_m": 0.4,
+    "miss_steps": 8,
+    "miss_normal_impulse_ns": 0
+  },
+  "coverage": {
+    "changed_production": {
+      "crates/gz-physics-rapier/src/sole_receiver.rs": {
+        "mapped_lines": [
+          150,
+          152
+        ],
+        "mapped_regions": [
+          306,
+          314
+        ]
+      },
+      "crates/gz-physics-rapier/src/lib.rs": {
+        "mapped_lines": [
+          0,
+          0
+        ],
+        "mapped_regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics/src/sole_contact.rs": {
+        "mapped_lines": [
+          3,
+          3
+        ],
+        "mapped_regions": [
+          4,
+          4
+        ]
+      },
+      "crates/gz-physics-multifidelity/src/lib.rs": {
+        "mapped_lines": [
+          2,
+          2
+        ],
+        "mapped_regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole.rs": {
+        "mapped_lines": [
+          50,
+          50
+        ],
+        "mapped_regions": [
+          134,
+          141
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole/config.rs": {
+        "mapped_lines": [
+          59,
+          59
+        ],
+        "mapped_regions": [
+          103,
+          108
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole/welded.rs": {
+        "mapped_lines": [
+          72,
+          72
+        ],
+        "mapped_regions": [
+          109,
+          113
+        ]
+      },
+      "crates/gz-sim-cli/examples/compliant_weld.rs": {
+        "mapped_lines": [
+          183,
+          185
+        ],
+        "mapped_regions": [
+          378,
+          386
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "native",
+        "sha256": "8a5182190a6b6d8be9c9bd9dc0b9dcb330a6faab81696d8b04595d0b6479b289"
+      },
+      {
+        "case": "scene",
+        "sha256": "17251b4ca325534fccc42374e2a44b830f22aeb01e79b4d8b6f86e54e0a62283"
+      },
+      {
+        "case": "lifecycle",
+        "sha256": "c7767e915c822de28c13f83f5d8c2899f31c64bddad301e799166a706de9f968"
+      },
+      {
+        "case": "app",
+        "sha256": "30ef4046a2be42daa06f6ceeefc930e8527a0458a0841ecd47073d6a04e43bef"
+      },
+      {
+        "case": "product",
+        "sha256": "dd4bb99ab59e047d089249ffffed654503ecc3e2c258906e9c9b5fac9bd71322"
+      }
+    ],
+    "combined": {
+      "mapped_lines": [
+        519,
+        523
+      ],
+      "mapped_regions": [
+        1034,
+        1066
+      ]
+    }
+  }
+}

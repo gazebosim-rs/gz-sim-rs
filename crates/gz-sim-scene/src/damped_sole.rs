@@ -1,13 +1,14 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! A compliant lower face on one independent rigid foot above finite deck panels.
+//! A compliant lower face on a free box, two-box compound, or floating two-link welded foot.
 //! The scene owns this contact domain for the entire public step, including flight.
 //! Static collisionless observation models share the scene graph and can carry
-//! fixed visuals, cameras and lidars. Articulated or free rigid guests require
+//! fixed visuals, cameras and lidars. Other articulated or free rigid guests require
 //! an independently stepped island plus a swept cross-island contact check.
 //!
-//! Load the world using the local multifidelity engine. The foot is a free box
-//! with principal moments along its link axes. Its COM may be offset. Each
+//! Load the world using local multifidelity physics. The aggregate principal moments
+//! must align with the coated link axes. Its center of mass may be offset. The second
+//! box must stay clear of all finite supports over the integrated tick. Each
 //! fixed or prescribed support has a single box collision centered and aligned with its link. The panels may move
 //! independently and share an edge. A lone support may rotate about its moving center. Their projected interiors must stay disjoint.
 //!
@@ -48,8 +49,11 @@ use gz_physics::sole_turntable::{
     AdaptiveTurntableStep, SoleTurntable, advance_turntable, advance_turntable_adaptive,
 };
 use gz_physics::{BodyState, DynamicBackend};
+use gz_physics_multifidelity::SoleFoot;
 mod config;
+mod welded;
 pub(crate) use config::{Plan, is_plugin, observer_model, parse};
+use welded::GuardBox;
 type SolveError = Box<dyn std::error::Error + Send + Sync>;
 
 /// Integrated world-frame reaction of a single support on the foot.
@@ -111,7 +115,7 @@ struct Support {
 struct Coating {
     controls: Plan,
     foot: u64,
-    foot_body: BodyId,
+    binding: SoleFoot,
     supports: Vec<Support>,
     last: Option<DampedSoleStep>,
     rows: Vec<PanelStep>,
@@ -191,7 +195,7 @@ pub(crate) fn install(
     sim: &mut Simulation,
     backend: PhysicsBackend,
     links: &BTreeMap<String, u64>,
-    controls: Plan,
+    mut controls: Plan,
 ) -> Result<(), LoadError> {
     let native = backend
         .downcast_ref::<MultiFidelityBackend>()
@@ -207,10 +211,17 @@ pub(crate) fn install(
         Ok((id, body))
     };
     let (foot, f) = resolve(&controls.foot)?;
-    let state = sole_state(
-        &controls.body,
-        native.state(f).ok_or(PhysicsError::MissingBody)?,
-    );
+    let binding = match &controls.upper {
+        None => SoleFoot::Box(f),
+        Some((None, _)) => SoleFoot::Compound(f),
+        Some((Some(name), _)) => {
+            let (_, upper) = resolve(name)?;
+            welded::configure(native, f, &mut controls.body)
+                .map_err(|e| invalid(&controls.world, e))?;
+            SoleFoot::Weld { lower: f, upper }
+        }
+    };
+    let state = welded::state(native, binding, &controls.body)?;
     let mut supports = Vec::new();
     let mut ids = Vec::new();
     let mut panels = Vec::new();
@@ -235,7 +246,14 @@ pub(crate) fn install(
         panels.push(p);
         ids.push(id);
     }
-    native.sole_wrench(f, ids.iter().copied())?;
+    native.sole_wrench(binding, ids.iter().copied())?;
+    if let Some((_, guard)) = &controls.upper {
+        for p in &panels {
+            guard
+                .separated(&controls.body, &state, &p.deck, 0.)
+                .map_err(|e| invalid(&controls.world, e))?;
+        }
+    }
     gz_physics::sole_supports::validate_panels(&panels, sim.step_duration().as_secs_f64())
         .map_err(|e| invalid(&controls.world, &e.to_string()))?;
     supports.sort_by_key(|p| p.public_id);
@@ -244,7 +262,7 @@ pub(crate) fn install(
     sim.world_mut().insert_resource(Coating {
         controls,
         foot,
-        foot_body: f,
+        binding,
         supports,
         last: None,
         rows,
@@ -270,17 +288,15 @@ impl Coating {
     fn solve(
         &mut self,
         native: &mut MultiFidelityBackend,
-        foot: BodyId,
         time: UpdateInfo,
         gravity: DVec3,
         scratch: &mut Scratch,
     ) -> Result<(), SolveError> {
         let c = &self.controls;
-        let (force, torque) = native.sole_wrench(foot, scratch.endpoints.iter().map(|p| p.0))?;
-        let mut state = sole_state(
-            &c.body,
-            native.state(foot).ok_or(PhysicsError::MissingBody)?,
-        );
+        let (force, torque) =
+            native.sole_wrench(self.binding, scratch.endpoints.iter().map(|p| p.0))?;
+        let start = welded::state(native, self.binding, &c.body)?;
+        let mut state = start;
         let dt = time.dt.as_secs_f64();
         let mut adaptive = None;
         let mut panel_accuracy = None;
@@ -450,6 +466,31 @@ impl Coating {
                 row(p, r.on_sole);
             }
         }
+        if let Some((_, guard)) = &c.upper {
+            let contact_bound = scratch
+                .panels
+                .iter()
+                .zip(&scratch.rows)
+                .map(|(panel, row)| panel.material.force_norm_bound(row.step.peak_normal_force))
+                .sum::<f64>();
+            let radius = (c.body.foot_offset.abs() + c.body.half_extents).length();
+            let angular_momentum =
+                (c.body.inertia * (start.orientation.conjugate() * start.spin)).length();
+            let max_spin = (angular_momentum
+                + dt * (DVec3::from(torque).length() + radius * contact_bound))
+                / c.body.inertia.min_element();
+            let acceleration =
+                (gravity + DVec3::from(force) / c.body.mass).length() + contact_bound / c.body.mass;
+            for (p, (_, deck)) in scratch.panels.iter().zip(&scratch.endpoints) {
+                let reach = dt
+                    * ((start.velocity - p.deck.velocity).length()
+                        + dt * acceleration
+                        + max_spin * guard.radius(&c.body)
+                        + DVec3::from(deck.angular_velocity).length()
+                            * p.deck.half_extents.length());
+                guard.separated(&c.body, &start, &p.deck, reach)?;
+            }
+        }
         for (row, (_, end)) in scratch.rows.iter().zip(&mut scratch.endpoints) {
             end.position = row.deck.center.into();
             end.orientation = row.deck.orientation.to_array();
@@ -460,7 +501,7 @@ impl Coating {
             velocity: state.velocity.into(),
             angular_velocity: state.spin.into(),
         };
-        native.commit_sole_panels((foot, end), &scratch.endpoints)?;
+        native.commit_sole_panels((self.binding, end), &scratch.endpoints)?;
         let first = scratch.rows[0];
         self.last = Some(DampedSoleStep {
             foot: self.foot,
@@ -504,7 +545,7 @@ fn advance(
                 _ => Err(PhysicsError::MissingBody),
             }
         };
-        let foot = resolve(coating.foot, coating.foot_body)?;
+        let foot = resolve(coating.foot, coating.binding.lower())?;
         scratch.panels.clear();
         scratch.endpoints.clear();
         for &shape in &coating.supports {
@@ -514,10 +555,8 @@ fn advance(
                 scratch.endpoints.push((id, initial));
             }
         }
-        if let Some(foot) = foot
-            && !scratch.panels.is_empty()
-        {
-            coating.solve(native, foot, *time, gravity.0.into(), &mut scratch)?;
+        if foot.is_some() && !scratch.panels.is_empty() {
+            coating.solve(native, *time, gravity.0.into(), &mut scratch)?;
         } else {
             // Without a surviving pair, remaining rigid bodies own ordinary free motion.
             native.step(time.dt)?;

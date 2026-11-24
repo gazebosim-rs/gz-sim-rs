@@ -57,6 +57,11 @@ pub struct SoleMaterial {
     slip_speed: f64,
 }
 impl SoleMaterial {
+    /// Bound the norm of the combined normal and tangential force from this material.
+    pub fn force_norm_bound(self, normal_force: f64) -> f64 {
+        self.friction.hypot(1.) * normal_force
+    }
+
     /// Regularized Coulomb force per newton of normal load.
     fn shear_direction(self, velocity: DVec3) -> DVec3 {
         if self.friction == 0. {

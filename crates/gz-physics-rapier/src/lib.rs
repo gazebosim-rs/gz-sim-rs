@@ -41,6 +41,7 @@ pub use contact_interval::{
     BoxContactActions, BoxContactOutcome, CompactPointTail, ContactIntervalPair,
     ContactIntervalReceipt, ContactSegment, ContactSolverIterations, ContactSubstep,
 };
+pub use sole_receiver::SoleFoot;
 #[cfg(feature = "partition-checkpoint")]
 mod box_join;
 #[cfg(feature = "partition-checkpoint")]

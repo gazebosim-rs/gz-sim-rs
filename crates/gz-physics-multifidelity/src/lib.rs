@@ -47,9 +47,9 @@ pub use gz_physics_rapier::{
     RigidContactObservation, RigidContactPatch, RigidPatchPoint, RigidSurfaceWitness, RobotJoint,
     RobotSpring, RockingLimitReceipt, SharedFaceReceipt, SharedSupportLoad, SharedSupportRequest,
     SlidingEdgeImpactReceipt, SlidingPointReceipt, SlidingVertexReceipt, SoftRigidInertia,
-    SoftSphereInertia, SoleTransferReceipt, SolidRay, StickingPointReceipt, SupportExpiry,
-    SupportLoss, SupportLossReason, SustainedEdgeReceipt, TwoBearingReceipt, UniversalJointState,
-    WeldedAssemblyState, partition_prediction_distance, predicts_box_contact,
+    SoftSphereInertia, SoleFoot, SoleTransferReceipt, SolidRay, StickingPointReceipt,
+    SupportExpiry, SupportLoss, SupportLossReason, SustainedEdgeReceipt, TwoBearingReceipt,
+    UniversalJointState, WeldedAssemblyState, partition_prediction_distance, predicts_box_contact,
 };
 pub use gz_physics_rapier::{
     BoxContactActions, BoxContactOutcome, CompactPointTail, ContactIntervalPair,
@@ -280,7 +280,7 @@ impl MultiFidelityBackend {
     /// Pending world-frame force and torque on the independent coated foot.
     pub fn sole_wrench(
         &self,
-        foot: BodyId,
+        foot: impl Into<SoleFoot>,
         supports: impl ExactSizeIterator<Item = BodyId> + Clone,
     ) -> Result<([f64; 3], [f64; 3]), PhysicsError> {
         self.solver
@@ -291,7 +291,7 @@ impl MultiFidelityBackend {
     /// Publish both endpoints of an externally integrated sole interval.
     pub fn commit_sole_panels(
         &mut self,
-        foot: (BodyId, BodyState),
+        foot: (impl Into<SoleFoot>, BodyState),
         supports: &[(BodyId, BodyState)],
     ) -> Result<(), PhysicsError> {
         self.solver

@@ -21,6 +21,7 @@ pub(crate) struct Plan {
     pub(super) foot: String,
     pub(super) supports: Vec<(String, DVec3, SoleMaterial)>,
     pub(super) body: SoleBody,
+    pub(super) upper: Option<(Option<String>, GuardBox)>,
     pub(super) substeps: u32,
     pub(super) depth: u8,
     pub(super) flat_elastic_fast_path: bool,
@@ -216,7 +217,72 @@ pub(crate) fn parse(
             })
             .ok_or_else(|| err(&format!("{name} must be a free top-level single box link")))
     };
-    let (model, link, half_extents) = resolve(foot)?;
+    let (model, link) = world
+        .models
+        .iter()
+        .find_map(|m| {
+            m.links
+                .iter()
+                .find(|l| l.scoped_name == foot)
+                .map(|l| (m, l))
+        })
+        .ok_or_else(|| err("missing sole foot link"))?;
+    let upper_box =
+        |link: &sdformat::Link, c: &sdformat::Collision| -> Result<GuardBox, LoadError> {
+            let Geometry::Box { size } = c.geometry else {
+                return Err(err("coated foot requires box colliders"));
+            };
+            let pose = sdf.resolve_pose(&c.pose, &model.scoped_name, &link.scoped_name, foot)?;
+            Ok(GuardBox {
+                center: pose.translation.into(),
+                rotation: DQuat::from_array(pose.rotation),
+                half: DVec3::from(size) * 0.5,
+            })
+        };
+    let centered = |g: &GuardBox| {
+        identity(Transform {
+            translation: g.center.into(),
+            rotation: g.rotation.to_array(),
+        })
+    };
+    let (lower, upper) = match (
+        model.links.as_slice(),
+        model.joints.as_slice(),
+        link.collisions.as_slice(),
+    ) {
+        ([_], [], [sole]) => (upper_box(link, sole)?, None),
+        ([_], [], [a, b]) => {
+            let (a, b) = (upper_box(link, a)?, upper_box(link, b)?);
+            match (centered(&a), centered(&b)) {
+                (true, false) => (a, Some((None, b))),
+                (false, true) => (b, Some((None, a))),
+                _ => {
+                    return Err(err(
+                        "two-box compound needs exactly one collision centered on the sole link",
+                    ));
+                }
+            }
+        }
+        ([a, b], [joint], [sole]) if joint.kind == sdformat::JointKind::Fixed => {
+            let other = if a.scoped_name == foot { b } else { a };
+            let [c] = other.collisions.as_slice() else {
+                return Err(err("welded foot expects one box on each link"));
+            };
+            (
+                upper_box(link, sole)?,
+                Some((Some(other.scoped_name.clone()), upper_box(other, c)?)),
+            )
+        }
+        _ => {
+            return Err(err(
+                "coated foot requires one free box or a two-box compound or floating weld",
+            ));
+        }
+    };
+    if !centered(&lower) || !model.models.is_empty() {
+        return Err(err("sole collision must be centered on its link"));
+    }
+    let half_extents = lower.half;
     if model.is_static
         || model
             .plugins
@@ -267,16 +333,18 @@ pub(crate) fn parse(
     }
     let inertial = sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, foot, foot)?;
     let [ix, iy, iz, ixy, ixz, iyz] = link.inertial.inertia;
-    if !identity(Transform {
-        translation: [0.; 3],
-        ..inertial
-    }) || [ixy, ixz, iyz] != [0.; 3]
+    if !matches!(upper, Some((Some(_), _)))
+        && (!identity(Transform {
+            translation: [0.; 3],
+            ..inertial
+        }) || [ixy, ixz, iyz] != [0.; 3])
     {
         return Err(err("sole inertia must be diagonal in link axes"));
     }
     Ok(Some(Plan {
         world: world.name.clone(),
         foot: foot.into(),
+        upper,
         supports,
         body: SoleBody {
             half_extents,

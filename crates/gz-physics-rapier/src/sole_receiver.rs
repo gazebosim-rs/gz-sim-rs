@@ -3,97 +3,239 @@
 //! Native state exchange for an independently integrated coating between a foot and finite support faces.
 use super::*;
 
+/// Native bodies assigned to a coating owner. A compound contains two boxes on one body.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SoleFoot {
+    Box(BodyId),
+    Compound(BodyId),
+    Weld { lower: BodyId, upper: BodyId },
+}
+impl From<BodyId> for SoleFoot {
+    fn from(id: BodyId) -> Self {
+        Self::Box(id)
+    }
+}
+impl SoleFoot {
+    pub fn lower(self) -> BodyId {
+        match self {
+            Self::Box(id) | Self::Compound(id) => id,
+            Self::Weld { lower, .. } => lower,
+        }
+    }
+}
+fn unsupported() -> PhysicsError {
+    PhysicsError::Unsupported {
+        engine: "rapier",
+        capability: "coated sole requires its declared free box, two-box compound or floating two-link weld and its enrolled box supports",
+    }
+}
 impl RapierBackend {
-    /// Read the held wrench only while the registered foot and panels own every collider.
+    /// Read force and moment about the foot assembly COM, without consuming the input.
     pub fn sole_wrench(
         &self,
-        foot: BodyId,
+        binding: impl Into<SoleFoot>,
         supports: impl ExactSizeIterator<Item = BodyId> + Clone,
     ) -> Result<([f64; 3], [f64; 3]), PhysicsError> {
-        let reject = || PhysicsError::Unsupported {
-            engine: "rapier",
-            capability: "coated sole requires an isolated free box and fixed or translating box",
+        let binding = binding.into();
+        let foot = binding.lower();
+        let upper = if let SoleFoot::Weld { upper, .. } = binding {
+            Some(upper)
+        } else {
+            None
         };
         if supports.len() == 0
-            || self.bodies.len() != 1 + supports.len()
+            || self.bodies.len() != 1 + usize::from(upper.is_some()) + supports.len()
             || self.world.colliders.len() != self.bodies.len()
             || self.curves.authored()
         {
-            return Err(reject());
+            return Err(unsupported());
         }
-        let body = |id| {
+        let body = |id, compound| {
             let (handle, ..) = self.bodies.get(&id).ok_or(PhysicsError::MissingBody)?;
-            let b = &self.world.bodies[*handle];
-            let [c] = b.colliders() else {
-                return Err(reject());
+            let rb = &self.world.bodies[*handle];
+            let [c] = rb.colliders() else {
+                return Err(unsupported());
             };
-            if self.has_joint(id) != Some(false)
-                || self.world.colliders[*c].shape().as_cuboid().is_none()
-            {
-                return Err(reject());
+            let shape = self.world.colliders[*c].shape();
+            let valid = if compound {
+                shape.as_compound().is_some_and(|s| {
+                    s.shapes().len() == 2 && s.shapes().iter().all(|(_, p)| p.as_cuboid().is_some())
+                })
+            } else {
+                shape.as_cuboid().is_some()
+            };
+            if !valid {
+                return Err(unsupported());
             }
-            Ok(b)
+            Ok(rb)
         };
         for (i, id) in supports.clone().enumerate() {
-            let deck = body(id)?;
+            let rb = body(id, false)?;
             if id == foot
-                || supports.clone().take(i).any(|other| other == id)
-                || deck.is_dynamic()
-                || (supports.len() > 1 && deck.angvel() != Vector::ZERO)
+                || Some(id) == upper
+                || supports.clone().take(i).any(|p| p == id)
+                || self.has_joint(id) != Some(false)
+                || rb.is_dynamic()
+                || (supports.len() > 1 && rb.angvel() != Vector::ZERO)
             {
-                return Err(reject());
+                return Err(unsupported());
             }
         }
-        let foot = body(foot)?;
-        if !foot.is_dynamic() {
-            return Err(reject());
+        let rb = body(foot, matches!(binding, SoleFoot::Compound(_)))?;
+        if !rb.is_dynamic() {
+            return Err(unsupported());
         }
-        Ok((foot.user_force().to_array(), foot.user_torque().to_array()))
+        if let Some(other) = upper {
+            let _ = body(other, false)?;
+            let a = self.welded_assembly_state(foot)?;
+            let index = |id| {
+                self.world
+                    .multibody_joints
+                    .rigid_body_link(self.bodies[&id].0)
+                    .map(|l| l.multibody)
+            };
+            if other == foot || a.links != 2 || index(foot) != index(other) {
+                return Err(unsupported());
+            }
+            Ok((a.force, a.torque))
+        } else if self.has_joint(foot) == Some(false) {
+            Ok((rb.user_force().to_array(), rb.user_torque().to_array()))
+        } else {
+            Err(unsupported())
+        }
     }
 
     /// Prepare all endpoints before publishing any. Only a committed step
     /// consumes the held wrench, including when an adaptive trial failed.
     pub fn commit_sole_panels(
         &mut self,
-        foot: (BodyId, BodyState),
+        foot: (impl Into<SoleFoot>, BodyState),
         supports: &[(BodyId, BodyState)],
     ) -> Result<(), PhysicsError> {
-        self.sole_wrench(foot.0, supports.iter().map(|p| p.0))?;
+        let binding = foot.0.into();
+        self.sole_wrench(binding, supports.iter().map(|p| p.0))?;
         let prepare = |(id, state)| -> Result<_, PhysicsError> {
             let (handle, pose) = body_state::prepare(self, id, state)?;
             Ok((id, handle, pose, state))
         };
-        let prepared_foot = prepare(foot)?;
+
         let prepare_deck = |update: &(BodyId, BodyState)| {
             if supports.len() > 1 && update.1.angular_velocity != [0.; 3] {
                 return Err(PhysicsError::InvalidValue);
             }
             prepare(*update)
         };
-        // The single support hot path does not allocate.
+        let publish_foot = |this: &mut Self| {
+            if let SoleFoot::Weld { lower, upper } = binding {
+                this.commit_welded_sole(lower, upper, foot.1)
+            } else {
+                let id = binding.lower();
+                let (handle, pose) = body_state::prepare(this, id, foot.1)?;
+                this.publish_sole_endpoint((id, handle, pose, foot.1));
+                this.consume_sole_wrench(id, handle);
+                Ok(())
+            }
+        };
         if let [support] = supports {
             let deck = prepare_deck(support)?;
-            self.publish_sole_endpoint(prepared_foot);
+            publish_foot(self)?;
             self.publish_sole_endpoint(deck);
         } else {
             let decks = supports
                 .iter()
                 .map(prepare_deck)
                 .collect::<Result<Vec<_>, _>>()?;
-            self.publish_sole_endpoint(prepared_foot);
+            publish_foot(self)?;
             for deck in decks {
-                self.publish_sole_endpoint(deck)
+                self.publish_sole_endpoint(deck);
             }
-        }
-        if self.pending_wrenches.remove(&foot.0) {
-            let body = &mut self.world.bodies[prepared_foot.1];
-            body.reset_forces(false);
-            body.reset_torques(false);
         }
         self.world
             .bodies
             .propagate_modified_body_positions_to_colliders(&mut self.world.colliders);
         Ok(())
+    }
+
+    // The candidate pose uses the lower link frame and the velocity is at aggregate COM.
+    // Prepare all finite poses and twists before publishing the six generalized rates.
+    fn commit_welded_sole(
+        &mut self,
+        lower: BodyId,
+        upper: BodyId,
+        end: BodyState,
+    ) -> Result<(), PhysicsError> {
+        let aggregate = self.welded_assembly_state(lower)?;
+        let lower_state = self.state(lower).expect("validated welded lower link");
+        let new_rotation = rotation(end.orientation)?;
+        let turn = (new_rotation * rotation(lower_state.orientation)?.inverse()).normalize();
+        let point = |p: Vector| {
+            Vector::from(end.position) + turn * (p - Vector::from(lower_state.position))
+        };
+        let center = point(Vector::from(aggregate.center));
+        let spin = Vector::from(end.angular_velocity);
+        let links = [lower, upper].map(|id| {
+            let h = self.bodies[&id].0;
+            let rb = &self.world.bodies[h];
+            let pose = Pose::from_parts(
+                point(rb.translation()),
+                (turn * (*rb.rotation())).normalize(),
+            );
+            let velocity =
+                Vector::from(end.velocity) + spin.cross(point(rb.center_of_mass()) - center);
+            (id, h, pose, velocity)
+        });
+        for &(_, h, pose, v) in &links {
+            let collider = &self.world.colliders[self.world.bodies[h].colliders()[0]];
+            let bounds = collider
+                .shape()
+                .compute_aabb(&(pose * collider.position_wrt_parent().unwrap()));
+            if !bounds.mins.is_finite()
+                || !bounds.maxs.is_finite()
+                || !v.is_finite()
+                || !spin.is_finite()
+            {
+                return Err(PhysicsError::InvalidValue);
+            }
+        }
+        let (_, root, pose, velocity) =
+            *links.iter().find(|(id, ..)| *id == aggregate.root).unwrap();
+        self.release_welded_projection();
+        if self.joints.construction_open() {
+            self.joints.initialize_velocities(&mut self.world);
+            self.joints.close();
+        }
+        self.world.bodies[root].set_position(pose, true);
+        let tree_id = self
+            .world
+            .multibody_joints
+            .rigid_body_link(root)
+            .unwrap()
+            .multibody;
+        let tree = self
+            .world
+            .multibody_joints
+            .get_multibody_mut(tree_id)
+            .unwrap();
+        tree.forward_kinematics(&self.world.bodies, true);
+        tree.update_rigid_bodies(&mut self.world.bodies, true);
+        let mut qdot = tree.generalized_velocity_mut();
+        qdot.as_mut_slice()[..3].copy_from_slice(&velocity.to_array());
+        qdot.as_mut_slice()[3..].copy_from_slice(&spin.to_array());
+        for (id, h, _, v) in links {
+            let body = &mut self.world.bodies[h];
+            body.set_linvel(v, true);
+            body.set_angvel(spin, true);
+            self.consume_sole_wrench(id, h);
+        }
+        Ok(())
+    }
+
+    fn consume_sole_wrench(&mut self, id: BodyId, handle: RigidBodyHandle) {
+        if self.pending_wrenches.remove(&id) {
+            let body = &mut self.world.bodies[handle];
+            body.reset_forces(false);
+            body.reset_torques(false);
+        }
     }
 
     fn publish_sole_endpoint(
