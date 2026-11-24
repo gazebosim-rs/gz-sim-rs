@@ -2133,3 +2133,7 @@ The gripper sensed a snag 120 ms after the cable touched the barrier and carried
 ## 2026-11-23 — Measuring forces across the folded sheet
 
 A force balance on each cloth panel explains the stiff-grip asymmetry. At 64 native exchanges per millisecond, bending transferred 72.53 mN between the panels, while self-contact friction transferred 1.80 mN. Sampling all native endpoints avoided a large error from observing the elastic force only on the actuator clock. The measured forces balance independently on both panels, although the extreme pad's force split still varies with the physics rate. [Five comparisons and three force replays](measurements/local-manipulation/fold-force-balance.md)
+
+## 2026-11-23 — Updating every public pose in the loaded CPU fleet
+
+For 100,000 moving decks and 1,000 payloads, batching the parent-pose reads lowered complete-tick p95 in two independent campaigns, from 16.89 to 16.28 ms and from 6.52 to 5.41 ms. The faster campaign reached 2.36× real time, leaving a 42.4-fold gap to the 100× target. All 96.48 million public pose pairs, 480,000 native contact points and 240 IMU samples matched across the loaded and sparse controls. All 323 scene tests passed, with 100% changed production line and region coverage. Native constraint velocity resolution remains the largest measured solver cost. [Stage timings, both campaigns and native replay](measurements/local-manipulation/fleet-parent-poses.md)

@@ -120,3 +120,71 @@ fn dense_body_publication_preserves_each_native_pose_and_center_velocity() {
         assert_eq!(velocity.linear, expected.to_array());
     }
 }
+
+#[test]
+fn dense_hierarchy_follows_reparented_nodes_and_marks_each_published_pose() {
+    use bevy_ecs::prelude::DetectChanges;
+    let mut sim = Simulation::new(Duration::from_millis(10)).unwrap();
+    let base = WorldPose {
+        translation: [11., -6., 3.],
+        rotation: DQuat::from_rotation_x(0.7).to_array(),
+    };
+    let root = sim.world_mut().spawn(base).id();
+    let identity = WorldPose {
+        translation: [0.; 3],
+        rotation: [0., 0., 0., 1.],
+    };
+    let offset = WorldPose {
+        translation: [0.2, -0.3, 0.4],
+        rotation: DQuat::from_rotation_y(0.5).to_array(),
+    };
+    let mut pairs = Vec::new();
+    for i in 0..9001 {
+        let pose = WorldPose {
+            translation: [f64::from(i), 4., -2.],
+            rotation: DQuat::from_rotation_z(f64::from(i % 8) * 0.1).to_array(),
+        };
+        let link = sim
+            .world_mut()
+            .spawn((ChildOf(root), pose, LocalPose(identity)))
+            .id();
+        let visual = sim
+            .world_mut()
+            .spawn((AttachedPose, ChildOf(link), LocalPose(offset), identity))
+            .id();
+        pairs.push((link, visual));
+    }
+    sim.add_systems(
+        Phase::PhysicsCommit,
+        (sync_local_poses, sync_attached_poses).chain(),
+    );
+    sim.add_systems(
+        Phase::Reset,
+        (sync_local_poses, sync_attached_poses).chain(),
+    );
+    sim.step_exact(1).unwrap();
+    // The same parent can serve successive children, or links from distant rows.
+    for i in (0..pairs.len()).step_by(3) {
+        let parent = pairs[pairs.len() - i - 1].0;
+        sim.world_mut()
+            .entity_mut(pairs[i].1)
+            .insert(ChildOf(parent));
+    }
+    sim.world_mut().clear_trackers();
+    sim.reset().unwrap();
+    for (link, visual) in pairs {
+        let world = sim.world();
+        let pose = world.get::<WorldPose>(link).unwrap();
+        let local = world.entity(link).get_ref::<LocalPose>().unwrap();
+        let expected = base.inverse().compose(*pose);
+        assert!(local.is_changed());
+        assert_eq!(local.0.translation, expected.translation);
+        assert_eq!(local.0.rotation, expected.rotation);
+        let parent = world.get::<ChildOf>(visual).unwrap().parent();
+        let expected = world.get::<WorldPose>(parent).unwrap().compose(offset);
+        let actual = world.entity(visual).get_ref::<WorldPose>().unwrap();
+        assert!(actual.is_changed());
+        assert_eq!(actual.translation, expected.translation);
+        assert_eq!(actual.rotation, expected.rotation);
+    }
+}

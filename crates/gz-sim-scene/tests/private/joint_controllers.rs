@@ -830,6 +830,7 @@ fn shared_joint_admission_refuses_an_axis_removed_after_controller_configuration
         Some("rapier"),
         false,
         &["base_hinge", "tip_hinge"],
+        false,
     )
     .unwrap_err();
     assert!(

@@ -2432,51 +2432,120 @@ type PoseUpdateFilter = (
     Without<tpe::TpeLink>,
 );
 
-fn sync_local_poses(
-    parents: Query<&WorldPose>,
-    mut nodes: Query<(&ChildOf, &WorldPose, &mut LocalPose), PoseUpdateFilter>,
+// Use the parent entities from the same Bevy table as their poses. A restored,
+// moved or out-of-order parent always falls back to the current ECS relation.
+fn publish_parent_tables<'w, S: Sync + 'w, T: Send + 'w>(
+    parents: Vec<(&[Entity], &[WorldPose])>,
+    nodes: impl Iterator<
+        Item = (
+            &'w [ChildOf],
+            &'w [S],
+            bevy_ecs::change_detection::ContiguousMut<'w, T>,
+        ),
+    >,
+    lookup: impl Fn(Entity) -> WorldPose + Sync,
+    compose: impl Fn(WorldPose, &S) -> T + Sync,
 ) {
-    let update = |(parent, world, mut local): (&ChildOf, &WorldPose, Mut<LocalPose>)| {
-        let parent_pose = parents.get(parent.parent()).expect("scene owns hierarchy");
-        local.0 = if parent_pose.rotation == [0., 0., 0., 1.] && world.rotation == [0., 0., 0., 1.]
+    let parents = &parents;
+    let lookup = &lookup;
+    let compose = &compose;
+    bevy_tasks::ComputeTaskPool::get().scope(|scope| {
+        for (children, sources, targets) in nodes {
+            let size = pose_batch_rows(children.len());
+            let (targets, _) = bevy_ecs::change_detection::ContiguousMut::split(targets);
+            for ((children, sources), targets) in children
+                .chunks(size)
+                .zip(sources.chunks(size))
+                .zip(targets.chunks_mut(size))
+            {
+                scope.spawn(async move {
+                    publish_parented(children, sources, targets, parents, lookup, compose);
+                });
+            }
+        }
+    });
+}
+
+fn publish_parented<S, T>(
+    children: &[ChildOf],
+    sources: &[S],
+    targets: &mut [T],
+    parents: &[(&[Entity], &[WorldPose])],
+    lookup: impl Fn(Entity) -> WorldPose,
+    compose: impl Fn(WorldPose, &S) -> T,
+) {
+    for ((children, sources), targets) in children
+        .chunks(64)
+        .zip(sources.chunks(64))
+        .zip(targets.chunks_mut(64))
+    {
+        let first = children[0].parent();
+        let run = parents.iter().find_map(|(ids, poses)| {
+            let start = ids.partition_point(|entity| entity.index_u32() < first.index_u32());
+            (ids.get(start) == Some(&first)).then(|| (&ids[start..], &poses[start..]))
+        });
+        for (i, ((child, source), target)) in children.iter().zip(sources).zip(targets).enumerate()
         {
+            let id = child.parent();
+            let pose = run
+                .and_then(|(ids, poses)| {
+                    if id == first {
+                        Some(poses[0])
+                    } else {
+                        (ids.get(i) == Some(&id)).then(|| poses[i])
+                    }
+                })
+                .unwrap_or_else(|| lookup(id));
+            *target = compose(pose, source);
+        }
+    }
+}
+
+fn local_from_world(parent: WorldPose, world: &WorldPose) -> LocalPose {
+    LocalPose(
+        if parent.rotation == [0., 0., 0., 1.] && world.rotation == [0., 0., 0., 1.] {
             WorldPose {
                 translation: (DVec3::from_array(world.translation)
-                    - DVec3::from_array(parent_pose.translation))
+                    - DVec3::from_array(parent.translation))
                 .to_array(),
                 rotation: [0., 0., 0., 1.],
             }
         } else {
-            parent_pose.inverse().compose(*world)
-        };
-    };
-    if parallel_pose_updates(nodes.count()) {
-        nodes
-            .par_iter_mut()
-            .batching_strategy(bevy_ecs::batching::BatchingStrategy::new().min_batch_size(2048))
-            .for_each(update);
+            parent.inverse().compose(*world)
+        },
+    )
+}
+
+fn sync_local_poses(
+    parents: Query<(Entity, &WorldPose)>,
+    mut nodes: Query<(&ChildOf, &WorldPose, &mut LocalPose), PoseUpdateFilter>,
+) {
+    let lookup = |id| *parents.get(id).expect("scene owns hierarchy").1;
+    if parallel_pose_updates(nodes.count())
+        && let (Ok(parents), Ok(nodes)) = (parents.contiguous_iter(), nodes.contiguous_iter_mut())
+    {
+        publish_parent_tables(parents.collect(), nodes, lookup, local_from_world);
     } else {
-        nodes.iter_mut().for_each(update);
+        for (child, world, mut local) in &mut nodes {
+            *local = local_from_world(lookup(child.parent()), world);
+        }
     }
 }
 
 fn sync_attached_poses(
-    parents: Query<&WorldPose, Without<AttachedPose>>,
+    parents: Query<(Entity, &WorldPose), Without<AttachedPose>>,
     mut nodes: Query<(&ChildOf, &LocalPose, &mut WorldPose), With<AttachedPose>>,
 ) {
-    let update = |(parent, local, mut world): (&ChildOf, &LocalPose, Mut<WorldPose>)| {
-        *world = parents
-            .get(parent.parent())
-            .expect("attached poses have link parents")
-            .compose(local.0);
-    };
-    if parallel_pose_updates(nodes.count()) {
-        nodes
-            .par_iter_mut()
-            .batching_strategy(bevy_ecs::batching::BatchingStrategy::new().min_batch_size(2048))
-            .for_each(update);
+    let lookup = |id| *parents.get(id).expect("attached poses have link parents").1;
+    let compose = |parent: WorldPose, local: &LocalPose| parent.compose(local.0);
+    if parallel_pose_updates(nodes.count())
+        && let (Ok(parents), Ok(nodes)) = (parents.contiguous_iter(), nodes.contiguous_iter_mut())
+    {
+        publish_parent_tables(parents.collect(), nodes, lookup, compose);
     } else {
-        nodes.iter_mut().for_each(update);
+        for (child, local, mut world) in &mut nodes {
+            *world = compose(lookup(child.parent()), local);
+        }
     }
 }
 
