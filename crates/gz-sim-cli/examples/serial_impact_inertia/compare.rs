@@ -128,6 +128,8 @@ pub(super) fn against_fine(a: &Run) -> Result<Comparison<'_>> {
                 first_native_steps: first,
                 stop_guard: false,
                 touching_budget: false,
+                early_face_step_ns: None,
+                early_face_max_steps: None,
                 replay: None,
                 ..a.trial.clone()
             },
@@ -136,6 +138,7 @@ pub(super) fn against_fine(a: &Run) -> Result<Comparison<'_>> {
             } else {
                 None
             },
+            first.and(a.first_early_schedule),
         )
     };
     let b = fork(4000)?;

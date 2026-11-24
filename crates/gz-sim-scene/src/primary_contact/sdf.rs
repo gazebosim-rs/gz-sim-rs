@@ -71,6 +71,7 @@ pub(super) struct NamedPair {
 }
 pub(crate) struct Plan {
     pub(super) speed_stop_joint: Option<String>,
+    pub(super) early_face: Option<super::EarlyFace>,
     pub(super) touching_solver: Option<(u32, ContactSolverIterations)>,
     pub(super) world: String,
     pub(super) calls: u32,
@@ -184,6 +185,8 @@ pub(crate) fn parse(
     {
         return Err(err("invalid plugin attributes"));
     }
+    let mut early_step = None;
+    let mut early_budget = None;
     let mut touching = None;
     let mut speed_stop_joint = None;
     let mut calls = None;
@@ -197,6 +200,22 @@ pub(crate) fn parse(
             return Err(err("invalid policy child or attributes"));
         }
         match n.tag_name().name() {
+            "early_face_step_ns" if early_step.is_none() => {
+                early_step = Some(
+                    field(n)
+                        .and_then(|s| s.parse().ok())
+                        .filter(|n: &u32| *n > 0)
+                        .ok_or_else(|| err("early_face_step_ns must be a positive integer"))?,
+                );
+            }
+            "early_face_max_steps" if early_budget.is_none() => {
+                early_budget = Some(
+                    field(n)
+                        .and_then(|s| s.parse().ok())
+                        .filter(|n: &u32| *n > 0)
+                        .ok_or_else(|| err("early_face_max_steps must be a positive integer"))?,
+                );
+            }
             "touching_solver" if touching.is_none() => {
                 touching = Some(touching_solver(n).ok_or_else(|| err("touching_solver needs native_steps and solver_iterations with optional pgs_iterations"))?);
             }
@@ -870,6 +889,19 @@ pub(crate) fn parse(
             _ => return Err(err("unknown or duplicate policy field")),
         }
     }
+    let early_face = match (early_step, early_budget) {
+        (None, None) => None,
+        (Some(step_ns), Some(max_steps)) => Some(super::EarlyFace { step_ns, max_steps }),
+        _ => {
+            return Err(err(
+                "early_face_step_ns and early_face_max_steps must appear together",
+            ));
+        }
+    };
+    if early_face.is_some() && (pairs.is_empty() || pairs.iter().any(|p| p.incoming_face.is_none()))
+    {
+        return Err(err("early face timing requires incoming_face pairs"));
+    }
     if touching.is_some()
         && (pairs.is_empty() || pairs.iter().any(|pair| pair.incoming_face.is_none()))
     {
@@ -908,6 +940,7 @@ pub(crate) fn parse(
         }
     }
     Ok(Some(Plan {
+        early_face,
         touching_solver: touching,
         speed_stop_joint,
         world: world.name.clone(),

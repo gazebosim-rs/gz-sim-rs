@@ -190,6 +190,7 @@ pub(super) fn predict_oriented(
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum FaceArrival {
     TouchingParallelFaces,
+    SeparatedParallelFaces(std::time::Duration),
     Predicted,
 }
 
@@ -248,7 +249,7 @@ pub(super) fn incoming_face(
     hit.then(|| {
         let normal_in_box = start.rotation.conjugate() * DVec3::Z;
         let origin = start.com - start.rotation * start.shape.local_com;
-        if gap.is_some_and(|z| z.abs() <= tolerance)
+        if let Some(gap) = gap
             && foot.0.angular_velocity == [0.; 3]
             && support.0.angular_velocity == [0.; 3]
             && start.velocity.z < 0.
@@ -259,7 +260,14 @@ pub(super) fn incoming_face(
                 .iter()
                 .any(|axis| normal_in_box.cross(*axis).length() <= 64. * f64::EPSILON)
         {
-            FaceArrival::TouchingParallelFaces
+            if gap <= tolerance {
+                FaceArrival::TouchingParallelFaces
+            } else {
+                // The finite face and overlap tests above exclude a crossing of the infinite plane alone.
+                FaceArrival::SeparatedParallelFaces(std::time::Duration::from_secs_f64(
+                    (gap / -start.velocity.z).min(dt),
+                ))
+            }
         } else {
             FaceArrival::Predicted
         }

@@ -3,6 +3,8 @@
 //! Prospective refinement at a released box foot’s touchdown or a nominated box face strike.
 //! The authored world plugin selects pairs. All bodies share the native clock.
 
+mod early_face;
+use early_face::EarlyFace;
 mod geometry;
 pub(crate) mod sdf;
 use crate::{BodyHandle, Gravity, JointHandle, LinkCenterOfMass, LoadError, Name};
@@ -11,7 +13,7 @@ use geometry::BoxShape;
 use glam::DVec3;
 use gz_physics::{BodyId, BodyState, DynamicBackend, PhysicsBackend, PhysicsReset};
 use gz_physics_multifidelity::{
-    ContactIntervalReceipt, ContactSolverIterations, MultiFidelityBackend,
+    ContactIntervalReceipt, ContactSegment, ContactSolverIterations, MultiFidelityBackend,
 };
 use gz_sim_core::{EntityId, Phase, Simulation, StepFault, UpdateInfo, entity_by_id};
 use std::time::Duration;
@@ -89,7 +91,9 @@ pub struct Refinement {
     pub start_time: Duration,
     pub sim_time: Duration,
     pub requested_pairs: Vec<RequestedPair>,
-    /// Solver settings requested for this interval. Absent fields inherit the world’s settings.
+    /// Actual fine prefix and remaining impact grid, present only on an admitted separated face.
+    pub early_face_schedule: Option<[ContactSegment; 2]>,
+    /// Solver settings requested for this interval's ordinary impact grid. Absent fields inherit the world’s settings.
     pub solver: ContactSolverIterations,
     /// Includes contacts elsewhere in the same collision world.
     pub interval: ContactIntervalReceipt,
@@ -292,6 +296,7 @@ struct SpeedStop {
 }
 #[derive(Resource)]
 struct Policy {
+    early_face: Option<EarlyFace>,
     touching_solver: Option<(u32, ContactSolverIterations)>,
     speed_stop: Option<SpeedStop>,
     enabled: bool,
@@ -359,24 +364,27 @@ pub fn clear_refined_observer(sim: &mut Simulation) -> Result<(), PolicyError> {
 fn selected_interval(
     native: &mut MultiFidelityBackend,
     time: UpdateInfo,
-    calls: u32,
-    iterations: ContactSolverIterations,
+    ordinary: ContactSegment,
+    early: Option<&[ContactSegment; 2]>,
     fresh: &[(BodyId, BodyId)],
     observer: Option<&mut RefinedObserver>,
 ) -> Result<(ContactIntervalReceipt, u64), gz_physics::PhysicsError> {
+    let segments = early.map_or(std::slice::from_ref(&ordinary), |pair| pair.as_slice());
     if let Some(probe) = observer {
-        let segments = [gz_physics_multifidelity::ContactSegment {
-            duration: time.dt,
-            native_steps: calls,
-            iterations,
-        }];
-        native.observe_contact_schedule(time.dt, &segments, fresh, |s| probe.sample(time, s))
+        native.observe_contact_schedule(time.dt, segments, fresh, |s| probe.sample(time, s))
+    } else if early.is_some() {
+        native.step_contact_schedule(time.dt, segments, fresh)
     } else if fresh.is_empty() {
         native
-            .step_contact_interval(time.dt, calls, iterations)
+            .step_contact_interval(time.dt, ordinary.native_steps, ordinary.iterations)
             .map(|r| (r, 0))
     } else {
-        native.step_contact_interval_with_box_features(time.dt, calls, iterations, fresh)
+        native.step_contact_interval_with_box_features(
+            time.dt,
+            ordinary.native_steps,
+            ordinary.iterations,
+            fresh,
+        )
     }
 }
 
@@ -612,6 +620,7 @@ pub(crate) fn install(
         follows_release: pairs.iter().any(|p| p.follow_release),
         enabled: true,
         pairs,
+        early_face: plan.early_face,
         touching_solver: plan.touching_solver,
         calls: plan.calls,
         iterations: plan.iterations,
@@ -701,6 +710,7 @@ fn advance(
         });
     let mut requests = Vec::new();
     let mut initial_face = None;
+    let mut separated_face = None;
     let mut cold_request = None;
     let mut fresh = Vec::new();
     let mut returning_features = Vec::new();
@@ -811,8 +821,14 @@ fn advance(
                     time.dt.as_secs_f64(),
                 ) {
                     requests.push(start + j);
-                    if arrival == geometry::FaceArrival::TouchingParallelFaces {
-                        initial_face = Some(start + j);
+                    match arrival {
+                        geometry::FaceArrival::TouchingParallelFaces => {
+                            initial_face = Some(start + j)
+                        }
+                        geometry::FaceArrival::SeparatedParallelFaces(t) => {
+                            separated_face = Some(t)
+                        }
+                        geometry::FaceArrival::Predicted => {}
                     }
                 }
                 continue;
@@ -1191,6 +1207,23 @@ fn advance(
                 && native.active_contact_pairs() == 0
         })
         .unwrap_or((policy.calls, policy.iterations));
+    let early_face_schedule =
+        policy
+            .early_face
+            .zip(separated_face)
+            .and_then(|(window, arrival)| {
+                (requests.len() == 1 && native.active_contact_pairs() == 0)
+                    .then(|| {
+                        window.schedule(
+                            time.dt,
+                            arrival,
+                            impact_calls,
+                            impact_solver,
+                            native.ordinary_contact_iterations(),
+                        )
+                    })
+                    .flatten()
+            });
     let receipt = if !returning_features.is_empty()
         || !timing_pairs.is_empty()
         || !projections.is_empty()
@@ -1356,8 +1389,12 @@ fn advance(
         match selected_interval(
             native,
             *time,
-            calls,
-            iterations,
+            ContactSegment {
+                duration: time.dt,
+                native_steps: calls,
+                iterations,
+            },
+            early_face_schedule.as_ref(),
             &fresh,
             observer.as_deref_mut(),
         ) {
@@ -1675,6 +1712,7 @@ fn advance(
             start_time: time.start_time,
             sim_time: time.sim_time,
             requested_pairs,
+            early_face_schedule,
             solver,
             interval,
         });

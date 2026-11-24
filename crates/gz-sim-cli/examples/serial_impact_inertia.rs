@@ -87,6 +87,14 @@ struct Trial {
     /// Fixed-time projected Gauss–Seidel passes per selected solver iteration.
     #[arg(long, requires = "automatic", value_parser = clap::value_parser!(u32).range(1..=32))]
     impact_pgs: Option<u32>,
+    /// Maximum native timestep during the predicted early arrival of a separated parallel face.
+    #[arg(long, requires_all = ["automatic", "early_face_max_steps"], value_parser = clap::value_parser!(u32).range(1..))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    early_face_step_ns: Option<u32>,
+    /// Native-call cap for the fine prefix; a later arrival keeps the ordinary impact budget.
+    #[arg(long, requires_all = ["automatic", "early_face_step_ns"], value_parser = clap::value_parser!(u32).range(1..))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    early_face_max_steps: Option<u32>,
     /// Use the qualified four-call solver only for a single pair already touching with parallel faces.
     #[arg(long, requires = "automatic")]
     touching_budget: bool,
@@ -177,6 +185,9 @@ fn fixture(trial: &Trial) -> String {
         } else {
             ""
         };
+        let early = trial.early_face_step_ns.zip(trial.early_face_max_steps)
+            .map(|(ns, calls)| format!("<early_face_step_ns>{ns}</early_face_step_ns><early_face_max_steps>{calls}</early_face_max_steps>"))
+            .unwrap_or_default();
         let speed_stop = if trial.stop_guard {
             "<speed_stop_joint>default::gripper::spindle</speed_stop_joint>"
         } else {
@@ -188,7 +199,7 @@ fn fixture(trial: &Trial) -> String {
             r#"
           <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
             {speed_stop}<native_steps>{calls}</native_steps><solver_iterations>{iterations}</solver_iterations>{pgs}
-            {touching}
+            {touching}{early}
             <pair><foot>default::parcel::box</foot><support>default::gripper::left</support><incoming_face>-x</incoming_face></pair>
             <pair><foot>default::parcel::box</foot><support>default::gripper::right</support><incoming_face>+x</incoming_face></pair>
           </plugin></world>"#
@@ -341,6 +352,8 @@ struct Run {
     native_robot_mass_kg: f64,
     #[serde(skip)]
     first_solver: Option<ContactSolverIterations>,
+    #[serde(skip)]
+    first_early_schedule: Option<[ContactSegment; 2]>,
     initial_patch_points: usize,
     incoming: Vec<State>,
     samples: Vec<Sample>,
@@ -391,12 +404,13 @@ fn load_robot(trial: &Trial, xml: &str) -> Result<(Simulation, Vec<BodyId>, [Ent
 }
 
 fn run(trial: Trial) -> Result<Run> {
-    run_with_first_solver(trial, None)
+    run_with_first_solver(trial, None, None)
 }
 
 fn run_with_first_solver(
     trial: Trial,
     first_solver: Option<ContactSolverIterations>,
+    matched_schedule: Option<[ContactSegment; 2]>,
 ) -> Result<Run> {
     let xml = fixture(&trial);
     let sdf = sdformat::load_str(&xml, "serial-impact.sdf", &sdformat::NoResources)?;
@@ -454,7 +468,14 @@ fn run_with_first_solver(
                     pulses: report_pulses.then(Vec::new),
                     ..Default::default()
                 };
-                if let Err(e) = native.observe_contact_schedule(clock.dt, &[segment], &[], |cut| {
+                let segments = if clock.start_time.is_zero() {
+                    matched_schedule
+                        .as_ref()
+                        .map_or(std::slice::from_ref(&segment), |s| s.as_slice())
+                } else {
+                    std::slice::from_ref(&segment)
+                };
+                if let Err(e) = native.observe_contact_schedule(clock.dt, segments, &[], |cut| {
                     impact.record(
                         &cut.contact_patches(),
                         ids,
@@ -468,6 +489,7 @@ fn run_with_first_solver(
         );
     }
     let mut first_selected_solver = None;
+    let mut first_early_schedule = None;
     let mut samples = Vec::new();
     let mut frames = Vec::new();
     for ms in 0..=trial.ticks {
@@ -477,6 +499,7 @@ fn run_with_first_solver(
                 .filter(|p| p.sim_time == sim.elapsed());
             if ms == 1 {
                 first_selected_solver = selected.map(|r| r.solver);
+                first_early_schedule = selected.and_then(|r| r.early_face_schedule);
             }
             let native_steps = selected.map_or(
                 if uniform && ms == 1 {
@@ -552,6 +575,7 @@ fn run_with_first_solver(
         native_left_tensor_kg_m2,
         native_robot_mass_kg,
         first_solver: first_selected_solver,
+        first_early_schedule,
         initial_patch_points,
         incoming,
         samples,
