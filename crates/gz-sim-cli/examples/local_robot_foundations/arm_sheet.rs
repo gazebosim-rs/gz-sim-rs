@@ -216,6 +216,9 @@ pub(super) struct PanelBalance {
     elastic_distance_up_n: [f64; 2],
     elastic_bending_up_n: [f64; 2],
     elastic_samples: usize,
+    native_elastic_distance_up_n: [f64; 2],
+    native_elastic_bending_up_n: [f64; 2],
+    native_elastic_samples: usize,
     applied_distance_up_n: [f64; 2],
     applied_bending_up_n: [f64; 2],
 }
@@ -405,17 +408,22 @@ pub(super) fn simulate_with_jaw_damping(
                     balance.applied_distance_up_n[panel(id)] += j.distance.z / hold_duration;
                     balance.applied_bending_up_n[panel(id)] += j.bending.z / hold_duration;
                 }
-                if native_tick.is_multiple_of(exchanges) {
-                    let forces = gz_sim_scene::deformable::material_elastic_forces(&r.sim, "sheet")
-                        .ok_or("missing committed folded sheet")??;
-                    for (id, f) in forces.iter().enumerate() {
-                        balance.elastic_distance_up_n[panel(id)] +=
+                let forces = gz_sim_scene::deformable::material_elastic_forces(&r.sim, "sheet")
+                    .ok_or("missing committed folded sheet")??;
+                let actuator_sample = native_tick.is_multiple_of(exchanges);
+                for (id, f) in forces.iter().enumerate() {
+                    let layer = panel(id);
+                    balance.native_elastic_distance_up_n[layer] += f.distance.z / hold_samples;
+                    balance.native_elastic_bending_up_n[layer] += f.bending.z / hold_samples;
+                    if actuator_sample {
+                        balance.elastic_distance_up_n[layer] +=
                             f.distance.z / HOLD.clone().count() as f64;
-                        balance.elastic_bending_up_n[panel(id)] +=
+                        balance.elastic_bending_up_n[layer] +=
                             f.bending.z / HOLD.clone().count() as f64;
                     }
-                    balance.elastic_samples += 1;
                 }
+                balance.elastic_samples += usize::from(actuator_sample);
+                balance.native_elastic_samples += 1;
                 for j in b.last_self_contact_particle_impulses() {
                     let layer = panel(j.particle);
                     balance.normal_up_n[layer] += j.normal[2] / hold_duration;
