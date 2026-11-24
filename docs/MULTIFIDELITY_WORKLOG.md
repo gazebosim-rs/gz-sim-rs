@@ -2064,3 +2064,8 @@ The three-axis wrist now accepts torque in its moving parent frame. A free carri
 ## 2026-11-23 — A compliant sole on a two-link welded foot
 
 A floating fixed joint now carries the mass, inertia and pending loads of both links through the compliant lower-face solve. A tilted landing, an airborne shove and a second loaded shove matched a true two-box compound over 720 ticks. The aggregate COM difference stayed below 5 × 10⁻¹⁵ m. An unsupported upper-box sweep across the edge stopped before consuming the queued wrench. Reversing the native root, resetting and removing the plate passed. The next step is to solve an upper-link strike jointly with the compliant sole reaction. [Measurements and gz-web-rs replays](measurements/local-manipulation/compliant-weld.md)
+
+
+## 2026-11-23 — A welded upper link striking a finite ledge
+
+The new corner spring and the loaded sole now act on the same floating foot. The oblique strike delivered 2.302634 N·s, and the displaced ledge delivered zero. Reducing the time step cut the largest upper impulse error against an independent trajectory from 754 to 1.76 µN·s. Reset, moving supports and refusal of ambiguous edge or multi-corner contact passed with 98.26% changed line and 97.25% region coverage. Rigid frictional multi-point upper contact and a freely moving ankle remain open. [Measurements and gz-web-rs replays](measurements/local-manipulation/compliant-upper.md)

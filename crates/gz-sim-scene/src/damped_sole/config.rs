@@ -22,6 +22,7 @@ pub(crate) struct Plan {
     pub(super) supports: Vec<(String, DVec3, SoleMaterial)>,
     pub(super) body: SoleBody,
     pub(super) upper: Option<(Option<String>, GuardBox)>,
+    pub(super) side: Option<(String, f64)>,
     pub(super) substeps: u32,
     pub(super) depth: u8,
     pub(super) flat_elastic_fast_path: bool,
@@ -187,6 +188,32 @@ pub(crate) fn parse(
     };
     let flat_elastic_fast_path = enabled("flat_elastic_fast_path")?;
     let flat_damped_fast_path = enabled("flat_damped_fast_path")?;
+    let side = match (
+        fields.remove("upper_negative_x_support"),
+        fields.remove("upper_corner_stiffness"),
+    ) {
+        (None, None) => None,
+        (Some(name), Some(stiffness)) => {
+            let k = number(stiffness)?;
+            if !names.contains_key(name)
+                || !k.is_finite()
+                || k <= 0.
+                || adaptive
+                || flat_elastic_fast_path
+                || flat_damped_fast_path
+            {
+                return Err(err(
+                    "upper contact requires an enrolled panel, positive corner stiffness and a fixed contact grid",
+                ));
+            }
+            Some((name.to_owned(), k))
+        }
+        _ => {
+            return Err(err(
+                "provide both upper_negative_x_support and upper_corner_stiffness",
+            ));
+        }
+    };
     if !fields.is_empty() {
         return Err(err("unknown field"));
     }
@@ -279,6 +306,9 @@ pub(crate) fn parse(
             ));
         }
     };
+    if side.is_some() && upper.is_none() {
+        return Err(err("upper side contact requires a second collision box"));
+    }
     if !centered(&lower) || !model.models.is_empty() {
         return Err(err("sole collision must be centered on its link"));
     }
@@ -309,7 +339,8 @@ pub(crate) fn parse(
         let motion = prescribed_motion::parse(deck, engine, true)?;
         if !deck.is_static && motion.is_none()
             || motion.is_some_and(|m| {
-                m.path.is_some() || (!single_support && m.twist.angular != [0.; 3])
+                m.path.is_some()
+                    || ((!single_support || side.is_some()) && m.twist.angular != [0.; 3])
             })
         {
             return Err(err(
@@ -345,6 +376,7 @@ pub(crate) fn parse(
         world: world.name.clone(),
         foot: foot.into(),
         upper,
+        side,
         supports,
         body: SoleBody {
             half_extents,

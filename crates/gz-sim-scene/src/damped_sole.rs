@@ -8,7 +8,9 @@
 //!
 //! Load the world using local multifidelity physics. The aggregate principal moments
 //! must align with the coated link axes. Its center of mass may be offset. The second
-//! box must stay clear of all finite supports over the integrated tick. Each
+//! box must stay clear of all finite supports, except when one finite local -X face
+//! is enrolled with `upper_negative_x_support` and `upper_corner_stiffness` (N/m).
+//! That frictionless point spring admits one corner strictly inside the face. Each
 //! fixed or prescribed support has a single box collision centered and aligned with its link. The panels may move
 //! independently and share an edge. A lone support may rotate about its moving center. Their projected interiors must stay disjoint.
 //!
@@ -51,8 +53,10 @@ use gz_physics::sole_turntable::{
 use gz_physics::{BodyState, DynamicBackend};
 use gz_physics_multifidelity::SoleFoot;
 mod config;
+mod side;
 mod welded;
 pub(crate) use config::{Plan, is_plugin, observer_model, parse};
+pub use side::SideStep;
 use welded::GuardBox;
 type SolveError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -101,6 +105,8 @@ pub struct DampedSoleStep {
     pub flat_elastic: bool,
     /// This fixed-grid tick used the spatially uniform normal damping path.
     pub flat_damped: bool,
+    /// Separate elastic upper-box reaction, when the authored side support is present.
+    pub upper_side: Option<SideStep>,
 }
 
 #[derive(Clone, Copy)]
@@ -116,6 +122,7 @@ struct Coating {
     controls: Plan,
     foot: u64,
     binding: SoleFoot,
+    side: Option<side::Side>,
     supports: Vec<Support>,
     last: Option<DampedSoleStep>,
     rows: Vec<PanelStep>,
@@ -135,9 +142,9 @@ pub(super) fn installed(world: &World) -> bool {
     world.contains_resource::<Coating>()
 }
 pub(super) fn translating_support(world: &World, id: u64) -> bool {
-    world
-        .get_resource::<Coating>()
-        .is_some_and(|c| c.supports.len() > 1 && c.supports.iter().any(|p| p.public_id == id))
+    world.get_resource::<Coating>().is_some_and(|c| {
+        (c.supports.len() > 1 || c.side.is_some()) && c.supports.iter().any(|p| p.public_id == id)
+    })
 }
 /// A lifecycle removal can occur while paused, before a new reaction is available.
 pub(super) fn retire(world: &mut World, removed: &[u64]) {
@@ -148,6 +155,13 @@ pub(super) fn retire(world: &mut World, removed: &[u64]) {
         c.rows.clear();
         c.last = None;
         return;
+    }
+    if let Some(last) = &mut c.last
+        && last
+            .upper_side
+            .is_some_and(|s| removed.contains(&s.support))
+    {
+        last.upper_side = None;
     }
     c.rows.retain(|p| !removed.contains(&p.support));
     if let Some(first) = c.rows.first().copied() {
@@ -221,6 +235,16 @@ pub(crate) fn install(
             SoleFoot::Weld { lower: f, upper }
         }
     };
+    let side =
+        if let (Some((name, stiffness)), Some((_, upper))) = (&controls.side, &controls.upper) {
+            Some(side::Side {
+                support: resolve(name)?.0,
+                stiffness: *stiffness,
+                upper: *upper,
+            })
+        } else {
+            None
+        };
     let state = welded::state(native, binding, &controls.body)?;
     let mut supports = Vec::new();
     let mut ids = Vec::new();
@@ -261,6 +285,7 @@ pub(crate) fn install(
     let rows = Vec::with_capacity(supports.len());
     sim.world_mut().insert_resource(Coating {
         controls,
+        side,
         foot,
         binding,
         supports,
@@ -349,7 +374,35 @@ impl Coating {
             }
             _ => None,
         };
-        if let [p] = scratch.panels.as_slice()
+        let mut upper_side = None;
+        if let Some(side) = self
+            .side
+            .filter(|side| scratch.panels.iter().any(|p| p.id == side.support))
+        {
+            if scratch
+                .endpoints
+                .iter()
+                .any(|(_, s)| s.angular_velocity != [0.; 3])
+            {
+                return Err("upper contact requires translating supports".into());
+            }
+            let (reactions, receipt) = side::advance(
+                side,
+                &c.body,
+                &mut state,
+                &scratch.panels,
+                gravity,
+                force.into(),
+                torque.into(),
+                dt,
+                c.substeps,
+                c.depth,
+            )?;
+            for (p, r) in scratch.panels.iter().zip(reactions) {
+                row(p, r.on_sole);
+            }
+            upper_side = Some(receipt);
+        } else if let [p] = scratch.panels.as_slice()
             && scratch.endpoints[0].1.angular_velocity != [0.; 3]
         {
             let angular_velocity = DVec3::from(scratch.endpoints[0].1.angular_velocity);
@@ -466,7 +519,9 @@ impl Coating {
                 row(p, r.on_sole);
             }
         }
-        if let Some((_, guard)) = &c.upper {
+        if upper_side.is_none()
+            && let Some((_, guard)) = &c.upper
+        {
             let contact_bound = scratch
                 .panels
                 .iter()
@@ -515,6 +570,7 @@ impl Coating {
             turntable_accuracy,
             flat_elastic: exact.is_some(),
             flat_damped: scalar.is_some(),
+            upper_side,
         });
         std::mem::swap(&mut self.rows, &mut scratch.rows);
         Ok(())

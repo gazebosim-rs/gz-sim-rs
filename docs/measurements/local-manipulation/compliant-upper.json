@@ -1,0 +1,251 @@
+{
+  "miss": {
+    "first_upper_tick": null,
+    "last_upper_tick": null,
+    "lower_total_ns": 1.1771999999999692,
+    "max_angular_balance_residual_nms": 1.698350983925698e-18,
+    "max_angular_momentum_error_nms": 3.319104250702291e-18,
+    "max_com_error_m": 1.671518367746046e-15,
+    "max_cumulative_lower_error_ns": 3.774758283725532e-14,
+    "max_cumulative_upper_error_ns": 0.0,
+    "max_linear_balance_residual_ns": 3.469446951953614e-18,
+    "max_momentum_error_ns": 6.816029222513066e-16,
+    "max_rotation_error_rad": 2.65242915827858e-18,
+    "min_lower_mean_force_during_upper_n": null,
+    "peak_upper_n": 0.0,
+    "substeps": 8,
+    "upper_total_ns": 0.0
+  },
+  "public_dt_s": 0.0005,
+  "reference_final_spin_rad_s": [
+    0.003150155307385459,
+    -0.38909175752324093,
+    -0.17538329038157516
+  ],
+  "reference_lower_total_ns": 1.429883184811944,
+  "reference_refinement_delta": [
+    4.675599802016929e-10,
+    3.5005836007684366e-08,
+    1.393243764802321e-08
+  ],
+  "reference_substeps": 128,
+  "reference_upper_total_ns": 2.302624848091857,
+  "strike": [
+    {
+      "first_upper_tick": 27,
+      "last_upper_tick": 69,
+      "lower_total_ns": 1.429309843853384,
+      "max_angular_balance_residual_nms": 1.5306177650085244e-16,
+      "max_angular_momentum_error_nms": 9.524988563653876e-05,
+      "max_com_error_m": 3.5538458460263434e-06,
+      "max_cumulative_lower_error_ns": 0.0005801156239300109,
+      "max_cumulative_upper_error_ns": 0.0007538439008587256,
+      "max_linear_balance_residual_ns": 1.6653345369377348e-16,
+      "max_momentum_error_ns": 0.0007538439008589748,
+      "max_rotation_error_rad": 1.1677195591453371e-05,
+      "min_lower_mean_force_during_upper_n": 19.61999999999929,
+      "peak_upper_n": 171.48304536499793,
+      "substeps": 1,
+      "upper_total_ns": 2.302167855869799
+    },
+    {
+      "first_upper_tick": 27,
+      "last_upper_tick": 69,
+      "lower_total_ns": 1.4297630078595087,
+      "max_angular_balance_residual_nms": 1.6286955520589304e-16,
+      "max_angular_momentum_error_nms": 2.1332188183327806e-05,
+      "max_com_error_m": 8.882901816069023e-07,
+      "max_cumulative_lower_error_ns": 0.0001228160953563595,
+      "max_cumulative_upper_error_ns": 0.0001596938037706919,
+      "max_linear_balance_residual_ns": 3.3306690738754696e-16,
+      "max_momentum_error_ns": 0.00015969380377089948,
+      "max_rotation_error_rad": 2.0089448875436912e-06,
+      "min_lower_mean_force_during_upper_n": 19.61999999999929,
+      "peak_upper_n": 171.58155503854522,
+      "substeps": 2,
+      "upper_total_ns": 2.3025720563001575
+    },
+    {
+      "first_upper_tick": 27,
+      "last_upper_tick": 69,
+      "lower_total_ns": 1.4298535084489425,
+      "max_angular_balance_residual_nms": 3.357830223523823e-16,
+      "max_angular_momentum_error_nms": 5.970953048448681e-06,
+      "max_com_error_m": 2.2568147405277422e-07,
+      "max_cumulative_lower_error_ns": 3.067485293772876e-05,
+      "max_cumulative_upper_error_ns": 5.0484655713161394e-05,
+      "max_linear_balance_residual_ns": 3.3306690738754696e-16,
+      "max_momentum_error_ns": 5.048465571344529e-05,
+      "max_rotation_error_rad": 5.317185584000352e-07,
+      "min_lower_mean_force_during_upper_n": 19.62000000188918,
+      "peak_upper_n": 171.5755008912173,
+      "substeps": 4,
+      "upper_total_ns": 2.3026169303664377
+    },
+    {
+      "first_upper_tick": 27,
+      "last_upper_tick": 69,
+      "lower_total_ns": 1.4298801705926603,
+      "max_angular_balance_residual_nms": 5.431507179546876e-16,
+      "max_angular_momentum_error_nms": 1.05711322602962e-06,
+      "max_com_error_m": 1.5869222153390322e-07,
+      "max_cumulative_lower_error_ns": 7.154051213320578e-06,
+      "max_cumulative_upper_error_ns": 8.794225715202941e-06,
+      "max_linear_balance_residual_ns": 6.106226635438361e-16,
+      "max_momentum_error_ns": 1.0233550757505505e-05,
+      "max_rotation_error_rad": 3.129072980049366e-07,
+      "min_lower_mean_force_during_upper_n": 19.6200000019653,
+      "peak_upper_n": 171.5768470072848,
+      "substeps": 8,
+      "upper_total_ns": 2.302633642317572
+    },
+    {
+      "first_upper_tick": 27,
+      "last_upper_tick": 69,
+      "lower_total_ns": 1.4298813281508742,
+      "max_angular_balance_residual_nms": 1.1974281791672756e-15,
+      "max_angular_momentum_error_nms": 2.6784897703126277e-07,
+      "max_com_error_m": 1.3640355080875274e-08,
+      "max_cumulative_lower_error_ns": 1.8870220408473415e-06,
+      "max_cumulative_upper_error_ns": 1.7619399507173839e-06,
+      "max_linear_balance_residual_ns": 1.023488320929901e-15,
+      "max_momentum_error_ns": 2.1916464737715664e-06,
+      "max_rotation_error_rad": 2.77591255773669e-08,
+      "min_lower_mean_force_during_upper_n": 19.62000000231057,
+      "peak_upper_n": 171.5761284688938,
+      "substeps": 16,
+      "upper_total_ns": 2.3026237334339896
+    }
+  ],
+  "ticks": 120,
+  "coverage": {
+    "changed_production": {
+      "crates/gz-sim-scene/src/damped_sole/side.rs": {
+        "mapped_lines": [
+          165,
+          165
+        ],
+        "mapped_regions": [
+          331,
+          338
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole/config.rs": {
+        "mapped_lines": [
+          26,
+          26
+        ],
+        "mapped_regions": [
+          37,
+          38
+        ]
+      },
+      "crates/gz-sim-scene/src/damped_sole.rs": {
+        "mapped_lines": [
+          46,
+          47
+        ],
+        "mapped_regions": [
+          76,
+          78
+        ]
+      },
+      "crates/gz-sim-cli/examples/compliant_upper.rs": {
+        "mapped_lines": [
+          141,
+          146
+        ],
+        "mapped_regions": [
+          323,
+          337
+        ]
+      },
+      "crates/gz-sim-cli/examples/compliant_upper/reference.rs": {
+        "mapped_lines": [
+          131,
+          134
+        ],
+        "mapped_regions": [
+          259,
+          264
+        ]
+      }
+    },
+    "executables": [
+      {
+        "case": "upper",
+        "sha256": "722421fec5a57eb20fcaaad2bb78659b4862351d0822a0ad96f350cb715de501"
+      },
+      {
+        "case": "scene",
+        "sha256": "dfb1aed294899e11d182c4482c387a3d7e7e315247f2827c2cfcab018f7eb69d"
+      },
+      {
+        "case": "lifecycle",
+        "sha256": "7254a89fe90829b4483cb538e8108452e5beee84436cff128b9c6963311175e7"
+      },
+      {
+        "case": "app",
+        "sha256": "6b483754e742f3c9dd2b812c3d77148189011c54b9f5e82dc80d47397a4c8f13"
+      },
+      {
+        "case": "product",
+        "sha256": "58d66555942f756e7940c3547e2f099151fdf8cfc4df8ec220979896f7bb4023"
+      }
+    ],
+    "combined": {
+      "mapped_lines": [
+        509,
+        518
+      ],
+      "mapped_regions": [
+        1026,
+        1055
+      ]
+    }
+  },
+  "browser": {
+    "strike": {
+      "body_poses_and_shapes_checked": 484,
+      "captured_ms": {
+        "end": 60.0,
+        "incoming": 0.0,
+        "release": 35.0,
+        "strike": 24.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 121,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 121,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9932%2F",
+      "archive_sha256": {
+        "frames.jsonl": "d85e7876d7f148f427dde725fe8eb032aa2f577fbff8ea36a1314ba3c67e239f",
+        "manifest.json": "bcfa8dbee2d6cb252f4ed73d690470706073de37a5102adbefb779b6fc74909d"
+      }
+    },
+    "miss": {
+      "body_poses_and_shapes_checked": 484,
+      "captured_ms": {
+        "end": 60.0,
+        "incoming": 0.0,
+        "release": 35.0,
+        "strike": 24.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 121,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 121,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9933%2F",
+      "archive_sha256": {
+        "frames.jsonl": "bb6559846510ae015760f4eb786876bb2aeab4ed16c768f45afaf987be4b17b3",
+        "manifest.json": "eb481ef622e5085bab29716241e164ee4e781b9eb92df3334fa49d3a2fa8008a"
+      }
+    }
+  }
+}
