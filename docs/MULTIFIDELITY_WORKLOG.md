@@ -8,6 +8,10 @@ The local Rust/Bevy robot can carry rigid parcels, weigh a loose cable and place
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
 
+## 2026-11-23 — The dropped sheet’s first compression sets rebound height
+
+From the exact same incoming state the 16- and 4,000-step runs rebounded 1.26 and 11.36 mm. Changing only the first millisecond to 1,000 steps reproduced the full 1,000-step rebound within 0.015 mm. Returning to the original robot and material clock reproduced all sampled particle positions and table impulses exactly. The next step is a bounded refinement request triggered by the actual falling material. [Results and gz-web-rs replay](measurements/local-manipulation/sheet-impact-rebound.md)
+
 ## 2026-11-23 — A push at a material point survives wrist promotion and replay
 
 The CPU journal now records off-center forces on articulated links and model tier changes. A parked wrist struck by a 120 N force resumed with the same angular speed as the continuously dynamic control to within 2 × 10⁻¹⁵ rad/s per axis. On a rotating payload the moment correctly changed with the material point. Each of the four changed crates exceeded 95% for executable lines and regions in the scoped qualification. [Two robot fixtures, native playback and measurements](measurements/local-manipulation/point-load-replay.md)
