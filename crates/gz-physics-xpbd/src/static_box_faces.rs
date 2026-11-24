@@ -1,0 +1,239 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+//! A fixed box corner meeting the interior of a moving cloth triangle.
+use super::{
+    BoundaryImpulse, Particle, PreparedBoundary, XpbdError,
+    collision::Interval,
+    correct,
+    material::Skin,
+    surface::{first_entry, geometry::vertex_face},
+    topology::cell_faces,
+};
+use glam::DVec3;
+use std::collections::BTreeMap;
+
+#[derive(Clone)]
+struct Row {
+    ids: [usize; 3],
+    weights: [f64; 3],
+    normal: DVec3,
+    corner: DVec3,
+    lambda: f64,
+}
+impl Row {
+    fn blend(&self, values: impl Fn(usize) -> DVec3) -> DVec3 {
+        self.ids
+            .iter()
+            .zip(self.weights)
+            .map(|(&i, w)| w * values(i))
+            .sum()
+    }
+    fn mass_inverse(&self, p: &[Particle]) -> f64 {
+        self.ids
+            .iter()
+            .zip(self.weights)
+            .map(|(&i, w)| w * w * p[i].inverse_mass)
+            .sum()
+    }
+}
+#[derive(Default, Clone)]
+pub(super) struct Faces {
+    rows: BTreeMap<(usize, usize, [usize; 3]), Row>,
+}
+struct Bounds {
+    lo: DVec3,
+    hi: DVec3,
+}
+impl Bounds {
+    fn swept(points: impl Iterator<Item = (DVec3, DVec3)>, thickness: f64) -> Self {
+        let mut lo = DVec3::splat(f64::INFINITY);
+        let mut hi = DVec3::splat(f64::NEG_INFINITY);
+        for (start, end) in points {
+            lo = lo.min(start).min(end);
+            hi = hi.max(start).max(end);
+        }
+        let pad = DVec3::splat(
+            thickness + 128. * f64::EPSILON * lo.abs().max(hi.abs()).max_element().max(1.),
+        );
+        Self {
+            lo: lo - pad,
+            hi: hi + pad,
+        }
+    }
+    fn contains(&self, corner: DVec3) -> bool {
+        corner.cmpge(self.lo).all() && corner.cmple(self.hi).all()
+    }
+}
+
+impl Faces {
+    pub fn clear(&mut self) {
+        self.rows.clear();
+    }
+    pub fn project(
+        &mut self,
+        columns: usize,
+        x: &mut [DVec3],
+        p: &mut [Particle],
+        surfaces: &[PreparedBoundary],
+        reactions: &mut [BoundaryImpulse],
+        dt: Interval,
+    ) -> Result<(), XpbdError> {
+        let mut boxes = surfaces
+            .iter()
+            .enumerate()
+            .filter_map(|(i, b)| b.fixed_box().map(|(half, q)| (i, b.origin, half, q)))
+            .peekable();
+        if boxes.peek().is_none() {
+            return Ok(());
+        }
+        let all = Bounds::swept(
+            p.iter().zip(x.iter()).map(|(p, &x)| (p.position.into(), x)),
+            dt.radius,
+        );
+        let mut queries = 0;
+        for (b, center, half, q) in boxes {
+            for corner_index in 0..8 {
+                let signs = DVec3::from_array(std::array::from_fn(|i| {
+                    if corner_index & (1 << i) == 0 {
+                        -1.
+                    } else {
+                        1.
+                    }
+                }));
+                let corner = center + q * (half * signs);
+                if !all.contains(corner) {
+                    continue;
+                }
+                for end in (columns + 1)..p.len() {
+                    if end % columns == 0 {
+                        continue;
+                    }
+                    for ids in cell_faces(end, columns) {
+                        let key = (b, corner_index, ids);
+                        if self.rows.contains_key(&key) {
+                            continue;
+                        }
+                        let a = ids.map(|i| DVec3::from(p[i].position));
+                        let z = ids.map(|i| x[i]);
+                        if !Bounds::swept(a.into_iter().zip(z), dt.radius).contains(corner) {
+                            continue;
+                        }
+                        let eps = 1e-9 * dt.radius
+                            + 128. * f64::EPSILON * corner.abs().max_element().max(1.);
+                        let start = [corner, a[0], a[1], a[2]];
+                        let at_start = vertex_face(&start);
+                        let (signed, n) = if at_start.delta.length() <= eps {
+                            let Some(mut n) = (a[1] - a[0]).cross(a[2] - a[0]).try_normalize()
+                            else {
+                                return Err(XpbdError::UnresolvedSurface);
+                            };
+                            if (corner - center).dot(n) < 0. {
+                                n = -n;
+                            }
+                            (at_start.weights, n)
+                        } else {
+                            // A positive cast skin gives a well-defined incoming
+                            // normal even for zero-thickness cloth crossing the box.
+                            let Some(hit) = first_entry(
+                                start,
+                                [corner, z[0], z[1], z[2]],
+                                true,
+                                dt.radius.max(16. * eps),
+                                eps,
+                                &mut queries,
+                            )?
+                            else {
+                                continue;
+                            };
+                            (hit.weights, -hit.normal)
+                        };
+                        let weights = [-signed[1], -signed[2], -signed[3]];
+                        // Other faces of this convex box can lie behind the incident
+                        // corner. Only normals in its outward normal cone support cloth.
+                        if weights.iter().any(|&w| w <= 1e-9)
+                            || ((q.conjugate() * n) * signs).min_element() < -1e-8
+                        {
+                            continue;
+                        }
+                        let row = Row {
+                            ids,
+                            weights,
+                            normal: n,
+                            corner,
+                            lambda: 0.,
+                        };
+                        if row.mass_inverse(p) > 0. {
+                            self.rows.insert(key, row);
+                        }
+                    }
+                }
+            }
+        }
+        for (&(b, _, _), row) in &mut self.rows {
+            let point = row.blend(|i| x[i]);
+            let depth = dt.radius - (point - row.corner).dot(row.normal);
+            let next = (row.lambda + depth / row.mass_inverse(p)).max(0.);
+            let delta = next - row.lambda;
+            row.lambda = next;
+            for (&i, w) in row.ids.iter().zip(row.weights) {
+                let dx = row.normal * (delta * w * p[i].inverse_mass);
+                correct(&mut x[i], &mut p[i], dx, dt.h);
+            }
+            // The coupled displacement and velocity correction changes angular
+            // momentum about the material point at the start of this substep.
+            let start = row.blend(|i| p[i].position.into());
+            reactions[b].react(start - surfaces[b].origin, row.normal * (delta / dt.h))?;
+        }
+        Ok(())
+    }
+    pub fn finish(
+        &self,
+        x: &[DVec3],
+        p: &mut [Particle],
+        surfaces: &[PreparedBoundary],
+        reactions: &mut [BoundaryImpulse],
+        cfg: super::SolverConfig,
+        h: f64,
+    ) -> Result<(), XpbdError> {
+        let (mu, radius) = (cfg.friction, cfg.particle_radius);
+        for (&(b, _, _), row) in &self.rows {
+            let center = row.blend(|i| x[i]);
+            let n = row.normal;
+            if row.lambda == 0.
+                && (center - row.corner).dot(n)
+                    > radius + 1e-9 * radius + 128. * f64::EPSILON * center.length()
+            {
+                continue;
+            }
+            let closing = (-row.blend(|i| p[i].velocity.into()).dot(n)).max(0.);
+            let normal_j = closing / row.mass_inverse(p);
+            for (&i, w) in row.ids.iter().zip(row.weights) {
+                p[i].velocity =
+                    (DVec3::from(p[i].velocity) + w * p[i].inverse_mass * n * normal_j).to_array();
+            }
+            let skin = Skin::new(&row.ids, row.ids, row.weights, |i| x[i], -radius * n)?;
+            let relative = skin.velocity(p);
+            let slip = relative - n * relative.dot(n);
+            let mut tangent = DVec3::ZERO;
+            if let Some(dir) = slip.try_normalize() {
+                let inverse: f64 = skin
+                    .nodal(dir)
+                    .map(|(i, j)| p[i].inverse_mass * j.length_squared())
+                    .sum();
+                let cap = mu * (row.lambda / h + normal_j);
+                if inverse > 0. {
+                    tangent = -dir * (slip.length() / inverse).min(cap);
+                    for (i, j) in skin.nodal(tangent) {
+                        p[i].velocity =
+                            (DVec3::from(p[i].velocity) + p[i].inverse_mass * j).to_array();
+                    }
+                }
+            }
+            reactions[b].react(
+                center - radius * n - surfaces[b].origin,
+                n * normal_j + tangent,
+            )?;
+        }
+        Ok(())
+    }
+}

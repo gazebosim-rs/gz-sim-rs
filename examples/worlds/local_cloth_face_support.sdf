@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12"><world name="default">
+  <gravity>0 0 -9.81</gravity>
+  <physics name="one_ms" type="ignored"><max_step_size>0.001</max_step_size></physics>
+  <model name="narrow"><static>true</static><link name="deck">
+    <pose>-0.7142857142857143 -0.0857142857142857 -0.02 0 0 0</pose>
+    <collision name="support"><geometry><box><size>0.07 0.07 0.04</size></box></geometry></collision>
+    <visual name="support"><geometry><box><size>0.07 0.07 0.04</size></box></geometry><material><diffuse>0.30 0.40 0.51 1</diffuse></material></visual>
+    <visual name="p0"><pose>-0.2857142857142857 -0.1142857142857143 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.95 0.47 0.08 1</diffuse></material></visual>
+    <visual name="p1"><pose>0.1142857142857142 -0.1142857142857143 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.95 0.47 0.08 1</diffuse></material></visual>
+    <visual name="p2"><pose>-0.2857142857142857 0.2857142857142857 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.95 0.47 0.08 1</diffuse></material></visual>
+    <visual name="p3"><pose>0.1142857142857142 0.2857142857142857 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.95 0.47 0.08 1</diffuse></material></visual>
+  </link></model>
+  <model name="wide"><static>true</static><link name="deck">
+    <pose>0.0857142857142857 -0.0857142857142857 -0.02 0 0 0</pose>
+    <collision name="support"><geometry><box><size>0.6 0.6 0.04</size></box></geometry></collision>
+    <visual name="support"><geometry><box><size>0.6 0.6 0.04</size></box></geometry><material><diffuse>0.30 0.40 0.51 1</diffuse></material></visual>
+    <visual name="p0"><pose>-0.2857142857142857 -0.1142857142857143 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.08 0.70 0.60 1</diffuse></material></visual>
+    <visual name="p1"><pose>0.1142857142857143 -0.1142857142857143 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.08 0.70 0.60 1</diffuse></material></visual>
+    <visual name="p2"><pose>-0.2857142857142857 0.2857142857142857 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.08 0.70 0.60 1</diffuse></material></visual>
+    <visual name="p3"><pose>0.1142857142857143 0.2857142857142857 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.08 0.70 0.60 1</diffuse></material></visual>
+  </link></model>
+  <model name="miss"><static>true</static><link name="deck">
+    <pose>1.3057142857142858 -0.0857142857142857 -0.02 0 0 0</pose>
+    <collision name="support"><geometry><box><size>0.07 0.07 0.04</size></box></geometry></collision>
+    <visual name="support"><geometry><box><size>0.07 0.07 0.04</size></box></geometry><material><diffuse>0.30 0.40 0.51 1</diffuse></material></visual>
+    <visual name="p0"><pose>-0.7057142857142857 -0.1142857142857143 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.62 0.42 0.94 1</diffuse></material></visual>
+    <visual name="p1"><pose>-0.3057142857142856 -0.1142857142857143 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.62 0.42 0.94 1</diffuse></material></visual>
+    <visual name="p2"><pose>-0.7057142857142857 0.2857142857142857 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.62 0.42 0.94 1</diffuse></material></visual>
+    <visual name="p3"><pose>-0.3057142857142856 0.2857142857142857 0.046 0 0 0</pose><geometry><sphere><radius>0.006</radius></sphere></geometry><material><diffuse>0.62 0.42 0.94 1</diffuse></material></visual>
+  </link></model>
+  <plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">
+    <box link="default::narrow::deck" coupling="one_way"/>
+    <box link="default::wide::deck" coupling="one_way"/>
+    <box link="default::miss::deck" coupling="one_way"/>
+    <cloth name="narrow" columns="2" substeps="4" iterations="16" stretch="0" shear="0" bend="0" radius="0.006" self_contact="false" friction="0.3">
+      <particle position="-1.0000000 -0.200000 0.026" mass="0.02"/>
+      <particle position="-0.6000000 -0.200000 0.026" mass="0.08"/>
+      <particle position="-1.0000000 0.200000 0.026" mass="0.02"/>
+      <particle position="-0.6000000 0.200000 0.026" mass="0.02"/>
+    </cloth>
+    <particle_visual material="narrow" particle="0" visual="default::narrow::deck::p0"/>
+    <particle_visual material="narrow" particle="1" visual="default::narrow::deck::p1"/>
+    <particle_visual material="narrow" particle="2" visual="default::narrow::deck::p2"/>
+    <particle_visual material="narrow" particle="3" visual="default::narrow::deck::p3"/>
+    <cloth name="wide" columns="2" substeps="4" iterations="16" stretch="0" shear="0" bend="0" radius="0.006" self_contact="false" friction="0.3">
+      <particle position="-0.2000000 -0.200000 0.026" mass="0.02"/>
+      <particle position="0.2000000 -0.200000 0.026" mass="0.08"/>
+      <particle position="-0.2000000 0.200000 0.026" mass="0.02"/>
+      <particle position="0.2000000 0.200000 0.026" mass="0.02"/>
+    </cloth>
+    <particle_visual material="wide" particle="0" visual="default::wide::deck::p0"/>
+    <particle_visual material="wide" particle="1" visual="default::wide::deck::p1"/>
+    <particle_visual material="wide" particle="2" visual="default::wide::deck::p2"/>
+    <particle_visual material="wide" particle="3" visual="default::wide::deck::p3"/>
+    <cloth name="miss" columns="2" substeps="4" iterations="16" stretch="0" shear="0" bend="0" radius="0.006" self_contact="false" friction="0.3">
+      <particle position="0.6000000 -0.200000 0.026" mass="0.02"/>
+      <particle position="1.0000000 -0.200000 0.026" mass="0.08"/>
+      <particle position="0.6000000 0.200000 0.026" mass="0.02"/>
+      <particle position="1.0000000 0.200000 0.026" mass="0.02"/>
+    </cloth>
+    <particle_visual material="miss" particle="0" visual="default::miss::deck::p0"/>
+    <particle_visual material="miss" particle="1" visual="default::miss::deck::p1"/>
+    <particle_visual material="miss" particle="2" visual="default::miss::deck::p2"/>
+    <particle_visual material="miss" particle="3" visual="default::miss::deck::p3"/>
+  </plugin>
+</world></sdf>

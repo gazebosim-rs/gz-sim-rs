@@ -27,6 +27,7 @@ mod collision;
 mod coupled;
 mod cuboid;
 mod energy;
+mod static_box_faces;
 pub use energy::MaterialEnergy;
 mod impact_group;
 mod material;
@@ -265,6 +266,7 @@ pub struct SoftBody {
     surface: Option<surface::Surface>,
     pads: Option<pad::Pads>,
     contacts: Contacts,
+    box_faces: static_box_faces::Faces,
 }
 
 impl SoftBody {
@@ -342,6 +344,7 @@ impl SoftBody {
             path_substeps: 0,
             momentum_rows: None,
             contacts: Contacts::default(),
+            box_faces: Default::default(),
         })
     }
 
@@ -596,6 +599,7 @@ impl SoftBody {
         self.lambdas.fill(0.0);
         self.bending_lambdas.fill(0.0);
         self.contacts.clear(self.config.friction);
+        self.box_faces.clear();
         if let Some(m) = &mut self.capsule_material {
             m.begin_substep();
         }
@@ -679,6 +683,16 @@ impl SoftBody {
             interval,
             (self.pads.is_some(), self.capsule_material.is_some()),
         )?;
+        if let MaterialTopology::Cloth(columns) = self.topology {
+            self.box_faces.project(
+                columns,
+                &mut self.predicted,
+                &mut self.scratch,
+                boundaries,
+                reactions,
+                interval,
+            )?;
+        }
         if let Some(m) = &mut self.capsule_material {
             m.project(
                 &mut self.predicted,
@@ -768,6 +782,14 @@ impl SoftBody {
             boundaries,
             reactions,
             self.config.friction,
+            h,
+        )?;
+        self.box_faces.finish(
+            &self.predicted,
+            &mut self.scratch,
+            boundaries,
+            reactions,
+            self.config,
             h,
         )?;
         if let Some(m) = &mut self.capsule_material {

@@ -372,6 +372,13 @@ impl PreparedBoundary {
         }
         Ok(())
     }
+    pub(super) fn fixed_box(&self) -> Option<(DVec3, DQuat)> {
+        if let Shape::StaticCuboid(half, q) = self.shape {
+            Some((half, q))
+        } else {
+            None
+        }
+    }
     pub(super) fn oriented_shape(&self) -> Option<OrientedShape> {
         if let Shape::Oriented(geometry) = self.shape {
             Some(geometry)
