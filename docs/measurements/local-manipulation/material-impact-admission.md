@@ -1,3 +1,6 @@
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Simultaneous gripper contact on cloth
 
 Two fingers strike one cloth face at 100 ms in the authored local impact scene. The solver records neither pad at 99 ms. At 100 ms it resolves both native finger links in one contact batch, with both incoming normal speeds above 0.7 m/s and separating normal speeds above 0.4 m/s.

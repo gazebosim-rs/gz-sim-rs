@@ -1,3 +1,6 @@
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Live serial robot with a universal wrist
 
 The same serial transfer SDF that worked in an ordinary Bevy application failed when started through the live Gazebo server. Server controller admission read a single scalar position, while the wrist exposes two angular coordinates. Admission now checks the coordinate selected by the installed actuator. It still verifies the original physics owner, public joint identity, native joint and child link. The screw and wrist can share the real transport server.
