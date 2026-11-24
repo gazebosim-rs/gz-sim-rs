@@ -703,3 +703,37 @@ fn capped_ball_targets_track_both_directions_and_repeat_every_tick_after_reset()
         assert!(!run(&xml, &bad, &[]).status.success());
     }
 }
+
+#[test]
+fn the_first_heading_command_wakes_a_hanging_wrist_before_the_native_solve() {
+    let tmp = tempfile::tempdir().unwrap();
+    let d = tmp.path();
+    let xml = file(
+        d,
+        "wrist.sdf",
+        include_str!("../../../examples/worlds/local_hanging_ball_wrist.sdf"),
+    );
+    let source = include_str!("../../../examples/replay/parked_wrist_heading.json");
+    let path = file(d, "parked.json", source);
+    let normal = file(d, "dynamic.json", &source.replace("prescribed", "dynamic"));
+    let parked = success(run(&xml, &path, &[]));
+    let dynamic = success(run(&xml, &normal, &[]));
+    assert_eq!(record(&parked, 4, 251)["model_tiers"][0][1], "prescribed");
+    for tick in 252..=851 {
+        let first = record(&parked, 5, tick);
+        assert_eq!(first["model_tiers"][0][1], "dynamic");
+        shared(first, record(&parked, 11, tick), STATE);
+        let speed = |r: &Value| {
+            glam::DVec3::from_array(
+                serde_json::from_value(r["wrists"][0]["angular_velocity_rad_s"].clone()).unwrap(),
+            )
+        };
+        assert!(speed(first).distance(speed(record(&dynamic, 5, tick))) < 1e-11);
+    }
+    let journal: Value = serde_json::from_str(source).unwrap();
+    let quaternion =
+        |v: &Value| glam::DQuat::from_array(serde_json::from_value(v.clone()).unwrap());
+    let goal = quaternion(&journal["commands"][4]["orientation_xyzw"]);
+    let end = quaternion(&record(&parked, 5, 851)["wrists"][0]["orientation_xyzw"]);
+    assert!(goal.angle_between(end).abs() < 1e-6);
+}

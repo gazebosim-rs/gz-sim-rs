@@ -1,0 +1,68 @@
+{
+  "seed": "parked-heading-v1",
+  "commands": [
+    {
+      "op": "step",
+      "count": 1
+    },
+    {
+      "op": "set_tier",
+      "model": "default::wrist",
+      "tier": "prescribed"
+    },
+    {
+      "op": "step",
+      "count": 250
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "track_ball",
+      "joint": "default::wrist::bearing",
+      "orientation_xyzw": [
+        0.12050145335648561,
+        0.08231587310106613,
+        0.25697410243007895,
+        0.955336489125606
+      ],
+      "count": 600,
+      "stiffness_nm_rad": 2.0,
+      "damping_nm_s_rad": 0.16,
+      "max_torque_nm": 0.6
+    },
+    {
+      "op": "reset"
+    },
+    {
+      "op": "step",
+      "count": 1
+    },
+    {
+      "op": "set_tier",
+      "model": "default::wrist",
+      "tier": "prescribed"
+    },
+    {
+      "op": "step",
+      "count": 250
+    },
+    {
+      "op": "paused_tick"
+    },
+    {
+      "op": "track_ball",
+      "joint": "default::wrist::bearing",
+      "orientation_xyzw": [
+        0.12050145335648561,
+        0.08231587310106613,
+        0.25697410243007895,
+        0.955336489125606
+      ],
+      "count": 600,
+      "stiffness_nm_rad": 2.0,
+      "damping_nm_s_rad": 0.16,
+      "max_torque_nm": 0.6
+    }
+  ]
+}
