@@ -240,3 +240,27 @@ fn simultaneous_and_frictional_impacts_keep_their_native_contact_rows() {
     assert!(normal.iter().all(|n| *n > 0.01 && *n < 0.15));
     assert_eq!(tangent, 0.);
 }
+
+#[test]
+fn exchanging_the_point_and_face_keeps_the_spherical_wrist_response() {
+    let box_on_wrist = xml(-0.01, 0., true).replace("3.0 0.12", "-0.02405 0.1");
+    let sphere_on_wrist = box_on_wrist
+        .replace("<sphere><radius>0.015</radius></sphere>", "INCOMING_FACE")
+        .replace(
+            "<box><size>0.018 0.067 0.10</size></box>",
+            "<sphere><radius>0.015</radius></sphere>",
+        )
+        .replace("INCOMING_FACE", "<box><size>0.018 0.067 0.10</size></box>");
+    for sdf in [&box_on_wrist, &sphere_on_wrist] {
+        let (normal, tangent) = first_patch(sdf);
+        let inertia = 0.0004266666666666667 + 0.00003208666666666667 + 0.08 * 0.1 * 0.1;
+        let expected = 1.6 * 0.75 / (5.0 + 0.1 * 0.1 / inertia);
+        assert_eq!(normal.len(), 1);
+        assert!(
+            (normal[0] - expected).abs() < 1e-9,
+            "{} {expected}",
+            normal[0]
+        );
+        assert_eq!(tangent, 0.);
+    }
+}
