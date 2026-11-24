@@ -1,0 +1,363 @@
+{
+  "native_source_commit": "6b202dcae0c3a0b5de4203378c495628725ffaff",
+  "journal_sha256": "7f397dbde215f551d864154ac376a62b96199ec5317b9183ee16bb86a1e4b8f2",
+  "world_sha256": "848745862f7ac35d902e524cd68438fda857d0ed1f7699f90e9edc2bdf732370",
+  "qualified_replay_executable_sha256": "5c67742cf06d46c06724dd81af1fdfd3daa2858d9fcaf219d658a7fe7e271aef",
+  "normal_solver_control": {
+    "records": 130210,
+    "sha256": "a09c74086a93c804d21cc0b55de18e333f2886451068a6928944022045af32f8",
+    "phases": {
+      "3": {
+        "min_q_m": -2.736364444559834e-08,
+        "max_q_m": 4.299523481204708e-09,
+        "max_abs_speed_m_s": 0.21929410314152534,
+        "total_impulse_ns": 0.058532025074598405
+      },
+      "6": {
+        "min_q_m": -0.0400003282626802,
+        "max_q_m": -3.766059472286497e-11,
+        "max_abs_speed_m_s": 1.842941781260282,
+        "total_impulse_ns": 0.04891254512670653
+      },
+      "8": {
+        "min_q_m": -0.039999999973604095,
+        "max_q_m": 3.303504627516467e-07,
+        "max_abs_speed_m_s": 2.2585672505520518,
+        "total_impulse_ns": 0.0
+      }
+    },
+    "finals": {
+      "3": [
+        100000,
+        2.4210844428741134e-12,
+        3.20355703047063e-06
+      ],
+      "6": [
+        65100000,
+        -0.04000000000296402,
+        -4.049765866771671e-06
+      ],
+      "8": [
+        130100000,
+        2.421057668457658e-12,
+        3.20354394849852e-06
+      ]
+    },
+    "landings": [
+      [
+        67,
+        0.058532025074598405,
+        4.299523481204708e-09,
+        0.21929410314152534
+      ]
+    ],
+    "landmarks": {
+      "reach_lower_step": 36381,
+      "return_upper_step": 102874
+    },
+    "max_limit_overrun_m": 3.303504627516467e-07,
+    "exact_reset_ticks": 100
+  },
+  "coupled_result": {
+    "records": 130210,
+    "sha256": "a72f38be5a9026c3b21c001cd1b559f480f4e796947b11b4a6f1a84bf00beb42",
+    "phases": {
+      "3": {
+        "min_q_m": -1.1757455251788703e-07,
+        "max_q_m": 0.0,
+        "max_abs_speed_m_s": 0.002246532083440251,
+        "total_impulse_ns": 0.07299318796481394
+      },
+      "6": {
+        "min_q_m": -0.04,
+        "max_q_m": -4.403065034112242e-08,
+        "max_abs_speed_m_s": 2.2120206416412502,
+        "total_impulse_ns": 0.0
+      },
+      "8": {
+        "min_q_m": -0.039999999965428565,
+        "max_q_m": 0.0,
+        "max_abs_speed_m_s": 2.3010236138194546,
+        "total_impulse_ns": 0.0
+      }
+    },
+    "finals": {
+      "3": [
+        100000,
+        -8.053249721599122e-08,
+        0.002246532083440251
+      ],
+      "6": [
+        65100000,
+        -0.03999999999999996,
+        0.0
+      ],
+      "8": [
+        130100000,
+        0.0,
+        0.0
+      ]
+    },
+    "landings": [
+      [
+        67,
+        0.07299318796481394,
+        0.0,
+        0.0
+      ]
+    ],
+    "landmarks": {
+      "reach_lower_step": 34629,
+      "return_upper_step": 101739
+    },
+    "max_limit_overrun_m": 0,
+    "exact_reset_ticks": 100
+  },
+  "matched_trace_threads": [
+    1,
+    8
+  ],
+  "independent_masses": [
+    {
+      "wrist_scale": 0.25,
+      "parcel_scale": 1.0,
+      "blocked": false,
+      "predicted_impulse_ns": 0.0588731282154033,
+      "observed_impulse_ns": 0.05887322212138535,
+      "expected_slider_m_s": -0.11268717845967077,
+      "observed_slider_m_s": -0.11260278786146574,
+      "expected_wrist_rad_s": -8.48601281152212,
+      "observed_wrist_rad_s": -8.485305643787823,
+      "impulse_error_fraction": 1.5950567753486667e-06,
+      "step": 67
+    },
+    {
+      "wrist_scale": 0.3,
+      "parcel_scale": 1.0,
+      "blocked": true,
+      "predicted_impulse_ns": 0.0600040624083137,
+      "observed_impulse_ns": 0.06000406240831373,
+      "expected_slider_m_s": 0.0,
+      "observed_slider_m_s": 2.073746222247043e-29,
+      "expected_wrist_rad_s": -7.499830732986928,
+      "observed_wrist_rad_s": -7.49983073298693,
+      "impulse_error_fraction": 4.625616083584253e-16,
+      "step": 67
+    },
+    {
+      "wrist_scale": 0.35,
+      "parcel_scale": 1.0,
+      "blocked": true,
+      "predicted_impulse_ns": 0.06099849278244791,
+      "observed_impulse_ns": 0.06099849278244791,
+      "expected_slider_m_s": 0.0,
+      "observed_slider_m_s": 0.0,
+      "expected_wrist_rad_s": -7.45839613406467,
+      "observed_wrist_rad_s": -7.458396134064668,
+      "impulse_error_fraction": 0.0,
+      "step": 67
+    },
+    {
+      "wrist_scale": 1.0,
+      "parcel_scale": 1.0,
+      "blocked": true,
+      "predicted_impulse_ns": 0.07299318796481388,
+      "observed_impulse_ns": 0.07299318796481394,
+      "expected_slider_m_s": 0.0,
+      "observed_slider_m_s": 0.0,
+      "expected_wrist_rad_s": -6.958617168132753,
+      "observed_wrist_rad_s": -6.9586171681327516,
+      "impulse_error_fraction": 7.604976954564142e-16,
+      "step": 67
+    },
+    {
+      "wrist_scale": 10.0,
+      "parcel_scale": 1.0,
+      "blocked": true,
+      "predicted_impulse_ns": 0.15336992495903706,
+      "observed_impulse_ns": 0.15336992495903717,
+      "expected_slider_m_s": 0.0,
+      "observed_slider_m_s": -1.1102230246251864e-16,
+      "expected_wrist_rad_s": -3.6095864600401235,
+      "observed_wrist_rad_s": -3.6095864600401186,
+      "impulse_error_fraction": 7.238857454756409e-16,
+      "step": 67
+    },
+    {
+      "wrist_scale": 10.0,
+      "parcel_scale": 10.0,
+      "blocked": true,
+      "predicted_impulse_ns": 0.36098696254906526,
+      "observed_impulse_ns": 0.3609869625490659,
+      "expected_slider_m_s": 0.0,
+      "observed_slider_m_s": -1.1102230246250473e-16,
+      "expected_wrist_rad_s": -8.49588765604556,
+      "observed_wrist_rad_s": -8.495887656045557,
+      "impulse_error_fraction": 1.8453126674472437e-15,
+      "step": 67
+    },
+    {
+      "wrist_scale": 100.0,
+      "parcel_scale": 10.0,
+      "blocked": true,
+      "predicted_impulse_ns": 1.4439669176407193,
+      "observed_impulse_ns": 1.4439669176407182,
+      "expected_slider_m_s": 0.0,
+      "observed_slider_m_s": 1.7763568394002883e-15,
+      "expected_wrist_rad_s": -3.983471176497004,
+      "observed_wrist_rad_s": -3.9834711764969892,
+      "impulse_error_fraction": 7.688701251127949e-16,
+      "step": 67
+    }
+  ],
+  "timing": {
+    "cpu": "AMD Ryzen 9 9950X3D",
+    "core": 2,
+    "public_dt_ns": 1000,
+    "impact_step": 67,
+    "repeats_per_batch_and_representation": 201,
+    "batches": 5,
+    "binary_sha256": "d24834f1b179d7aa946d915751e33a89befe68639249744723f7948468323000",
+    "ordinary": {
+      "per_batch_p50_p95_p99_ns": [
+        [
+          10310,
+          11870,
+          15240
+        ],
+        [
+          11270,
+          12300,
+          12971
+        ],
+        [
+          8520,
+          11940,
+          12040
+        ],
+        [
+          11320,
+          12070,
+          14550
+        ],
+        [
+          11570,
+          12130,
+          12480
+        ]
+      ],
+      "median_batch_p50_p95_p99_ns": [
+        11270,
+        12070,
+        12971
+      ]
+    },
+    "coupled": {
+      "per_batch_p50_p95_p99_ns": [
+        [
+          11890,
+          14410,
+          15040
+        ],
+        [
+          13440,
+          14870,
+          23050
+        ],
+        [
+          9650,
+          14400,
+          14720
+        ],
+        [
+          13260,
+          14330,
+          15220
+        ],
+        [
+          13740,
+          14440,
+          17230
+        ]
+      ],
+      "median_batch_p50_p95_p99_ns": [
+        13260,
+        14410,
+        15220
+      ]
+    }
+  },
+  "archive_sha256": "4b672326b109d8c59d283bbea8995fc4273e436ace3800b704929eb56552292f",
+  "checked_playback": {
+    "body_poses_and_shapes_checked": 268,
+    "captured_ms": {
+      "incoming": 0.0,
+      "lower": 52.0,
+      "returning": 86.0,
+      "travel": 18.0,
+      "upper": 130.1
+    },
+    "coordinate_tolerance": 1e-12,
+    "frames": 67,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 67,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1
+  },
+  "unchanged_full_carry": {
+    "frames": 451,
+    "seconds": 18,
+    "stream_sha256": "b3eecf6907c78254c9ac7492afd3476ea19c0b033251191dc28d712f26bdee63"
+  },
+  "command_coverage": {
+    "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs": {
+      "lines": {
+        "covered": 3,
+        "total": 3,
+        "miss": []
+      },
+      "regions": {
+        "covered": 12,
+        "total": 12,
+        "miss": []
+      }
+    },
+    "crates/gz-sim-cli/src/bin/local_replay/observation.rs": {
+      "lines": {
+        "covered": 6,
+        "total": 6,
+        "miss": []
+      },
+      "regions": {
+        "covered": 15,
+        "total": 15,
+        "miss": []
+      }
+    },
+    "crates/gz-sim-scene/src/joint_forces.rs": {
+      "lines": {
+        "covered": 5,
+        "total": 5,
+        "miss": []
+      },
+      "regions": {
+        "covered": 9,
+        "total": 9,
+        "miss": []
+      }
+    },
+    "crates/gz-sim-scene/src/local_replay.rs": {
+      "lines": {
+        "covered": 1,
+        "total": 1,
+        "miss": []
+      },
+      "regions": {
+        "covered": 2,
+        "total": 2,
+        "miss": []
+      }
+    }
+  }
+}

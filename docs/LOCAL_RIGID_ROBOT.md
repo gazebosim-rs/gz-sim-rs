@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+The powered finger can brace at the end of its travel, release under a strike from the opposite side, and reverse under a held motor force. Compare the first collision in slow motion or follow the full 40 mm stroke on the same mechanism. [Impact close-ups](measurements/local-manipulation/powered-slider-view.md) · [Full stroke, forces and commands](measurements/local-manipulation/powered-slider-cycle.md)
+
 A separate passive wrist and sliding finger now share a strike on their first physics step. Both reflected strikes can be compared with the hand calculation through 200 ms. [Corrected wrist, timing and native replays](measurements/local-manipulation/reduced-wrist-slider.md)
 
 The gripper's load-path recordings show how a parcel's first strike moves through the sliding finger into the palm and wrist. Three gauges follow the measured impulses through the first millisecond. [Signed measurements, native recordings and reproduction](measurements/local-manipulation/wrist-impact-loads.md)
