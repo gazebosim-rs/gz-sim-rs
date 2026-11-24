@@ -7,8 +7,8 @@ mod early_face;
 use early_face::EarlyFace;
 mod geometry;
 mod returning_pad;
-use returning_pad::CornerHistory;
 pub use returning_pad::PadImpact;
+use returning_pad::{CornerHistory, PadMotion};
 pub(crate) mod sdf;
 use crate::{BodyHandle, Gravity, JointHandle, LinkCenterOfMass, LoadError, Name};
 use bevy_ecs::prelude::*;
@@ -315,6 +315,7 @@ struct SpeedStop {
 }
 #[derive(Resource)]
 struct Policy {
+    pad_rocking_steps: Option<u32>,
     early_face: Option<EarlyFace>,
     touching_solver: Option<(u32, ContactSolverIterations)>,
     speed_stop: Option<SpeedStop>,
@@ -654,6 +655,7 @@ pub(crate) fn install(
         pairs,
         early_face: plan.early_face,
         touching_solver: plan.touching_solver,
+        pad_rocking_steps: plan.pad_rocking_steps,
         calls: plan.calls,
         iterations: plan.iterations,
         last: None,
@@ -750,6 +752,8 @@ fn advance(
                 .clamp(1., f64::from(policy.calls)) as u32
         });
     let mut requests = Vec::new();
+    let pad_rocking_steps = policy.pad_rocking_steps;
+    let mut rocking_requests = 0;
     let mut initial_face = None;
     let mut separated_face = None;
     let mut cold_request = None;
@@ -873,13 +877,23 @@ fn advance(
                     let loaded = reaction.is_some_and(|r| {
                         r.loaded_at_end && DVec3::from(r.impulse).dot(normal) > 0.
                     });
-                    if p.corners.select(
+                    let motion = p.corners.select(
                         loaded,
                         face,
                         (foot, p.foot.shape),
                         (pad, p.pad.shape),
                         time.dt.as_secs_f64(),
-                    ) {
+                        pad_rocking_steps.is_some(),
+                    );
+                    // The applied couple can start a rock before the current
+                    // velocities expose it. Resolve this entire input tick.
+                    let forced = loaded
+                        && pad_rocking_steps.is_some()
+                        && native
+                            .pending_world_wrench(p.foot.body)
+                            .is_some_and(|(_, torque)| torque != [0.; 3]);
+                    if forced || motion != PadMotion::Ordinary {
+                        rocking_requests += usize::from(motion == PadMotion::Rocking && !forced);
                         requests.push(start + j);
                     }
                     continue;
@@ -1269,6 +1283,11 @@ fn advance(
     let selected = !requests.is_empty() || !timing_pairs.is_empty();
     // A simultaneous arrival, an existing native contact or a screw that needs
     // a faster clock keeps the ordinary authored impact budget.
+    let calls = pad_rocking_steps
+        .filter(|_| {
+            rocking_requests > 0 && rocking_requests == requests.len() && timing_pairs.is_empty()
+        })
+        .unwrap_or(policy.calls);
     let (impact_calls, impact_solver) = policy
         .touching_solver
         .filter(|(calls, _)| {
@@ -1277,7 +1296,7 @@ fn advance(
                 && requests.first().copied() == initial_face
                 && native.active_contact_pairs() == 0
         })
-        .unwrap_or((policy.calls, policy.iterations));
+        .unwrap_or((calls, policy.iterations));
     let early_face_schedule = if let (Some(window), Some(arrival)) =
         (policy.early_face, separated_face)
         && requests.len() == 1

@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Correct the timing of the gripper’s returning edge
+
+The ordinary torque tick pushed the parcel 0.04075° ahead in pitch but left it turning 0.9202 rad/s too slowly. Fine stepping during that tick alone made the impact 166 µs early. Tracking the loaded, turning face through its approach cut the original 137 µs error to 22 µs and the maximum pitch error from 0.21125° to 0.03250°. The 200 µs gripper command clock stayed fixed. The corrected peak was 194.82 N against 193.91 N continuously fine, and the integrated normal impulse was within 0.065% on both fingers. [Measurements and step cost](measurements/local-manipulation/pad-approach.md) · [Watch the trajectory and impact in gz-web-rs](measurements/local-manipulation/pad-approach-view.md)
+
+The return timing improved with both directions of shove, with 120 g and 320 g parcels, and with a weaker grip. The largest remaining error in those trials was 132 µs for the shove that tilted the parcel 27.5°. Full-run p95 step cost rose from 15.76 to 94.44 µs, against 2,524.50 µs continuously fine. All 64 changed production lines and 125 regions were covered. Next, test the same policy while the gripper carries an off-center parcel under gravity and friction, and check whether it predicts when the parcel slips or stays held.
+
 ## 2026-11-24 — Catch a returning gripper edge between commands
 
 Three of 2,250 public ticks switched to fine physics as the block rocked back onto the fingers. The measured peak rose from 71.36 N to 193.40 N on the left and from 71.65 N to 193.39 N on the right. The continuously fine run measured 193.91 N on each pad. With the same incoming state, both peak values and the time of the strike matched the fine solver. The 200 µs gripper clock stayed fixed through the strike and through a separate queued-force and pause test. [Measurements, timing and coverage](measurements/local-manipulation/pad-impact-refinement.md) · [Three measured gz-web-rs replays](measurements/local-manipulation/pad-impact-refinement-view.md)

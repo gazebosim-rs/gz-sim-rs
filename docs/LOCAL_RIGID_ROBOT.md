@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+The rocking-parcel replay follows the parcel from the shove through the return strike. The plot shows how the fingers’ contact during that motion changes the time of impact. [Watch in gz-web-rs](measurements/local-manipulation/pad-approach-view.md) · [Timing, impulse and step cost](measurements/local-manipulation/pad-approach.md)
+
 The returning-edge replay shows how three short bursts of fine stepping recover the force spike as the parcel rocks back into the gripper. The three traces compare ordinary, adaptive and continuously fine physics with the same gripper commands. [Replay and force curves](measurements/local-manipulation/pad-impact-refinement-view.md) · [Measured accuracy and cost](measurements/local-manipulation/pad-impact-refinement.md)
 
 The gripper can rock a block onto two loaded corners on each pad and catch the opposite edge as it returns. The tall block shows how the solver keeps the grip steady as unloaded corners leave the collision prediction range. [Watch both in gz-web-rs](measurements/local-manipulation/pad-rocking-view.md) · [Force, torque and impact measurements](measurements/local-manipulation/pad-rocking.md)

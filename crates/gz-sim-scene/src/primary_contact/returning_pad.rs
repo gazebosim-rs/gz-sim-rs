@@ -5,6 +5,13 @@ use super::{BodyId, BodyState, BoxShape, Duration};
 use glam::{DQuat, DVec3};
 use gz_physics_multifidelity::{ContactSubstep, RigidContactPatch};
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum PadMotion {
+    Ordinary,
+    Rocking,
+    Impact,
+}
+
 #[derive(Clone, Copy, Default)]
 pub(super) struct CornerHistory {
     released: u8,
@@ -19,11 +26,16 @@ impl CornerHistory {
         (foot, shape): (BodyState, BoxShape),
         (support, pad): (BodyState, BoxShape),
         dt: f64,
-    ) -> bool {
+        track_rocking: bool,
+    ) -> PadMotion {
         let follow = std::mem::take(&mut self.follow);
         if !loaded {
             self.released = 0;
-            return follow;
+            return if follow {
+                PadMotion::Impact
+            } else {
+                PadMotion::Ordinary
+            };
         }
         let q = DQuat::from_array(foot.orientation);
         let pq = DQuat::from_array(support.orientation);
@@ -35,17 +47,32 @@ impl CornerHistory {
         // Roundoff on an exactly coplanar resting face is not a measured release.
         let tolerance = 32. * f64::EPSILON * (relative.abs() + shape.half + pad.half).max_element();
         let mut released = 0;
+        // A spinning face can have a loaded edge and a lifted edge long before
+        // a return is imminent. Track only corners inside the finite footprint.
+        let turning = track_rocking
+            && (foot_spin - pad_spin).cross(normal).length() * dt > 32. * f64::EPSILON;
+        let mut footprint = 0_u8;
+        let mut lifting = 0_u8;
         let mut imminent = false;
         for i in 0_u8..8 {
             let sign = |bit| if i & (1_u8 << bit) == 0_u8 { -1.0 } else { 1.0 };
             let corner = shape.half * DVec3::new(sign(0), sign(1), sign(2));
             let vertex = relative + q * corner;
             let local = pq.conjugate() * vertex;
+            if turning && (local - face * local.dot(face)).abs().cmple(pad.half).all() {
+                footprint |= 1 << i;
+            }
             let gap = local.dot(face) - pad.half.dot(face.abs());
             let arm = q * (corner - shape.local_com);
             let slip = relative_velocity + foot_spin.cross(arm)
                 - pad_spin.cross(vertex - pq * pad.local_com);
             let closing = -slip.dot(normal);
+            // A corner can still be compressed at this boundary yet lift
+            // during the next tick. Predict its first release with the same
+            // point velocity as the returning-corner test.
+            if turning && gap - closing * dt > tolerance {
+                lifting |= 1 << i;
+            }
             if gap > tolerance {
                 released |= 1 << i;
             }
@@ -60,7 +87,27 @@ impl CornerHistory {
         // the next tick. Keep one follow-through interval, then release.
         self.released = released;
         self.follow = imminent;
-        imminent || follow
+        if imminent || follow {
+            return PadMotion::Impact;
+        }
+        if footprint != 0 {
+            // Compare the four sites of the material face most directly opposing
+            // the pad. Corners on the back of a seated box are always separated.
+            let facing = q.conjugate() * -normal;
+            let axis = facing.abs().max_position();
+            let positive = [0xaa_u8, 0xcc, 0xf0][axis];
+            let sites = footprint
+                & if facing[axis] > 0. {
+                    positive
+                } else {
+                    !positive
+                };
+            let split = |separated: u8| sites & separated != 0 && sites & !separated != 0;
+            if split(released) || split(lifting) {
+                return PadMotion::Rocking;
+            }
+        }
+        PadMotion::Ordinary
     }
 }
 
@@ -155,7 +202,8 @@ mod tests {
                 velocity: [3., 0., 0.],
                 ..pad
             };
-            history.select(loaded, DVec3::X, (foot, shape), (pad, shape), 0.1)
+            history.select(loaded, DVec3::X, (foot, shape), (pad, shape), 0.1, false)
+                == PadMotion::Impact
         };
         assert!(!step(true, 1.2, 2.));
         assert!(!step(true, 1.05, 2.)); // the infinite plane is hit outside the pad
@@ -164,6 +212,108 @@ mod tests {
         assert!(!step(false, 1., 0.));
         assert!(!step(true, 1. + f64::EPSILON, 0.));
         assert!(!step(true, 1., 0.)); // roundoff did not rearm the corner
+    }
+
+    #[test]
+    fn rocking_needs_a_turning_material_face_with_both_edges_over_the_pad() {
+        let shape = BoxShape {
+            half: DVec3::splat(0.5),
+            local_com: DVec3::ZERO,
+        };
+        let pad = BodyState {
+            position: [0.; 3],
+            velocity: [0.; 3],
+            orientation: DQuat::IDENTITY.to_array(),
+            angular_velocity: [0.; 3],
+        };
+        for face in [
+            DVec3::X,
+            DVec3::NEG_X,
+            DVec3::Y,
+            DVec3::NEG_Y,
+            DVec3::Z,
+            DVec3::NEG_Z,
+        ] {
+            let hinge = face.cross(DVec3::new(1., 1., 1.)).normalize();
+            let tilt = DQuat::from_axis_angle(hinge, 0.15);
+            let foot = BodyState {
+                position: (0.99 * face).to_array(),
+                orientation: tilt.to_array(),
+                angular_velocity: hinge.to_array(),
+                ..pad
+            };
+            let classify = |foot, support, half| {
+                CornerHistory::default().select(
+                    true,
+                    face,
+                    (foot, shape),
+                    (support, BoxShape { half, ..shape }),
+                    0.0002,
+                    true,
+                )
+            };
+            // The tilt lifts corners of the facing parcel face on one side only.
+            let wide = DVec3::splat(2.) - 1.5 * face.abs();
+            assert!(classify(foot, pad, wide) == PadMotion::Rocking);
+            // Rotating both together, or spinning about the pad normal, cannot rock the face.
+            assert!(
+                classify(
+                    foot,
+                    BodyState {
+                        angular_velocity: foot.angular_velocity,
+                        ..pad
+                    },
+                    wide
+                ) == PadMotion::Ordinary
+            );
+            assert!(
+                classify(
+                    BodyState {
+                        angular_velocity: face.to_array(),
+                        ..foot
+                    },
+                    pad,
+                    wide
+                ) == PadMotion::Ordinary
+            );
+            // A narrow support between the parcel's edges has neither site in its footprint.
+            let narrow = DVec3::splat(0.01) + 0.49 * face.abs();
+            assert!(classify(foot, pad, narrow) == PadMotion::Ordinary);
+        }
+    }
+
+    #[test]
+    fn a_compressed_edge_can_lift_within_the_next_tick() {
+        let pad = BodyState {
+            position: [0.; 3],
+            velocity: [0.; 3],
+            orientation: DQuat::IDENTITY.to_array(),
+            angular_velocity: [0.; 3],
+        };
+        let shape = BoxShape {
+            half: DVec3::splat(0.5),
+            local_com: DVec3::ZERO,
+        };
+        let classify = |omega, vx| {
+            let foot = BodyState {
+                position: [0.999, 0., 0.],
+                angular_velocity: [0., omega, 0.],
+                velocity: [vx, 0., 0.],
+                ..pad
+            };
+            CornerHistory::default().select(
+                true,
+                DVec3::X,
+                (foot, shape),
+                (pad, shape),
+                0.001,
+                true,
+            )
+        };
+        assert!(classify(1., 0.) == PadMotion::Ordinary);
+        assert!(classify(3., 0.) == PadMotion::Rocking);
+        assert!(classify(-3., 0.) == PadMotion::Rocking);
+        assert!(classify(3., 4.) == PadMotion::Ordinary); // both edges exit together
     }
 
     #[test]

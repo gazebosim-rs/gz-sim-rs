@@ -71,6 +71,7 @@ pub(super) struct NamedPair {
     pub projection: Option<Projection>,
 }
 pub(crate) struct Plan {
+    pub(super) pad_rocking_steps: Option<u32>,
     pub(super) speed_stop_joint: Option<String>,
     pub(super) early_face: Option<super::EarlyFace>,
     pub(super) touching_solver: Option<(u32, ContactSolverIterations)>,
@@ -192,6 +193,7 @@ pub(crate) fn parse(
     let mut touching = None;
     let mut speed_stop_joint = None;
     let mut calls = None;
+    let mut pad_rocking_steps = None;
     let mut iters = None;
     let mut pgs = None;
     let mut relaxation = None;
@@ -250,6 +252,13 @@ pub(crate) fn parse(
                         .and_then(|s| s.parse::<u32>().ok())
                         .filter(|n| *n > 0)
                         .ok_or_else(|| err("native_steps must be a positive integer"))?,
+                );
+            }
+            "pad_rocking_steps" if pad_rocking_steps.is_none() => {
+                pad_rocking_steps = Some(
+                    field(n)
+                        .and_then(|s| s.parse::<u32>().ok())
+                        .ok_or_else(|| err("pad_rocking_steps requires an integer"))?,
                 );
             }
             "solver_iterations" if iters.is_none() => {
@@ -934,6 +943,14 @@ pub(crate) fn parse(
             ));
         }
     };
+    let calls = calls.unwrap_or(8);
+    if let Some(steps) = pad_rocking_steps
+        && (!(2..calls).contains(&steps) || !pairs.iter().any(|p| p.returning_pad))
+    {
+        return Err(err(
+            "pad_rocking_steps requires a returning_pad_face and 2 <= pad_rocking_steps < native_steps",
+        ));
+    }
     if pairs.iter().any(|p| p.returning_pad)
         && (touching.is_some() || early_face.is_some() || speed_stop_joint.is_some())
     {
@@ -987,7 +1004,8 @@ pub(crate) fn parse(
         touching_solver: touching,
         speed_stop_joint,
         world: world.name.clone(),
-        calls: calls.unwrap_or(8),
+        calls,
+        pad_rocking_steps,
         iterations: ContactSolverIterations {
             temporal: iters.unwrap_or(8),
             pgs,

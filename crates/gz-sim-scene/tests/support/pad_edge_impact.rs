@@ -7,7 +7,7 @@ use super::{
 };
 use bevy_ecs::prelude::{Res, ResMut, Resource};
 use glam::{DQuat, DVec3};
-use gz_physics::{BodyState, PhysicsBackend};
+use gz_physics::{BodyState, DynamicBackend, PhysicsBackend};
 use gz_physics_multifidelity::MultiFidelityBackend;
 use gz_sim_core::{EntityId, Phase, UpdateInfo};
 use std::time::{Duration, Instant};
@@ -15,6 +15,7 @@ use std::time::{Duration, Instant};
 const WORLD: &str = include_str!("../../../../examples/worlds/local_rocking_pad_grasp.sdf");
 const REFINED: &str =
     include_str!("../../../../examples/worlds/local_refined_rocking_pad_grasp.sdf");
+const ROCKING: &str = include_str!("../../../../examples/worlds/local_rocking_pad_approach.sdf");
 const CLOCK: Duration = Duration::from_micros(200);
 const PRELOAD: u64 = 1000;
 const POST_LAUNCH: u64 = 1250;
@@ -39,6 +40,14 @@ struct FineTick {
 /// Replace just the native stepping system. Both fingers, the one-shot wrench
 /// and all acquisition systems still execute once per 200 µs Bevy tick.
 fn install_reference(rig: &mut Rig, measure_load: bool) {
+    install_schedule(rig, measure_load, |_| 200);
+}
+
+fn install_schedule(
+    rig: &mut Rig,
+    measure_load: bool,
+    substeps: impl Fn(Duration) -> u32 + Send + Sync + 'static,
+) {
     let pads = rig.pads;
     let parcel = rig.parcel;
     assert_eq!(
@@ -56,6 +65,12 @@ fn install_reference(rig: &mut Rig, measure_load: bool) {
             let native = backend.downcast_mut::<MultiFidelityBackend>().unwrap();
             *sample = FineTick::default();
             assert_eq!(time.dt, CLOCK);
+            let count = substeps(time.start_time);
+            if count == 1 {
+                native.step(time.dt).unwrap();
+                sample.calls = 1;
+                return;
+            }
             // No observer during preload or outside the interval under test.
             if measure_load
                 && (Duration::from_micros(200_000 + LANDING_START_US)
@@ -63,8 +78,8 @@ fn install_reference(rig: &mut Rig, measure_load: bool) {
                     .contains(&time.start_time)
             {
                 native
-                    .observe_contact_interval(time.dt, 200, 4, |sub| {
-                        assert_eq!(sub.duration, Duration::from_micros(1));
+                    .observe_contact_interval(time.dt, count, 4, |sub| {
+                        assert_eq!(sub.duration * count, CLOCK);
                         let impulses = sum_pad_impulses(parcel, pads, sub.contact_patches());
                         for (load, patch) in sample.loads.iter_mut().zip(impulses) {
                             load.impulse += patch.normal;
@@ -79,10 +94,10 @@ fn install_reference(rig: &mut Rig, measure_load: bool) {
                         sample.calls += 1;
                     })
                     .unwrap();
-                assert_eq!(sample.calls, 200);
+                assert_eq!(sample.calls, count);
             } else {
-                native.step_contact_interval(time.dt, 200, 4).unwrap();
-                sample.calls = 200;
+                native.step_contact_interval(time.dt, count, 4).unwrap();
+                sample.calls = count;
             }
         },
     );
@@ -94,6 +109,7 @@ enum Integration {
     Continuous,
     Matched(u64),
     Adaptive,
+    Rocking,
 }
 
 struct Trial {
@@ -103,6 +119,7 @@ struct Trial {
     refined_at: Vec<u64>,
     incoming: Vec<BodyState>,
     calls: u64,
+    budgets: std::collections::BTreeMap<u32, usize>,
 }
 
 fn incoming(rig: &Rig) -> Vec<BodyState> {
@@ -162,24 +179,33 @@ fn adaptive_loads(rig: &Rig) -> Option<([Load; 2], u32)> {
     Some((loads, receipt.interval.native_steps))
 }
 
-fn preloaded(mode: Integration, measure_load: bool) -> Rig {
-    let world = if matches!(mode, Integration::Adaptive) {
-        REFINED
-    } else {
-        WORLD
+fn initialized(mode: Integration, measure_load: bool) -> Rig {
+    let world = match mode {
+        Integration::Adaptive => REFINED,
+        Integration::Rocking => ROCKING,
+        _ => WORLD,
     };
     let mut rig = Rig::new(world, 200, 0.);
     rig.drive([3.; 2]);
     if matches!(mode, Integration::Continuous) {
         install_reference(&mut rig, measure_load);
     }
-    rig.sim.step_exact(PRELOAD).unwrap();
+    rig
+}
+
+fn pulse(rig: &mut Rig) {
     assert_eq!(rig.sim.elapsed(), Duration::from_millis(200));
     assert!(gz_sim_scene::primary_contact::last_refinement(&rig.sim).is_none());
     let body = named(&rig.sim, "default::parcel::body");
     let id = rig.sim.world().get::<EntityId>(body).unwrap().get();
     // Submitted just once; the one public pulse lasts 200 µs in every run.
     gz_sim_scene::queue_link_world_wrench(&mut rig.sim, id, [0.; 3], [0., 6., 0.]).unwrap();
+}
+
+fn preloaded(mode: Integration, measure_load: bool) -> Rig {
+    let mut rig = initialized(mode, measure_load);
+    rig.sim.step_exact(PRELOAD).unwrap();
+    pulse(&mut rig);
     rig
 }
 
@@ -191,6 +217,7 @@ fn run(mode: Integration) -> Trial {
         refined_at: Vec::new(),
         incoming: Vec::new(),
         calls: 0,
+        budgets: Default::default(),
     };
     for tick in 0..POST_LAUNCH {
         if matches!(mode,Integration::Matched(start) if start==tick) {
@@ -215,6 +242,7 @@ fn run(mode: Integration) -> Trial {
             (ordinary_loads(&rig), 1)
         };
         trial.calls += u64::from(calls);
+        *trial.budgets.entry(calls).or_default() += 1;
         let t = (tick + 1) * 200;
         if t > LANDING_START_US && t <= LANDING_END_US {
             for (total, load) in trial.loads.iter_mut().zip(loads) {
@@ -296,37 +324,64 @@ fn refined_returning_edge_resolves_peak_at_the_original_actuator_clock() {
 #[test]
 #[ignore = "run an optimized build pinned to one CPU for step timing"]
 fn compare_edge_refinement_step_cost() {
-    for batch in 0..3 {
+    for batch in 0..4 {
         let mut modes = [
             ("coarse", Integration::Coarse),
-            ("adaptive", Integration::Adaptive),
+            ("impact", Integration::Adaptive),
+            ("rocking", Integration::Rocking),
             ("fine", Integration::Continuous),
         ];
         modes.rotate_left(batch);
         for (name, mode) in modes {
-            let mut rig = preloaded(mode, false);
-            let mut times = Vec::new();
-            let mut selected = Vec::new();
-            for _ in 0..POST_LAUNCH {
+            let mut rig = initialized(mode, false);
+            let mut total = Vec::new();
+            let mut motion = Vec::new();
+            let mut by_calls = std::collections::BTreeMap::<u32, Vec<u128>>::new();
+            for tick in 0..(PRELOAD + POST_LAUNCH) {
+                if tick == PRELOAD {
+                    pulse(&mut rig);
+                }
                 let start = Instant::now();
                 rig.sim.step_exact(1).unwrap();
                 let ns = start.elapsed().as_nanos();
-                times.push(ns);
-                if gz_sim_scene::primary_contact::last_refinement(&rig.sim)
-                    .is_some_and(|r| r.sim_time == rig.sim.elapsed())
-                {
-                    selected.push(ns);
+                total.push(ns);
+                if tick >= PRELOAD {
+                    motion.push(ns);
                 }
+                let calls = gz_sim_scene::primary_contact::last_refinement(&rig.sim)
+                    .filter(|r| r.sim_time == rig.sim.elapsed())
+                    .map_or_else(
+                        || {
+                            rig.sim
+                                .world()
+                                .get_resource::<FineTick>()
+                                .map_or(1, |s| s.calls)
+                        },
+                        |r| r.interval.native_steps,
+                    );
+                by_calls.entry(calls).or_default().push(ns);
             }
-            times.sort_unstable();
-            println!(
-                "edge_cost batch={batch} mode={name} p50_ns={} p95_ns={} p99_ns={} max_ns={} sum_ns={} selected_ns={selected:?}",
-                times[624],
-                times[1187],
-                times[1237],
-                times[1249],
-                times.iter().sum::<u128>()
-            );
+            for (label, mut times) in [("full".to_owned(), total), ("motion".to_owned(), motion)]
+                .into_iter()
+                .chain(
+                    by_calls
+                        .into_iter()
+                        .map(|(count, times)| (format!("{count}-solve"), times)),
+                )
+            {
+                times.sort_unstable();
+                let n = times.len();
+                println!(
+                    "rock_cost batch={batch} mode={name} section={label} count={n} p50_ns={} p95_ns={} max_ns={} sum_ns={}",
+                    times[(n - 1) / 2],
+                    times[(n * 95).div_ceil(100) - 1],
+                    times[n - 1],
+                    times.iter().sum::<u128>()
+                );
+            }
         }
     }
 }
+
+#[path = "pad_approach.rs"]
+mod approach;

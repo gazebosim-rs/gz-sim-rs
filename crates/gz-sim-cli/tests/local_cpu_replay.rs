@@ -1332,6 +1332,13 @@ fn held_joint_force_survives_pause_adds_to_one_tick_effort_and_clears_on_reset()
     assert!(!run(&wrong, &journal, &[]).status.success());
 }
 
+const FREE_PROBE: &str = r#"<model name="probe"><link name="body">
+      <pose>0 2 0 0 0 0</pose>
+      <inertial><mass>1</mass><inertia><ixx>0.00004</ixx><iyy>0.00004</iyy><izz>0.00004</izz></inertia></inertial>
+      <collision name="ball"><geometry><sphere><radius>0.01</radius></sphere></geometry></collision>
+      <visual name="ball"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>1 1 1 1</diffuse></material></visual>
+      </link></model>"#;
+
 #[test]
 fn returning_pad_peak_and_a_one_tick_load_share_the_public_clock() {
     let scratch = tempfile::tempdir().unwrap();
@@ -1339,16 +1346,10 @@ fn returning_pad_peak_and_a_one_tick_load_share_the_public_clock() {
     let xml = include_str!("../../../examples/worlds/local_refined_rocking_pad_grasp.sdf");
     // A free 1 kg body in a separate island measures exactly how long a queued
     // force acted, independently of any contact measurement.
-    let probe = r#"<model name="probe"><link name="body">
-      <pose>0 2 0 0 0 0</pose>
-      <inertial><mass>1</mass><inertia><ixx>0.00004</ixx><iyy>0.00004</iyy><izz>0.00004</izz></inertia></inertial>
-      <collision name="ball"><geometry><sphere><radius>0.01</radius></sphere></geometry></collision>
-      <visual name="ball"><geometry><sphere><radius>0.01</radius></sphere></geometry><material><diffuse>1 1 1 1</diffuse></material></visual>
-      </link></model>"#;
     let xml = file(
         dir,
         "grip.sdf",
-        &xml.replace("</world>", &format!("{probe}</world>")),
+        &xml.replace("</world>", &format!("{FREE_PROBE}</world>")),
     );
     let input = include_str!("../../../examples/replay/refined_rocking_pad_grasp.json");
     let rows = success(run(&xml, &file(dir, "initial.json", input), &[]));
@@ -1426,4 +1427,65 @@ fn returning_pad_peak_and_a_one_tick_load_share_the_public_clock() {
     assert_eq!(coast.len(), 3);
     // F Δt / m = 0.020 m/s, so the next two 200 µs ticks cover 8 µm.
     assert!((coast[2] - coast[0] - 8e-6).abs() < 1e-12);
+}
+
+#[test]
+fn rocking_refinement_follows_the_loaded_parcel_across_pause_and_reset() {
+    let scratch = tempfile::tempdir().unwrap();
+    let world = file(
+        scratch.path(),
+        "grip.sdf",
+        &include_str!("../../../examples/worlds/local_rocking_pad_approach.sdf")
+            .replace("</world>", &format!("{FREE_PROBE}</world>")),
+    );
+    let input: Value = serde_json::from_str(include_str!(
+        "../../../examples/replay/refined_rocking_pad_grasp.json"
+    ))
+    .unwrap();
+    let original = input["commands"].as_array().unwrap();
+    let mut commands = original[..3].to_vec();
+    commands.extend([
+        json!({"op":"wrench","link":"default::probe::body","force":[0,0,0],"torque":[0,0.01,0]}),
+        json!({"op":"paused_tick"}),
+        json!({"op":"step","count":1}),
+    ]);
+    // Cancel and replay a moving, loaded contact from a fresh epoch.
+    for _ in 0..2 {
+        commands.push(json!({"op":"reset"}));
+        commands.extend_from_slice(&original[..4]);
+        commands.push(json!({"op":"paused_tick"}));
+        commands.push(json!({"op":"step","count":8}));
+    }
+    let journal = file(
+        scratch.path(),
+        "commands.json",
+        &json!({"seed": "rocking-restart", "commands": commands}).to_string(),
+    );
+    let rows = success(run(&world, &journal, &[]));
+    let unrelated = record(&rows, 6, 1001);
+    assert!(unrelated["refinement"].is_null());
+    assert_eq!(unrelated["pending_wrenches"], 0);
+    for first in 8..=13 {
+        let epoch = |command| rows.iter().filter(move |row| row["command"] == command);
+        let left: Vec<_> = epoch(first).collect();
+        let right: Vec<_> = epoch(first + 7).collect();
+        assert!(!left.is_empty());
+        assert_eq!(left.len(), right.len());
+        for (a, b) in left.into_iter().zip(right) {
+            shared(a, b, STATE);
+            shared(a, b, &["step", "time_ns", "refinement", "pending_wrenches"]);
+        }
+    }
+    let paused = record(&rows, 12, 1000);
+    assert_eq!(paused["pending_wrenches"], 1);
+    assert!(paused["refinement"].is_null());
+    shared(paused, record(&rows, 11, 1000), STATE);
+    let launched = record(&rows, 13, 1001);
+    assert_eq!(launched["pending_wrenches"], 0);
+    assert!(launched["refinement"]["native_steps"].as_u64().unwrap() > 1);
+    // The parcel is already turning on the first tick after the pulse,
+    // even while both edges of the compliant pad are still compressed.
+    for step in 1002..=1008 {
+        assert_eq!(record(&rows, 13, step)["refinement"]["native_steps"], 8);
+    }
 }

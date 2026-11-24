@@ -1141,3 +1141,53 @@ fn returning_pad_requires_the_resident_slider_and_rebinds_after_reset() {
     );
     assert_eq!(selected.pad_impacts.len(), 2);
 }
+
+#[test]
+fn rocking_grid_requires_an_enrolled_face_and_a_valid_intermediate_budget() {
+    let sdf = include_str!("../../../examples/worlds/local_rocking_pad_approach.sdf");
+    let field = "<pad_rocking_steps>8</pad_rocking_steps>";
+    for xml in [
+        sdf.replace(field, "<pad_rocking_steps>x</pad_rocking_steps>"),
+        sdf.replace(field, "<pad_rocking_steps>1</pad_rocking_steps>"),
+        sdf.replace(field, "<pad_rocking_steps>200</pad_rocking_steps>"),
+        sdf.replace(field, &field.repeat(2)),
+        sdf.replace("returning_pad_face", "incoming_face"),
+    ] {
+        assert!(
+            load_world_with_sdf_step(
+                &xml,
+                "invalid.sdf",
+                "default",
+                &NoResources,
+                PhysicsEngine::MultiFidelity
+            )
+            .is_err()
+        );
+    }
+    // Seven uneven native slices must still consume the exact 200 µs public clock.
+    let mut sim = load(&sdf.replace(field, "<pad_rocking_steps>7</pad_rocking_steps>"));
+    for name in ["gripper::left_slide", "gripper::right_slide"] {
+        let jaw = id(&sim, name);
+        gz_sim_scene::set_joint_force(&mut sim, jaw, 3.).unwrap();
+    }
+    sim.step_exact(1000).unwrap();
+    let parcel = id(&sim, "parcel::body");
+    queue_link_world_wrench(&mut sim, parcel, [0.; 3], [0., 6., 0.]).unwrap();
+    let forced = first(&mut sim);
+    assert_eq!(forced.interval.native_steps, 200);
+    let mut saw_rocking = false;
+    for _ in 0..5 {
+        sim.step_exact(1).unwrap();
+        if let Some(r) = last_refinement(&sim)
+            && r.sim_time == sim.elapsed()
+            && r.interval.native_steps == 7
+        {
+            assert_eq!(
+                r.sim_time - r.start_time,
+                std::time::Duration::from_micros(200)
+            );
+            saw_rocking = true;
+        }
+    }
+    assert!(saw_rocking);
+}
