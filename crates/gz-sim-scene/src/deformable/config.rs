@@ -484,6 +484,7 @@ fn parse(
             "filename",
             "worker_threads",
             "rigid_exchanges",
+            "landing_step_ns",
             "worker_processes",
             "worker_transport",
             "worker_warm_budget_ms",
@@ -904,6 +905,9 @@ fn parse(
         );
     }
     let exchanges = exchange::admit(root, &initial, &surfaces, dt)?;
+    let landing_refinement =
+        super::landing_refinement::Policy::admit(root, &initial, &surfaces, dt, exchanges)?;
+
     let plane_meters = if observed_planes.is_empty() {
         Vec::new()
     } else {
@@ -966,6 +970,7 @@ fn parse(
         #[cfg(feature = "distributed-physics")]
         remote_material: false,
         exchanges,
+        landing_refinement,
         plane_meters,
         pending_pad_impulses: BTreeMap::new(),
         visuals,

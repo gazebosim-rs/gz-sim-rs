@@ -110,6 +110,18 @@ enum Study {
     },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
+    /// Compare finite-table impact refinement in the ordinary running gripper.
+    SheetImpactClock {
+        output: PathBuf,
+        #[arg(long, value_enum, default_value = "drop-late")]
+        mode: sheet_setdown::Mode,
+        #[arg(long, value_enum, default_value = "adaptive")]
+        clock: sheet_setdown::impact_clock::Clock,
+        #[arg(long, default_value_t = 1000)]
+        landing_step_ns: u64,
+        #[arg(long)]
+        verify_reset: bool,
+    },
     /// Replay a dropped folded sheet from its exact incoming state on several contact clocks.
     SheetRebound {
         output: PathBuf,
@@ -333,6 +345,15 @@ fn main() -> Result<()> {
             material_incline::run(out, substeps, finite_board)
         }),
         Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
+        Study::SheetImpactClock {
+            output,
+            mode,
+            clock,
+            landing_step_ns,
+            verify_reset,
+        } => write_new(&output, |out| {
+            sheet_setdown::impact_clock::run(out, mode, clock, landing_step_ns, verify_reset)
+        }),
         Study::SheetRebound { output, incoming } => {
             write_new(&output, |out| sheet_setdown::rebound::run(out, incoming))
         }

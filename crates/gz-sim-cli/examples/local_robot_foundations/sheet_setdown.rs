@@ -89,6 +89,20 @@ fn episode_observing(
     frames: &mut Option<Vec<arm_sheet::Frame>>,
     mut after_stop: impl FnMut(&Recording, u64) -> Result<()>,
 ) -> Result<Vec<Reading>> {
+    episode_native(r, mode, frames, |rec, _, t| {
+        if let Some(t) = t {
+            after_stop(rec, t)?;
+        }
+        Ok(())
+    })
+}
+
+fn episode_native(
+    r: &mut Recording,
+    mode: Mode,
+    frames: &mut Option<Vec<arm_sheet::Frame>>,
+    mut committed: impl FnMut(&mut Recording, usize, Option<u64>) -> Result<()>,
+) -> Result<Vec<Reading>> {
     let native_per_command = usize::try_from(1_000_000 / r.sim.step_duration().as_nanos())?;
     let controller = Controller::with_jaw_damping(&r.sim, 1.5)?;
     let mut guard = SupportedSetdown::new(WEIGHT).unwrap();
@@ -158,13 +172,13 @@ fn episode_observing(
             pad_free += usize::from(no_pad);
             unsupported += usize::from(no_pad && t.linear[2].abs() < 1e-15);
             peak = peak.max(-t.linear[2]);
-            if let Some(start) = drop_start
-                && tick >= start + DROP_DURATION_MS
-            {
-                let elapsed = (tick - start - DROP_DURATION_MS) * 1_000_000
-                    + substep * (1_000_000 / native_per_command);
-                after_stop(r, elapsed as u64)?;
-            }
+            let since_stop = drop_start
+                .filter(|start| tick >= start + DROP_DURATION_MS)
+                .map(|start| {
+                    ((tick - start - DROP_DURATION_MS) * 1_000_000
+                        + substep * (1_000_000 / native_per_command)) as u64
+                });
+            committed(r, tick, since_stop)?;
         }
         let cloth = arm_sheet::cloth(&r.sim)?;
         use sha2::{Digest, Sha256};
@@ -396,6 +410,9 @@ fn world(exchanges: usize, deck: bool, public: bool) -> Result<String> {
     }
     Ok(xml)
 }
+
+#[path = "sheet_setdown/impact_clock.rs"]
+pub(super) mod impact_clock;
 
 #[path = "sheet_setdown/rebound.rs"]
 pub(super) mod rebound;
