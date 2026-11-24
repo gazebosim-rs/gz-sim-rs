@@ -64,6 +64,11 @@ fn individual_static_and_sliding_points_reproduce_both_weight_and_signed_frictio
             step_coupled_damped_pads(&mut [&mut unobserved], dt, &boundary, &[None, None], &[])
                 .unwrap();
             assert_eq!(material.particles(), unobserved.particles());
+            #[cfg(feature = "one-way-checkpoint")]
+            assert_eq!(
+                material.one_way_state().unwrap(),
+                unobserved.one_way_state().unwrap()
+            );
             assert_eq!(
                 material.last_boundary_impulses(),
                 unobserved.last_boundary_impulses()
@@ -91,4 +96,62 @@ fn individual_static_and_sliding_points_reproduce_both_weight_and_signed_frictio
         probe.step(&mut material, dt, &[], &[], &[]).unwrap();
         assert!(probe.readings().unwrap().is_empty());
     }
+}
+
+#[test]
+fn a_mismatched_probe_group_or_invalid_path_cannot_replace_the_last_physical_reading() {
+    let mut material = SoftBody::new(
+        vec![Particle {
+            position: [0., 0., 0.01],
+            velocity: [0.; 3],
+            inverse_mass: 1.,
+        }],
+        vec![],
+        SolverConfig {
+            gravity: [0., 0., -10.],
+            particle_radius: 0.01,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let floor = Boundary::Plane {
+        point: [0.; 3],
+        normal: [0., 0., 1.],
+        velocity: [0.; 3],
+    };
+    let mut probe = PlaneImpulseProbe::default();
+    let h = Duration::from_millis(2);
+    probe
+        .step_with_boundary_paths(
+            &mut material,
+            h,
+            &[floor],
+            &[],
+            gz_physics_xpbd::DEFAULT_PATH_TOLERANCE,
+        )
+        .unwrap();
+    let last = probe.readings().unwrap().to_vec();
+    assert_eq!(last.len(), 1);
+    assert!(
+        PlaneImpulseProbe::step_group(&mut [], &mut [Some(&mut probe)], h, &[floor], &[None], &[])
+            .is_err()
+    );
+    assert_eq!(probe.readings().unwrap(), last);
+    let invalid = Boundary::Plane {
+        normal: [0.; 3],
+        point: [0.; 3],
+        velocity: [0.; 3],
+    };
+    assert!(
+        probe
+            .step_with_boundary_paths(
+                &mut material,
+                h,
+                &[invalid],
+                &[],
+                gz_physics_xpbd::DEFAULT_PATH_TOLERANCE
+            )
+            .is_err()
+    );
+    assert_eq!(probe.readings().unwrap(), last);
 }

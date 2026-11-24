@@ -10,6 +10,11 @@ use gz_physics_xpbd::OneWayState;
 
 impl Deformables {
     pub(crate) fn managed_recipe(&self) -> Result<MaterialRecipe, ArticulationError> {
+        if !self.plane_meters.is_empty() {
+            return Err(ArticulationError::Invalid(
+                "per-particle plane impulses require local material ownership",
+            ));
+        }
         if self.automatic_impact.is_some() || !self.impact_barriers.is_empty() {
             return Err(ArticulationError::Invalid(
                 "curve material workers require one-way boundaries",

@@ -3,6 +3,7 @@
 use super::*;
 use gz_physics_xpbd::{PadSample, Particle, SolverConfig};
 use roxmltree::Node;
+use std::collections::BTreeSet;
 use std::str::FromStr;
 
 pub(crate) fn is_plugin(plugin: &sdformat::Plugin) -> bool {
@@ -86,6 +87,7 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
         "radius",
         "self_contact",
         "pad_loads",
+        "plane_impulses",
         "friction",
         "static_plane_friction",
         "stretch",
@@ -529,6 +531,7 @@ fn parse(
     let mut visual_ids = std::collections::BTreeSet::new();
     let mut impact_barriers = BTreeMap::new();
     let mut automatic_impact = None;
+    let mut observed_planes = BTreeSet::new();
     let mut initial = BTreeMap::new();
     let mut rigid_links = std::collections::BTreeSet::new();
     let native_capsules = root
@@ -565,6 +568,14 @@ fn parse(
                 }
                 let body =
                     soft_body(node, world.gravity, dt).map_err(|e| format!("{name}: {e}"))?;
+                if node
+                    .attribute("plane_impulses")
+                    .unwrap_or("false")
+                    .parse::<bool>()
+                    .map_err(|_| "plane_impulses must be true or false")?
+                {
+                    observed_planes.insert(name.to_owned());
+                }
                 initial.insert(name.to_string(), body);
             }
             "particle_visual" => {
@@ -893,12 +904,24 @@ fn parse(
         );
     }
     let exchanges = exchange::admit(root, &initial, &surfaces, dt)?;
+    let plane_meters = if observed_planes.is_empty() {
+        Vec::new()
+    } else {
+        if !surfaces.iter().any(|s| matches!(s, Surface::Plane { .. })) {
+            return Err("plane_impulses requires an enrolled plane boundary".into());
+        }
+        initial
+            .keys()
+            .map(|name| observed_planes.contains(name).then(PlaneMeter::default))
+            .collect()
+    };
     let samples = initial
         .iter()
         .map(|(name, body)| {
             (
                 name.clone(),
                 DeformableSample {
+                    plane: observed_planes.contains(name).then(PlaneReading::default),
                     movable_mass_kg: body
                         .particles()
                         .iter()
@@ -943,6 +966,7 @@ fn parse(
         #[cfg(feature = "distributed-physics")]
         remote_material: false,
         exchanges,
+        plane_meters,
         pending_pad_impulses: BTreeMap::new(),
         visuals,
         automatic_impact,

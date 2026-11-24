@@ -13,6 +13,9 @@ pub(super) mod exchange;
 mod force;
 pub use force::{MaterialForceError, set_material_force};
 mod particle_visual;
+mod plane_readout;
+pub use plane_readout::PlaneImpulseOverflow;
+use plane_readout::{PlaneMeter, PlaneReading};
 mod resolution;
 pub use resolution::{MaterialResolutionError, set_material_resolution};
 #[cfg(feature = "distributed-physics")]
@@ -220,6 +223,8 @@ pub(crate) struct Deformables {
     #[cfg(feature = "distributed-physics")]
     remote_material: bool,
     exchanges: u32,
+    // Aligned with the lexical order of current; empty for an unobserved world.
+    plane_meters: Vec<Option<PlaneMeter>>,
     pending_pad_impulses: BTreeMap<BodyId, (DVec3, DVec3)>,
     visuals: Vec<particle_visual::Binding>,
     automatic_impact: Option<articulated_impact::ScheduledImpact>,
@@ -269,6 +274,7 @@ pub struct DeformableSample {
     capsule_friction: Vec<gz_physics_xpbd::CapsuleFrictionLoad>,
     capsule_samples: Vec<gz_physics_xpbd::CapsuleContactSample>,
     pad_loads: Vec<gz_physics_xpbd::ParticlePadImpulse>,
+    plane: Option<PlaneReading>,
     self_loads: Vec<gz_physics_xpbd::SelfContactLoad>,
     self_particle_impulses: Vec<gz_physics_xpbd::SelfContactParticleImpulse>,
     applied_forcing: Vec<CapsuleForcing>,
@@ -610,7 +616,7 @@ fn advance(
 
 impl Deformables {
     fn publish(&mut self, time: Duration, epoch: u64) {
-        for (name, body) in &self.current {
+        for (index, (name, body)) in self.current.iter().enumerate() {
             let sample = self.samples.get_mut(name).expect("registered soft body");
             sample.exchange_shell.clear();
             sample.exchanges = u32::from(!time.is_zero());
@@ -689,12 +695,30 @@ impl Deformables {
                     sample.reactions[boundary] = BoundaryImpulse { boundary, ..*value };
                 }
             }
+            if let Some(Some(meter)) = self.plane_meters.get(index) {
+                meter.total.publish(
+                    sample.plane.as_mut().expect("registered plane meter"),
+                    time.is_zero(),
+                );
+            }
             sample.time = time;
             sample.epoch = epoch;
         }
     }
 
     fn advance(&mut self, physics: &mut PhysicsBackend, dt: Duration) -> Result<(), CouplingError> {
+        self.solve_materials(physics, dt)?;
+        for meter in self.plane_meters.iter_mut().flatten() {
+            meter.total.add(meter.native.readings(), &self.active_slots);
+        }
+        Ok(())
+    }
+
+    fn solve_materials(
+        &mut self,
+        physics: &mut PhysicsBackend,
+        dt: Duration,
+    ) -> Result<(), CouplingError> {
         self.boundaries.clear();
         self.receivers.clear();
         self.mobility.clear();
@@ -865,13 +889,19 @@ impl Deformables {
                 .iter()
                 .map(|(i, p)| (*i, p as &dyn gz_physics_xpbd::BoundaryPath))
                 .collect();
-            for body in self.current.values_mut() {
-                body.step_with_boundary_paths(
-                    dt,
-                    &self.boundaries,
-                    &paths,
-                    gz_physics_xpbd::DEFAULT_PATH_TOLERANCE,
-                )?;
+            let tolerance = gz_physics_xpbd::DEFAULT_PATH_TOLERANCE;
+            for (index, body) in self.current.values_mut().enumerate() {
+                if let Some(Some(meter)) = self.plane_meters.get_mut(index) {
+                    meter.native.step_with_boundary_paths(
+                        body,
+                        dt,
+                        &self.boundaries,
+                        &paths,
+                        tolerance,
+                    )?;
+                } else {
+                    body.step_with_boundary_paths(dt, &self.boundaries, &paths, tolerance)?;
+                }
             }
             return Ok(());
         }
@@ -904,13 +934,29 @@ impl Deformables {
             .unwrap_or(&mut self.current)
             .values_mut()
             .collect::<Vec<_>>();
-        let motions = step_coupled_damped_pads(
-            &mut bodies,
-            dt,
-            &self.boundaries,
-            &self.mobility,
-            &self.pad_damping,
-        )?;
+        let motions = if self.plane_meters.is_empty() {
+            step_coupled_damped_pads(
+                &mut bodies,
+                dt,
+                &self.boundaries,
+                &self.mobility,
+                &self.pad_damping,
+            )?
+        } else {
+            let mut probes = self
+                .plane_meters
+                .iter_mut()
+                .map(|slot| slot.as_mut().map(|meter| &mut meter.native))
+                .collect::<Vec<_>>();
+            gz_physics_xpbd::PlaneImpulseProbe::step_group(
+                &mut bodies,
+                &mut probes,
+                dt,
+                &self.boundaries,
+                &self.mobility,
+                &self.pad_damping,
+            )?
+        };
         let mut updates = Vec::new();
         for (receiver, motion) in self.receivers.iter().zip(motions) {
             if let (Some((id, end)), Some(motion)) = (receiver, motion) {

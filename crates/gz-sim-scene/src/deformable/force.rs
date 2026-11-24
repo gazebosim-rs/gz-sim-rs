@@ -71,6 +71,9 @@ impl Deformables {
         &mut self,
         solve: impl FnOnce(&mut Self) -> Result<T, CouplingError>,
     ) -> Result<T, CouplingError> {
+        for meter in self.plane_meters.iter_mut().flatten() {
+            meter.total.clear();
+        }
         for (name, acceleration) in &self.pending_accelerations {
             self.current
                 .get_mut(name)

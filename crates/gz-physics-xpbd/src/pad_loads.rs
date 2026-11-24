@@ -148,11 +148,65 @@ impl PlaneImpulseProbe {
         mobility: &[Option<crate::RigidMobility>],
         damping: &[(usize, f64)],
     ) -> Result<Vec<Option<crate::ReceiverMotion>>, XpbdError> {
-        material.contacts.plane_loads = Some(self.loads.take().unwrap_or_default());
-        let result =
-            crate::step_coupled_damped_pads(&mut [material], dt, boundaries, mobility, damping);
-        self.loads = material.contacts.plane_loads.take();
+        Self::step_group(
+            &mut [material],
+            &mut [Some(self)],
+            dt,
+            boundaries,
+            mobility,
+            damping,
+        )
+    }
+
+    /// Advance the complete coupled group once. A probe slot corresponds to the
+    /// same material slot, including explicitly unobserved materials.
+    pub fn step_group(
+        materials: &mut [&mut SoftBody],
+        probes: &mut [Option<&mut Self>],
+        dt: std::time::Duration,
+        boundaries: &[crate::Boundary],
+        mobility: &[Option<crate::RigidMobility>],
+        damping: &[(usize, f64)],
+    ) -> Result<Vec<Option<crate::ReceiverMotion>>, XpbdError> {
+        if materials.len() != probes.len() {
+            return Err(XpbdError::InvalidConfig);
+        }
+        for (material, probe) in materials.iter_mut().zip(probes.iter_mut()) {
+            if let Some(probe) = probe {
+                probe.attach(material);
+            }
+        }
+        let result = crate::step_coupled_damped_pads(materials, dt, boundaries, mobility, damping);
+        for (material, probe) in materials.iter_mut().zip(probes.iter_mut()) {
+            if let Some(probe) = probe {
+                probe.detach(material);
+            }
+        }
         result
+    }
+
+    /// Observe an ordinary one-way advance with its original curved boundary
+    /// paths and subdivision tolerance.
+    pub fn step_with_boundary_paths(
+        &mut self,
+        material: &mut SoftBody,
+        dt: std::time::Duration,
+        boundaries: &[crate::Boundary],
+        paths: &[(usize, &dyn crate::BoundaryPath)],
+        tolerance: f64,
+    ) -> Result<(), XpbdError> {
+        self.attach(material);
+        let result = material.step_with_boundary_paths(dt, boundaries, paths, tolerance);
+        self.detach(material);
+        result
+    }
+
+    fn attach(&mut self, material: &mut SoftBody) {
+        material.contacts.plane_loads = Some(self.loads.take().unwrap_or_default());
+    }
+
+    fn detach(&mut self, material: &mut SoftBody) {
+        self.loads = material.contacts.plane_loads.take();
     }
 }
 

@@ -1,0 +1,248 @@
+{
+  "observations": 1500,
+  "peak_node_impulse_error_ns": 5.551115123125783e-17,
+  "step_ns": 5000000,
+  "ticks": 100,
+  "total_plane_impulse_ns": {
+    "falling": [
+      0.0,
+      0.0,
+      -4.999999999999936
+    ],
+    "on_pad": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "sliding": [
+      0.48000000000000137,
+      0.0,
+      -3.0000000000000338
+    ]
+  },
+  "profile": "Ordinary local Deformables XPBD, three cables of five particles, a plane and an articulated pad",
+  "source_base": "ac99f607d10c460ada348d9a63b78add87961ade",
+  "normal_sign": "Impulse on the plane. Downward Z is negative.",
+  "gravity_m_s2": [
+    0,
+    0,
+    -10
+  ],
+  "material_particle_mass_kg": {
+    "falling": 0.2,
+    "sliding": 0.12,
+    "on_pad": 0.06
+  },
+  "native_archive": "local-floor-impulses-replay.tar.xz",
+  "public_step_s": 0.005,
+  "xpbd_substeps": 2,
+  "first_landing_center_particle": {
+    "material": "falling",
+    "momentum_reference_ns": [
+      0.0,
+      0.0,
+      -0.2699999999999999
+    ],
+    "normal_ns": [
+      0.0,
+      0.0,
+      -0.26999999999999985
+    ],
+    "pad_ns": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "particle": 2,
+    "position_m": [
+      0.04,
+      0.0,
+      0.025
+    ],
+    "tangent_ns": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "time_ns": 135000000
+  },
+  "settled_center_particles": [
+    {
+      "material": "falling",
+      "momentum_reference_ns": [
+        0.0,
+        0.0,
+        -0.010000000000000009
+      ],
+      "normal_ns": [
+        0.0,
+        0.0,
+        -0.010000000000000009
+      ],
+      "pad_ns": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "particle": 2,
+      "position_m": [
+        0.04,
+        0.0,
+        0.025
+      ],
+      "tangent_ns": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "time_ns": 500000000
+    },
+    {
+      "material": "on_pad",
+      "momentum_reference_ns": [
+        -9.647702449240631e-46,
+        5.622381658775753e-45,
+        -0.0030000000000003487
+      ],
+      "normal_ns": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pad_ns": [
+        -9.647702449240614e-46,
+        5.624352234741209e-45,
+        -0.0030000000000003487
+      ],
+      "particle": 2,
+      "position_m": [
+        0.36,
+        -3.0854862825481463e-31,
+        0.1549399999997087
+      ],
+      "tangent_ns": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "time_ns": 500000000
+    },
+    {
+      "material": "sliding",
+      "momentum_reference_ns": [
+        0.0,
+        0.0,
+        -0.006000000000000005
+      ],
+      "normal_ns": [
+        0.0,
+        0.0,
+        -0.006000000000000005
+      ],
+      "pad_ns": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "particle": 2,
+      "position_m": [
+        -0.16099999999999962,
+        0.0,
+        0.025
+      ],
+      "tangent_ns": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "time_ns": 500000000
+    }
+  ],
+  "native_audit": {
+    "nodes": 1500,
+    "max_error_m": 0,
+    "gauge_observations": 1500,
+    "max_gauge_error_m": 0,
+    "first_landing_ns": 135000000
+  },
+  "viewer": {
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10016%2F",
+    "renderer": "WebGPU",
+    "frames": 101,
+    "body_poses_and_shapes_checked": 3434,
+    "lifecycle_catalogs_checked": 101,
+    "reset_ms": 0.0,
+    "coordinate_tolerance": 1e-12
+  },
+  "llvm_changed_scope": {
+    "method": "Per-executable LLVM profiles merged for each executed object separately, union by source line or region. Fractions are covered / total.",
+    "production": {
+      "gz-physics-xpbd": {
+        "lines": [
+          46,
+          46
+        ],
+        "regions": [
+          66,
+          66
+        ]
+      },
+      "gz-sim-scene": {
+        "lines": [
+          126,
+          128
+        ],
+        "regions": [
+          184,
+          187
+        ]
+      }
+    },
+    "cli_example": {
+      "lines": [
+        138,
+        140
+      ],
+      "regions": [
+        308,
+        317
+      ]
+    },
+    "tests_examples_and_production": {
+      "lines": [
+        549,
+        553
+      ],
+      "regions": [
+        1090,
+        1102
+      ]
+    },
+    "executed_binary_sha256": {
+      "gz_sim_scene-e9f94b5deeb31501": "675671cba9795e05cc2d77e0b1fb15c75b9ad64a09385e160292412993e4bd8e",
+      "gz_physics_xpbd-402aa89767d6970f": "458e65335be58a7c6981d47a27dd2531ab71f86335218e30d53bcc04fe5615c3",
+      "local_plane_readout-6a77c17c16bb76f8": "0a8ccdfe10172ebe47d5f305769aefb9848d6ca3153c239099dbf8881ff131fa",
+      "plane_probe-9c6ba4b5eff543c5": "90bd60f2bd3e6ea321e3a2de1960e94e613d14bdf4f7e56261c1ff0920a5984b",
+      "local_floor_impulses-04885195fe5d44a5": "471402f53d94c257e13e2887dd9ccc51be422a81a85b08d6bcbe36d678760733",
+      "local_floor_impulses": "77f56c12f127768ac1ab322a261c8539aa21998d4e3c83a5d05e9195c5a04ecb"
+    }
+  },
+  "test_results": {
+    "scene_library_passed": 338,
+    "xpbd_library_passed": 69,
+    "xpbd_library_ignored": 1,
+    "native_scene_integration_passed": 4,
+    "xpbd_probe_integration_passed": 2,
+    "cli_example_regression_passed": 1,
+    "scene_integration_no_default_features_passed": 4
+  },
+  "input_sha256": "7b300a2a65438ec0e648c7734d4b69ee90f7a0c43cb4dd97493ca7ae7a182e76",
+  "archive_sha256": "02a565df4f0ab677fd19a7281fa8a486a963cd9e173e83a8908257650b6b6a01",
+  "landing_image_sha256": "b39ef1bdf39aa320163995f53266bfc68b89a6f3c00580c883ee270395db665a",
+  "output_sha256": {
+    "summary.json": "670d4866d8fdb3cd4ad2d51e2bb76f0c605dc07eb207f25e16a148f99c17aba3",
+    "impulses.jsonl": "0830a5c0ce1904aaaec3f8d03ec41d3e71beea59b79636f07d1dfe80c45d22b6",
+    "replay/manifest.json": "26b3bdfaca0eb1632dc2d847ed1742143023931d15ec71326d8d966d25fdeb45",
+    "replay/frames.jsonl": "cd07dd9beb1e95eb94d3224f89a94effc91b0052d96a27d8a5f9de14993d884b"
+  }
+}
