@@ -201,8 +201,10 @@ impl Recorder {
             .expect("owned recording worker")
             .join()
             .map_err(|_| io::Error::other("recording worker panicked"))?;
-        submitted?;
-        result
+        // If the writer stopped on a file error, its result explains why the
+        // Finish message could not be delivered.
+        result?;
+        submitted
     }
 }
 impl Drop for Recorder {

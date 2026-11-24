@@ -2342,3 +2342,7 @@ Publishing 100,000 moving bodies took 2.63 ms at median, about 99% of a sparse t
 ## 2026-11-23 — Two corners share a GPU box landing
 
 The gripper released an 80 g box onto a finite shelf. A centered edge shared the impulse equally at 33.948 mN s per corner. An eccentric edge split it 62.590/41.007 mN s, and mirroring the release exchanged the two shares. Independent rigid-body dynamics agreed within 2.08 × 10⁻¹² N s at every accepted witness. Corner arrivals 6.373 ps apart qualified together. Arrivals 0.797 µs apart stopped at the preceding public state. Separately timed collisions and settling are the next contact phase. [Measured momentum balance, per-corner loads and native replays](measurements/local-manipulation/gpu-shelf-edge.md)
+
+## 2026-11-23 — Clean disconnects and storage errors in local replay
+
+The replay server now completes the WebSocket close handshake and preserves the original storage error if recording fails. Five regressions checked held credit, pause, reset-to-origin, reconnect, read-only playback and incomplete archives. They added 13 executed lines and 17 regions on the same headless CLI test binary. gz-web-rs verified all 101 wrist frames and rewound to zero. [Coverage, measurements and native replay](measurements/local-manipulation/local-playback-reconnect.md)

@@ -1,0 +1,238 @@
+{
+  "comparison": "Same frozen current host release test executable, existing 157 tests vs same tests plus five native regressions. Headless CLI features default, distributed-physics, landing-audit, rgb-camera.",
+  "source_parent": "5985958",
+  "compiler": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "existing_binary_and_combined_sha256": "7fb209d6bc1561f54fb65cb29f4fe16377664bed1215e1777eabdf5d2913e950",
+  "baseline_profdata_sha256": "dc60fa6ef42a68ad2485bafee7422b55b29c4cef1587234bd67e8888c4b2119e",
+  "combined_profdata_sha256": "9a0685c3ba2647878220a303f4d33220809ebdbf6b4257a8c5c56633594073ad",
+  "comparison_strict_gate": "bdef251828799cf934b31adfbf48307379f636e7",
+  "comparison_strict_lcov_sha256": "f58bd54efd2f05d5161edf83ce4aab14f80bb16e44cd188d425eaa49c558d024",
+  "files": {
+    "crates/gz-sim-cli/src/web/socket.rs": {
+      "existing": {
+        "lines": [
+          477,
+          547
+        ],
+        "regions": [
+          668,
+          793
+        ]
+      },
+      "with_new_tests": {
+        "lines": [
+          477,
+          547
+        ],
+        "regions": [
+          668,
+          793
+        ]
+      },
+      "additional_lines": 0,
+      "additional_regions": 0,
+      "newly_hit_lines": [],
+      "hit_prior_strict_line_gaps": []
+    },
+    "crates/gz-sim-cli/src/web/lifecycle.rs": {
+      "existing": {
+        "lines": [
+          488,
+          534
+        ],
+        "regions": [
+          718,
+          790
+        ]
+      },
+      "with_new_tests": {
+        "lines": [
+          491,
+          534
+        ],
+        "regions": [
+          721,
+          790
+        ]
+      },
+      "additional_lines": 3,
+      "additional_regions": 3,
+      "newly_hit_lines": [
+        226,
+        239,
+        248
+      ],
+      "hit_prior_strict_line_gaps": [
+        226,
+        239,
+        248
+      ]
+    },
+    "crates/gz-sim-cli/src/web/recording/writer.rs": {
+      "existing": {
+        "lines": [
+          227,
+          246
+        ],
+        "regions": [
+          325,
+          367
+        ]
+      },
+      "with_new_tests": {
+        "lines": [
+          230,
+          246
+        ],
+        "regions": [
+          330,
+          367
+        ]
+      },
+      "additional_lines": 3,
+      "additional_regions": 5,
+      "newly_hit_lines": [
+        225,
+        233
+      ],
+      "hit_prior_strict_line_gaps": [
+        223,
+        231
+      ]
+    },
+    "crates/gz-sim-cli/src/web/recording/endpoint.rs": {
+      "existing": {
+        "lines": [
+          107,
+          121
+        ],
+        "regions": [
+          151,
+          179
+        ]
+      },
+      "with_new_tests": {
+        "lines": [
+          114,
+          121
+        ],
+        "regions": [
+          160,
+          179
+        ]
+      },
+      "additional_lines": 7,
+      "additional_regions": 9,
+      "newly_hit_lines": [
+        50,
+        97,
+        103,
+        124,
+        133,
+        148,
+        149
+      ],
+      "hit_prior_strict_line_gaps": [
+        97,
+        103,
+        118,
+        142,
+        143
+      ]
+    },
+    "crates/gz-sim-cli/src/web/recording/playback.rs": {
+      "existing": {
+        "lines": [
+          118,
+          155
+        ],
+        "regions": [
+          221,
+          284
+        ]
+      },
+      "with_new_tests": {
+        "lines": [
+          118,
+          155
+        ],
+        "regions": [
+          221,
+          284
+        ]
+      },
+      "additional_lines": 0,
+      "additional_regions": 0,
+      "newly_hit_lines": [],
+      "hit_prior_strict_line_gaps": []
+    },
+    "crates/gz-sim-cli/src/web/recording/clock.rs": {
+      "existing": {
+        "lines": [
+          140,
+          141
+        ],
+        "regions": [
+          162,
+          163
+        ]
+      },
+      "with_new_tests": {
+        "lines": [
+          140,
+          141
+        ],
+        "regions": [
+          162,
+          163
+        ]
+      },
+      "additional_lines": 0,
+      "additional_regions": 0,
+      "newly_hit_lines": [],
+      "hit_prior_strict_line_gaps": []
+    }
+  },
+  "aggregate_additional_lines": 13,
+  "aggregate_additional_regions": 17,
+  "confirmed_prior_strict_line_gaps": 10,
+  "changed_production": {
+    "lines": [
+      4,
+      4
+    ],
+    "regions": [
+      5,
+      5
+    ]
+  },
+  "viewer": {
+    "frames": 101,
+    "body_poses_and_shapes_checked": 1414,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10044%2F",
+    "coordinate_tolerance": 1e-12,
+    "captured_ms": {
+      "accelerating": 200.0,
+      "end": 1000.0,
+      "peak_speed": 400.0,
+      "rest": 800.0
+    },
+    "archive": {
+      "frames.jsonl": "24165634bce7976a2e282e55abf413d3de9a97f1d7288f80b438d245bff3ad01",
+      "manifest.json": "f16104ed2b55e0ba4f0793b220971b607f78185bd760908711041d11cd44ca5f"
+    }
+  },
+  "red_test_binary_sha256": "7288a40eecd88e3d3388f96e48ae8476b962a7c70c008ac9aac51faa8cb656d2",
+  "server_binary_sha256": "e6e91020b31c2eae1a6e4ca9ff684156ea9fdb8322a018d0c4512b719a6104dc",
+  "regressions": {
+    "previously_failed": [
+      "Protocol(ResetWithoutClosingHandshake)",
+      "worker write returned OS error 9; finalization returned a different error with no OS code"
+    ],
+    "new_tests": 5,
+    "existing_passed": 157,
+    "existing_ignored": 1
+  }
+}

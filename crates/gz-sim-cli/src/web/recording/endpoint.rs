@@ -115,6 +115,12 @@ impl Peer {
                 self.dirty = true;
                 Ok(true)
             }
+            Ok(Message::Close(_)) => {
+                // Tungstenite queues the peer's close acknowledgement when read.
+                // Flush before this connection's TCP stream is shut down.
+                let _ = self.socket.flush();
+                Ok(false)
+            }
             Ok(Message::Ping(_) | Message::Pong(_)) => Ok(self.socket.flush().is_ok()),
             Err(tungstenite::Error::Io(error))
                 if matches!(
