@@ -235,6 +235,90 @@ fn invalid_sweeps_and_incompatible_compound_materials_are_rejected() {
 }
 
 #[test]
+fn swept_link_configuration_rejects_ambiguous_or_incomplete_declarations() {
+    let source = without_sweep();
+    let link = "<link>default::hit::carriage</link>";
+    let plugin = |body: &str| {
+        format!(
+            r#"<plugin filename="gz-sim-continuous-collision-system" name="gz::sim::systems::ContinuousCollision">{body}</plugin>"#
+        )
+    };
+    for (case, settings) in [
+        ("duplicate plugin", plugin(link).repeat(2)),
+        (
+            "empty link selection",
+            plugin("<linear_slop>0.01</linear_slop>"),
+        ),
+        (
+            "misspelled link selector",
+            plugin("<links>default::hit::carriage</links>"),
+        ),
+        (
+            "attribute on link",
+            plugin("<link enabled='true'>default::hit::carriage</link>"),
+        ),
+        (
+            "nested link name",
+            plugin("<link><name>default::hit::carriage</name></link>"),
+        ),
+        (
+            "duplicate tolerance",
+            plugin(&format!(
+                "{link}<linear_slop>0.01</linear_slop><linear_slop>0.02</linear_slop>"
+            )),
+        ),
+        (
+            "unparseable tolerance",
+            plugin(&format!("{link}<linear_slop>tight</linear_slop>")),
+        ),
+    ] {
+        let xml = source.replace("</world>", &format!("{settings}</world>"));
+        let result = load_world_with_sdf_step(
+            &xml,
+            "collision-course.sdf",
+            "default",
+            &NoResources,
+            PhysicsEngine::MultiFidelity,
+        );
+        assert!(
+            matches!(result, Err(gz_sim_scene::LoadError::Unsupported { ref entity, feature })
+                if entity == "default" && feature.contains("ContinuousCollision")),
+            "{case} should report the offending collision configuration"
+        );
+    }
+}
+
+#[test]
+fn reordered_sweep_links_preserve_independent_hit_and_clear_trajectories() {
+    let selectors = "<link>default::hit::carriage</link><link>default::clear::carriage</link>";
+    let reordered = COURSE.replace(
+        selectors,
+        "<link>default::clear::carriage</link><!-- independent link --> <link> default::hit::carriage </link>",
+    );
+    assert_ne!(reordered, COURSE);
+    let mut baseline = load(COURSE);
+    let mut actual = load(&reordered);
+    for _ in 0..4 {
+        baseline.step_exact(1).unwrap();
+        actual.step_exact(1).unwrap();
+        for name in ["default::hit::carriage", "default::clear::carriage"] {
+            let sample = |sim: &Simulation| {
+                sim.world()
+                    .resource::<PhysicsBackend>()
+                    .state(id(sim, name))
+                    .unwrap()
+            };
+            let left = sample(&baseline);
+            let right = sample(&actual);
+            assert_eq!(left.position, right.position, "{name}");
+            assert_eq!(left.velocity, right.velocity, "{name}");
+            assert_eq!(left.orientation, right.orientation, "{name}");
+            assert_eq!(left.angular_velocity, right.angular_velocity, "{name}");
+        }
+    }
+}
+
+#[test]
 fn swept_compound_transfers_momentum_to_a_free_weld_without_tunneling() {
     // Give the moving fence two welded links. The thin rail alone makes
     // contact; the offset ballast receives momentum through its weld.

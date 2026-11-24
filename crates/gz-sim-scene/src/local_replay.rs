@@ -57,18 +57,18 @@ pub fn load_local_replay_world_with_runtime(
 }
 
 pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
-    use sdformat::Geometry::{Box, Capsule, Cylinder, Sphere};
-    let primitive = |geometry: &sdformat::Geometry| {
+    use sdformat::Geometry::{Box, Capsule, Cylinder, Plane, Sphere};
+    let primitive = |geometry: &sdformat::Geometry, allow_plane: bool| {
         matches!(
             geometry,
             Box { .. } | Sphere { .. } | Cylinder { .. } | Capsule { .. }
-        )
+        ) || (allow_plane && matches!(geometry, Plane { .. }))
     };
-    let admitted = world
-        .plugins
-        .iter()
-        .all(|p| primary_contact::sdf::is_plugin(p) || mounted_guide::is_plugin(p))
-        && world.joints.is_empty()
+    let admitted = world.plugins.iter().all(|p| {
+        world_systems::is_physics_plugin(p)
+            || primary_contact::sdf::is_plugin(p)
+            || mounted_guide::is_plugin(p)
+    }) && world.joints.is_empty()
         && world.extensions.is_empty()
         && world.models.iter().all(|model| {
             model.models.is_empty()
@@ -101,11 +101,15 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                     link.plugins.is_empty()
                         && link.projectors.is_empty()
                         && link.particle_emitters.is_empty()
-                        && link.collisions.iter().all(|c| primitive(&c.geometry))
                         && link
-                            .visuals
+                            .collisions
                             .iter()
-                            .all(|v| v.geometry.as_ref().is_some_and(primitive))
+                            .all(|c| primitive(&c.geometry, model.is_static))
+                        && link.visuals.iter().all(|v| {
+                            v.geometry
+                                .as_ref()
+                                .is_some_and(|geometry| primitive(geometry, true))
+                        })
                         && link
                             .sensors
                             .iter()
@@ -115,6 +119,6 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     require(
         admitted,
         &world.name,
-        "local-cpu-v1 admits inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, incoming-face and screw-stop refinement, mounted slider stabilization, native joint controllers, held joint forces and IMUs",
+        "local-cpu-v1 admits static ground planes, inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, incoming-face and screw-stop refinement, mounted slider stabilization, native joint controllers, held joint forces and IMUs",
     )
 }

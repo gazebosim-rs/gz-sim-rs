@@ -252,7 +252,10 @@ fn listen_line(process: &mut Process) -> String {
     let (sender, receiver) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
         let mut line = String::new();
-        let result = BufReader::new(&mut err).read_line(&mut line).map(|_| line);
+        // Return stderr at the next line so later readiness messages are still readable.
+        let result = BufReader::with_capacity(1, &mut err)
+            .read_line(&mut line)
+            .map(|_| line);
         let _ = sender.send((result, err));
     });
     let (line, err) = receiver.recv_timeout(Duration::from_secs(12)).unwrap();

@@ -2,9 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Compare a parked screw-and-wrist gripper with the continuously solved robot.
 #![allow(deprecated)]
-use std::{error::Error, path::Path, time::Instant};
+use std::{
+    error::Error,
+    num::NonZeroUsize,
+    path::{Path, PathBuf},
+    time::Instant,
+};
 
 use bevy_ecs::entity::Entity;
+use bevy_tasks::{ComputeTaskPool, TaskPoolBuilder};
+use clap::Parser;
 use gz_physics::{BodyId, PhysicsBackend};
 use gz_physics_multifidelity::{ArticulationTier as Tier, MultiFidelityBackend};
 use gz_sim_core::{EntityId, Simulation};
@@ -286,9 +293,11 @@ fn p95(values: &[u64]) -> u64 {
 fn record(output: &Path, xml: &str) -> Result<serde_json::Value> {
     let sdf = sdformat::load_str(xml, "parked_spindle.sdf", &sdformat::NoResources)?;
     let one = |switched| -> Result<_> {
+        let started = Instant::now();
+        let mut sim = load(xml)?;
         let mut frames = vec![];
         let trial = run(
-            &mut load(xml)?,
+            &mut sim,
             |s| {
                 frames.push(gz_sim_cli::primitive_frame(
                     s,
@@ -305,10 +314,15 @@ fn record(output: &Path, xml: &str) -> Result<serde_json::Value> {
             Default::default(),
             frames,
         )?;
-        Ok(trial)
+        Ok((
+            trial,
+            sim.elapsed().as_secs_f64(),
+            started.elapsed().as_secs_f64(),
+        ))
     };
-    let (reference, a, ca) = one(false)?;
-    let (switched, b, cb) = one(true)?;
+    let ((reference, a, ca), sim_s, dynamic_wall_s) = one(false)?;
+    let ((switched, b, cb), switched_s, switched_wall_s) = one(true)?;
+    assert_eq!(sim_s, switched_s);
     let mut inertia = Vec::new();
     for (model_name, link_name) in [
         ("gripper", "nut"),
@@ -380,6 +394,9 @@ fn record(output: &Path, xml: &str) -> Result<serde_json::Value> {
     let parked_cost = |v: &[u64]| p95(&[&v[1000..1250], &v[9000..9500]].concat());
     Ok(json!({
         "dynamic":reference,"switched":switched,
+        "simulated_seconds":sim_s,"public_steps":STEPS,
+        "full_step_wall_ns":[ca.iter().sum::<u64>(),cb.iter().sum::<u64>()],
+        "load_run_record_wall_seconds":[dynamic_wall_s,switched_wall_s],
         "max_all_link_position_error_m":dx,"max_all_link_velocity_error_m_s":dv,
         "max_all_link_rotation_error_rad":rot,"max_all_link_angular_velocity_error_rad_s":spin,
         "max_coordinate_error":q,"max_coordinate_rate_error":dq,
@@ -388,20 +405,28 @@ fn record(output: &Path, xml: &str) -> Result<serde_json::Value> {
         "full_step_p95_ns":[p95(&ca),p95(&cb)],"park_window_p95_ns":[parked_cost(&ca),parked_cost(&cb)]
     }))
 }
+#[derive(Parser)]
+#[command(about)]
+struct Args {
+    /// Fresh output directory for the reference, switched recording and report.
+    output: PathBuf,
+    /// Use the screw and universal joint with authored speed limits.
+    #[arg(long)]
+    capped: bool,
+    /// Number of Bevy compute threads. Omit to use Bevy's usual pool.
+    #[arg(long)]
+    threads: Option<NonZeroUsize>,
+}
+
 fn main() -> Result<()> {
-    let output = std::env::args_os()
-        .nth(1)
-        .ok_or("supply an unused recording directory")?;
-    let path = Path::new(&output);
+    let args = Args::parse();
+    if let Some(count) = args.threads {
+        ComputeTaskPool::get_or_init(|| TaskPoolBuilder::new().num_threads(count.get()).build());
+    }
+    let path = &args.output;
     std::fs::create_dir(path)?;
-    let report = serde_json::to_string_pretty(&record(
-        path,
-        if std::env::args().nth(2).as_deref() == Some("--capped") {
-            CAPPED
-        } else {
-            XML
-        },
-    )?)?;
+    let report =
+        serde_json::to_string_pretty(&record(path, if args.capped { CAPPED } else { XML })?)?;
     std::fs::write(path.join("comparison.json"), &report)?;
     println!("{report}");
     Ok(())
@@ -413,7 +438,15 @@ mod tests {
 
     #[test]
     fn parking_keeps_loaded_contacts_and_reset_reproduces_the_entire_cycle() -> Result<()> {
-        let mut sim = load(XML)?;
+        // The speed-limited wrist can travel at most 0.0066 rad during its 30 ms pulse.
+        for (xml, minimum_wrist_excursion) in [(XML, 0.009), (CAPPED, 0.006)] {
+            verify_reset_cycle(xml, minimum_wrist_excursion)?;
+        }
+        Ok(())
+    }
+
+    fn verify_reset_cycle(xml: &str, minimum_wrist_excursion: f64) -> Result<()> {
+        let mut sim = load(xml)?;
         let mut before = Vec::new();
         for pass in 0..2 {
             let (trial, states, _) = run(&mut sim, |_| Ok(()), true)?;
@@ -423,7 +456,7 @@ mod tests {
             assert_eq!(trial.carried_ticks, 1050);
             assert_eq!(trial.retained_command, Some([12., 12., 2.]));
             assert!(trial.loaded_refusal.unwrap().contains("external contact"));
-            assert!(trial.lift_m > 0.12 && trial.peak_wrist_rad > 0.009);
+            assert!(trial.lift_m > 0.12 && trial.peak_wrist_rad > minimum_wrist_excursion);
             assert!(trial.held_impulses_ns[0..2].iter().all(|j| *j > 0.009));
             assert_eq!(trial.held_impulses_ns[2..], [0.; 2]);
             assert!(

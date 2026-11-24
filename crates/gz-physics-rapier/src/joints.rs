@@ -277,6 +277,7 @@ impl Joints {
         id: JointId,
         torque: f64,
         bodies: &BTreeMap<BodyId, BodyEntry>,
+        moving_revolutes: bool,
     ) -> Result<(), PhysicsError> {
         let joint = self.records.get(&id).ok_or(PhysicsError::MissingJoint)?;
         if matches!(joint.initial.motion, JointMotion::Universal(_)) {
@@ -297,10 +298,14 @@ impl Joints {
                 capability: "joint effort on a fixed joint",
             });
         }
-        // Holding a world couple does not qualify effort on a moving joint axis.
+        // Local impulse hinges resolve the current parent frame in prepare_efforts.
+        // Keep the standalone backend and other construction modes on their existing contract.
         if joint.initial.parent.is_some_and(|parent| {
             bodies[&parent].1.mass.is_some()
                 && !joint.initial.robot
+                && !(moving_revolutes
+                    && matches!(joint.handle, Handle::Impulse(_))
+                    && matches!(joint.initial.motion, JointMotion::Angular))
                 && !(matches!(joint.handle, Handle::Reduced(_))
                     && bodies[&parent].1.articulation.is_some()
                     && bodies[&joint.initial.child].1.articulation.is_some())
@@ -321,8 +326,9 @@ impl Joints {
         id: JointId,
         torque: f64,
         bodies: &BTreeMap<BodyId, BodyEntry>,
+        moving_revolutes: bool,
     ) -> Result<(), PhysicsError> {
-        self.validate_effort(id, torque, bodies)?;
+        self.validate_effort(id, torque, bodies, moving_revolutes)?;
         let next = self.efforts.get(&id).copied().unwrap_or(0.0) + torque;
         if !self.records[&id].initial.admits_effort(next) {
             return Err(PhysicsError::InvalidValue);

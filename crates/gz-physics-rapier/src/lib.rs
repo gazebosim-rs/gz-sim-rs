@@ -1187,12 +1187,22 @@ impl DynamicBackend for RapierBackend {
 
     fn validate_joint_effort(&self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
         self.require_dynamic_joint(id)?;
-        self.joints.validate_effort(id, torque, &self.bodies)
+        self.joints.validate_effort(
+            id,
+            torque,
+            &self.bodies,
+            self.fleet_clock != FleetClock::Disabled,
+        )
     }
 
     fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
         self.require_dynamic_joint(id)?;
-        self.joints.add_effort(id, torque, &self.bodies)
+        self.joints.add_effort(
+            id,
+            torque,
+            &self.bodies,
+            self.fleet_clock != FleetClock::Disabled,
+        )
     }
 
     fn validate_joint_velocity_motor(

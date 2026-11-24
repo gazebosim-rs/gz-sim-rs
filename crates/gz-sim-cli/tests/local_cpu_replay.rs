@@ -221,7 +221,7 @@ fn unsupported_profiles_and_invalid_lifecycle_requests_fail() {
         ),
         (
             r#"<sdf version="1.12"><world name="default"><model name="box"><link name="body"><sensor name="field" type="magnetometer"><magnetometer/></sensor></link></model></world></sdf>"#,
-            "admits inline",
+            "local-cpu-v1 admits",
         ),
     ] {
         let world = file(dir, "unsupported.sdf", s);
@@ -1567,6 +1567,57 @@ fn accelerating_carry_crosses_the_predicted_friction_limit() {
             assert!(down_speed > 0.001, "expected sustained slip at {squeeze} N");
         } else {
             assert!(down_speed.abs() < 0.0001, "expected hold at {squeeze} N");
+        }
+    }
+}
+
+#[test]
+fn rejected_robot_control_leaves_the_trace_at_the_last_committed_step() {
+    let temp = tempfile::tempdir().unwrap();
+    let world = file(
+        temp.path(),
+        "robot.sdf",
+        include_str!("../../../examples/worlds/local_robot_screw_wrist.sdf"),
+    );
+    let step = json!({"op":"step","count":1});
+    let journal = |commands: Value| {
+        file(
+            temp.path(),
+            "control.json",
+            &json!({"seed":"rejection","commands":commands}).to_string(),
+        )
+    };
+    let baseline = success(run(&world, &journal(json!([step])), &[]));
+
+    for mut command in [
+        json!({"op":"joint_effort","effort":1.0}),
+        json!({"op":"universal_torque","torque_nm":[1.0,0.0]}),
+        json!({"op":"ball_torque","torque_nm":[1.0,2.0,3.0]}),
+        json!({"op":"set_tier","tier":"prescribed"}),
+    ] {
+        let tier = command["op"] == "set_tier";
+        let field = if tier { "model" } else { "joint" };
+        let wrong_kind = if tier { "NotSwitchable" } else { "NotJoint" };
+        for (name, expected) in [
+            ("absent", "unknown scoped entity absent"),
+            ("default::robot::tool", wrong_kind),
+        ] {
+            command[field] = json!(name);
+            let out = run(&world, &journal(json!([step, command, step])), &[]);
+            assert!(!out.status.success(), "{command}");
+            assert!(
+                String::from_utf8_lossy(&out.stderr).contains(expected),
+                "{command}: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+            let rows: Vec<Value> = String::from_utf8(out.stdout)
+                .unwrap()
+                .lines()
+                .map(|line| serde_json::from_str(line).unwrap())
+                .collect();
+            // The journal digest differs. All published state rows, including the
+            // last committed physics step, must match the successful prefix.
+            assert_eq!(rows[1..], baseline[1..], "{command}");
         }
     }
 }

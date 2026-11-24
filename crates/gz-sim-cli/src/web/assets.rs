@@ -228,9 +228,16 @@ fn admit(
 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
 enum Primitive {
     Cylinder,
+    Plane { normal: [u64; 3], size: [u64; 2] },
     Capsule { radius: u64, length: u64 },
 }
 impl Primitive {
+    fn plane(normal: [f64; 3], size: [f64; 2]) -> Self {
+        Self::Plane {
+            normal: normal.map(f64::to_bits),
+            size: size.map(f64::to_bits),
+        }
+    }
     fn capsule(radius: f64, length: f64) -> Self {
         Self::Capsule {
             radius: radius.to_bits(),
@@ -239,14 +246,21 @@ impl Primitive {
     }
     fn from_geometry(geometry: &sdformat::Geometry) -> Option<Self> {
         match geometry {
+            sdformat::Geometry::Plane { normal, size } => Some(Self::plane(*normal, *size)),
             sdformat::Geometry::Cylinder { .. } => Some(Self::Cylinder),
             sdformat::Geometry::Capsule { radius, length } => Some(Self::capsule(*radius, *length)),
             _ => None,
         }
     }
     fn generate(self, diffuse: [f32; 4]) -> io::Result<(&'static str, Vec<u8>)> {
-        use gz_assets::mesh::{capsule_visual_glb, cylinder_visual_glb};
+        use gz_assets::mesh::{capsule_visual_glb, cylinder_visual_glb, plane_visual_glb};
         match self {
+            Self::Plane { normal, size } => plane_visual_glb(
+                normal.map(f64::from_bits),
+                size.map(f64::from_bits),
+                diffuse,
+            )
+            .map(|bytes| ("plane.glb", bytes)),
             Self::Cylinder => cylinder_visual_glb(diffuse).map(|b| ("cylinder.glb", b)),
             Self::Capsule { radius, length } => {
                 capsule_visual_glb(f64::from_bits(radius), f64::from_bits(length), diffuse)
@@ -452,11 +466,11 @@ impl Assets {
                 continue;
             };
             if let Some(primitive) = Primitive::from_geometry(&geometry.0) {
-                let diffuse = entity
-                    .get::<VisualMaterial>()
-                    .ok_or_else(|| invalid("gzweb visual has no material"))?
-                    .0
-                    .diffuse;
+                let diffuse = super::snapshot::primitive_color(
+                    entity
+                        .get::<VisualMaterial>()
+                        .map(|material| material.0.as_ref()),
+                )?;
                 let scope = entries.len() + primitives.len();
                 if let std::collections::btree_map::Entry::Vacant(entry) =
                     primitives.entry((primitive, diffuse.map(f32::to_bits)))
@@ -516,6 +530,15 @@ impl Assets {
             prefix: format!("http://127.0.0.1:{}", self.port),
             files: self.files.clone(),
         }
+    }
+
+    pub(super) fn plane_uri(
+        &self,
+        normal: [f64; 3],
+        size: [f64; 2],
+        color: [f32; 4],
+    ) -> io::Result<String> {
+        self.primitive_uri(Primitive::plane(normal, size), color)
     }
 
     pub(super) fn cylinder_uri(&self, color: [f32; 4]) -> io::Result<String> {

@@ -37,8 +37,22 @@ fn incomplete_visuals_never_produce_partial_snapshots() {
     missing!(Name, "no name");
     missing!(WorldPose, "no world pose");
     missing!(VisualGeometry, "no geometry");
-    missing!(VisualMaterial, "no material");
     missing!(VisualProperties, "no properties");
+    let id = sim.world().get::<EntityId>(visual).unwrap().get();
+    sim.world_mut()
+        .entity_mut(visual)
+        .remove::<VisualMaterial>();
+    let scene = frame(&sim, 0);
+    let unpainted = scene["visuals"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|v| v["id"] == id)
+        .unwrap();
+    assert_eq!(
+        unpainted["color"],
+        serde_json::json!([0.7_f32 as f64, 0.7_f32 as f64, 0.7_f32 as f64, 1.0])
+    );
     // Removing identity also updates the ownership index; never move it back.
     sim.world_mut().entity_mut(visual).remove::<EntityId>();
     rejected(&sim, "no owned identity");

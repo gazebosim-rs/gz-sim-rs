@@ -114,3 +114,32 @@ fn snapshot_rejects_a_capsule_that_changed_after_resource_capture() {
     let updated = Assets::new(&sim).unwrap().unwrap();
     assert!(extract_with_assets(&sim, "default", 0, Some(&updated)).is_ok());
 }
+
+#[test]
+fn unpainted_planes_and_round_primitives_have_portable_materials() {
+    let plane = "<visual name='floor'><geometry><plane><normal>0 1 1</normal><size>3 9</size></plane></geometry></visual>";
+    let cylinder = "<visual name='shaft'><geometry><cylinder><radius>0.1</radius><length>0.4</length></cylinder></geometry></visual>";
+    let sim = scene(&[plane, cylinder].concat());
+    assert!(extract_with_assets(&sim, "default", 0, None).is_err());
+    let assets = Assets::offline(&sim).unwrap().unwrap();
+    let snapshot = extract_with_assets(&sim, "default", 0, Some(&assets)).unwrap();
+    let captured = assets.snapshot();
+    let frame: serde_json::Value = serde_json::from_str(&encode(&snapshot).unwrap()).unwrap();
+    assert_eq!(captured.files().len(), 2);
+    for visual in frame["visuals"].as_array().unwrap() {
+        let uri = visual["shape"]["uri"].as_str().unwrap();
+        validate_recorded_document(uri, captured.prefix(), captured.files()).unwrap();
+        let glb =
+            gltf::Gltf::from_slice(&captured.files()[uri.strip_prefix(captured.prefix()).unwrap()])
+                .unwrap();
+        assert_eq!(
+            glb.materials()
+                .next()
+                .unwrap()
+                .pbr_metallic_roughness()
+                .base_color_factor(),
+            [0.7, 0.7, 0.7, 1.]
+        );
+    }
+    assert!(assets.plane_uri([0., 0., 1.], [1.; 2], [1.; 4]).is_err());
+}

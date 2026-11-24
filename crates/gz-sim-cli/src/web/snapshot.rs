@@ -298,6 +298,19 @@ fn representable(value: f64) -> bool {
     value.is_finite() && (value as f32).is_finite()
 }
 
+pub(super) fn primitive_color(material: Option<&sdformat::Material>) -> io::Result<[f32; 4]> {
+    let Some(material) = material else {
+        // Gazebo's SceneManager uses gz-grey for unpainted primitives.
+        return Ok([0.7, 0.7, 0.7, 1.0]);
+    };
+    if material.script.is_some() || material.pbr.is_some() || !material.normal_map.is_empty() {
+        return Err(invalid(
+            "gzweb MVP supports visible opaque diffuse primitives only",
+        ));
+    }
+    Ok(material.diffuse)
+}
+
 pub(super) fn visual_definition(
     id: u64,
     name: &str,
@@ -316,13 +329,7 @@ pub(super) fn visual_definition(
         // Required wire field for compatibility; the mesh renderer uses its glTF material.
         [1.0; 4]
     } else {
-        let material = material.ok_or_else(|| invalid("gzweb visual has no material"))?;
-        if material.script.is_some() || material.pbr.is_some() || !material.normal_map.is_empty() {
-            return Err(invalid(
-                "gzweb MVP supports visible opaque diffuse primitives only",
-            ));
-        }
-        material.diffuse.map(f64::from)
+        primitive_color(material)?.map(f64::from)
     };
     if properties.transparency != 0.0 || properties.visibility_flags != u32::MAX {
         return Err(invalid(
@@ -345,6 +352,14 @@ pub(super) fn visual_definition(
                     .ok_or_else(|| invalid("cylinder visuals require generated glTF resources"))?
                     .cylinder_uri(color.map(|v| v as f32))?,
                 scale: [*radius, *radius, *length],
+            }
+        }
+        sdformat::Geometry::Plane { normal, size } if size.iter().copied().all(positive) => {
+            Shape::Mesh {
+                uri: assets
+                    .ok_or_else(|| invalid("plane visuals require generated glTF resources"))?
+                    .plane_uri(*normal, *size, color.map(|v| v as f32))?,
+                scale: [1.; 3],
             }
         }
         sdformat::Geometry::Capsule { radius, length }

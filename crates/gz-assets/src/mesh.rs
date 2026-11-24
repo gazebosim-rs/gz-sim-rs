@@ -19,6 +19,8 @@ const MAX_DEPTH: usize = 32;
 mod capsule;
 mod cylinder;
 mod obj;
+mod plane;
+pub use plane::plane_visual_glb;
 mod stl;
 pub use capsule::capsule_visual_glb;
 pub use cylinder::cylinder_visual_glb;

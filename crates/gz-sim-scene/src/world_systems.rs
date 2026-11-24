@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
+pub(super) fn is_physics_plugin(plugin: &sdformat::Plugin) -> bool {
+    plugin.name == "gz::sim::systems::Physics" && plugin.filename == "gz-sim-physics-system"
+}
+
 pub(super) fn content<'a, 'input>(
     node: roxmltree::Node<'a, 'input>,
 ) -> impl Iterator<Item = roxmltree::Node<'a, 'input>> {
@@ -91,8 +95,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
         {
             continue;
         }
-        let is_physics = plugin.name == "gz::sim::systems::Physics"
-            && plugin.filename == "gz-sim-physics-system";
+        let is_physics = is_physics_plugin(plugin);
         let is_sensors = plugin.name == "gz::sim::systems::Sensors"
             && plugin.filename == "gz-sim-sensors-system";
         let is_altimeter = plugin.name == "gz::sim::systems::Altimeter"

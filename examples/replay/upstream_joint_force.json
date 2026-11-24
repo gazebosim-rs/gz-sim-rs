@@ -1,0 +1,17 @@
+{
+  "seed": "upstream-joint-force",
+  "commands": [
+    {"op":"paused_tick"},
+    {"op":"set_joint_force","joint":"default::joint_force_test::j1","force":0.012},
+    {"op":"step","count":100},
+    {"op":"set_joint_force","joint":"default::joint_force_test::j1","force":0.0},
+    {"op":"step","count":200},
+    {"op":"set_joint_force","joint":"default::joint_force_test::j1","force":-0.012},
+    {"op":"step","count":200},
+    {"op":"paused_tick"},
+    {"op":"reset"},
+    {"op":"paused_tick"},
+    {"op":"set_joint_force","joint":"default::joint_force_test::j1","force":0.012},
+    {"op":"step","count":100}
+  ]
+}

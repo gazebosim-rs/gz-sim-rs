@@ -26,7 +26,10 @@ fn start(path: &Path) -> (Network, Process, u16) {
             &port.to_string(),
         ]);
         let mut process = Process(Some(network.spawn_server(&mut cmd)));
-        let line = listen_line(&mut process);
+        let mut line = listen_line(&mut process);
+        if line.starts_with("gzweb-rs local glTF resources:") {
+            line = listen_line(&mut process);
+        }
         if line.contains("Address already in use") {
             assert!(!process.wait(TIMEOUT).status.success());
             continue;
@@ -134,6 +137,123 @@ fn fresh_operators_step_the_loaded_serial_robot_once_per_authorized_cut() {
     let cut = operator(port, &["status"], true);
     assert_eq!(cut["scene"]["seconds"], paused["seconds"]);
     assert_eq!(cut["scene"]["nanoseconds"], paused["nanoseconds"]);
+    let pid = rustix::process::Pid::from_child(process.0.as_ref().unwrap());
+    rustix::process::kill_process(pid, rustix::process::Signal::TERM).unwrap();
+    assert!(process.wait(TIMEOUT).status.success());
+}
+
+/// Exercise the public force topic and world service in the installed-style server.
+/// Read poses from the same socket as gz-web, including the ground mesh resource.
+#[test]
+fn upstream_motor_on_a_free_base_responds_to_transport_across_reset() {
+    use gz_sim_proto::{
+        msgs::{Double, WorldControl, WorldReset},
+        prost::Message,
+    };
+    use std::net::{Ipv4Addr, TcpStream};
+    use zenoh::Wait;
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../examples/worlds/upstream_joint_force.sdf");
+    let (network, mut process, port) = start(&path);
+    let session = network.session();
+    let publisher = session
+        .declare_publisher(network.key("/model/joint_force_test/joint/j1/cmd_force"))
+        .wait()
+        .unwrap();
+    let scene = || {
+        let stream = TcpStream::connect((Ipv4Addr::LOCALHOST, port)).unwrap();
+        stream.set_read_timeout(Some(TIMEOUT)).unwrap();
+        let (mut socket, _) =
+            tungstenite::client(format!("ws://127.0.0.1:{port}/"), stream).unwrap();
+        let message = socket.read().unwrap().into_text().unwrap();
+        socket.close(None).unwrap();
+        serde_json::from_str::<Value>(&message).unwrap()
+    };
+    let wait_for = |epoch: u64, tick: u64| {
+        let deadline = Instant::now() + TIMEOUT;
+        loop {
+            let s = scene();
+            if s["epoch"] == epoch && s["nanoseconds"] == tick * 1_000_000 && s["paused"] == true {
+                return s;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "unreached clock {epoch}:{tick}, got {s}"
+            );
+        }
+    };
+    let rotor_angle = |s: &Value| {
+        let visuals = s["visuals"].as_array().unwrap();
+        assert_eq!(visuals.len(), 3);
+        let ground = visuals
+            .iter()
+            .find(|v| v["name"].as_str().unwrap().contains("::ground_plane::"))
+            .unwrap();
+        assert!(
+            ground["shape"]["uri"]
+                .as_str()
+                .unwrap()
+                .ends_with("/plane.glb")
+        );
+        let rotor = visuals
+            .iter()
+            .find(|v| v["name"].as_str().unwrap().ends_with("::rotor::visual"))
+            .unwrap();
+        assert_eq!(rotor["shape"]["kind"], "box");
+        let q = &rotor["rotation"];
+        2.0 * q[2].as_f64().unwrap().atan2(q[3].as_f64().unwrap())
+    };
+    for (epoch, torque) in [(0, 0.012_f64), (1, -0.012)] {
+        if epoch != 0 {
+            network.control(
+                &session,
+                WorldControl {
+                    pause: true,
+                    reset: Some(WorldReset {
+                        all: true,
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }
+                .encode_to_vec(),
+            );
+        }
+        assert!(rotor_angle(&wait_for(epoch, 0)).abs() < 1e-9);
+        let changes = publisher.matching_listener().wait().unwrap();
+        let until = Instant::now() + TIMEOUT;
+        while !publisher.matching_status().wait().unwrap().matching() {
+            changes
+                .recv_timeout(until.saturating_duration_since(Instant::now()))
+                .unwrap()
+                .expect("motor subscriber");
+        }
+        publisher
+            .put(
+                Double {
+                    data: torque,
+                    ..Default::default()
+                }
+                .encode_to_vec(),
+            )
+            .attachment("gz.msgs.Double")
+            .wait()
+            .unwrap();
+        network.control(
+            &session,
+            WorldControl {
+                pause: true,
+                multi_step: 100,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        );
+        let angle = rotor_angle(&wait_for(epoch, 100));
+        // 0.5 * (0.012 / 0.00012) * 0.1^2 radians, with a 1 ms discrete step.
+        assert!(
+            (angle - 0.5 * torque.signum()).abs() < 0.015,
+            "epoch {epoch}, angle {angle}"
+        );
+    }
     let pid = rustix::process::Pid::from_child(process.0.as_ref().unwrap());
     rustix::process::kill_process(pid, rustix::process::Signal::TERM).unwrap();
     assert!(process.wait(TIMEOUT).status.success());
