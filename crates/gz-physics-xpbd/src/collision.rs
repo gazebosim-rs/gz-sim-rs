@@ -379,6 +379,23 @@ impl PreparedBoundary {
             && self.receiver.as_ref().is_some_and(|r| r.inverse_mass == 0.)
     }
 
+    fn react_at_particle(
+        &self,
+        reaction: &mut BoundaryImpulse,
+        loads: &mut Option<Box<crate::pad_loads::PadLoads>>,
+        (boundary, particle): (usize, usize),
+        point: DVec3,
+        [normal, tangent]: [DVec3; 2],
+    ) -> Result<(), XpbdError> {
+        reaction.react(point - self.origin, normal + tangent)?;
+        if let Some(loads) = loads
+            && self.prescribed_pad()
+        {
+            loads.react(boundary, particle, normal, tangent)?;
+        }
+        Ok(())
+    }
+
     pub(super) fn fixed_box(&self) -> Option<(DVec3, DQuat)> {
         if let Shape::StaticCuboid(half, q) = self.shape {
             Some((half, q))
@@ -695,12 +712,13 @@ fn project_points<const SPATIAL: bool>(
                     // With x1 = x0 + h*v1, a positional correction contributes
                     // x0 cross (m*dx/h) to discrete orbital angular momentum.
                     let applied = dx / time.h / p.inverse_mass;
-                    reactions[j].react(start - boundary.origin, applied)?;
-                    if let Some(loads) = &mut contacts.pad_loads
-                        && boundary.prescribed_pad()
-                    {
-                        loads.react(j, i, applied, DVec3::ZERO)?;
-                    }
+                    boundary.react_at_particle(
+                        &mut reactions[j],
+                        &mut contacts.pad_loads,
+                        (j, i),
+                        start,
+                        [applied, DVec3::ZERO],
+                    )?;
                     contacts.record(i, j, &hit, normal_impulse, remaining);
                 }
             }
@@ -739,12 +757,13 @@ pub(super) fn finish_contacts(
         let p = &mut particles[c.particle];
         if b.receiver.is_some() {
             let [normal, tangent] = finish_receiver(c, x[c.particle], p, b, mu, h)?;
-            reactions[c.boundary].react(x[c.particle] - b.origin, normal + tangent)?;
-            if let Some(loads) = &mut contacts.pad_loads
-                && b.prescribed_pad()
-            {
-                loads.react(c.boundary, c.particle, normal, tangent)?;
-            }
+            b.react_at_particle(
+                &mut reactions[c.boundary],
+                &mut contacts.pad_loads,
+                (c.boundary, c.particle),
+                x[c.particle],
+                [normal, tangent],
+            )?;
             continue;
         }
         let v = DVec3::from(p.velocity);
@@ -915,3 +934,7 @@ fn separate(
 #[cfg(test)]
 #[path = "../tests/private/plane_impulse.rs"]
 mod plane_impulse;
+
+#[cfg(test)]
+#[path = "../tests/private/hard_pad_impulses.rs"]
+mod hard_pad_impulses;
