@@ -72,8 +72,8 @@ impl Clearance {
         if !std::mem::take(&mut self.may_rebuild) {
             return false;
         }
-        // A shell already touching spends its work on the full search. Bound the
-        // cost of trying this optional shortcut again while contact persists.
+        // Even a valid near-contact bound can expire on the following sweep.
+        // Cap rebuilds during fast folding. Valid bounds remain usable on every sweep.
         self.retry_after = 31;
         self.reference.clear();
         let origin = DVec3::from(p[0].position);
@@ -110,11 +110,7 @@ impl Clearance {
                 return false;
             }
         }
-        let clear = self.contains(x, p, gap, eps);
-        if clear {
-            self.retry_after = 0;
-        }
-        clear
+        self.contains(x, p, gap, eps)
     }
 }
 
