@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 930 358" role="img" aria-label="Two measured projections of the folded sheet at its second landing"><rect width="930" height="358" fill="#faf9f6"/><g font-family="system-ui,sans-serif" fill="#182838"><text x="25" y="34" font-size="21" font-weight="650">Folded sheet at the second landing</text><text x="25" y="57" font-size="14">3.345183 s · last committed state before the finite-table contact correction</text><text x="55" y="88" font-size="15" font-weight="600">Top view · world X and Y</text><rect x="55" y="105" width="365" height="175" fill="#fff" stroke="#bbc7cc"/>
+<path d="M 168.695 263.096 L 181.465 191.831" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 168.695 263.096 L 166.524 263.058" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 168.695 263.096 L 179.317 191.784" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 181.465 191.831 L 192.725 120.547" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 181.465 191.831 L 179.317 191.784" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 181.465 191.831 L 190.541 120.489" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 192.725 120.547 L 190.541 120.489" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 166.524 263.058 L 179.317 191.784" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 166.524 263.058 L 281.038 264.432" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 166.524 263.058 L 292.341 193.146" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 179.317 191.784 L 190.541 120.489" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 179.317 191.784 L 292.341 193.146" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 179.317 191.784 L 305.136 121.881" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 190.541 120.489 L 305.136 121.881" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 281.038 264.432 L 292.341 193.146" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 281.038 264.432 L 281.654 264.441" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 281.038 264.432 L 292.880 193.160" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 292.341 193.146 L 305.136 121.881" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 292.341 193.146 L 292.880 193.160" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 292.341 193.146 L 305.677 121.897" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 305.136 121.881 L 305.677 121.897" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 281.654 264.441 L 292.880 193.160" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 292.880 193.160 L 305.677 121.897" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<circle cx="168.695" cy="263.096" r="2.6" fill="#607078"/>
+<circle cx="181.465" cy="191.831" r="2.6" fill="#607078"/>
+<circle cx="192.725" cy="120.547" r="2.6" fill="#607078"/>
+<circle cx="166.524" cy="263.058" r="2.6" fill="#607078"/>
+<circle cx="179.317" cy="191.784" r="2.6" fill="#607078"/>
+<circle cx="190.541" cy="120.489" r="2.6" fill="#607078"/>
+<circle cx="281.038" cy="264.432" r="2.6" fill="#607078"/>
+<circle cx="292.341" cy="193.146" r="2.6" fill="#607078"/>
+<circle cx="305.136" cy="121.881" r="2.6" fill="#607078"/>
+<circle cx="281.654" cy="264.441" r="2.6" fill="#607078"/>
+<circle cx="292.880" cy="193.160" r="2.6" fill="#607078"/>
+<circle cx="305.677" cy="121.897" r="2.6" fill="#607078"/>
+<path d="M 168.695 263.096 L 181.465 191.831" stroke="#bd480d" stroke-width="3" stroke-linecap="round"/>
+<circle cx="168.695" cy="263.096" r="3.6" fill="#bd480d"/>
+<circle cx="181.465" cy="191.831" r="3.6" fill="#bd480d"/>
+<path d="M 292.341 193.146 L 292.880 193.160" stroke="#087776" stroke-width="3" stroke-linecap="round"/>
+<circle cx="292.341" cy="193.146" r="3.6" fill="#087776"/>
+<circle cx="292.880" cy="193.160" r="3.6" fill="#087776"/>
+<text x="55" y="296" font-size="11">-36</text><text x="420" y="296" text-anchor="end" font-size="11">36</text><text x="237.5" y="300" text-anchor="middle" font-size="12">X relative to deck center (mm)</text>
+<text x="49" y="113" text-anchor="end" font-size="11">65</text><text x="49" y="282" text-anchor="end" font-size="11">-65</text>
+<text x="492" y="88" font-size="15" font-weight="600">Side view · world Y and height</text><rect x="492" y="105" width="365" height="175" fill="#fff" stroke="#bbc7cc"/>
+<path d="M 492.000 272.279 L 857.000 272.279" stroke="#795534" stroke-width="3" stroke-linecap="round"/>
+<path d="M 537.774 243.971 L 675.796 243.971" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 537.774 243.971 L 537.847 133.407" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 537.774 243.971 L 675.887 133.402" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 675.796 243.971 L 813.855 243.971" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 675.796 243.971 L 675.887 133.402" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 675.796 243.971 L 813.966 133.398" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 813.855 243.971 L 813.966 133.398" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 537.847 133.407 L 675.887 133.402" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 537.847 133.407 L 535.186 133.130" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 537.847 133.407 L 673.248 133.107" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 675.887 133.402 L 813.966 133.398" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 675.887 133.402 L 673.248 133.107" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 675.887 133.402 L 811.270 133.106" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 813.966 133.398 L 811.270 133.106" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 535.186 133.130 L 673.248 133.107" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 535.186 133.130 L 535.169 243.858" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 535.186 133.130 L 673.221 243.836" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 673.248 133.107 L 811.270 133.106" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 673.248 133.107 L 673.221 243.836" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 673.248 133.107 L 811.240 243.835" stroke="#d2d8d9" stroke-width="0.9" stroke-linecap="round"/>
+<path d="M 811.270 133.106 L 811.240 243.835" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 535.169 243.858 L 673.221 243.836" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<path d="M 673.221 243.836 L 811.240 243.835" stroke="#b2bdc2" stroke-width="1.3" stroke-linecap="round"/>
+<circle cx="537.774" cy="243.971" r="2.6" fill="#607078"/>
+<circle cx="675.796" cy="243.971" r="2.6" fill="#607078"/>
+<circle cx="813.855" cy="243.971" r="2.6" fill="#607078"/>
+<circle cx="537.847" cy="133.407" r="2.6" fill="#607078"/>
+<circle cx="675.887" cy="133.402" r="2.6" fill="#607078"/>
+<circle cx="813.966" cy="133.398" r="2.6" fill="#607078"/>
+<circle cx="535.186" cy="133.130" r="2.6" fill="#607078"/>
+<circle cx="673.248" cy="133.107" r="2.6" fill="#607078"/>
+<circle cx="811.270" cy="133.106" r="2.6" fill="#607078"/>
+<circle cx="535.169" cy="243.858" r="2.6" fill="#607078"/>
+<circle cx="673.221" cy="243.836" r="2.6" fill="#607078"/>
+<circle cx="811.240" cy="243.835" r="2.6" fill="#607078"/>
+<path d="M 537.774 243.971 L 675.796 243.971" stroke="#bd480d" stroke-width="3" stroke-linecap="round"/>
+<circle cx="537.774" cy="243.971" r="3.6" fill="#bd480d"/>
+<circle cx="675.796" cy="243.971" r="3.6" fill="#bd480d"/>
+<path d="M 673.248 133.107 L 673.221 243.836" stroke="#087776" stroke-width="3" stroke-linecap="round"/>
+<circle cx="673.248" cy="133.107" r="3.6" fill="#087776"/>
+<circle cx="673.221" cy="243.836" r="3.6" fill="#087776"/>
+<text x="492" y="296" font-size="11">-70</text><text x="857" y="296" text-anchor="end" font-size="11">70</text><text x="674.5" y="300" text-anchor="middle" font-size="12">Y relative to deck center (mm)</text>
+<text x="486" y="113" text-anchor="end" font-size="11">65</text><text x="486" y="282" text-anchor="end" font-size="11">-3</text>
+<path d="M 55 330 h 26" stroke="#bd480d" stroke-width="4"/><text x="88" y="335" font-size="13">Edge between nodes 0 and 1</text><path d="M 335 330 h 26" stroke="#087776" stroke-width="4"/><text x="368" y="335" font-size="13">Edge between nodes 7 and 10</text><path d="M 647 330 h 26" stroke="#795534" stroke-width="3"/><text x="680" y="335" font-size="13">Finite table surface</text></g></svg>

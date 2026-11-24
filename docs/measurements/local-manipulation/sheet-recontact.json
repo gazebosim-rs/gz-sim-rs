@@ -1,0 +1,365 @@
+{
+  "solver_source": "30ceeb8e63818c4f40f09854fc6c3e20377538ed",
+  "integration_commit": "6ddb8b9aaf82fba9619ae76a6ca162c87699502a",
+  "solver_crate": "gz-physics-xpbd",
+  "material_cut_ns": 3345183000,
+  "dt_ns": 1000,
+  "checkpoint_fixture_sha256": "6f1fc22a33d664eb32c8e748c17cf03ba7821dedc1f016360e1b376b5b8cc13b",
+  "baseline_native_older_solver": {
+    "refusal": "Error: \"after 3345183 native commits: swept surface self-contact has no resolved separating response\"",
+    "passively_observed_80_ms": {
+      "events": {
+        "fast_landings_ns": [
+          3249963000
+        ],
+        "first_ms_impulse_ns": 0.012249067265815403,
+        "guarded_landings_ns": [],
+        "rebound_m": 0.010996224621049336,
+        "refined_steps": 0,
+        "requests_ns": [],
+        "requests_with_measured_contact_ns": [],
+        "window_impulse_ns": 0.012249067265815403,
+        "window_steps": 80000
+      },
+      "held": false,
+      "previous_commit_table_impulse_ns": -0.0,
+      "relative_vertical_com_speed_m_s": -0.31247765231900393,
+      "since_stop_ns": 80500000,
+      "time_ns": 3329500000,
+      "window_cost_ns": 13747565554
+    },
+    "executable": "7653e84d4eb8cca9a186c8e5f591882c908dcfd0745c1944fb53c7306d54af14",
+    "unaltered_executable": "065dba0f1642cf5497f153873bfe1eba20fd8c80cd9042a585756a37c57fbd3c"
+  },
+  "cut_replays": {
+    "1": {
+      "impulse_on_material_ns": [
+        3.732249866828904e-06,
+        6.031032947685928e-07,
+        9.438908965981043e-06
+      ],
+      "angular_impulse_on_receiver_nms": [
+        7.375701868948879e-08,
+        -3.719991318152018e-07,
+        -6.51115611198614e-08
+      ],
+      "linear_residual_ns": 2.9667842876061155e-19,
+      "angular_residual_nms": 1.026859578565331e-12,
+      "energy_change_j": -2.632191776069659e-07
+    },
+    "2": {
+      "impulse_on_material_ns": [
+        3.6717815458370337e-06,
+        5.998745773847315e-07,
+        9.413354818414643e-06
+      ],
+      "angular_impulse_on_receiver_nms": [
+        7.363686216795572e-08,
+        -3.674287751897551e-07,
+        -6.683233041306898e-08
+      ],
+      "linear_residual_ns": 8.450566579106052e-20,
+      "angular_residual_nms": 5.044248295754224e-13,
+      "energy_change_j": -2.4399523830022363e-07
+    },
+    "4": {
+      "impulse_on_material_ns": [
+        3.6129213549736368e-06,
+        5.904023984340933e-07,
+        9.330788539891327e-06
+      ],
+      "angular_impulse_on_receiver_nms": [
+        7.304859342007305e-08,
+        -3.623395122663759e-07,
+        -6.687095055277724e-08
+      ],
+      "linear_residual_ns": 3.5262038564898813e-19,
+      "angular_residual_nms": 2.4914770024103433e-13,
+      "energy_change_j": -2.2967537957607753e-07
+    },
+    "8": {
+      "impulse_on_material_ns": [
+        3.592879331494992e-06,
+        5.870197593702536e-07,
+        9.303417875043718e-06
+      ],
+      "angular_impulse_on_receiver_nms": [
+        7.284596403010641e-08,
+        -3.606153155205318e-07,
+        -6.688437965565349e-08
+      ],
+      "linear_residual_ns": 2.154017442027508e-19,
+      "angular_residual_nms": 1.2301340173156447e-13,
+      "energy_change_j": -2.2349091724840897e-07
+    }
+  },
+  "coarse_public_reproducibility": {
+    "drop-late:adaptive": {
+      "public_rows": 4600,
+      "identical_sha256": "4e4b95fa675db2bea27376352d815b1553244a52c6aea651a0fa45894c1af745"
+    },
+    "drop-early:adaptive": {
+      "public_rows": 4600,
+      "identical_sha256": "2113cdf97ba765c8319b60aab855c238a5fc2b82f992bbd325fca55aee2ff6b2"
+    },
+    "finite:adaptive": {
+      "public_rows": 4300,
+      "identical_sha256": "a0e42df2dc9c613e68ca658c124b0aeca0aa470549a1e4517321229130ffab2d"
+    },
+    "drop-late:coarse": {
+      "public_rows": 4600,
+      "identical_sha256": "9357023ff22930ff7f961b1f7f49faa9983d74e821d2f48a751f71bc37169788"
+    },
+    "drop-late:matched-fine": {
+      "public_rows": 4600,
+      "identical_sha256": "df22b55c755bb0ab4683fc0ed18a8eff0690dbb87fb1efe0a460f1cb87ef7287"
+    }
+  },
+  "strict_all_target_clippy": true,
+  "active_all_target_tests": 240,
+  "separate_opt_in_timing_test_passed": true,
+  "changed_coverage": {
+    "objects": {
+      "gz_physics_xpbd": {
+        "build_id": "9485d2bd146a357aad4a91a8969f315802bfc848",
+        "sha256": "ac0fd6fdea3edebff2456194dc27da0254e6c5512673d6544f9627cfb509e3ef",
+        "passed": 71
+      },
+      "released_sheet_cut": {
+        "build_id": "0f6bea2e51f638511deae8693a849887485f0401",
+        "sha256": "9daf6c68510a4d5ec8ec5f8714e3b3038aa0f35c30f9f4e9bfa420f8903d8adf",
+        "passed": 5
+      }
+    },
+    "tracked_base": "0e42a08",
+    "files": {
+      "crates/gz-physics-xpbd/src/collision.rs": {
+        "lines": [
+          47,
+          47
+        ],
+        "regions": [
+          104,
+          104
+        ]
+      },
+      "crates/gz-physics-xpbd/src/coupled.rs": {
+        "lines": [
+          28,
+          29
+        ],
+        "regions": [
+          39,
+          41
+        ]
+      },
+      "crates/gz-physics-xpbd/src/lib.rs": {
+        "lines": [
+          25,
+          25
+        ],
+        "regions": [
+          41,
+          42
+        ]
+      },
+      "crates/gz-physics-xpbd/src/surface.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/fixtures/released_sheet_3345183.rs": {
+        "lines": [
+          0,
+          0
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/private/plane_impulse.rs": {
+        "lines": [
+          58,
+          58
+        ],
+        "regions": [
+          122,
+          122
+        ]
+      },
+      "crates/gz-physics-xpbd/tests/released_sheet_cut.rs": {
+        "lines": [
+          191,
+          193
+        ],
+        "regions": [
+          379,
+          382
+        ]
+      }
+    },
+    "production": {
+      "lines": [
+        101,
+        102
+      ],
+      "regions": [
+        184,
+        187
+      ]
+    },
+    "including_tests": {
+      "lines": [
+        350,
+        353
+      ],
+      "regions": [
+        685,
+        691
+      ]
+    }
+  },
+  "oracle": {
+    "panels_tested": 29,
+    "mid_surface_intersections": 0,
+    "minimum_mid_surface_gap_m": 0.018507653147992006,
+    "edge_ids": [
+      [
+        0,
+        1
+      ],
+      [
+        7,
+        10
+      ]
+    ],
+    "samples": 65537,
+    "whole_interval_lower_bound_m": 0.0219999999968727,
+    "exterior_skin_gap_at_end_m": -4.534567166203374e-15,
+    "endpoint_closing_speed_m_s": 0.0021349921830449148,
+    "reference_software": "parry3d-f64-0.31.1"
+  },
+  "restart_regression_commit": "26e6fe1e2b9f8e5b1224cf699809ee21a1c84eb7",
+  "full_native_solver_executable": "c2288be718503e33523002328af369f2ca76d6c71e63870e01385ca46f3a69dc",
+  "corrected_full_native_run": {
+    "actuator_cost": {
+      "n": 4600,
+      "p50_ns": 177688377,
+      "p95_ns": 234411168,
+      "p99_ns": 307016257,
+      "total_ns": 831297137385
+    },
+    "clock": "FineNative",
+    "events": {
+      "fast_landings_ns": [
+        3249963000,
+        3344906000
+      ],
+      "first_ms_impulse_ns": 0.012249067265815403,
+      "guarded_landings_ns": [],
+      "rebound_m": 0.010996224621049336,
+      "refined_steps": 0,
+      "requests_ns": [],
+      "requests_with_measured_contact_ns": [],
+      "window_impulse_ns": 0.012249067265815403,
+      "window_steps": 80000
+    },
+    "mode": "DropLate",
+    "native_commits_per_ms": 1000,
+    "other_native_cost": {
+      "n": 4520000,
+      "p50_ns": 175601,
+      "p95_ns": 244291,
+      "p99_ns": 311771,
+      "total_ns": 817490681029
+    },
+    "physical": {
+      "airborne_after_opening_s": 0.27430699999999997,
+      "final_deck_descent_m": 0.04999999999925203,
+      "final_deck_lateral_clearance_m": -0.15435458232289437,
+      "final_grip_n": 0.0,
+      "final_jaw_up_n": 0.0,
+      "final_material_gap_m": -3.899658373995862e-15,
+      "final_table_n": 0.08240400000027752,
+      "first_opening_tick": 3110,
+      "first_pad_free_tick": 3135,
+      "fully_open_tick": 3841,
+      "max_downward_adjustment_m": 0.001641028203469369,
+      "max_loose_gap_m": 0.01274148020821636,
+      "min_raised_clearance_m": 0.14961785048866233,
+      "opening_ms_at_end": 350,
+      "peak_loose_table_interval_ns": 0.0020808381747398626,
+      "preceding_20ms_table_force_range_n": [
+        0.07437356954711305,
+        0.11710922061473517
+      ],
+      "receiver_drop": {
+        "first_paused_tick": 3151,
+        "first_returning_table_load_tick": 3250,
+        "first_tick": 3150,
+        "opening_before_ms": 40,
+        "preceding_grip_n": [
+          0.0,
+          0.0
+        ]
+      },
+      "search_exhausted_tick": null
+    },
+    "reset": false,
+    "target_ns": 1000,
+    "window_native_cost": {
+      "n": 80000,
+      "p50_ns": 159120,
+      "p95_ns": 249261,
+      "p99_ns": 292281,
+      "total_ns": 13806456356
+    }
+  },
+  "corrected_full_native_poses_sha256": "9c24a0c663b4d0de18b6bbb7d31f008f3f48c512e71f80ae452de2de3d7efa4d",
+  "native_contact_detail": {
+    "body_poses_and_shapes_checked": 30,
+    "captured_ms": {
+      "after": 0.001
+    },
+    "coordinate_tolerance": 1e-12,
+    "frames": 2,
+    "independent_particle_positions_checked": 24,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 2,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10053%2F"
+  },
+  "restart_rejoins_full_world": {
+    "elapsed_ns": 817000,
+    "public_tick": 3346,
+    "position_velocity_scalars": 72,
+    "little_endian_sha256": "38e8fe68e35343ff0ec60aba6fb4453c13f5e79fd4b6cc96d5e0695eb384f6b0"
+  },
+  "native_webgpu": {
+    "body_poses_and_shapes_checked": 6525,
+    "captured_ms": {
+      "arrival": 3251.0,
+      "final": 4600.0,
+      "held": 1500.0,
+      "pre_withdrawal": 3150.0,
+      "rebound": 3296.0
+    },
+    "coordinate_tolerance": 1e-12,
+    "frames": 261,
+    "independent_particle_positions_checked": 3132,
+    "indicator_positions_checked": 0,
+    "lifecycle_catalogs_checked": 261,
+    "renderer": "WebGPU",
+    "reset_ms": 0.0,
+    "source_trajectories": 1,
+    "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10046%2F"
+  }
+}
