@@ -869,6 +869,9 @@ def coverage(changed_file=None):
                                  ROOT / "third_party/prost-derive-0.14.4/Cargo.toml",
                                  ROOT / "third_party/prost-derive-0.14.4/LICENSE",
                                  *sorted((ROOT / "third_party/prost-derive-0.14.4/src").rglob("*.rs")),
+                                 ROOT / "third_party/rapier3d-f64-0.36.1/Cargo.toml",
+                                 ROOT / "third_party/rapier3d-f64-0.36.1/LICENSE",
+                                 *sorted((ROOT / "third_party/rapier3d-f64-0.36.1/src").rglob("*.rs")),
                                  *sorted((ROOT / "crates/gz-sim-proto/schemas").rglob("*.proto")),
                                  ROOT / "tests/support/render-fixtures/src/bin/source_audit.rs", *manifests]))
     input_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()

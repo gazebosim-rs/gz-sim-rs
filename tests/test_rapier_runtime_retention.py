@@ -32,6 +32,8 @@ class AuxiliaryRetention(unittest.TestCase):
                      "crates/gz-sim-proto/schema-source.json", "crates/gz-sim-proto/schemas/manifest.json",
                      "third_party/prost-derive-0.14.4/Cargo.toml", "third_party/prost-derive-0.14.4/LICENSE",
                      "third_party/prost-derive-0.14.4/src/lib.rs",
+                     "third_party/rapier3d-f64-0.36.1/Cargo.toml", "third_party/rapier3d-f64-0.36.1/LICENSE",
+                     "third_party/rapier3d-f64-0.36.1/src/dynamics/solver/staged_island_solver/travel.rs",
                      *QUALIFIER.EXECUTABLE_SOURCES.values(), *QUALIFIER.RGB_CARGO_SOURCES.values()]:
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -291,6 +293,8 @@ class AuxiliaryRetention(unittest.TestCase):
     def test_source_or_build_input_change_invalidates_evidence(self):
         for name in ["Cargo.lock", QUALIFIER.SCENE, "third_party/prost-derive-0.14.4/Cargo.toml",
                      "third_party/prost-derive-0.14.4/LICENSE", "third_party/prost-derive-0.14.4/src/lib.rs",
+                     "third_party/rapier3d-f64-0.36.1/Cargo.toml", "third_party/rapier3d-f64-0.36.1/LICENSE",
+                     "third_party/rapier3d-f64-0.36.1/src/dynamics/solver/staged_island_solver/travel.rs",
                      *QUALIFIER.NOISY_EXAMPLES, *QUALIFIER.NOISY_ASSETS]:
             path = self.root / name
             old = path.read_bytes()

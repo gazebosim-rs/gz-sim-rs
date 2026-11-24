@@ -575,8 +575,9 @@ def inputs(root=ROOT):
     paths += sorted((root / "crates/gz-sim-proto/schemas").rglob("*.proto"))
     paths += [root / "crates/gz-sim-proto/schema-source.json",
               root / "crates/gz-sim-proto/schemas/manifest.json"]
-    patched = root / "third_party/prost-derive-0.14.4"
-    paths += [patched / "Cargo.toml", patched / "LICENSE", *sorted((patched / "src").rglob("*.rs"))]
+    for crate in ("prost-derive-0.14.4", "rapier3d-f64-0.36.1"):
+        patched = root / "third_party" / crate
+        paths += [patched / "Cargo.toml", patched / "LICENSE", *sorted((patched / "src").rglob("*.rs"))]
     if any(path.is_symlink() or not path.resolve().is_relative_to(root.resolve()) for path in paths):
         raise ValueError("unsafe native-off source/input")
     return {str(path.relative_to(root)): digest(path) for path in paths}
