@@ -6,7 +6,7 @@
   "incoming_vz_m_s": -4,
   "rebound_vz_m_s_from_flight": 3.1624999999999877,
   "average_force_from_momentum_n": 3.5812499999999936,
-  "minimum_asserted_force_agreement_n": 1e-09,
+  "maximum_allowed_force_error_n": 1e-09,
   "maximum_sampled_center_distance_m": 6.676874716564478e-15,
   "sampled_centers": {
     "0": {

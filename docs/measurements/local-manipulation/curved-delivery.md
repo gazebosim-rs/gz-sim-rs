@@ -33,4 +33,6 @@ For live editing, run `target/release/gz-sim-rs --server --physics-engine multif
 RUSTC_WRAPPER= cargo run --locked --release --no-default-features -p gz-sim-scene --example cylinder_cap_rebound
 ```
 
+The optional `rotation_xyzw` field on a spawn command delivers either part at an authored world orientation. Tilting both parts 10° brought the cylinder into contact at 178 ms and delayed the capsule beyond the upright 182 ms impact. Two simulated epochs preserved both birth quaternions. An invalid non-unit quaternion was rejected before the body was added. The command change covered two of two executable lines and two of two regions. [Tilted delivery journal](../../../examples/replay/curved_delivery_tilted.json)
+
 The changed runtime code covered 49/49 lines and 41/41 regions in Rapier, 12/12 and 10/10 in the multi-fidelity backend, and 50/51 and 65/68 in the scene crate. The solver probe and its controls covered 123/125 lines and 195/203 regions. The friction-selection CLI and scene changes covered every executable line and region.
