@@ -1,0 +1,1204 @@
+{
+  "base": "cdce71506d9cd4d4a178f8cb1337ee2033276404",
+  "build_provenance": {
+    "accept": "Independent 80 and 95 mm references use a separate 1 \u00b5s Bevy commit. Same ordinary native physical solve and held 1 ms jaw command. These operator builds preceded public translating-deck admission.",
+    "public": "Independent 1 ms SDF runs at 64 and 250. Also ran the 130 mm 1000-native reference. Later changes refreshed capture metadata and shifted cumulative angular impulses to the public-start center. No contact with the moving deck in these particular transfers.",
+    "release": "Implementation at 1352dc1, all default-rate acceptance traces, controls, archive and final comparisons."
+  },
+  "case_convention": "receiver displacement in mm / native material-rigid exchanges per actuator ms",
+  "cases": {
+    "0-16": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "cff356801df604ca94abd0494be454d1ee3739d3edfbe697d9780fa45665fd3d",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": 0.08999218481779922,
+      "deck_shift_mm": 0,
+      "delta_com_y_while_released_and_supported_m": -1.2470478832675043e-08,
+      "exchanges": 16,
+      "final_com_inside_m": 0.08999217234732039,
+      "final_lowest_skin_m": -4.232725281383409e-15,
+      "final_overhanging_nodes": 0,
+      "final_peak_speed_m_s": 9.58769990418509e-12,
+      "first_opening_tick": 3112,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": 4300,
+      "max_linear_balance_residual_ns": 7.158766532602548e-18,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.08240400000001225,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 62500,
+      "outcome": "Resting",
+      "overhanging_nodes_at_release": 0,
+      "pad_free_tick": 3138,
+      "peak_simultaneous_support_n": 0.04253597524789144,
+      "preceding_opening_line_of_action_inside_m": [
+        0.08902062572314404,
+        0.09175662440970404
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.07322055082873263,
+        0.11909388406252389
+      ],
+      "public_rows_sha256": "7014c8057bbefec6b874b1cb7f37f1d8f7646165e50f268e1ad46c43bc7dd5c2",
+      "receiver_impulse_after_pad_unloading_ns": [
+        6.866877405452584e-07,
+        -1.1931030916049412e-07,
+        0.09583576773769364
+      ],
+      "released_line_of_action_inside_m": [
+        0.08993944144409191,
+        0.09010066845558196
+      ],
+      "reset_verified": true,
+      "sample_stream_sha256": "c557e5d0e5a2e951af821185dc6cc085b35c7adcf7f0fb99e5ecd997543bf65f",
+      "scene_sdf_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3"
+    },
+    "130-1000": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "d9a455b8dfe45fd97694d221d1929119f642f689630e4a7909855ef65bd714f9",
+      "bevy_step_ns": 1000,
+      "com_inside_at_release_m": -0.0391122041216164,
+      "deck_shift_mm": 130,
+      "delta_com_y_while_released_and_supported_m": -0.01180469866080757,
+      "exchanges": 1000,
+      "final_com_inside_m": -0.06650526399241095,
+      "final_lowest_skin_m": -0.48855585342160845,
+      "final_overhanging_nodes": 12,
+      "final_peak_speed_m_s": 3.4774521025421334,
+      "first_opening_tick": 3422,
+      "free_gravity_residual_m_s2": 8.768868393824165e-11,
+      "last_table_contact_tick": 4057,
+      "max_linear_balance_residual_ns": 1.2029707449371425e-15,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.0,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 1000,
+      "outcome": "Fell",
+      "overhanging_nodes_at_release": 8,
+      "pad_free_tick": 3638,
+      "peak_simultaneous_support_n": 0.0689886761326375,
+      "preceding_opening_line_of_action_inside_m": [
+        -2.636779683484747e-16,
+        6.938893903907228e-17
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.06695441470944598,
+        0.07486825391949639
+      ],
+      "public_rows_sha256": "ff3706e038e94e79e37523aae3eacf5f05fcc64c5d25a7984965b62376d46a66",
+      "receiver_impulse_after_pad_unloading_ns": [
+        0.0010297944020574025,
+        -0.01568242290585358,
+        0.023307295032879215
+      ],
+      "released_line_of_action_inside_m": [
+        -1.282293367321774e-08,
+        -2.5673907444456745e-15
+      ],
+      "reset_verified": false,
+      "sample_stream_sha256": "8d054ccf8379e2ed4eaa960629395fd2be40aa0908ced9bcaf3e1f214378ce4e",
+      "scene_sdf_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534"
+    },
+    "130-16": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "458d800d69501a1fad828b4316f81edce3930690482e55ea0291d03910be4171",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": null,
+      "deck_shift_mm": 130,
+      "exchanges": 16,
+      "final_com_inside_m": -0.03854808368046906,
+      "final_lowest_skin_m": -0.00675899327318466,
+      "final_overhanging_nodes": 8,
+      "final_peak_speed_m_s": 0.0033020991810150816,
+      "first_opening_tick": null,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": 4300,
+      "max_linear_balance_residual_ns": 7.158766532602548e-18,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.040383312898672565,
+      "mean_final_table_n": 0.042021470111848876,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 62500,
+      "outcome": "Held",
+      "overhanging_nodes_at_release": null,
+      "pad_free_tick": null,
+      "peak_simultaneous_support_n": 0.04187605461258078,
+      "public_rows_sha256": "482a7209ee36d5e652646efd0ee4c3f1d78e649e49d31374e9e43c2bd4a8ceec",
+      "released_line_of_action_inside_m": null,
+      "reset_verified": true,
+      "sample_stream_sha256": "88cb8ed03e4cd5be8e66809b79e715afd232958acf5260b4997709aa201e78e9",
+      "scene_sdf_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3"
+    },
+    "130-250": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "35345fb6b5d5e22d5aa68e6edf707b16e3bdad4441a978400dd63a3bac23871e",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": -0.039134594472906625,
+      "deck_shift_mm": 130,
+      "delta_com_y_while_released_and_supported_m": -0.012022628759572388,
+      "exchanges": 250,
+      "final_com_inside_m": -0.07554947671092943,
+      "final_lowest_skin_m": -1.0967761560079365,
+      "final_overhanging_nodes": 12,
+      "final_peak_speed_m_s": 4.877850242538675,
+      "first_opening_tick": 3436,
+      "free_gravity_residual_m_s2": 6.007815440682749e-11,
+      "last_table_contact_tick": 3904,
+      "max_linear_balance_residual_ns": 1.202153810666941e-15,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.0,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 4000,
+      "outcome": "Fell",
+      "overhanging_nodes_at_release": 8,
+      "pad_free_tick": 3531,
+      "peak_simultaneous_support_n": 0.04355051035466325,
+      "preceding_opening_line_of_action_inside_m": [
+        -9.71445146547012e-17,
+        1.3877787807814457e-16
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.06597011457800879,
+        0.069373022203092
+      ],
+      "public_rows_sha256": "e59e8289b1d676547773e386a825a1965f1262da30f838fcddffcb33576cd9d5",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -0.001370799500034942,
+        -0.012267237635493467,
+        0.019449185269522502
+      ],
+      "released_line_of_action_inside_m": [
+        -2.8801074580808717e-09,
+        -3.5110803153770576e-15
+      ],
+      "reset_verified": false,
+      "sample_stream_sha256": "5ad4c31da989bcfc9184c075be722c920606d16f7baeb5c7e6ab00b4ed1da6af",
+      "scene_sdf_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20"
+    },
+    "130-64": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "f0bf0d4d18e818d760984f7e8e860317c01ecf18dcd37eedba73dac6b5f50e34",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": null,
+      "deck_shift_mm": 130,
+      "exchanges": 64,
+      "final_com_inside_m": -0.03897312823964403,
+      "final_lowest_skin_m": -0.005288659259065423,
+      "final_overhanging_nodes": 8,
+      "final_peak_speed_m_s": 0.0013844672940905138,
+      "first_opening_tick": null,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": 4300,
+      "max_linear_balance_residual_ns": 2.5696563811523813e-17,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.01716423519634374,
+      "mean_final_table_n": 0.06523996926876906,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 15625,
+      "outcome": "Held",
+      "overhanging_nodes_at_release": null,
+      "pad_free_tick": null,
+      "peak_simultaneous_support_n": 0.047903219085879675,
+      "public_rows_sha256": "92d4ecb74bb9e0f32f4af7c136cc1862e01df8507b66b154ab8d441c86392a57",
+      "released_line_of_action_inside_m": null,
+      "reset_verified": false,
+      "sample_stream_sha256": "626c841f38642887b625166c1f2acc9304b5de3de2be84da39ca0263c79811a5",
+      "scene_sdf_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08"
+    },
+    "165-16": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "64fe9b5c7153e8159d3627e80f7152074358253bbee29e652c5c464bbb3ddd54",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": null,
+      "deck_shift_mm": 165,
+      "exchanges": 16,
+      "final_com_inside_m": -0.07499692165417329,
+      "final_lowest_skin_m": -0.004075537242021546,
+      "final_overhanging_nodes": 12,
+      "final_peak_speed_m_s": 0.0011832257092538473,
+      "first_opening_tick": null,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": null,
+      "max_linear_balance_residual_ns": 7.158766532602548e-18,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.08248872083012164,
+      "mean_final_table_n": 0.0,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 62500,
+      "outcome": "Held",
+      "overhanging_nodes_at_release": null,
+      "pad_free_tick": null,
+      "peak_simultaneous_support_n": 0.0,
+      "public_rows_sha256": "bc786c1694cde6383d18f42b4947c1ee63027ca0214d260f3a831f08ad0a795e",
+      "released_line_of_action_inside_m": null,
+      "reset_verified": true,
+      "sample_stream_sha256": "9353a94a8fdb827b73bbc0f2fb8f2e833dcd9c08e31722ec33a52a08a51b363b",
+      "scene_sdf_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3"
+    },
+    "70-16": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "989ee31764ceb2a02ae07c7df8ab6886c1f055150cd9bbc7973cbbe3315b5e3e",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": 0.019998693940411653,
+      "deck_shift_mm": 70,
+      "delta_com_y_while_released_and_supported_m": -2.8977153834730728e-09,
+      "exchanges": 16,
+      "final_com_inside_m": 0.01999869104269627,
+      "final_lowest_skin_m": -1.1490107894307489e-07,
+      "final_overhanging_nodes": 4,
+      "final_peak_speed_m_s": 3.758556481835238e-09,
+      "first_opening_tick": 3078,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": 4300,
+      "max_linear_balance_residual_ns": 7.158766532602548e-18,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.08240400000002167,
+      "minimum_table_impulse_ns": -1.0587911840678754e-22,
+      "native_step_ns": 62500,
+      "outcome": "Resting",
+      "overhanging_nodes_at_release": 4,
+      "pad_free_tick": 3104,
+      "peak_simultaneous_support_n": 0.03855857912461313,
+      "preceding_opening_line_of_action_inside_m": [
+        0.01733869804606207,
+        0.020531105478054562
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.07208186915764606,
+        0.119781238849505
+      ],
+      "public_rows_sha256": "78ebba84dfc7196fe7a18874149676dadcb17ea63110ff6a2a09515cffa5ee0e",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -1.2302119980868685e-07,
+        1.6416541544262997e-07,
+        0.09863745682638596
+      ],
+      "released_line_of_action_inside_m": [
+        0.019872485613004004,
+        0.020079023832045614
+      ],
+      "reset_verified": true,
+      "sample_stream_sha256": "3cb8317a842a5a0dd5964a215be28d8dc7b311d1ead82430d8359b3761de92a0",
+      "scene_sdf_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3"
+    },
+    "80-1000": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "1178f623d203eb3e00f0380fa42128a3cdaa1567d1c9a25e4a6bb374418c555b",
+      "bevy_step_ns": 1000,
+      "com_inside_at_release_m": 0.010011799019512713,
+      "deck_shift_mm": 80,
+      "delta_com_y_while_released_and_supported_m": -1.36505269139208e-07,
+      "exchanges": 1000,
+      "final_com_inside_m": 0.010011662514243574,
+      "final_lowest_skin_m": -5.105791230503032e-07,
+      "final_overhanging_nodes": 4,
+      "final_peak_speed_m_s": 3.748647501106786e-07,
+      "first_opening_tick": 3101,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": 4300,
+      "max_linear_balance_residual_ns": 2.2661181292946595e-16,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.08240399998650394,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 1000,
+      "outcome": "Resting",
+      "overhanging_nodes_at_release": 4,
+      "pad_free_tick": 3127,
+      "peak_simultaneous_support_n": 0.039271633919434605,
+      "preceding_opening_line_of_action_inside_m": [
+        0.002994276582241287,
+        0.013876219583026275
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.07708657913055315,
+        0.12150748631804595
+      ],
+      "public_rows_sha256": "01b2582a73d54b14d82cd5fc5340ae13aeeeaf2c094bbffee65c6d70d8ab52d1",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -4.074427615219655e-06,
+        4.784562482842412e-07,
+        0.09674174058844708
+      ],
+      "released_line_of_action_inside_m": [
+        0.008158943400129876,
+        0.012130585285769449
+      ],
+      "reset_verified": false,
+      "sample_stream_sha256": "d44d82f5233e9ab3fc6adbe5eeece557863b199e6e3bb9939f4a677ec65d42c1",
+      "scene_sdf_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534"
+    },
+    "80-16": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "6c39d18d8d1d938a71f45f7f33c0173def51e65f2d2a988b6a58103d9ce0a8a2",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": 0.010006220578340622,
+      "deck_shift_mm": 80,
+      "delta_com_y_while_released_and_supported_m": -3.887720039947349e-09,
+      "exchanges": 16,
+      "final_com_inside_m": 0.010006216690620582,
+      "final_lowest_skin_m": -5.006685959846324e-07,
+      "final_overhanging_nodes": 4,
+      "final_peak_speed_m_s": 1.7644250890408693e-08,
+      "first_opening_tick": 3075,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": 4300,
+      "max_linear_balance_residual_ns": 7.158766532602548e-18,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.08240400000002635,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 62500,
+      "outcome": "Resting",
+      "overhanging_nodes_at_release": 4,
+      "pad_free_tick": 3101,
+      "peak_simultaneous_support_n": 0.037001614163971054,
+      "preceding_opening_line_of_action_inside_m": [
+        0.00688946543713527,
+        0.007776705394598779
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.06863642792550953,
+        0.12114231721492365
+      ],
+      "public_rows_sha256": "de6b6c929849c071bccb6d9e9dcbc5415e3d12d54f8466e48237c31f79a1e52c",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -1.7881162189476887e-06,
+        1.0687927296433278e-07,
+        0.09888469165965907
+      ],
+      "released_line_of_action_inside_m": [
+        0.00984819513284009,
+        0.01022770446521623
+      ],
+      "reset_verified": true,
+      "sample_stream_sha256": "9a4fc9f4b70fdc561ae01a29b471d83639f0a340c7b899832961b14bae4a8c42",
+      "scene_sdf_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3"
+    },
+    "80-250": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "a763ee6669d0c6113a416ad10fa69f260cab3f944263c3fbdb04b2eb288763e7",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": 0.010004478802939022,
+      "deck_shift_mm": 80,
+      "delta_com_y_while_released_and_supported_m": -1.920325464951002e-07,
+      "exchanges": 250,
+      "final_com_inside_m": 0.010004286770392525,
+      "final_lowest_skin_m": -5.079301730465113e-07,
+      "final_overhanging_nodes": 4,
+      "final_peak_speed_m_s": 3.2354034996673894e-08,
+      "first_opening_tick": 3100,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": 4300,
+      "max_linear_balance_residual_ns": 7.281792242843788e-17,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.08240399999571983,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 4000,
+      "outcome": "Resting",
+      "overhanging_nodes_at_release": 4,
+      "pad_free_tick": 3126,
+      "peak_simultaneous_support_n": 0.04609129023659467,
+      "preceding_opening_line_of_action_inside_m": [
+        0.00877166146160846,
+        0.009658551888480985
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.0773497364370392,
+        0.11449861689761284
+      ],
+      "public_rows_sha256": "e45c311db6dcb67ea97b287b2243e03f35c5fb877e148f5754d7661c01d8769c",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -2.991587216296339e-06,
+        8.814653821372036e-07,
+        0.09682423372382412
+      ],
+      "released_line_of_action_inside_m": [
+        0.008361097493018985,
+        0.011452678993541174
+      ],
+      "reset_verified": false,
+      "sample_stream_sha256": "dc860ce01c3be58ae40580054585387f6a956808e472c2277060f56811ad3b4e",
+      "scene_sdf_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20"
+    },
+    "80-64": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "88b10164e51f20b5d4e6502cdea25ceb57c696e55014c49c582ee239b62c58e9",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": 0.010000529306292059,
+      "deck_shift_mm": 80,
+      "delta_com_y_while_released_and_supported_m": 3.3538926270538766e-08,
+      "exchanges": 64,
+      "final_com_inside_m": 0.01000056284521833,
+      "final_lowest_skin_m": -4.999857122350848e-07,
+      "final_overhanging_nodes": 4,
+      "final_peak_speed_m_s": 2.4164124659386503e-09,
+      "first_opening_tick": 3088,
+      "free_gravity_residual_m_s2": null,
+      "last_table_contact_tick": 4300,
+      "max_linear_balance_residual_ns": 2.5696563811523813e-17,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.08240400000000987,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 15625,
+      "outcome": "Resting",
+      "overhanging_nodes_at_release": 4,
+      "pad_free_tick": 3114,
+      "peak_simultaneous_support_n": 0.04086337561050254,
+      "preceding_opening_line_of_action_inside_m": [
+        0.007885725664442386,
+        0.00923093705576336
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.08058972215132959,
+        0.11914859467772565
+      ],
+      "public_rows_sha256": "3cab4bdca8c59c37fba5204e862665eaaa9c8f6f1389cbc1112b376c71b3bb60",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -1.4095226926875008e-06,
+        8.318767804069146e-07,
+        0.09781358425807522
+      ],
+      "released_line_of_action_inside_m": [
+        0.009037123240624514,
+        0.010617120525143867
+      ],
+      "reset_verified": false,
+      "sample_stream_sha256": "f913ddef71018d9436ef2a6a308d51ee875b4ab8c9c4b863bb07160e0b983d86",
+      "scene_sdf_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08"
+    },
+    "95-1000": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "7f1773ac1efbb140385e3d581efb542db4afd067a4d5c0a1c803050f50862d8b",
+      "bevy_step_ns": 1000,
+      "com_inside_at_release_m": -0.005106530878682393,
+      "deck_shift_mm": 95,
+      "delta_com_y_while_released_and_supported_m": -0.025854179698360312,
+      "exchanges": 1000,
+      "final_com_inside_m": -0.20556707700833404,
+      "final_lowest_skin_m": -4.350103881758516,
+      "final_overhanging_nodes": 12,
+      "final_peak_speed_m_s": 9.7255874887661,
+      "first_opening_tick": 3098,
+      "free_gravity_residual_m_s2": 9.660729341582637e-11,
+      "last_table_contact_tick": 3403,
+      "max_linear_balance_residual_ns": 4.849757904082206e-15,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.0,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 1000,
+      "outcome": "Fell",
+      "overhanging_nodes_at_release": 8,
+      "pad_free_tick": 3124,
+      "peak_simultaneous_support_n": 0.039235492767199204,
+      "preceding_opening_line_of_action_inside_m": [
+        -2.3592239273284576e-16,
+        1.942890293094024e-16
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.07625464009424242,
+        0.12073745576575207
+      ],
+      "public_rows_sha256": "a26679a4f70a65de111bde061118f751c8384a0224d12c22800051448d935e06",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -7.644448574072235e-06,
+        -0.0016324383084849342,
+        0.019640050732038807
+      ],
+      "released_line_of_action_inside_m": [
+        -1.4499175679527632e-08,
+        -3.885780586188048e-16
+      ],
+      "reset_verified": false,
+      "sample_stream_sha256": "045f7c445894d6a8b0055636ac61413843604e4e74c017251de56a009dfa15de",
+      "scene_sdf_sha256": "c84dacea1145bc3108b3a025d00abe4b0205c6f5334a1ff477e79d334328d534"
+    },
+    "95-16": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "ab0cb118ecd58daa4e194c7eebc14484cb97242531d660c5bbd966998eb14ed0",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": -0.005028486439319513,
+      "deck_shift_mm": 95,
+      "delta_com_y_while_released_and_supported_m": -0.025932608578863134,
+      "exchanges": 16,
+      "final_com_inside_m": -0.21258415379566015,
+      "final_lowest_skin_m": -4.657706211160992,
+      "final_overhanging_nodes": 12,
+      "final_peak_speed_m_s": 10.03162426628606,
+      "first_opening_tick": 3063,
+      "free_gravity_residual_m_s2": 1.3901784740866111e-11,
+      "last_table_contact_tick": 3369,
+      "max_linear_balance_residual_ns": 2.2781409710141437e-16,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.0,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 62500,
+      "outcome": "Fell",
+      "overhanging_nodes_at_release": 8,
+      "pad_free_tick": 3089,
+      "peak_simultaneous_support_n": 0.03242764008242644,
+      "preceding_opening_line_of_action_inside_m": [
+        -2.7755575615628914e-17,
+        5.551115123125783e-17
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.08974605279180617,
+        0.12325983130982901
+      ],
+      "public_rows_sha256": "5832de4d2c375e8a3a729a55a4cc27a3bfae68b52ffaf7e7d3367a34376db006",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -4.85446485924441e-06,
+        -0.0016352209166620325,
+        0.019717597333440993
+      ],
+      "released_line_of_action_inside_m": [
+        -7.406714130908654e-13,
+        3.995433659198522e-07
+      ],
+      "reset_verified": true,
+      "sample_stream_sha256": "658d9db0b0b80a3e3367ced4cc303c0285bae2305842496d51a74b1e9fbfb16c",
+      "scene_sdf_sha256": "751f53141c2efcdd996281cd9a52884e5fa40e54ca36c5c462bcad500b8802f3"
+    },
+    "95-250": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "c783e4ca8a2cd724da36b74f32ca99dcbe0213806fa907e5a9d8d247a9e407b7",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": -0.005099688688062615,
+      "deck_shift_mm": 95,
+      "delta_com_y_while_released_and_supported_m": -0.025838401701198214,
+      "exchanges": 250,
+      "final_com_inside_m": -0.20783363832977575,
+      "final_lowest_skin_m": -4.455567267071936,
+      "final_overhanging_nodes": 12,
+      "final_peak_speed_m_s": 9.835958240368864,
+      "first_opening_tick": 3086,
+      "free_gravity_residual_m_s2": 1.0944351480979563e-10,
+      "last_table_contact_tick": 3391,
+      "max_linear_balance_residual_ns": 1.5051722604808274e-15,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.0,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 4000,
+      "outcome": "Fell",
+      "overhanging_nodes_at_release": 8,
+      "pad_free_tick": 3112,
+      "peak_simultaneous_support_n": 0.03953736337493546,
+      "preceding_opening_line_of_action_inside_m": [
+        -1.1102230246251565e-16,
+        1.5265566588595902e-16
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.0812316297653712,
+        0.11764411481011504
+      ],
+      "public_rows_sha256": "c7b10d09997673cce96bcc1f7f10edf8c940ce2dee58e1174d5036629c7b26f4",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -6.998070189576794e-06,
+        -0.0016319431143764938,
+        0.0196486016723251
+      ],
+      "released_line_of_action_inside_m": [
+        -1.5932127145346087e-09,
+        -6.938893903907228e-17
+      ],
+      "reset_verified": false,
+      "sample_stream_sha256": "d75f0394e41ee376f777548a5ff268669c4c069eed20cc9e4343729398b2da70",
+      "scene_sdf_sha256": "c3cd20ec2ee96a65a8cde00014487b6d2e17e751b8759560885b7fe62b012c20"
+    },
+    "95-64": {
+      "actuator_ns": 1000000,
+      "archive_sha256": "4f16f0919da51f353049ca08b0473dff6f10a2fde25caa7a0fe0aad8e137a6f1",
+      "bevy_step_ns": 1000000,
+      "com_inside_at_release_m": -0.005085517223183851,
+      "deck_shift_mm": 95,
+      "delta_com_y_while_released_and_supported_m": -0.026017782862829273,
+      "exchanges": 64,
+      "final_com_inside_m": -0.21003719960349995,
+      "final_lowest_skin_m": -4.553289319822215,
+      "final_overhanging_nodes": 12,
+      "final_peak_speed_m_s": 9.932466279397653,
+      "first_opening_tick": 3075,
+      "free_gravity_residual_m_s2": 1.6431425480391313e-11,
+      "last_table_contact_tick": 3381,
+      "max_linear_balance_residual_ns": 3.274137081704629e-16,
+      "max_table_impulse_while_deck_translates_ns": 0.0,
+      "mean_final_jaws_n": 0.0,
+      "mean_final_table_n": 0.0,
+      "minimum_table_impulse_ns": 0.0,
+      "native_step_ns": 15625,
+      "outcome": "Fell",
+      "overhanging_nodes_at_release": 8,
+      "pad_free_tick": 3101,
+      "peak_simultaneous_support_n": 0.036605016387675215,
+      "preceding_opening_line_of_action_inside_m": [
+        -6.938893903907228e-17,
+        4.163336342344337e-17
+      ],
+      "preceding_opening_receiver_force_range_n": [
+        0.08600251117329767,
+        0.11852331896704951
+      ],
+      "public_rows_sha256": "7e48ce0209008a1a26a7017d085f1000a7c07aa03cea9d82dee296c296eb4ae5",
+      "receiver_impulse_after_pad_unloading_ns": [
+        -6.216918186153504e-06,
+        -0.00163243663103166,
+        0.01966007670008534
+      ],
+      "released_line_of_action_inside_m": [
+        -2.782520047706072e-11,
+        7.566415813342608e-09
+      ],
+      "reset_verified": false,
+      "sample_stream_sha256": "b73e84c71f03724ca8337455d4e0994ccab2366bdfa59cc8a6afa5edb13c4cf2",
+      "scene_sdf_sha256": "63971addc2b27368fdec1423ba7ec805306ebd1aa31d8f57a2a0ddeeab879c08"
+    }
+  },
+  "coverage": {
+    "executables": {
+      "exchange-policy": {
+        "build_id": "aa43e85f1710e8cb594ddd7c880feed72b1520b6",
+        "passed": 9,
+        "sha256": "cd9354e37d6359b6f31edb246c2b23b7bfd0daa1a8f838a4da0d03f203ec5627"
+      },
+      "final-operator": {
+        "build_id": "ea9a51dbf515c8657b61ff7e9c741d2b35d671a3",
+        "passed": 6,
+        "sha256": "caca023ea59579b5837d7faa7c291c95eda1a265677dfdd239ee169cc8789e0c"
+      },
+      "final-setdown": {
+        "build_id": "ea9a51dbf515c8657b61ff7e9c741d2b35d671a3",
+        "passed": 7,
+        "sha256": "caca023ea59579b5837d7faa7c291c95eda1a265677dfdd239ee169cc8789e0c"
+      },
+      "policy": {
+        "build_id": "aa43e85f1710e8cb594ddd7c880feed72b1520b6",
+        "passed": 3,
+        "sha256": "cd9354e37d6359b6f31edb246c2b23b7bfd0daa1a8f838a4da0d03f203ec5627"
+      },
+      "run-130": {
+        "build_id": "0b24c22a77c8570c004d93618e4370159183da73",
+        "passed": 0,
+        "sha256": "9377f7b6ac2bcfca9d0ef14f29b28c72f437d073661faa71d8afc0568e6cebdf"
+      },
+      "run-80": {
+        "build_id": "0b24c22a77c8570c004d93618e4370159183da73",
+        "passed": 0,
+        "sha256": "9377f7b6ac2bcfca9d0ef14f29b28c72f437d073661faa71d8afc0568e6cebdf"
+      },
+      "run-95": {
+        "build_id": "0b24c22a77c8570c004d93618e4370159183da73",
+        "passed": 0,
+        "sha256": "9377f7b6ac2bcfca9d0ef14f29b28c72f437d073661faa71d8afc0568e6cebdf"
+      },
+      "run-bad-reference": {
+        "build_id": "0b24c22a77c8570c004d93618e4370159183da73",
+        "passed": 0,
+        "sha256": "9377f7b6ac2bcfca9d0ef14f29b28c72f437d073661faa71d8afc0568e6cebdf"
+      },
+      "run-compare": {
+        "build_id": "0b24c22a77c8570c004d93618e4370159183da73",
+        "passed": 0,
+        "sha256": "9377f7b6ac2bcfca9d0ef14f29b28c72f437d073661faa71d8afc0568e6cebdf"
+      },
+      "run-native-reset": {
+        "build_id": "0b24c22a77c8570c004d93618e4370159183da73",
+        "passed": 0,
+        "sha256": "9377f7b6ac2bcfca9d0ef14f29b28c72f437d073661faa71d8afc0568e6cebdf"
+      }
+    },
+    "files": {
+      "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+        "lines": [
+          17,
+          17
+        ],
+        "regions": [
+          23,
+          23
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown.rs": {
+        "lines": [
+          2,
+          2
+        ],
+        "regions": [
+          2,
+          2
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown/edge.rs": {
+        "lines": [
+          279,
+          283
+        ],
+        "regions": [
+          532,
+          550
+        ]
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_setdown/edge_tests.rs": {
+        "lines": [
+          180,
+          180
+        ],
+        "regions": [
+          441,
+          466
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/exchange.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          1,
+          1
+        ]
+      },
+      "crates/gz-sim-scene/src/deformable/exchange/tests.rs": {
+        "lines": [
+          1,
+          1
+        ],
+        "regions": [
+          0,
+          0
+        ]
+      },
+      "crates/gz-sim-scene/src/grasp_guard/setdown.rs": {
+        "lines": [
+          9,
+          9
+        ],
+        "regions": [
+          9,
+          9
+        ]
+      },
+      "crates/gz-sim-scene/tests/private/supported_setdown.rs": {
+        "lines": [
+          15,
+          15
+        ],
+        "regions": [
+          34,
+          34
+        ]
+      }
+    },
+    "totals": {
+      "gz-sim-cli": {
+        "including_tests": {
+          "lines": [
+            478,
+            482
+          ],
+          "regions": [
+            998,
+            1041
+          ]
+        },
+        "production": {
+          "lines": [
+            298,
+            302
+          ],
+          "regions": [
+            557,
+            575
+          ]
+        }
+      },
+      "gz-sim-scene": {
+        "including_tests": {
+          "lines": [
+            26,
+            26
+          ],
+          "regions": [
+            44,
+            44
+          ]
+        },
+        "production": {
+          "lines": [
+            10,
+            10
+          ],
+          "regions": [
+            10,
+            10
+          ]
+        }
+      }
+    }
+  },
+  "equal_resolution_independent_native_checks": {
+    "130-16": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "458d800d69501a1fad828b4316f81edce3930690482e55ea0291d03910be4171"
+    },
+    "130-250": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "35345fb6b5d5e22d5aa68e6edf707b16e3bdad4441a978400dd63a3bac23871e"
+    },
+    "130-64": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "f0bf0d4d18e818d760984f7e8e860317c01ecf18dcd37eedba73dac6b5f50e34"
+    },
+    "165-16": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "64fe9b5c7153e8159d3627e80f7152074358253bbee29e652c5c464bbb3ddd54"
+    },
+    "70-16": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "989ee31764ceb2a02ae07c7df8ab6886c1f055150cd9bbc7973cbbe3315b5e3e"
+    },
+    "80-16": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "6c39d18d8d1d938a71f45f7f33c0173def51e65f2d2a988b6a58103d9ce0a8a2"
+    },
+    "80-250": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "a763ee6669d0c6113a416ad10fa69f260cab3f944263c3fbdb04b2eb288763e7"
+    },
+    "80-64": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "88b10164e51f20b5d4e6502cdea25ceb57c696e55014c49c582ee239b62c58e9"
+    },
+    "95-16": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "ab0cb118ecd58daa4e194c7eebc14484cb97242531d660c5bbd966998eb14ed0"
+    },
+    "95-250": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "c783e4ca8a2cd724da36b74f32ca99dcbe0213806fa907e5a9d8d247a9e407b7"
+    },
+    "95-64": {
+      "identical_controller_rows_and_vertical_reactions": 4300,
+      "identical_public_material_hashes": 4300,
+      "identical_replay_sha256": "4f16f0919da51f353049ca08b0473dff6f10a2fde25caa7a0fe0aad8e137a6f1"
+    }
+  },
+  "fine_comparisons": {
+    "130-16-1000": {
+      "exchanges": [
+        16,
+        1000
+      ],
+      "final_com_error_m": 0.4775114954638215,
+      "final_jaw_force_difference_n": 0.040383312898672565,
+      "final_table_force_difference_n": 0.042021470111848876,
+      "last_table_contact_ticks": [
+        4300,
+        4057
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": null,
+      "max_public_com_error_m": 0.4775114954638215,
+      "max_release_aligned_com_error_m": null,
+      "offset_mm": 130,
+      "outcomes": [
+        "Held",
+        "Fell"
+      ],
+      "pad_free_ticks": [
+        null,
+        3638
+      ]
+    },
+    "130-250-1000": {
+      "exchanges": [
+        250,
+        1000
+      ],
+      "final_com_error_m": 0.5816960148110522,
+      "final_jaw_force_difference_n": 0.0,
+      "final_table_force_difference_n": 0.0,
+      "last_table_contact_ticks": [
+        3904,
+        4057
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": 4.591605744338584e-05,
+      "max_public_com_error_m": 0.5816960148110522,
+      "max_release_aligned_com_error_m": 0.15498709086672788,
+      "offset_mm": 130,
+      "outcomes": [
+        "Fell",
+        "Fell"
+      ],
+      "pad_free_ticks": [
+        3531,
+        3638
+      ]
+    },
+    "130-64-1000": {
+      "exchanges": [
+        64,
+        1000
+      ],
+      "final_com_error_m": 0.47808171160283214,
+      "final_jaw_force_difference_n": 0.01716423519634374,
+      "final_table_force_difference_n": 0.06523996926876906,
+      "last_table_contact_ticks": [
+        4300,
+        4057
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": null,
+      "max_public_com_error_m": 0.47808171160283214,
+      "max_release_aligned_com_error_m": null,
+      "offset_mm": 130,
+      "outcomes": [
+        "Held",
+        "Fell"
+      ],
+      "pad_free_ticks": [
+        null,
+        3638
+      ]
+    },
+    "80-16-1000": {
+      "exchanges": [
+        16,
+        1000
+      ],
+      "final_com_error_m": 5.682051972233258e-06,
+      "final_jaw_force_difference_n": 0.0,
+      "final_table_force_difference_n": 1.3522405417631944e-11,
+      "last_table_contact_ticks": [
+        4300,
+        4300
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": 5.7905577848248265e-06,
+      "max_public_com_error_m": 3.834313701894972e-05,
+      "max_release_aligned_com_error_m": 5.7905577848248265e-06,
+      "offset_mm": 80,
+      "outcomes": [
+        "Resting",
+        "Resting"
+      ],
+      "pad_free_ticks": [
+        3101,
+        3127
+      ]
+    },
+    "80-250-1000": {
+      "exchanges": [
+        250,
+        1000
+      ],
+      "final_com_error_m": 7.411714376300877e-06,
+      "final_jaw_force_difference_n": 0.0,
+      "final_table_force_difference_n": 9.215891938474385e-12,
+      "last_table_contact_ticks": [
+        4300,
+        4300
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": 7.513243938068047e-06,
+      "max_public_com_error_m": 1.0469638838314083e-05,
+      "max_release_aligned_com_error_m": 7.513243938068047e-06,
+      "offset_mm": 80,
+      "outcomes": [
+        "Resting",
+        "Resting"
+      ],
+      "pad_free_ticks": [
+        3126,
+        3127
+      ]
+    },
+    "80-64-1000": {
+      "exchanges": [
+        64,
+        1000
+      ],
+      "final_com_error_m": 1.1566556405241621e-05,
+      "final_jaw_force_difference_n": 0.0,
+      "final_table_force_difference_n": 1.3505932483504068e-11,
+      "last_table_contact_ticks": [
+        4300,
+        4300
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": 1.1704509416466545e-05,
+      "max_public_com_error_m": 1.2251450983929273e-05,
+      "max_release_aligned_com_error_m": 1.1704509416466545e-05,
+      "offset_mm": 80,
+      "outcomes": [
+        "Resting",
+        "Resting"
+      ],
+      "pad_free_ticks": [
+        3114,
+        3127
+      ]
+    },
+    "95-16-1000": {
+      "exchanges": [
+        16,
+        1000
+      ],
+      "final_com_error_m": 0.3197220915401281,
+      "final_jaw_force_difference_n": 0.0,
+      "final_table_force_difference_n": 0.0,
+      "last_table_contact_ticks": [
+        3369,
+        3403
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": 0.0001069942637390608,
+      "max_public_com_error_m": 0.3197220915401281,
+      "max_release_aligned_com_error_m": 0.008344739681509136,
+      "offset_mm": 95,
+      "outcomes": [
+        "Fell",
+        "Fell"
+      ],
+      "pad_free_ticks": [
+        3089,
+        3124
+      ]
+    },
+    "95-250-1000": {
+      "exchanges": [
+        250,
+        1000
+      ],
+      "final_com_error_m": 0.11026955105857632,
+      "final_jaw_force_difference_n": 0.0,
+      "final_table_force_difference_n": 0.0,
+      "last_table_contact_ticks": [
+        3391,
+        3403
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": 9.035312110520157e-06,
+      "max_public_com_error_m": 0.11026955105857632,
+      "max_release_aligned_com_error_m": 0.0009497431240434363,
+      "offset_mm": 95,
+      "outcomes": [
+        "Fell",
+        "Fell"
+      ],
+      "pad_free_ticks": [
+        3112,
+        3124
+      ]
+    },
+    "95-64-1000": {
+      "exchanges": [
+        64,
+        1000
+      ],
+      "final_com_error_m": 0.2122162235943694,
+      "final_jaw_force_difference_n": 0.0,
+      "final_table_force_difference_n": 0.0,
+      "last_table_contact_ticks": [
+        3381,
+        3403
+      ],
+      "max_first_100ms_after_pad_unloading_com_error_m": 2.7312917902912328e-05,
+      "max_public_com_error_m": 0.2122162235943694,
+      "max_release_aligned_com_error_m": 0.0021630245218216726,
+      "offset_mm": 95,
+      "outcomes": [
+        "Fell",
+        "Fell"
+      ],
+      "pad_free_ticks": [
+        3101,
+        3124
+      ]
+    }
+  },
+  "implementation": "1352dc15e4d8a3b75ab01e546159e0bcf3efc060",
+  "previous_centered_timing_rows_sha256": "a0e42df2dc9c613e68ca658c124b0aeca0aa470549a1e4517321229130ffab2d",
+  "public_actuator_ms": 1,
+  "regression_revision": "9c83c26dda5900cda6c4f56fbb3772f63b4bd058",
+  "release_binaries_sha256": {
+    "accept": "b2b2d0147321c300459204a53d370be9c80800080c1fe37f66772f5a07bc43b3",
+    "public": "4654bf882206341fb5ffe92c1bfee3daa81882a5fd55a416096b76a6990e8564",
+    "release": "d0cede0e8959f2c4ca3c9cf23ae4458be1fe13800609ab39d800c08d0c3d677f"
+  },
+  "steady_window_ms": 100,
+  "viewer": {
+    "fall": {
+      "body_poses_and_shapes_checked": 4325,
+      "captured_ms": {
+        "deck_stopped": 1900.0,
+        "edge_departure": 3375.0,
+        "end": 4300.0,
+        "lift": 1500.0,
+        "lowering": 2500.0,
+        "released": 3100.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 173,
+      "independent_particle_positions_checked": 2076,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 173,
+      "renderer": "WebGPU",
+      "replay_directory": "sheet-table-edge-fall-replay",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10057%2F"
+    },
+    "rest": {
+      "body_poses_and_shapes_checked": 4325,
+      "captured_ms": {
+        "deck_stopped": 1900.0,
+        "end": 4300.0,
+        "lift": 1500.0,
+        "lowering": 2500.0,
+        "released": 3125.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 173,
+      "independent_particle_positions_checked": 2076,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 173,
+      "renderer": "WebGPU",
+      "replay_directory": "sheet-table-edge-rest-replay",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10056%2F"
+    },
+    "shared": {
+      "body_poses_and_shapes_checked": 4325,
+      "captured_ms": {
+        "deck_stopped": 1900.0,
+        "end": 4300.0,
+        "lift": 1500.0,
+        "lowering": 2500.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frames": 173,
+      "independent_particle_positions_checked": 2076,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 173,
+      "renderer": "WebGPU",
+      "replay_directory": "sheet-table-edge-shared-replay",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10058%2F"
+    }
+  },
+  "weight_n": 0.082404
+}

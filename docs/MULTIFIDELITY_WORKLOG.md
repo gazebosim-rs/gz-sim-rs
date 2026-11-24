@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — The folded sheet balances or tips on the finite table edge
+
+The robot now exchanges reactions with a linearly translating finite table inside each 1 ms Bevy tick. A sheet resting 10 mm inside the edge supported its full weight with four particle centers overhanging. Placed 5 mm outside, it tipped and fell at all four tested rates. The tighter reference exposed another offset where coarse steps kept the jaws closed but the two finer runs released the sheet. Every one of 47,300 compared public material states matched separate native commits. The next controller phase will use the measured table moment to reject support concentrated at the lip. [Forces, errors and three native recordings](measurements/local-manipulation/sheet-table-edge.md)
+
 ## 2026-11-24 — Use the measured contact geometry to choose the gripper’s impact solve
 
 When a parcel already touches a jaw face, the new solver brought the impact step from 63–67 ms down to 1.34–1.35 ms at p95. Against continuous 10 ns steps, the left and right impulse errors were 2.01% and 3.18%. The same preset was inaccurate across small gaps, so the policy keeps the original budget for separated, glancing, simultaneous or already-loaded contact. Both recordings passed native playback, all 383 tests passed, and every changed scene and example line and region ran. [Contact limits, cost and both replays](measurements/local-manipulation/serial-touching-solver.md)
