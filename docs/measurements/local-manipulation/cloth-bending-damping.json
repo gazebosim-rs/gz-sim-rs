@@ -193,5 +193,245 @@
       "independent_particle_positions_checked": 1644,
       "reset_ms": 0.0
     }
+  },
+  "changed_production_coverage": {
+    "lines": {
+      "hit": 219,
+      "total": 224
+    },
+    "regions": {
+      "hit": 390,
+      "total": 405
+    },
+    "files": {
+      "crates/gz-physics-xpbd/src/bending_damping.rs": {
+        "lines": {
+          "hit": 51,
+          "total": 52,
+          "missing": [
+            61
+          ]
+        },
+        "regions": {
+          "hit": 92,
+          "total": 93,
+          "missing": [
+            [
+              61,
+              32,
+              61,
+              57
+            ]
+          ]
+        }
+      },
+      "crates/gz-physics-xpbd/src/lib.rs": {
+        "lines": {
+          "hit": 4,
+          "total": 4,
+          "missing": []
+        },
+        "regions": {
+          "hit": 5,
+          "total": 6,
+          "missing": [
+            [
+              592,
+              33,
+              592,
+              34
+            ]
+          ]
+        }
+      },
+      "crates/gz-physics-xpbd/src/one_way_checkpoint.rs": {
+        "lines": {
+          "hit": 30,
+          "total": 30,
+          "missing": []
+        },
+        "regions": {
+          "hit": 41,
+          "total": 41,
+          "missing": []
+        }
+      },
+      "crates/gz-physics-xpbd/src/surface/loads.rs": {
+        "lines": {
+          "hit": 0,
+          "total": 0,
+          "missing": []
+        },
+        "regions": {
+          "hit": 0,
+          "total": 0,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+        "lines": {
+          "hit": 3,
+          "total": 3,
+          "missing": []
+        },
+        "regions": {
+          "hit": 10,
+          "total": 10,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/arm_sheet.rs": {
+        "lines": {
+          "hit": 2,
+          "total": 2,
+          "missing": []
+        },
+        "regions": {
+          "hit": 2,
+          "total": 2,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/hinge_damping.rs": {
+        "lines": {
+          "hit": 83,
+          "total": 87,
+          "missing": [
+            19,
+            49,
+            86,
+            97
+          ]
+        },
+        "regions": {
+          "hit": 167,
+          "total": 179,
+          "missing": [
+            [
+              27,
+              75,
+              27,
+              76
+            ],
+            [
+              36,
+              26,
+              36,
+              27
+            ],
+            [
+              41,
+              32,
+              41,
+              33
+            ],
+            [
+              43,
+              40,
+              43,
+              41
+            ],
+            [
+              46,
+              43,
+              46,
+              44
+            ],
+            [
+              49,
+              28,
+              49,
+              81
+            ],
+            [
+              64,
+              55,
+              64,
+              56
+            ],
+            [
+              64,
+              56,
+              64,
+              57
+            ],
+            [
+              74,
+              28,
+              74,
+              29
+            ],
+            [
+              86,
+              16,
+              86,
+              81
+            ],
+            [
+              97,
+              6,
+              97,
+              7
+            ],
+            [
+              19,
+              20,
+              19,
+              72
+            ]
+          ]
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_jaws.rs": {
+        "lines": {
+          "hit": 39,
+          "total": 39,
+          "missing": []
+        },
+        "regions": {
+          "hit": 57,
+          "total": 58,
+          "missing": [
+            [
+              94,
+              43,
+              94,
+              44
+            ]
+          ]
+        }
+      },
+      "crates/gz-sim-cli/examples/local_robot_foundations/sheet_jaws/convergence.rs": {
+        "lines": {
+          "hit": 2,
+          "total": 2,
+          "missing": []
+        },
+        "regions": {
+          "hit": 1,
+          "total": 1,
+          "missing": []
+        }
+      },
+      "crates/gz-sim-scene/src/deformable/config.rs": {
+        "lines": {
+          "hit": 5,
+          "total": 5,
+          "missing": []
+        },
+        "regions": {
+          "hit": 15,
+          "total": 15,
+          "missing": []
+        }
+      }
+    }
+  },
+  "tests": {
+    "frozen_material_library_passed": 61,
+    "frozen_material_explicitly_ignored": 1,
+    "frozen_robot_example_passed": 81,
+    "frozen_robot_explicitly_ignored": 1,
+    "supplemental_hinge_tests": 3
   }
 }
