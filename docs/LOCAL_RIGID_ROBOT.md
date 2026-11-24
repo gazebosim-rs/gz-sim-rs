@@ -21,6 +21,31 @@ cargo run --release --locked --offline --no-default-features -p gz-sim-cli \
 
 With the local gz-web-rs frontend running on 8082, open your recording, put the pointer over the viewport, press **3** for the side view and **F** to fit the scene, then press Play. A separate frontend installation can serve the same replay by changing the frontend port in the URL and keeping the WebSocket port at 9734. [Open your recording](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9734%2F) · [Watch the measured robot](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9724%2F)
 
+## Watch the current local robot experiments
+
+The shelf-transfer robot grips a 200 g parcel, carries it past an obstacle and hands its weight to a shelf. The loaded wrist recording compares two motors responding to the same shove. The sheet recording shows a gripper losing its receiving table mid-release. Each link opens a measured run in gz-web-rs. Press **Play** to advance it. [Shelf-transfer instructions and native view](measurements/local-manipulation/serial-transfer.md) · [Loaded wrist](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10042%2F) · [Sheet landing](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10039%2F)
+
+For a fresh copy of the wrist replay, start at the root of this physics checkout. The archive contains the measured frames and can be opened without rerunning the experiment. Choose an unused output directory and WebSocket port.
+
+```sh
+mkdir -p target/wrist-view
+tar -xJf docs/measurements/local-manipulation/loaded-wrist-recovery.tar.xz -C target/wrist-view
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --bin gz-sim-rs -- --server --replay --web-viewer 18142 target/wrist-view/replay
+```
+
+Keep that server running and open the viewer. The two wrists are offset along the Y axis, so use the perspective view to see them side by side. [Open your copy on port 18142](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A18142%2F)
+
+The local qualification machine already serves the gz-web-rs frontend on 8082. To restart its existing frontend after a reboot, run the following in a second terminal from the same physics checkout. The paths select the WebAssembly bundle used in the recorded browser checks.
+
+```sh
+viewer=../gz-sim-rs-multifidelity/target/convoy-operator-ui/web
+mime=$(realpath ../gz-sim-rs-multifidelity/target/local-robot-foundations/mime.conf)
+busybox httpd -f -p 127.0.0.1:8082 -h "$viewer" -c "$mime"
+```
+
+On a separate machine, build and serve the replay-capable gzweb-rs checkout and use its frontend URL with the same replay parameters. To regenerate the physics recording with your own Rust build, run the loaded wrist example. [Build the viewer](../../gzweb-rs/README.md) · [Run the loaded wrist experiment](measurements/local-manipulation/loaded-wrist-recovery.md)
+
 ## Run each physics phase
 
 The recording example reads the SDF physics clock. For `record`, the two integers give the total number of steps and the number between saved frames. The stop-to-stop joint test also exercises motor commands, one-sided stops and wrist rotation about each axis.
