@@ -2220,3 +2220,5 @@ The CPU gripper published all six measured coordinates while placing its 200 g p
 ## 2026-11-23 — Releasing one of four stationary robot feet
 
 Four 2 kg feet parked together. Removing a pad from under one foot while paused woke only that foot on the next advancing tick. Its body motion and both pad impulses matched continuous dynamics on all 300 resumed ticks, and reset repeated the experiment exactly. Independent headless and renderer runs each added 82 covered scene regions. A cold CLI and gz-web-rs replay preserved all 65 frames. [Measurements, remaining coverage and browser replay](measurements/local-manipulation/parked-foot-cohort.md)
+
+Saved cloth now preserves the sliding equations that generated it. An archived construction reproduced all 100 tested physical endpoints across two surfaces and two loads. Reauthoring it selected the new law and a distinct checkpoint identity. Both feature configurations passed in release mode, and the numerical compatibility change reached 100% changed line and region coverage. [Compatibility and golden data](measurements/local-manipulation/material-support-edge.md)

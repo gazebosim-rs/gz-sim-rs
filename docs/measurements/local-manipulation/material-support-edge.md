@@ -32,3 +32,8 @@ To recreate the finite support with eight material steps, choose a fresh directo
 RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli --example local_robot_foundations -- material-incline artifacts/my-board --substeps 8 --finite-board
 RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli --bin gz-sim-rs -- --server --replay --web-viewer 10002 artifacts/my-board/replay
 ```
+
+
+## Reopening a saved material
+
+A saved construction now identifies which sliding equations it used. A binary seed built with the earlier solver reopened with its original identity and reproduced every particle and signed support impulse at 25 consecutive endpoints in each of four tests. Reauthoring the material selected the new equations, obtained a distinct identity and reproduced its new motion after reopening. The regression covers both a floor and a finite bench above and below the breakaway load. LLVM reached all 43 changed production lines and 56 regions. [Original construction bytes and regression](../../../crates/gz-physics-xpbd/tests/plane_friction_checkpoint.rs)

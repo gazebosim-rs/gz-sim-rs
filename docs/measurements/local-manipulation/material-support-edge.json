@@ -854,5 +854,60 @@
         }
       }
     }
+  },
+  "saved_material_compatibility": {
+    "old_source": "5f06f6f",
+    "implementation": "2516e52",
+    "original_seed_sha256": "28f3ad2e410f478df96469e2b6ea21e5d23b3e869e8ce54d779cf79c54c1fe41",
+    "fixture": "two material points with inverse masses 2.5 and 1.25, on an infinite plane and a finite box; horizontal acceleration of 2 or 6 m/s\u00b2; vertical acceleration of -10 m/s\u00b2",
+    "ticks_per_configuration": 25,
+    "step_ns": 5000000,
+    "original_law": "9d67f7d0dcf4b3abfe9d396a4eca2b228c767525b2c29d680d6728b712af6076",
+    "original_trace_sha256": [
+      "8023afae1592b9287eb3669b90ade220f7edb4e4e0059193c3e83e8b4f3d43e8",
+      "f029925f463b1bbdedce48b3b74742424085a10f7f980bf0e1283570376c8421",
+      "c437e58dcd1c51dc6d9a1fa78b4b751f6fc14316664c9782ded5a3f50fefadf3",
+      "e38f8fda104ba2935abda7f09af8496d457d490674306bdc1b7917227204ec8c"
+    ],
+    "default_release_tests_passed": 212,
+    "all_features_release_tests_passed": 220,
+    "changed_production_coverage": {
+      "crates/gz-physics-xpbd/src/collision.rs": {
+        "lines": {
+          "hit": 20,
+          "total": 20,
+          "missing": []
+        },
+        "regions": {
+          "hit": 36,
+          "total": 36,
+          "missing": []
+        }
+      },
+      "crates/gz-physics-xpbd/src/lib.rs": {
+        "lines": {
+          "hit": 1,
+          "total": 1,
+          "missing": []
+        },
+        "regions": {
+          "hit": 1,
+          "total": 1,
+          "missing": []
+        }
+      },
+      "crates/gz-physics-xpbd/src/one_way_checkpoint.rs": {
+        "lines": {
+          "hit": 22,
+          "total": 22,
+          "missing": []
+        },
+        "regions": {
+          "hit": 19,
+          "total": 19,
+          "missing": []
+        }
+      }
+    }
   }
 }
