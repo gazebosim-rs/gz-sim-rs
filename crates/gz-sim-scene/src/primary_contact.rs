@@ -5,7 +5,7 @@
 
 mod geometry;
 pub(crate) mod sdf;
-use crate::{BodyHandle, Gravity, LinkCenterOfMass, LoadError, Name};
+use crate::{BodyHandle, Gravity, JointHandle, LinkCenterOfMass, LoadError, Name};
 use bevy_ecs::prelude::*;
 use geometry::BoxShape;
 use glam::DVec3;
@@ -81,6 +81,9 @@ pub struct RequestedPair {
 /// Results from the most recent successfully refined public tick.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Refinement {
+    /// Minimum native calls requested by a resident registered screw speed stop.
+    /// One leaves the ordinary step available. A predicted impact may request more.
+    pub speed_stop_floor: u32,
     pub epoch: u64,
     pub iteration: u64,
     pub start_time: Duration,
@@ -273,8 +276,14 @@ impl Pair {
         )
     }
 }
+struct SpeedStop {
+    id: u64,
+    entity: Option<Entity>,
+    rate: f64,
+}
 #[derive(Resource)]
 struct Policy {
+    speed_stop: Option<SpeedStop>,
     enabled: bool,
     follows_release: bool,
     shares_faces: bool,
@@ -407,6 +416,27 @@ pub(crate) fn install(
     native
         .validate_contact_interval(sim.step_duration(), plan.calls, plan.iterations)
         .map_err(|e| invalid(&plan.world, &e.to_string()))?;
+    let speed_stop = if let Some(name) = &plan.speed_stop_joint {
+        #[allow(deprecated)]
+        let binding = sim.world().iter_entities().find_map(|e| {
+            if e.get::<Name>()?.0 != *name {
+                return None;
+            }
+            Some(SpeedStop {
+                id: e.get::<EntityId>()?.get(),
+                entity: Some(e.id()),
+                rate: native.screw_stop_resolution_rate(e.get::<JointHandle>()?.id())?,
+            })
+        });
+        Some(binding.ok_or_else(|| {
+            invalid(
+                name,
+                "speed_stop_joint requires a screw with positive finite effort and speed limits",
+            )
+        })?)
+    } else {
+        None
+    };
     let resolve = |name: &str, half: DVec3| {
         #[allow(deprecated)]
         sim.world()
@@ -557,6 +587,7 @@ pub(crate) fn install(
     pairs.sort_by_key(|p| (p.foot.id, p.pad.id));
     gz_physics::install_with_step(sim, backend, advance)?;
     sim.world_mut().insert_resource(Policy {
+        speed_stop,
         shares_faces: pairs.iter().any(|p| p.share_coplanar_face),
         follows_release: pairs.iter().any(|p| p.follow_release),
         enabled: true,
@@ -584,6 +615,9 @@ fn reset(world: &mut World) {
         policy.last_flight = None;
         policy.last_sweeps = None;
         policy.last_upper = None;
+        if let Some(stop) = &mut policy.speed_stop {
+            stop.entity = entity_by_id(world, stop.id);
+        }
         for p in &mut policy.pairs {
             p.armed = false;
             p.tracking_geometry = false;
@@ -601,11 +635,16 @@ fn reset(world: &mut World) {
         }
     });
 }
+#[derive(bevy_ecs::system::SystemParam)]
+struct Bindings<'w, 's> {
+    links: Query<'w, 's, (&'static EntityId, &'static BodyHandle)>,
+    joints: Query<'w, 's, &'static EntityId, With<JointHandle>>,
+}
 fn advance(
     time: Res<UpdateInfo>,
     gravity: Res<Gravity>,
     fault: Res<StepFault>,
-    links: Query<(&EntityId, &BodyHandle)>,
+    bindings: Bindings,
     mut policy: ResMut<Policy>,
     mut backend: ResMut<PhysicsBackend>,
     mut observer: Option<ResMut<RefinedObserver>>,
@@ -625,6 +664,20 @@ fn advance(
         }
         return;
     }
+    let Bindings { links, joints } = bindings;
+    let floor = policy
+        .speed_stop
+        .as_ref()
+        .filter(|s| {
+            s.entity
+                .and_then(|e| joints.get(e).ok())
+                .is_some_and(|id| id.get() == s.id)
+        })
+        .map_or(1, |s| {
+            (s.rate * time.dt.as_secs_f64())
+                .ceil()
+                .clamp(1., f64::from(policy.calls)) as u32
+        });
     let mut requests = Vec::new();
     let mut cold_request = None;
     let mut fresh = Vec::new();
@@ -1175,7 +1228,7 @@ fn advance(
         let (calls, iterations) = if selected {
             (policy.calls, policy.iterations)
         } else {
-            (1, native.ordinary_contact_iterations())
+            (floor, native.ordinary_contact_iterations())
         };
         let result = if let Some(probe) = observer.as_deref_mut().filter(|_| selected) {
             native.advance_box_contacts(
@@ -1244,7 +1297,7 @@ fn advance(
                 return;
             }
         }
-    } else if requests.is_empty() {
+    } else if requests.is_empty() && floor == 1 {
         let result = if fresh.is_empty() {
             native.step(time.dt).map(|_| 0)
         } else {
@@ -1259,11 +1312,16 @@ fn advance(
         }
         None
     } else {
+        let (calls, iterations) = if requests.is_empty() {
+            (floor, native.ordinary_contact_iterations())
+        } else {
+            (policy.calls, policy.iterations)
+        };
         match selected_interval(
             native,
             *time,
-            policy.calls,
-            policy.iterations,
+            calls,
+            iterations,
             &fresh,
             observer.as_deref_mut(),
         ) {
@@ -1532,8 +1590,13 @@ fn advance(
         }
     }
     if let Some(interval) = receipt
-        && !requests.is_empty()
+        && (!requests.is_empty() || floor > 1)
     {
+        let solver = if requests.is_empty() {
+            native.ordinary_contact_iterations()
+        } else {
+            policy.iterations
+        };
         let requested_pairs = requests
             .into_iter()
             .map(|i| {
@@ -1570,12 +1633,13 @@ fn advance(
             })
             .collect();
         policy.last = Some(Refinement {
+            speed_stop_floor: floor,
             epoch: time.epoch,
             iteration: time.iteration,
             start_time: time.start_time,
             sim_time: time.sim_time,
             requested_pairs,
-            solver: policy.iterations,
+            solver,
             interval,
         });
     }

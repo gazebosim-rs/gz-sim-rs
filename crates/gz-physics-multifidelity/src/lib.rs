@@ -574,6 +574,10 @@ impl MultiFidelityBackend {
     pub fn pending_world_wrench(&self, id: BodyId) -> Option<([f64; 3], [f64; 3])> {
         self.solver.pending_world_wrench(id)
     }
+    /// Native rigid clock demand for a screw's finite effort and physical speed stop.
+    pub fn screw_stop_resolution_rate(&self, id: JointId) -> Option<f64> {
+        self.solver.screw_stop_resolution_rate(id)
+    }
 
     /// Accumulated one-step torque on a resident native joint.
     pub fn pending_joint_effort(&self, id: JointId) -> Option<f64> {

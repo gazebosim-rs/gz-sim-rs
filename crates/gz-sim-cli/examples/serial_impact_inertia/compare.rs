@@ -101,6 +101,7 @@ fn compare(a: &Run, b: &Run, measured: &Native, reference: &Native) -> Differenc
 #[derive(Serialize)]
 pub(super) struct Comparison<'a> {
     trial: &'a Trial,
+    reference_first_native_steps: Option<u32>,
     tensors_kg_m2: [[f64; 3]; 5],
     native_left_tensor_kg_m2: [[f64; 3]; 3],
     native_robot_mass_kg: f64,
@@ -112,23 +113,38 @@ pub(super) struct Comparison<'a> {
 }
 
 pub(super) fn against_fine(a: &Run) -> Result<Comparison<'_>> {
+    let first = if a.trial.stop_guard {
+        Some(a.samples[0].native_steps)
+    } else {
+        a.trial.first_native_steps
+    };
     let fork = |substeps| {
         run(Trial {
             substeps,
             automatic: false,
             impact_iterations: None,
             impact_pgs: None,
+            first_native_steps: first,
+            stop_guard: false,
             replay: None,
             ..a.trial.clone()
         })
     };
     let b = fork(4000)?;
     let c = fork(8000)?;
+    if first.is_some() {
+        for r in [&b, &c] {
+            assert_eq!(a.samples[0].bodies, r.samples[0].bodies);
+            assert_eq!(a.samples[0].joint_velocity, r.samples[0].joint_velocity);
+            assert_eq!(a.samples[0].joint_position, r.samples[0].joint_position);
+        }
+    }
     let primary = Native::from_run(a);
     let check = Native::from_run(&b);
     let fine = Native::from_run(&c);
     Ok(Comparison {
         trial: &a.trial,
+        reference_first_native_steps: first,
         tensors_kg_m2: a.tensors_kg_m2,
         native_left_tensor_kg_m2: a.native_left_tensor_kg_m2,
         native_robot_mass_kg: a.native_robot_mass_kg,

@@ -17,6 +17,9 @@ use serde::Serialize;
 #[path = "serial_impact_inertia/compare.rs"]
 mod compare;
 #[cfg(test)]
+#[path = "serial_impact_inertia/spindle_tests.rs"]
+mod spindle_tests;
+#[cfg(test)]
 #[path = "serial_impact_inertia/tests.rs"]
 mod tests;
 #[path = "serial_impact_inertia/timing.rs"]
@@ -71,6 +74,15 @@ struct Trial {
     /// Fixed-time projected Gauss–Seidel passes per selected solver iteration.
     #[arg(long, requires = "automatic", value_parser = clap::value_parser!(u32).range(1..=32))]
     impact_pgs: Option<u32>,
+    /// Also resolve the spindle's rated effort against its physical speed stop on advancing ticks.
+    #[arg(long, requires = "automatic")]
+    stop_guard: bool,
+    /// First-tick budget for a uniform reference that must start its tail at the same post-impact state.
+    #[arg(long,conflicts_with="automatic",value_parser=clap::value_parser!(u32).range(1..=8000))]
+    first_native_steps: Option<u32>,
+    /// Reverse the passive 3 N·m effort to challenge the negative speed stop.
+    #[arg(long, requires = "passive_spindle")]
+    reverse_torque: bool,
     /// Strike the outer right jaw from positive X.
     #[arg(long)]
     right: bool,
@@ -146,6 +158,12 @@ fn fixture(trial: &Trial) -> String {
             <pair><foot>default::parcel::box</foot><support>default::gripper::left</support><incoming_face>-x</incoming_face></pair>
             <pair><foot>default::parcel::box</foot><support>default::gripper::right</support><incoming_face>+x</incoming_face></pair>
           </plugin></world>"#, trial.substeps, trial.impact_iterations.unwrap_or(4)));
+    }
+    if trial.stop_guard {
+        xml = xml.replace(
+            "<native_steps>",
+            "<speed_stop_joint>default::gripper::spindle</speed_stop_joint><native_steps>",
+        );
     }
     for (name, mass, dims) in LINKS {
         let [ix, iy, iz] = tensor(mass, dims, trial.divisor);
@@ -265,6 +283,7 @@ impl From<BodyState> for State {
 struct Sample {
     ms: u32,
     native_steps: u32,
+    speed_stop_floor: u32,
     bodies: Vec<State>,
     impact: Impact,
     joint_position: [f64; 6],
@@ -317,7 +336,10 @@ fn load_robot(trial: &Trial, xml: &str) -> Result<(Simulation, Vec<BodyId>, [Ent
     let joint = JOINTS.map(|name| entity(&sim, &format!("gripper::{name}")));
     if trial.passive_spindle.is_some() {
         let id = sim.world().get::<EntityId>(joint[1]).unwrap().get();
-        gz_sim_scene::JointForceCommand::set_batch(&mut sim, [(id, 3.)])?;
+        gz_sim_scene::JointForceCommand::set_batch(
+            &mut sim,
+            [(id, if trial.reverse_torque { -3. } else { 3. })],
+        )?;
     }
     Ok((sim, bodies, joint))
 }
@@ -349,7 +371,8 @@ fn run(trial: Trial) -> Result<Run> {
     let native_robot_mass_kg = subtree(0)?.mass_kg;
     let incoming = states(&sim, &bodies);
     let n = trial.substeps;
-    let uniform = n > 1 && !trial.automatic;
+    let first = trial.first_native_steps.unwrap_or(n);
+    let uniform = (n > 1 || first > 1) && !trial.automatic;
     if uniform {
         sim.initialize_schedules()?;
         assert_eq!(
@@ -366,7 +389,7 @@ fn run(trial: Trial) -> Result<Run> {
                 let native = backend.downcast_mut::<MultiFidelityBackend>().unwrap();
                 let segment = ContactSegment {
                     duration: clock.dt,
-                    native_steps: n,
+                    native_steps: if clock.start_time.is_zero() { first } else { n },
                     iterations: native.ordinary_contact_iterations(),
                 };
                 *impact = Impact::default();
@@ -385,8 +408,16 @@ fn run(trial: Trial) -> Result<Run> {
             sim.step_exact(1)?;
             let selected = gz_sim_scene::primary_contact::last_refinement(&sim)
                 .filter(|p| p.sim_time == sim.elapsed());
-            let native_steps =
-                selected.map_or(if uniform { n } else { 1 }, |r| r.interval.native_steps);
+            let native_steps = selected.map_or(
+                if uniform && ms == 1 {
+                    first
+                } else if uniform {
+                    n
+                } else {
+                    1
+                },
+                |r| r.interval.native_steps,
+            );
             let impact = if let Some(r) = selected {
                 Impact::integrated(r, ids)
             } else if !uniform {
@@ -422,6 +453,7 @@ fn run(trial: Trial) -> Result<Run> {
             samples.push(Sample {
                 ms,
                 native_steps,
+                speed_stop_floor: selected.map_or(1, |r| r.speed_stop_floor),
                 bodies: states(&sim, &bodies),
                 impact,
                 joint_position,

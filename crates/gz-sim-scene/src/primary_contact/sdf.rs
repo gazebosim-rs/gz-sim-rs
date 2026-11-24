@@ -70,6 +70,7 @@ pub(super) struct NamedPair {
     pub projection: Option<Projection>,
 }
 pub(crate) struct Plan {
+    pub(super) speed_stop_joint: Option<String>,
     pub(super) world: String,
     pub(super) calls: u32,
     pub(super) iterations: ContactSolverIterations,
@@ -147,6 +148,7 @@ pub(crate) fn parse(
     {
         return Err(err("invalid plugin attributes"));
     }
+    let mut speed_stop_joint = None;
     let mut calls = None;
     let mut iters = None;
     let mut pgs = None;
@@ -158,6 +160,13 @@ pub(crate) fn parse(
             return Err(err("invalid policy child or attributes"));
         }
         match n.tag_name().name() {
+            "speed_stop_joint" if speed_stop_joint.is_none() => {
+                speed_stop_joint = Some(
+                    field(n)
+                        .ok_or_else(|| err("speed_stop_joint requires a scoped joint name"))?
+                        .to_owned(),
+                );
+            }
             "native_steps" if calls.is_none() => {
                 calls = Some(
                     field(n)
@@ -821,8 +830,15 @@ pub(crate) fn parse(
             _ => return Err(err("unknown or duplicate policy field")),
         }
     }
-    if pairs.is_empty() {
-        return Err(err("requires at least one foot/support pair"));
+    if speed_stop_joint.is_some() && pairs.iter().any(|pair| pair.incoming_face.is_none()) {
+        return Err(err(
+            "speed_stop_joint can accompany incoming_face pairs or run alone",
+        ));
+    }
+    if pairs.is_empty() && speed_stop_joint.is_none() {
+        return Err(err(
+            "requires at least one foot/support pair or speed_stop_joint",
+        ));
     }
     for p in pairs.iter().filter(|p| p.share_coplanar_face) {
         if pairs.iter().any(|v| {
@@ -847,6 +863,7 @@ pub(crate) fn parse(
         }
     }
     Ok(Some(Plan {
+        speed_stop_joint,
         world: world.name.clone(),
         calls: calls.unwrap_or(8),
         iterations: ContactSolverIterations {

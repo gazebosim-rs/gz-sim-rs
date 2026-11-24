@@ -213,6 +213,38 @@ impl AxisCap {
 }
 
 impl RapierBackend {
+    /// Native calls per second for the rated torque of a finite, speed-limited screw.
+    /// A free parent/child couple changes their relative speed by the sum of both
+    /// projected inverse inertias times torque. Budget one speed-limit increment
+    /// per existing temporal solver sweep. Constraints and external loads can change
+    /// the actual acceleration.
+    pub fn screw_stop_resolution_rate(&self, id: JointId) -> Option<f64> {
+        let c = self.joints.records.get(&id)?.initial;
+        let JointMotion::Screw { effort_limit, .. } = c.motion else {
+            return None;
+        };
+        let Some(AxisCap::Bounded { limit, .. }) = &self.joints.speed_caps.get(&id)?[0] else {
+            return None;
+        };
+        if !effort_limit.is_finite() || effort_limit <= 0. {
+            return None;
+        }
+        let body = |id| &self.world.bodies[self.bodies[&id].0];
+        let inverse = |rb: &RigidBody, rotation: Rotation| {
+            let props = &rb.mass_properties().local_mprops;
+            let axis = props.principal_inertia_local_frame.inverse() * (rotation * Vector::X);
+            (axis * axis).dot(props.inv_principal_inertia)
+        };
+        let child = body(c.child);
+        let child_inverse = inverse(child, c.frame2.rotation);
+        let parent_inverse = c
+            .parent
+            .map_or(0., |id| inverse(body(id), c.frame1.rotation));
+        let sweeps = self.world.integration_parameters.num_solver_iterations
+            + child.additional_solver_iterations();
+        Some((child_inverse + parent_inverse) * effort_limit / limit / (sweeps as f64))
+    }
+
     /// Set physical angular speed limits on the coordinates of a world-mounted
     /// screw or universal joint during construction. Limits use radians/second.
     pub fn set_world_joint_speed_limits(
