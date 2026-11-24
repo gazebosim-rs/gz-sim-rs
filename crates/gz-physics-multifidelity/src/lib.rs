@@ -49,9 +49,9 @@ pub use gz_physics_rapier::{
     RobotSpring, RockingLimitReceipt, SharedFaceReceipt, SharedSupportLoad, SharedSupportRequest,
     SlidingEdgeImpactReceipt, SlidingPointReceipt, SlidingVertexReceipt, SoftRigidInertia,
     SoftSphereInertia, SoleFoot, SoleTransferReceipt, SolidRay, StickingPointReceipt,
-    StoredContactPoint, SupportExpiry, SupportLoss, SupportLossReason, SustainedEdgeReceipt,
-    TwoBearingReceipt, UniversalJointState, WeldedAssemblyState, partition_prediction_distance,
-    predicts_box_contact,
+    StoredContactPoint, SubtreeMomentum, SupportExpiry, SupportLoss, SupportLossReason,
+    SustainedEdgeReceipt, TwoBearingReceipt, UniversalJointState, WeldedAssemblyState,
+    partition_prediction_distance, predicts_box_contact,
 };
 pub use gz_physics_rapier::{
     BoxContactActions, BoxContactOutcome, CompactPointTail, ContactIntervalPair,
@@ -1709,6 +1709,17 @@ impl MultiFidelityBackend {
     pub fn add_ball_effort(&mut self, id: JointId, torque: [f64; 3]) -> Result<(), PhysicsError> {
         self.solver
             .add_ball_effort(id, torque)
+            .map_err(engine_error)
+    }
+
+    /// World-space momentum and kinetic energy of the complete downstream tree.
+    pub fn subtree_momentum_about(
+        &self,
+        id: JointId,
+        point_world_m: [f64; 3],
+    ) -> Result<SubtreeMomentum, PhysicsError> {
+        self.solver
+            .subtree_momentum_about(id, point_world_m)
             .map_err(engine_error)
     }
 

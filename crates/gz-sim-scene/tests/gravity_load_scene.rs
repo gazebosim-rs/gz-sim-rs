@@ -43,6 +43,13 @@ fn resolves_owned_public_ids_and_preserves_the_authored_axes_of_an_ordinary_hing
         Err(InputError::MissingEntity(_))
     ));
     assert_eq!(locked_subtree_inertia(&sim, joint).unwrap().mass_kg, 3.);
+    assert!(gz_sim_scene::subtree_momentum_about(&sim, link, [0.; 3]).is_err());
+    assert_eq!(
+        gz_sim_scene::subtree_momentum_about(&sim, joint, [0.; 3])
+            .unwrap()
+            .kinetic_energy_j,
+        0.
+    );
     let held = joint_gravity_load(&sim, joint).unwrap();
     assert!(held.torque_nm.iter().all(|v| v.abs() > 0.05));
     let xml = r#"<sdf version="1.12"><world name="default"><gravity>0 0 -9.81</gravity><physics name="local" type="ignored"><max_step_size>0.001</max_step_size></physics><model name="hinge"><link name="load"><inertial><mass>1</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name="c"><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link><joint name="pivot" type="revolute"><pose>0.03 0.09 0.02 0.11 -0.23 0.58</pose><parent>world</parent><child>load</child><axis><xyz>1 0 0</xyz></axis></joint></model></world></sdf>"#;
@@ -65,6 +72,13 @@ fn resolves_owned_public_ids_and_preserves_the_authored_axes_of_an_ordinary_hing
         .get::<EntityId>()
         .unwrap()
         .get();
+    assert_eq!(
+        gz_sim_scene::subtree_momentum_about(&ordinary, id, [1., 2., 3.])
+            .unwrap()
+            .linear_kg_m_s,
+        [0.; 3]
+    );
+    assert!(gz_sim_scene::subtree_momentum_about(&ordinary, id, [f64::NAN; 3]).is_err());
     let load = joint_gravity_load(&ordinary, id).unwrap();
     let axes = glam::DQuat::from_rotation_z(0.58)
         * glam::DQuat::from_rotation_y(-0.23)
@@ -107,6 +121,7 @@ fn external_constraints_cannot_silently_turn_a_tree_load_into_a_closed_loop_read
             .resource_mut::<PhysicsBackend>()
             .add_world_revolute(body, [0.; 3], [0., 1., 0.])
             .unwrap();
+        assert!(gz_sim_scene::subtree_momentum_about(&sim, id, [0.; 3]).is_err());
         assert!(matches!(
             locked_subtree_inertia(&sim, id),
             Err(InputError::Physics(_))

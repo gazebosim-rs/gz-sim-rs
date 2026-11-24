@@ -96,3 +96,67 @@ fn ambiguous_or_external_edges_reject_the_connected_robot_but_leave_its_neighbor
         assert_eq!(b.joint_gravity_load(j).unwrap().force_n[2], -50.);
     }
 }
+
+#[test]
+fn moving_descendants_contribute_independent_spin_translation_and_work() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let carrier = body(&mut b, [0.; 3], 9.);
+    let arm = body(&mut b, [1., 0., 0.], 2.);
+    let sphere = body(&mut b, [1., 1., 0.], 3.);
+    let sibling = body(&mut b, [0., 0., 2.], 7.);
+    let root = b
+        .add_robot_joint(
+            Some(carrier),
+            arm,
+            [0.; 3],
+            RobotJoint::Ball {
+                orientation: [0., 0., 0., 1.],
+            },
+        )
+        .unwrap();
+    b.add_robot_joint(
+        Some(arm),
+        sphere,
+        [1., 0., 0.],
+        RobotJoint::Ball {
+            orientation: [0., 0., 0., 1.],
+        },
+    )
+    .unwrap();
+    weld(&mut b, Some(carrier), sibling);
+    for (id, linear, angular) in [
+        (arm, [0., 1., 0.], [0., 0., 1.]),
+        (sphere, [-2., 1., 0.], [0., 0., 2.]),
+        (sibling, [7., -9., 8.], [1., 2., 3.]),
+    ] {
+        let rb = &mut b.world.bodies[b.bodies[&id].0];
+        rb.set_linvel(linear.into(), true);
+        rb.set_angvel(angular.into(), true);
+    }
+    let at = b.subtree_momentum_about(root, [0.; 3]).unwrap();
+    assert_eq!(at.linear_kg_m_s, [-6., 5., 0.]);
+    // Solid spheres, both of radius 1 cm. Their child COM velocities are
+    // consistent with a 1 rad/s root and 2 rad/s absolute distal spin.
+    let (i1, i2) = (0.4 * 2. * 0.01_f64.powi(2), 0.4 * 3. * 0.01_f64.powi(2));
+    assert!((at.angular_kg_m2_s[2] - (11. + i1 + 2. * i2)).abs() < 1e-12);
+    assert!((at.kinetic_energy_j - (8.5 + 0.5 * i1 + 2. * i2)).abs() < 1e-12);
+    let point = Vector::new(3., -4., 5.);
+    let other = b.subtree_momentum_about(root, point.to_array()).unwrap();
+    let expected = Vector::from(at.angular_kg_m2_s) - point.cross(at.linear_kg_m_s.into());
+    assert!(expected.distance(other.angular_kg_m2_s.into()) < 1e-12);
+    assert_eq!(at.kinetic_energy_j, other.kinetic_energy_j);
+    assert!(matches!(
+        b.subtree_momentum_about(root, [f64::NAN; 3]),
+        Err(PhysicsError::InvalidValue)
+    ));
+    b.world.bodies[b.bodies[&sphere].0].set_angvel(Vector::splat(1e250), true);
+    assert!(matches!(
+        b.subtree_momentum_about(root, [0.; 3]),
+        Err(PhysicsError::InvalidValue)
+    ));
+    assert!(b.remove_joint(root));
+    assert!(matches!(
+        b.subtree_momentum_about(root, [0.; 3]),
+        Err(PhysicsError::MissingJoint)
+    ));
+}

@@ -518,6 +518,28 @@ pub fn locked_subtree_inertia(
     Ok(data)
 }
 
+/// World-frame momentum and kinetic energy on the child side of a loaded
+/// local joint. The angular momentum uses a caller-specified world point so
+/// observations can be compared across steps even when the parent moves.
+pub fn subtree_momentum_about(
+    sim: &Simulation,
+    id: u64,
+    point_world_m: [f64; 3],
+) -> Result<gz_physics_multifidelity::SubtreeMomentum, InputError> {
+    let (_, joint) = loaded_joint(sim, id)?;
+    let backend = sim.world().resource::<PhysicsBackend>();
+    if let Some(local) = backend.downcast_ref::<gz_physics_multifidelity::MultiFidelityBackend>() {
+        return local
+            .subtree_momentum_about(joint, point_world_m)
+            .map_err(input_error);
+    }
+    backend
+        .downcast_ref::<gz_physics_rapier::RapierBackend>()
+        .ok_or(InputError::InvalidPhysics)?
+        .subtree_momentum_about(joint, point_world_m)
+        .map_err(input_error)
+}
+
 fn loaded_joint(sim: &Simulation, id: u64) -> Result<(Entity, JointId), InputError> {
     let world = sim.world();
     let entity = entity_by_id(world, id).ok_or(InputError::MissingEntity(id))?;

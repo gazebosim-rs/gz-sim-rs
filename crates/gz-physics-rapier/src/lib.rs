@@ -84,7 +84,7 @@ pub use joints::{
 };
 pub use joints::{
     BallJointState, JointGravityLoad, LockedSubtreeInertia, RobotJoint, RobotSpring,
-    UniversalJointState, WeldedAssemblyState,
+    SubtreeMomentum, UniversalJointState, WeldedAssemblyState,
 };
 pub(crate) use joints::{BearingModes, BearingResult};
 #[cfg(feature = "partition-checkpoint")]

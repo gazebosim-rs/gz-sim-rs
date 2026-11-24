@@ -22,6 +22,13 @@ struct Sample {
     velocity_error_rad_s: f64,
     inertia_error_kg_m2: f64,
     center_error_m: f64,
+    angular_momentum_world_kg_m2_s: [f64; 3],
+    applied_torque_parent_nm: [f64; 3],
+    gravity_moment_world_nm: [f64; 3],
+    total_moment_world_nm: [f64; 3],
+    kinetic_energy_j: f64,
+    potential_energy_j: f64,
+    kinetic_reference_error_j: f64,
 }
 
 fn trajectory(tick: usize) -> (f64, f64, f64) {
@@ -79,6 +86,7 @@ fn episode(
     let wrists = ["held", "free"].map(|m| Wrist::new(sim, m));
     let entities = ["held", "free"].map(|m| named(sim, &format!("default::{m}::bearing")));
     let axis = DVec3::new(0.4, -0.18, 0.9).normalize();
+    let substeps = 1_000_000 / sim.step_duration().as_nanos();
     let drives = [
         SphericalDrive::new(24., 2.4, LIMIT_NM)?,
         SphericalDrive::new(0., 0., LIMIT_NM)?,
@@ -131,7 +139,26 @@ fn episode(
             };
             let residual =
                 DQuat::from_array(encoder.orientation) * DQuat::from_axis_angle(axis, -angle);
+            let (pivot, carrier) = pose(sim, wrist.carrier);
+            let axes = carrier * rotation([0.31, -0.42, 0.63]);
+            let momentum =
+                gz_sim_scene::subtree_momentum_about(sim, wrist.bearing, pivot.to_array())?;
+            let disturbance = if stabilize && (450..470).contains(&tick) {
+                DVec3::from_array(DISTURBANCE_NM)
+            } else {
+                DVec3::ZERO
+            };
+            let applied = torque + axes.inverse() * disturbance;
             Ok(Sample {
+                angular_momentum_world_kg_m2_s: momentum.angular_kg_m2_s,
+                applied_torque_parent_nm: applied.to_array(),
+                gravity_moment_world_nm: (axes * gravity).to_array(),
+                total_moment_world_nm: (axes * (applied + gravity)).to_array(),
+                kinetic_energy_j: momentum.kinetic_energy_j,
+                potential_energy_j: 3. * 9.81 * (pivot + axes * center).z,
+                kinetic_reference_error_j: (momentum.kinetic_energy_j
+                    - 0.5 * omega.dot(independent * omega))
+                .abs(),
                 actual_xyzw: encoder.orientation,
                 velocity_rad_s: encoder.angular_velocity,
                 torque_nm: torque.to_array(),
@@ -143,32 +170,70 @@ fn episode(
         };
         let pair = [sample(0)?, sample(1)?];
         if tick < end {
-            for i in 0..2 {
-                if stabilize && (450..470).contains(&tick) {
-                    let id = sim
-                        .world()
-                        .get::<EntityId>(wrists[i].payload)
-                        .unwrap()
-                        .get();
-                    gz_sim_scene::queue_link_world_wrench(sim, id, [0.; 3], DISTURBANCE_NM)?;
+            for _ in 0..substeps {
+                for i in 0..2 {
+                    if stabilize && (450..470).contains(&tick) {
+                        let id = sim
+                            .world()
+                            .get::<EntityId>(wrists[i].payload)
+                            .unwrap()
+                            .get();
+                        gz_sim_scene::queue_link_world_wrench(sim, id, [0.; 3], DISTURBANCE_NM)?;
+                    }
+                    queue_ball_joint_effort(sim, wrists[i].bearing, pair[i].torque_nm)?;
                 }
-                queue_ball_joint_effort(sim, wrists[i].bearing, pair[i].torque_nm)?;
+                sim.step_exact(1)?;
             }
-            sim.step_exact(1)?;
         }
         trace.push(pair);
     }
     Ok(trace)
 }
 
-pub(super) fn record(out: &Path, stabilize: bool) -> Result<()> {
+/// Work uses the committed quaternion increment of the moving joint. Momentum
+/// balance uses the external moment about the fixed bearing, in world axes.
+fn energy_balance(trace: &[[Sample; 2]], arm: usize) -> Value {
+    let first = &trace[0][arm];
+    let energy0 = first.kinetic_energy_j + first.potential_energy_j;
+    let momentum0 = DVec3::from(first.angular_momentum_world_kg_m2_s);
+    let mut work = 0.;
+    let mut angular_impulse = DVec3::ZERO;
+    let mut peak_work_residual = 0_f64;
+    let mut peak_momentum_residual = 0_f64;
+    let mut peak_kinetic_disagreement = first.kinetic_reference_error_j;
+    for pair in trace.windows(2) {
+        let (a, b) = (&pair[0][arm], &pair[1][arm]);
+        let delta = DQuat::from_array(b.actual_xyzw) * DQuat::from_array(a.actual_xyzw).inverse();
+        work += DVec3::from(a.applied_torque_parent_nm).dot(delta.to_scaled_axis());
+        let gravity_delta =
+            DVec3::from(b.gravity_moment_world_nm) - DVec3::from(a.gravity_moment_world_nm);
+        angular_impulse += DT * (DVec3::from(a.total_moment_world_nm) + 0.5 * gravity_delta);
+        let residual = b.kinetic_energy_j + b.potential_energy_j - energy0 - work;
+        peak_work_residual = peak_work_residual.max(residual.abs());
+        peak_momentum_residual = peak_momentum_residual.max(
+            (DVec3::from(b.angular_momentum_world_kg_m2_s) - momentum0 - angular_impulse).length(),
+        );
+        peak_kinetic_disagreement = peak_kinetic_disagreement.max(b.kinetic_reference_error_j);
+    }
+    json!({"applied_work_j":work,"peak_work_residual_j":peak_work_residual,
+        "peak_angular_impulse_residual_nm_s":peak_momentum_residual,"peak_kinetic_reference_error_j":peak_kinetic_disagreement})
+}
+
+pub(super) fn record(out: &Path, stabilize: bool, substeps: u8) -> Result<()> {
     if out.exists() {
         return Err("choose a new inertia recording directory".into());
     }
-    let mut sim = load_world_with_sdf_step(
+    if !matches!(substeps, 1 | 2 | 4) {
+        return Err(
+            "native substeps must evenly divide the actuator tick: choose 1, 2 or 4".into(),
+        );
+    }
+    let native_dt = std::time::Duration::from_nanos(1_000_000 / u64::from(substeps));
+    let mut sim = gz_sim_scene::load_world_with_engine(
         XML,
         "gravity_wrist.sdf",
         "default",
+        native_dt,
         &sdformat::NoResources,
         PhysicsEngine::MultiFidelity,
     )?;
@@ -213,6 +278,8 @@ pub(super) fn record(out: &Path, stabilize: bool) -> Result<()> {
             "drive_limit_nm":LIMIT_NM, "max_torque_nm":[maximum_effort(0),maximum_effort(1)],
             "peak_angle_error_rad":[peak(0),peak(1)],"last":first[end], "reset_exact":true});
     }
+    result["native_step_ns"] = json!(native_dt.as_nanos());
+    result["balance"] = json!([energy_balance(&first, 0), energy_balance(&first, 1)]);
     let captures = if stabilize {
         json!({"before_pulse":45,"after_pulse":47,"braking":65,"hold":100,"end":end/10})
     } else {
@@ -242,8 +309,9 @@ mod tests {
     fn full_inertia_tracks_the_oblique_rotation_after_reset() -> Result<()> {
         let tmp = tempfile::tempdir()?;
         let out = tmp.path().join("wrist");
-        record(&out, false)?;
-        assert!(record(&out, false).is_err());
+        assert!(record(&out, false, 3).is_err());
+        record(&out, false, 1)?;
+        assert!(record(&out, false, 1).is_err());
         let comparison: serde_json::Value =
             serde_json::from_slice(&fs::read(out.join("comparison.json"))?)?;
         assert!(comparison["full_peak_angle_error_rad"].as_f64().unwrap() < 0.015);
@@ -311,7 +379,7 @@ mod tests {
         let dir = tempfile::tempdir()?;
         let file = dir.path().join("file");
         fs::write(&file, b"occupied")?;
-        assert!(record(&file.join("recording"), false).is_err());
+        assert!(record(&file.join("recording"), false, 1).is_err());
         assert_eq!(fs::read(file)?, b"occupied");
         Ok(())
     }
@@ -319,7 +387,7 @@ mod tests {
     fn a_torque_limited_drive_recovers_from_the_same_external_disturbance() -> Result<()> {
         let dir = tempfile::tempdir()?;
         let out = dir.path().join("disturbed");
-        record(&out, true)?;
+        record(&out, true, 1)?;
         let value: serde_json::Value =
             serde_json::from_slice(&fs::read(out.join("comparison.json"))?)?;
         let peak = value["peak_angle_error_rad"][0].as_f64().unwrap();

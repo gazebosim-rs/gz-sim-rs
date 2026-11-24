@@ -35,12 +35,17 @@ struct Options {
     /// Recover from a measured disturbance using a torque-limited spherical drive.
     #[arg(long, conflicts_with = "accelerate")]
     stabilize: bool,
+    /// Native steps per 1 ms actuator tick in the two moving-wrist experiments.
+    #[arg(long,default_value_t=1,value_parser=clap::value_parser!(u8).range(1..=4))]
+    physics_substeps: u8,
 }
 
 fn main() -> Result<()> {
     let options = Options::parse();
     if options.accelerate || options.stabilize {
-        inertia::record(&options.output, options.stabilize)
+        inertia::record(&options.output, options.stabilize, options.physics_substeps)
+    } else if options.physics_substeps != 1 {
+        Err("select --accelerate or --stabilize to vary the native step".into())
     } else {
         record(&options.output)
     }

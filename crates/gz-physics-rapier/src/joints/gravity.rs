@@ -26,6 +26,16 @@ pub struct LockedSubtreeInertia {
     pub parent_frame_rotation: [f64; 4],
 }
 
+/// Linear and angular momentum and kinetic energy of all child-side bodies.
+/// Velocities and momentum are absolute world-frame values in SI units.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SubtreeMomentum {
+    pub linear_kg_m_s: [f64; 3],
+    /// About the caller's world-space reference point.
+    pub angular_kg_m2_s: [f64; 3],
+    pub kinetic_energy_j: f64,
+}
+
 /// Each valid subtree occupies a contiguous range in preorder. Topology is
 /// built once per joint graph; each query visits only its downstream bodies.
 #[derive(Clone, Default)]
@@ -167,6 +177,40 @@ impl RapierBackend {
             center_of_mass_m: center.to_array(),
             inertia_kg_m2: inertia.to_cols_array_2d(),
             parent_frame_rotation: joint.frame1.rotation.to_array(),
+        })
+    }
+
+    /// Measure each downstream link at its own velocity. A mobile descendant
+    /// contributes its individual spin and translational kinetic energy.
+    pub fn subtree_momentum_about(
+        &self,
+        id: JointId,
+        point_world_m: [f64; 3],
+    ) -> Result<SubtreeMomentum, PhysicsError> {
+        let reference = Vector::from_array(point_world_m);
+        if !reference.is_finite() {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let (_, bodies) = self.downstream_bodies(id)?;
+        let (mut linear, mut angular, mut energy) = (Vector::ZERO, Vector::ZERO, 0.);
+        for body in bodies {
+            let rb = &self.world.bodies[self.bodies[body].0];
+            let props = &rb.mass_properties().local_mprops;
+            let axes = *rb.rotation() * props.principal_inertia_local_frame;
+            let omega = axes.inverse() * rb.angvel();
+            let spin = props.principal_inertia() * omega;
+            let momentum = props.mass() * rb.linvel();
+            linear += momentum;
+            angular += axes * spin + (rb.center_of_mass() - reference).cross(momentum);
+            energy += (0.5 * rb.linvel()).dot(momentum) + (0.5 * omega).dot(spin);
+        }
+        if !linear.is_finite() || !angular.is_finite() || !energy.is_finite() {
+            return Err(PhysicsError::InvalidValue);
+        }
+        Ok(SubtreeMomentum {
+            linear_kg_m_s: linear.to_array(),
+            angular_kg_m2_s: angular.to_array(),
+            kinetic_energy_j: energy,
         })
     }
 

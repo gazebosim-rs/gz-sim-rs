@@ -95,7 +95,7 @@ pub use inputs::{
     pending_free_link_wrench, pending_link_world_wrench, queue_ball_joint_drive,
     queue_ball_joint_effort, queue_joint_effort, queue_link_force_at_point,
     queue_link_world_velocity, queue_link_world_wrench, queue_universal_joint_effort,
-    set_joint_force,
+    set_joint_force, subtree_momentum_about,
 };
 
 mod schedule;
