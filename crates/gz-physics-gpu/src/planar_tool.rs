@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! An inelastic round tool on a planar articulated arm, touching a horizontal floor.
 use crate::arithmetic::{Condition, Scalar};
-use crate::planar_arm::{ArmInertia, tick_with_velocity};
+use crate::planar_arm::{ArmInertia, rotate_by, tick_with_velocity};
 use crate::{GpuError, PlanarArmLane, PlanarJointStops, ResidentBatch, STEP, kernel, planar_stops};
 use bytemuck::{Pod, Zeroable};
 
@@ -154,6 +154,48 @@ pub(super) fn crossing<T: Scalar>([c, s]: [T; 2], [x, y]: [T; 2], z: T, one: T) 
             .select(z - one, z),
     )
 }
+/// Find a free-to-loaded boundary inside the public step. The prediction uses
+/// exactly the same midpoint position update as the subsequent free advance.
+/// The upper bound includes contact, leaving the rest of the tick for the
+/// constrained motion. Settled contact and clear flight keep their two half steps.
+fn impact_boundary<T: Scalar>(
+    v: &[T; WIDTH],
+    mass: &ArmInertia<T>,
+    half_step: T,
+    z: T,
+    one: T,
+    half: T,
+) -> T {
+    let start = [[v[0], v[1]], [v[2], v[3]]];
+    let speed = [v[4], v[5]];
+    let motor = Some(([v[38], v[39]], [v[40], v[41]]));
+    let [a, b, _, _] = mass.dynamics(v, start, speed, motor, z);
+    let gap = |[[c, s], [d, t]]: [[T; 2]; 2]| v[6] * s + v[7] * (s * d + c * t) - v[29] - v[28];
+    let reaches = |dt: T| {
+        let ht = half * dt;
+        gap([
+            rotate_by(v[0], v[1], ht * (v[4] + ht * a), one),
+            rotate_by(v[2], v[3], ht * (v[5] + ht * b), one),
+        ])
+        .at_most(z)
+    };
+    let end = half_step + half_step;
+    let middle_loaded = reaches(half_step);
+    let crossed = v[31]
+        .at_most(z)
+        .and(gap(start).greater(z))
+        .and(middle_loaded.or(reaches(end)));
+    let mut lo = middle_loaded.select(z, half_step);
+    let mut hi = middle_loaded.select(half_step, end);
+    for _ in 0..7 {
+        let mid = (lo + hi) * half;
+        let hit = reaches(mid);
+        hi = hit.select(mid, hi);
+        lo = hit.select(lo, mid);
+    }
+    crossed.and(hi.less(end)).select(hi, half_step)
+}
+
 fn solve<T: Scalar, const BOUNDED: bool>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 17] {
     let [dt, z, one, half] = *constants else {
         unreachable!()
@@ -176,11 +218,15 @@ fn solve<T: Scalar, const BOUNDED: bool>(mut v: [T; WIDTH], constants: &[T]) -> 
         // A sphere rigidly welded to link two also rolls with omega1+omega2.
         (h - radius - floor, [x, x2], [radius - h, radius - z2])
     };
-    for offset in [z, dt] {
+    let boundary = impact_boundary(&v, &mass, dt, z, one, half);
+    for (offset, dt) in [(z, boundary), (boundary, dt + dt - boundary)] {
         let (start, _, _) = geometry(&v);
         let before = [[v[0], v[1]], [v[2], v[3]]];
-        for (i, value) in tick_with_velocity(&v, constants, Some(([v[38], v[39]], [v[40], v[41]])))
-        {
+        for (i, value) in tick_with_velocity(
+            &v,
+            &[dt, z, one, half],
+            Some(([v[38], v[39]], [v[40], v[41]])),
+        ) {
             v[i] = value;
         }
         for (i, from) in before.into_iter().enumerate() {

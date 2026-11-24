@@ -223,7 +223,7 @@ fn run(adapter: &str, out: &Path) -> Result<(), Box<dyn Error>> {
     let result = json!({"adapter":sim.world().resource::<PlanarToolBatch>().device_info().name,"lanes":LANES,"ticks":TICKS,
         "all_ticks_reset_sha256":format!("{digest:x}"),"lowered_floor_minimum_gap_m":sham_gap,"lowered_floor_lane":LANES-1,
         "max_discrepancy_order":["onset_s","first_normal_fraction","first_10_ticks_normal_fraction","release_s"],"worst_cartesian":worst[0],"worst_rapier":worst[1],
-        "gpu_dispatch_p95_ns":(!dispatch.is_empty()).then(||dispatch[(dispatch.len()*95).div_ceil(100)-1] as u64),"lift_before_tick":LIFT,"gpu_internal_dt_s":0.0005,"reference_dt_s":0.0000625,"cases":cases,"dense_bevy_p95_ns":timing[(TICKS*95).div_ceil(100)-1] as u64});
+        "gpu_dispatch_p95_ns":(!dispatch.is_empty()).then(||dispatch[(dispatch.len()*95).div_ceil(100)-1] as u64),"lift_before_tick":LIFT,"gpu_nominal_internal_dt_s":0.0005,"gpu_public_dt_s":0.001,"touchdown_boundary_bisections":7,"reference_dt_s":0.0000625,"cases":cases,"dense_bevy_p95_ns":timing[(TICKS*95).div_ceil(100)-1] as u64});
     println!("{}", serde_json::to_string_pretty(&result)?);
     let bounds = [
         [0.000010, 0.015, 0.020, 0.001001],

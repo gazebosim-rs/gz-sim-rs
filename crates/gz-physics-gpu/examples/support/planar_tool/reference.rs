@@ -96,11 +96,14 @@ fn impulse(vn: f64, vt: f64, nn: f64, nt: f64, tt: f64, mu: f64) -> [f64; 2] {
     [n, sign * mu * n]
 }
 pub fn fine_step(s: &mut State, l: &Lane) -> Observation {
+    refined_step(s, l, std::num::NonZeroUsize::new(16).unwrap())
+}
+pub fn refined_step(s: &mut State, l: &Lane, steps: std::num::NonZeroUsize) -> Observation {
     let mut obs = Observation::default();
-    let h = 0.001 / 16.;
-    for k in 0..16 {
+    let h = 0.001 / steps.get() as f64;
+    for k in 0..steps.get() {
         let old = s.points(&l.arm)[1][1] - l.radius - l.ground_z;
-        s.rk4(&l.arm, h);
+        s.rk4_motor(&l.arm, h, Some((l.velocity_mode, l.velocity_target)));
         let [elbow, tip] = s.points(&l.arm);
         let gap = tip[1] - l.radius - l.ground_z;
         if gap <= 0. {

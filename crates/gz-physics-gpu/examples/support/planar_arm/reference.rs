@@ -54,13 +54,21 @@ impl State {
         let b = turn(self.q[0] + self.q[1]).map(|v| l.length[1] * v);
         [a, [a[0] + b[0], a[1] + b[1]]]
     }
-    fn derivative(self, l: &Lane) -> Self {
+    fn derivative(self, l: &Lane, motor: Option<([f64; 2], [f64; 2])>) -> Self {
         let u = turn(self.q[0]);
         let v = turn(self.q[0] + self.q[1]);
         let mut a = l.inertia[0] + l.inertia[1];
         let mut b = l.inertia[1];
         let mut d = l.inertia[1];
         let mut f = servo(l, self.q, self.w);
+        if let Some((mode, speed)) = motor {
+            for i in 0..2 {
+                if mode[i] == 1. {
+                    f[i] = (l.damping[i] * (speed[i] - self.w[i]))
+                        .clamp(-l.effort_limit[i], l.effort_limit[i]);
+                }
+            }
+        }
         for (m, x, y) in [
             (l.mass[0], l.center[0], 0.),
             (l.mass[1], l.length[0], l.center[1]),
@@ -85,12 +93,12 @@ impl State {
         }
     }
     pub fn discrete(&mut self, l: &Lane) {
-        let start = self.derivative(l);
+        let start = self.derivative(l, None);
         let mut mid = self.offset(start, 0.0005);
         for i in 0..2 {
             mid.q[i] = self.q[i] + 2. * (0.00025 * self.w[i]).atan();
         }
-        let dw = mid.derivative(l).w;
+        let dw = mid.derivative(l, None).w;
         for (i, acc) in dw.into_iter().enumerate() {
             self.q[i] += 2. * (0.0005 * mid.w[i]).atan();
             self.w[i] += 0.001 * acc;
@@ -108,10 +116,13 @@ impl State {
         }
     }
     pub fn rk4(&mut self, l: &Lane, h: f64) {
-        let a = self.derivative(l);
-        let b = self.offset(a, h * 0.5).derivative(l);
-        let c = self.offset(b, h * 0.5).derivative(l);
-        let d = self.offset(c, h).derivative(l);
+        self.rk4_motor(l, h, None);
+    }
+    pub fn rk4_motor(&mut self, l: &Lane, h: f64, motor: Option<([f64; 2], [f64; 2])>) {
+        let a = self.derivative(l, motor);
+        let b = self.offset(a, h * 0.5).derivative(l, motor);
+        let c = self.offset(b, h * 0.5).derivative(l, motor);
+        let d = self.offset(c, h).derivative(l, motor);
         *self = self
             .offset(a, h / 6.)
             .offset(b, h / 3.)

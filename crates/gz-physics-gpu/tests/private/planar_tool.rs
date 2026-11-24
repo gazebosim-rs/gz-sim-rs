@@ -357,3 +357,28 @@ fn finite_stops_reject_invalid_ranges_and_retain_multiturn_order() {
         }
     }
 }
+
+#[test]
+fn measured_arm_landing_integrates_the_remaining_load_on_the_same_public_tick() {
+    let mut l = sample();
+    let q = [0.48_f64 - 0.1352207501553569, -0.62 + 0.11955202500386763];
+    l.arm.angle = q.map(|q| [q.cos(), q.sin()]);
+    l.arm.speed = [-2.7371816473033457, 0.2431650870780966];
+    l.arm.length = [0.30, 0.21];
+    l.arm.center = [0.15, 0.12];
+    l.arm.inertia = [0.0062, 0.0034];
+    l.arm.tip_mass = 0.;
+    l.arm.gravity = 9.81;
+    l.arm.damping = [6., 1.5];
+    l.arm.effort_limit = [8., 2.8];
+    l.radius = 0.018;
+    l.ground_z = 0.05;
+    l.velocity_mode = [1.; 2];
+    l.velocity_target = [-2.4, 0.4479749961323609];
+    let result = advance(l);
+    // The independent Cartesian integration uses 512 steps from this incoming cut.
+    assert!((result.first_contact_offset - 0.00064909209).abs() < 2e-6);
+    assert!((result.first_normal_impulse - 0.29729368).abs() < 0.00012);
+    assert!((result.normal_impulse - 0.30321932).abs() < 0.00035);
+    assert!((result.tangent_impulse + 0.0909658).abs() < 0.00012);
+}

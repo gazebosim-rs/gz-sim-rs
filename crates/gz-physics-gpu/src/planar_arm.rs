@@ -125,6 +125,35 @@ pub(super) struct ArmInertia<T> {
     distal_weight: T,
 }
 impl<T: Scalar> ArmInertia<T> {
+    pub(super) fn dynamics(
+        &self,
+        v: &[T],
+        [[c1, s1], [c2, s2]]: [[T; 2]; 2],
+        [w1, w2]: [T; 2],
+        motor: Option<([T; 2], [T; 2])>,
+        zero: T,
+    ) -> [T; 4] {
+        let torque = |i: usize, c: T, s: T, w: T| {
+            let err = v[17 + 2 * i] * c - v[16 + 2 * i] * s;
+            let proportional = v[20 + i] * err;
+            let drive = motor.map_or(proportional, |(enabled, speed)| {
+                enabled[i]
+                    .greater(zero)
+                    .select(v[22 + i] * speed[i], proportional)
+            });
+            (drive - v[22 + i] * w)
+                .maximum(zero - v[24 + i])
+                .minimum(v[24 + i])
+        };
+        let k = self.k;
+        let u1 = torque(0, c1, s1, w1);
+        let u2 = torque(1, c2, s2, w2);
+        let g2 = self.distal_weight * (c1 * c2 - s1 * s2);
+        let f1 = u1 + k * s2 * w2 * (w1 + w1 + w2) - self.shoulder_weight * c1 - g2;
+        let f2 = u2 - k * s2 * w1 * w1 - g2;
+        let [a, b] = self.inverse(c2, s2, [f1, f2]);
+        [a, b, u1, u2]
+    }
     pub(super) fn momentum(&self, c: T, w: [T; 2]) -> [T; 2] {
         let m12 = self.b + self.k * c;
         let m11 = self.a + self.b + self.k * c + self.k * c;
@@ -165,6 +194,13 @@ impl<T: Scalar> ArmInertia<T> {
         }
     }
 }
+/// Apply one Cayley rotation using its half-angle parameter.
+pub(super) fn rotate_by<T: Scalar>(c: T, s: T, t: T, one: T) -> [T; 2] {
+    let x = c * (one - t * t) - s * (t + t);
+    let y = s * (one - t * t) + c * (t + t);
+    let norm = (x * x + y * y).root();
+    [x / norm, y / norm]
+}
 pub(super) fn tick<T: Scalar>(v: &[T], constants: &[T]) -> [(usize, T); 8] {
     tick_with_velocity(v, constants, None)
 }
@@ -179,36 +215,9 @@ pub(super) fn tick_with_velocity<T: Scalar>(
     };
     let (c1, s1, c2, s2) = (v[0], v[1], v[2], v[3]);
     let (w1, w2) = (v[4], v[5]);
-    let torque = |i: usize, c: T, s: T, w: T| {
-        let err = v[17 + 2 * i] * c - v[16 + 2 * i] * s;
-        let proportional = v[20 + i] * err;
-        let drive = motor.map_or(proportional, |(enabled, speed)| {
-            enabled[i]
-                .greater(zero)
-                .select(v[22 + i] * speed[i], proportional)
-        });
-        (drive - v[22 + i] * w)
-            .maximum(zero - v[24 + i])
-            .minimum(v[24 + i])
-    };
     let mass = ArmInertia::from_lane(v);
-    let k = mass.k;
-    let solve = |[c1, s1]: [T; 2], [c2, s2]: [T; 2], w1: T, w2: T| {
-        let u1 = torque(0, c1, s1, w1);
-        let u2 = torque(1, c2, s2, w2);
-        let g2 = mass.distal_weight * (c1 * c2 - s1 * s2);
-        let f1 = u1 + k * s2 * w2 * (w1 + w1 + w2) - mass.shoulder_weight * c1 - g2;
-        let f2 = u2 - k * s2 * w1 * w1 - g2;
-        let [a, b] = mass.inverse(c2, s2, [f1, f2]);
-        [a, b, u1, u2]
-    };
-    let rotate = |c: T, s: T, w: T| {
-        let t = half * dt * w;
-        let x = c * (one - t * t) - s * (t + t);
-        let y = s * (one - t * t) + c * (t + t);
-        let norm = (x * x + y * y).root();
-        [x / norm, y / norm]
-    };
+    let solve = |a, b, u, w| mass.dynamics(v, [a, b], [u, w], motor, zero);
+    let rotate = |c, s, w| rotate_by(c, s, half * dt * w, one);
     // Explicit midpoint in relative joint coordinates. The Cayley rotation
     // advances a unit phasor without vendor-specific f64 trigonometry.
     let [a0, b0, _, _] = solve([c1, s1], [c2, s2], w1, w2);

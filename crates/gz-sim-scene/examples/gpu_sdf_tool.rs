@@ -278,8 +278,16 @@ fn compare_commands(trace: &Path, out: &Path, stopped: bool) -> Result<(), Box<d
     println!("{result}");
     Ok(())
 }
+#[path = "gpu_sdf_tool/landing.rs"]
+mod landing;
+
 fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
+    if let [mode, trace, out] = args.as_slice()
+        && mode == "--landing"
+    {
+        return landing::run(Path::new(trace), Path::new(out));
+    }
     if let [mode, trace, out] = args.as_slice()
         && matches!(mode.as_str(), "--commands" | "--stops")
     {

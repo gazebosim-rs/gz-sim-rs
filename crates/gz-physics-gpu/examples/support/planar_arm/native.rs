@@ -71,13 +71,26 @@ impl Native {
             let id = world.insert_multibody_joint(parent, child, hinge).unwrap();
             // Rapier seeds each free angular DOF with 0.1 viscous damping. The
             // fixture supplies all damping through the same torque-limited servo.
-            world
-                .multibody_joints
-                .get_mut(id)
-                .unwrap()
-                .0
-                .damping_mut()
-                .fill(0.0);
+            let (tree, _) = world.multibody_joints.get_mut(id).unwrap();
+            tree.damping_mut().fill(0.0);
+            if child == b && l.speed != [0.; 2] {
+                tree.forward_kinematics(&world.bodies, true);
+                tree.generalized_velocity_mut()
+                    .as_mut_slice()
+                    .copy_from_slice(&l.speed);
+                let [w1, w2] = l.speed;
+                let omega1 = -Vector::Y * w1;
+                let omega2 = -Vector::Y * (w1 + w2);
+                let elbow = Vector::new(points[0][0], 0., points[0][1]);
+                for (id, omega, velocity) in
+                    [(a, omega1, Vector::ZERO), (b, omega2, omega1.cross(elbow))]
+                {
+                    let rb = &mut world.bodies[id];
+                    let center = *rb.rotation() * Vector::X * if id == a { l.center[0] } else { c };
+                    rb.set_angvel(omega, true);
+                    rb.set_linvel(velocity + omega.cross(center), true);
+                }
+            }
         }
         Self {
             world,

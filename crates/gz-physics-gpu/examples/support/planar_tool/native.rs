@@ -9,6 +9,7 @@ pub struct NativeTool {
     tool: ColliderHandle,
     ground: ColliderHandle,
     measure_limits: bool,
+    steps: usize,
     pub limit_residual: [f64; 2],
 }
 impl NativeTool {
@@ -23,7 +24,7 @@ impl NativeTool {
         arm.world
             .integration_parameters
             .normalized_allowed_linear_error = 0.;
-        arm.world.integration_parameters.dt = 0.001 / 16.;
+
         let tool = arm.world.insert_collider(
             ColliderBuilder::ball(l.radius)
                 .translation(Vector::X * l.arm.length[1])
@@ -39,13 +40,21 @@ impl NativeTool {
                 .restitution(0.),
             None,
         );
-        Self {
+        let mut result = Self {
             arm,
             tool,
             ground,
             measure_limits: limits.iter().any(Option::is_some),
+            steps: 16,
             limit_residual: [0.; 2],
-        }
+        };
+        result.set_steps_per_ms(std::num::NonZeroUsize::new(16).unwrap());
+        result
+    }
+    /// Keep commands on their original clock while refining Rapier's internal solve.
+    pub fn set_steps_per_ms(&mut self, steps: std::num::NonZeroUsize) {
+        self.steps = steps.get();
+        self.arm.world.integration_parameters.dt = 0.001 / self.steps as f64;
     }
     // Independent generalized momentum and smooth ∂L/∂q from the rigid links.
     // Rapier does not expose impulse writeback on internal multibody limits.
@@ -78,7 +87,8 @@ impl NativeTool {
     pub fn step(&mut self, l: &Lane) -> Observation {
         let mut obs = Observation::default();
         self.limit_residual = [0.; 2];
-        for k in 0..16 {
+        let dt = self.arm.world.integration_parameters.dt;
+        for k in 0..self.steps {
             let before = self.measure_limits.then(|| self.balance_terms(l));
             let motor = self
                 .arm
@@ -115,7 +125,7 @@ impl NativeTool {
                             floor[1] +=
                                 (contact.x - elbow.x) * force.z - (contact.z - elbow.z) * force.x;
                         }
-                        obs.add(p.impulse, tangent.x, (k + 1) as f64 * 0.001 / 16.);
+                        obs.add(p.impulse, tangent.x, (k + 1) as f64 * dt);
                     }
                 }
             }
@@ -123,7 +133,7 @@ impl NativeTool {
                 let (p1, g1) = self.balance_terms(l);
                 for i in 0..2 {
                     self.limit_residual[i] +=
-                        p1[i] - p0[i] - (motor[i] + (g0[i] + g1[i]) * 0.5) * 0.001 / 16. - floor[i];
+                        p1[i] - p0[i] - (motor[i] + (g0[i] + g1[i]) * 0.5) * dt - floor[i];
                 }
             }
         }
