@@ -116,3 +116,26 @@ fn the_same_receiver_can_drop_before_or_after_the_fingers_unload() -> Result<()>
     assert_eq!(late.last().unwrap()["jaws_up_n"], 0.0);
     Ok(())
 }
+
+#[test]
+fn receiver_clearance_requires_a_live_body_and_its_finite_box_geometry() {
+    let xml = sheet_jaws::setdown_world(16, false, true).unwrap();
+    let mut r = Recording::new(&xml, "lost-receiver.sdf", "default").unwrap();
+    let id = entity_id(&r.sim, "default::source::body").unwrap();
+    let e = entity_by_id(r.sim.world(), id).unwrap();
+    r.sim.world_mut().entity_mut(e).remove::<BodyHandle>();
+    let err = episode(&mut r, Mode::DropEarly, &mut None).unwrap_err();
+    assert!(err.to_string().contains("missing body"));
+
+    let mut xml = xml;
+    let source = xml.find(r#"<model name="source">"#).unwrap();
+    let start = source + xml[source..].find("<box>").unwrap();
+    let end = start + xml[start..].find("</box>").unwrap() + "</box>".len();
+    xml.replace_range(start..end, "<sphere><radius>0.06</radius></sphere>");
+    let mut r = Recording::new(&xml, "round-receiver.sdf", "default").unwrap();
+    let err = episode(&mut r, Mode::DropEarly, &mut None).unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("missing box geometry on source::body")
+    );
+}
