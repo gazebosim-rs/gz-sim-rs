@@ -129,6 +129,34 @@ fn fallback_recomputes_nonflat_rows_and_accepts_restored_topology() {
         parallel_pose_updates(8193)
     );
     let (model, link) = rows[8020];
+    let original_local = sim.world().get::<LocalPose>(link).unwrap().0;
+    // A reader can edit a component directly between commits. Correct each half
+    // independently, including a non-finite quaternion and a different translation.
+    sim.world_mut()
+        .get_mut::<LocalPose>(link)
+        .unwrap()
+        .0
+        .rotation[1] = f64::NAN;
+    sim.step_exact(1).unwrap();
+    equal(
+        sim.world().get::<LocalPose>(link).unwrap().0,
+        original_local,
+    );
+    sim.world_mut()
+        .get_mut::<LocalPose>(link)
+        .unwrap()
+        .0
+        .translation[2] = 246.;
+    sim.step_exact(1).unwrap();
+    equal(
+        sim.world().get::<LocalPose>(link).unwrap().0,
+        original_local,
+    );
+    sim.world_mut().clear_trackers();
+    sim.step_exact(1).unwrap();
+    let unchanged = sim.world().entity(link).get_ref::<LocalPose>().unwrap();
+    equal(unchanged.0, original_local);
+    assert!(unchanged.is_changed());
     let (other, _) = rows[310];
     sim.world_mut().entity_mut(model).insert(ChildOf(other));
     sim.step_exact(1).unwrap();
