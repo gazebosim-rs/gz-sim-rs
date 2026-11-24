@@ -431,7 +431,8 @@ fn isolated_rate_cpu() -> (Simulation, ServerOptions, Rates, RateSetup, Arc<Atom
         .collect();
     let config = network_config();
     let drops = Arc::new(AtomicU64::new(0));
-    let (mut rates, setup) = Rates::prepare(&config, &metadata, &drops).unwrap();
+    let (mut rates, setup) =
+        Rates::prepare(&config, &metadata, std::iter::empty(), &drops).unwrap();
     rates.bind(&simulation).unwrap();
     (simulation, config, rates, setup, drops)
 }
@@ -502,7 +503,8 @@ fn malformed_and_oversized_queries_keep_only_bounded_scalar_markers_for_cpu_budg
         .iter_entities()
         .filter_map(|entity| entity.get::<ImuPublication>().cloned())
         .collect();
-    let (mut rates, setup) = Rates::prepare(&config, &metadata, &drops).unwrap();
+    let (mut rates, setup) =
+        Rates::prepare(&config, &metadata, std::iter::empty(), &drops).unwrap();
     rates.bind(&simulation).unwrap();
     let session = zenoh::open(zenoh_config()).wait().unwrap();
     let (sender, incoming) = mpsc::sync_channel(2);
@@ -724,7 +726,8 @@ fn queued_rate_session_close_preserves_scalar_admission_and_full_queue_accountin
             .iter_entities()
             .filter_map(|entity| entity.get::<ImuPublication>().cloned())
             .collect();
-        let (mut rates, setup) = Rates::prepare(&config, &sensors, &drops).unwrap();
+        let (mut rates, setup) =
+            Rates::prepare(&config, &sensors, std::iter::empty(), &drops).unwrap();
         rates.bind(&simulation).unwrap();
         let id = rates.providers[0].id.unwrap();
         let session = zenoh::open(zenoh_config()).wait().unwrap();
@@ -904,8 +907,13 @@ fn shared_rate_providers_retire_individually_and_loaded_reset_discards_unread_wo
         .iter_entities()
         .filter_map(|entity| entity.get::<ImuPublication>().cloned())
         .collect();
-    let (mut rates, setup) =
-        Rates::prepare(&config, &sensors, &server.world_io.ingress_drops).unwrap();
+    let (mut rates, setup) = Rates::prepare(
+        &config,
+        &sensors,
+        std::iter::empty(),
+        &server.world_io.ingress_drops,
+    )
+    .unwrap();
     rates.bind(&server.simulation).unwrap();
     assert_eq!(rates.providers.len(), 2);
     assert_eq!(setup.providers[0].key, setup.providers[1].key);

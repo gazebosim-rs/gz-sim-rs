@@ -7,7 +7,9 @@ use gz_sim_proto::{
     msgs::{Double, Empty},
     prost::{Message, Name},
 };
-use gz_sim_scene::{ImuPublication, RateChange, set_imu_rate};
+use gz_sim_scene::{
+    ImuPublication, LidarPublication, RateChange, lidar_rate, set_imu_rate, set_lidar_rate,
+};
 use std::{
     collections::BTreeMap,
     num::NonZeroUsize,
@@ -51,8 +53,49 @@ fn endpoint_groups<'a>(
     Ok(groups)
 }
 
+/// Normalize the constructed raw rate sibling, then apply exactly one remap
+/// and qualification. Native normalization removes forbidden token pairs.
+pub(crate) fn lidar_endpoint(
+    config: &ServerOptions,
+    sensor: &LidarPublication,
+) -> Result<String, SetupError> {
+    config.topic_key(&crate::options::as_valid_topic(&format!(
+        "{}/set_rate",
+        sensor.topic
+    )))
+}
+
+// Lidar control endpoints are never shared. The retained IMU endpoint groups
+// deliberately keep their existing same-key multiple-provider semantics.
+fn lidar_groups<'a>(
+    config: &ServerOptions,
+    sensors: impl IntoIterator<Item = &'a LidarPublication>,
+    imus: &BTreeMap<String, Vec<ProviderSpec>>,
+) -> Result<BTreeMap<String, &'a LidarPublication>, Error> {
+    let mut groups = BTreeMap::new();
+    let mut names = std::collections::BTreeSet::new();
+    for sensor in sensors {
+        let key = lidar_endpoint(config, sensor)?;
+        if groups.len() >= 8
+            || sensor.entity_name.is_empty()
+            || !names.insert(sensor.entity_name.as_str())
+            || imus.contains_key(&key)
+            || groups.insert(key, sensor).is_some()
+        {
+            return Err(Error::LidarIdentity);
+        }
+    }
+    Ok(groups)
+}
+
+enum Family {
+    Imu,
+    Lidar(LidarPublication),
+}
+
 pub(crate) struct Provider {
     name: String,
+    family: Family,
     id: Option<u64>,
     input: mpsc::Receiver<Option<f64>>,
     active: Arc<AtomicBool>,
@@ -90,16 +133,20 @@ impl Rates {
     pub(crate) fn prepare<'a>(
         config: &ServerOptions,
         sensors: impl IntoIterator<Item = &'a ImuPublication>,
+        lidars: impl IntoIterator<Item = &'a LidarPublication>,
         ingress_drops: &Arc<AtomicU64>,
     ) -> Result<(Self, RateSetup), Error> {
         let mut providers = Vec::new();
         let mut declarations = Vec::new();
-        for (key, specs) in endpoint_groups(config, sensors)? {
+        let imu_groups = endpoint_groups(config, sensors)?;
+        let lidar_groups = lidar_groups(config, lidars, &imu_groups)?;
+        for (key, specs) in imu_groups {
             for spec in specs {
                 let (input, receiver) = mpsc::sync_channel(config.capacity);
                 let active = Arc::new(AtomicBool::new(true));
                 providers.push(Provider {
                     name: spec.name,
+                    family: Family::Imu,
                     id: None,
                     input: receiver,
                     active: Arc::clone(&active),
@@ -110,6 +157,18 @@ impl Rates {
                     active,
                 });
             }
+        }
+        for (key, metadata) in lidar_groups {
+            let (input, receiver) = mpsc::sync_channel(config.capacity);
+            let active = Arc::new(AtomicBool::new(true));
+            providers.push(Provider {
+                name: metadata.entity_name.clone(),
+                family: Family::Lidar(metadata.clone()),
+                id: None,
+                input: receiver,
+                active: Arc::clone(&active),
+            });
+            declarations.push(DeclarationSpec { key, input, active });
         }
         Ok((
             Self { providers, next: 0 },
@@ -122,20 +181,51 @@ impl Rates {
     }
 
     pub(crate) fn bind(&mut self, sim: &Simulation) -> Result<(), Error> {
-        let mut identities = BTreeMap::new();
+        let mut imus = BTreeMap::new();
+        let mut lidars = BTreeMap::new();
+        let has_lidars = self
+            .providers
+            .iter()
+            .any(|provider| matches!(&provider.family, Family::Lidar(_)));
         for entity in sim.world().iter_entities() {
             if entity.contains::<gz_sim_scene::PendingResetRemoval>() {
                 continue;
             }
             if let Some(sensor) = entity.get::<ImuPublication>() {
                 let id = entity.get::<EntityId>().ok_or(Error::ImuIdentity)?.get();
-                if identities.insert(sensor.entity_name.as_str(), id).is_some() {
+                if imus.insert(sensor.entity_name.as_str(), id).is_some() {
                     return Err(Error::ImuIdentity);
                 }
             }
+            if has_lidars && let Some(sensor) = entity.get::<LidarPublication>() {
+                let id = entity.get::<EntityId>().ok_or(Error::LidarIdentity)?.get();
+                if lidars.len() >= 8
+                    || entity_by_id(sim.world(), id) != Some(entity.id())
+                    || entity.get::<gz_sim_scene::EntityKind>()
+                        != Some(&gz_sim_scene::EntityKind::Sensor)
+                    || lidar_rate(sim, id).is_err()
+                    || lidars
+                        .insert(sensor.entity_name.as_str(), (id, sensor))
+                        .is_some()
+                {
+                    return Err(Error::LidarIdentity);
+                }
+            }
         }
-        for provider in &mut self.providers {
-            provider.id = identities.get(provider.name.as_str()).copied();
+        // Complete the new-family preflight before assigning even the first ID.
+        let mut ids = Vec::with_capacity(self.providers.len());
+        for provider in &self.providers {
+            ids.push(match &provider.family {
+                Family::Imu => imus.get(provider.name.as_str()).copied(),
+                Family::Lidar(expected) => match lidars.get(provider.name.as_str()) {
+                    Some((id, actual)) if *actual == expected => Some(*id),
+                    Some(_) => return Err(Error::LidarIdentity),
+                    None => None,
+                },
+            });
+        }
+        for (provider, id) in self.providers.iter_mut().zip(ids) {
+            provider.id = id;
         }
         self.retire(sim);
         Ok(())
@@ -143,11 +233,28 @@ impl Rates {
 
     pub(crate) fn retire(&mut self, sim: &Simulation) {
         self.providers.retain(|provider| {
-            provider
+            let Some((id, entity)) = provider
                 .id
-                .and_then(|id| entity_by_id(sim.world(), id))
-                .and_then(|entity| sim.world().get::<ImuPublication>(entity))
-                .is_some_and(|sensor| sensor.entity_name == provider.name)
+                .and_then(|id| entity_by_id(sim.world(), id).map(|entity| (id, entity)))
+            else {
+                return false;
+            };
+            match &provider.family {
+                Family::Imu => sim
+                    .world()
+                    .get::<ImuPublication>(entity)
+                    .is_some_and(|sensor| sensor.entity_name == provider.name),
+                Family::Lidar(expected) => {
+                    sim.world()
+                        .get::<LidarPublication>(entity)
+                        .is_some_and(|sensor| {
+                            sensor == expected && sensor.entity_name == provider.name
+                        })
+                        && sim.world().get::<gz_sim_scene::EntityKind>(entity)
+                            == Some(&gz_sim_scene::EntityKind::Sensor)
+                        && lidar_rate(sim, id).is_ok()
+                }
+            }
         });
         if self.providers.is_empty() {
             self.providers = Vec::new();
@@ -172,7 +279,17 @@ impl Rates {
                 .collect(),
             Err(error) => return Err(error.into()),
         };
-        let (mut replacement, setup) = Self::prepare(config, &sensors, ingress_drops)?;
+        let lidars: Vec<_> = match gz_sim_scene::initial_lidar_publications(sim) {
+            Ok(sensors) => sensors.cloned().collect(),
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => sim
+                .world()
+                .iter_entities()
+                .filter(|entity| !entity.contains::<gz_sim_scene::PendingResetRemoval>())
+                .filter_map(|entity| entity.get::<LidarPublication>().cloned())
+                .collect(),
+            Err(error) => return Err(error.into()),
+        };
+        let (mut replacement, setup) = Self::prepare(config, &sensors, &lidars, ingress_drops)?;
         replacement.bind(sim)?;
         Ok((replacement, setup))
     }
@@ -208,7 +325,11 @@ impl Rates {
                 }
                 match provider.input.try_recv() {
                     Ok(value) => {
-                        received = Some((provider.id, value));
+                        received = Some((
+                            provider.id,
+                            value,
+                            matches!(&provider.family, Family::Lidar(_)),
+                        ));
                         break;
                     }
                     Err(mpsc::TryRecvError::Empty) => {}
@@ -217,13 +338,25 @@ impl Rates {
                     }
                 }
             }
-            let Some((id, value)) = received else { break };
-            let change =
-                value.and_then(|value| id.and_then(|id| set_imu_rate(sim, id, value).ok()));
-            match change {
-                Some(RateChange::Applied) => counters.imu_rates_applied += 1,
-                Some(RateChange::Ignored) => counters.imu_rates_ignored += 1,
-                None => counters.imu_rates_rejected += 1,
+            let Some((id, value, lidar)) = received else {
+                break;
+            };
+            if lidar {
+                let change =
+                    value.and_then(|value| id.and_then(|id| set_lidar_rate(sim, id, value).ok()));
+                match change {
+                    Some(RateChange::Applied) => counters.lidar_rates_applied += 1,
+                    Some(RateChange::Ignored) => counters.lidar_rates_ignored += 1,
+                    None => counters.lidar_rates_rejected += 1,
+                }
+            } else {
+                let change =
+                    value.and_then(|value| id.and_then(|id| set_imu_rate(sim, id, value).ok()));
+                match change {
+                    Some(RateChange::Applied) => counters.imu_rates_applied += 1,
+                    Some(RateChange::Ignored) => counters.imu_rates_ignored += 1,
+                    None => counters.imu_rates_rejected += 1,
+                }
             }
         }
         Ok(())
@@ -426,3 +559,11 @@ impl Drop for RateDeclarations {
 #[cfg(test)]
 #[path = "../tests/private/rates.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/lidar_rates.rs"]
+mod lidar_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/lidar_rate_boundaries.rs"]
+mod lidar_boundary_tests;

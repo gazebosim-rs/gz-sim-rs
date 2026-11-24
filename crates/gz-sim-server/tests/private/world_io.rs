@@ -487,7 +487,8 @@ fn rate_only_retirement_completes_without_another_publication_or_install() {
         ..Default::default()
     };
     let (mut rates, setup) =
-        crate::rates::Rates::prepare(&config, [&sensor], &io.ingress_drops).unwrap();
+        crate::rates::Rates::prepare(&config, [&sensor], std::iter::empty(), &io.ingress_drops)
+            .unwrap();
     io.install_rates(setup).unwrap();
     let count = || {
         io.session
@@ -842,7 +843,8 @@ fn channel_shutdown_drains_real_rate_queries_after_reply_callback_returns() {
         ..Default::default()
     };
     let (rates, setup) =
-        crate::rates::Rates::prepare(&config, [&sensor], &io.ingress_drops).unwrap();
+        crate::rates::Rates::prepare(&config, [&sensor], std::iter::empty(), &io.ingress_drops)
+            .unwrap();
     io.install_rates(setup).unwrap();
     let ready = local_query(
         &io,
@@ -1216,7 +1218,8 @@ fn failed_sensor_setups_propagate_errors_without_poisoning_valid_installation() 
         .add_topic_remap("/imu/set_rate", "/invalid/#")
         .unwrap();
     let (mut bad_rates, setup) =
-        crate::rates::Rates::prepare(&options, [&sensor], &io.ingress_drops).unwrap();
+        crate::rates::Rates::prepare(&options, [&sensor], std::iter::empty(), &io.ingress_drops)
+            .unwrap();
     assert!(matches!(
         io.install_rates(setup),
         Err(crate::Error::WorldNetwork(_))
@@ -1224,7 +1227,8 @@ fn failed_sensor_setups_propagate_errors_without_poisoning_valid_installation() 
     bad_rates.clear();
     options.topic_remaps.clear();
     let (mut rates, setup) =
-        crate::rates::Rates::prepare(&options, [&sensor], &io.ingress_drops).unwrap();
+        crate::rates::Rates::prepare(&options, [&sensor], std::iter::empty(), &io.ingress_drops)
+            .unwrap();
     io.install_rates(setup).unwrap();
     let reply = local_query(
         &io,
@@ -1420,6 +1424,7 @@ fn publication_caps_and_shutdown_reject_new_frames_and_setup() {
     let (_, rates) = crate::rates::Rates::prepare(
         &options,
         std::iter::empty::<&gz_sim_scene::ImuPublication>(),
+        std::iter::empty(),
         &io.ingress_drops,
     )
     .unwrap();
@@ -1575,8 +1580,13 @@ fn cold_setup(io: &WorldIo, kind: ColdSetup) -> std::result::Result<(), crate::E
                 capacity: 1,
                 ..Default::default()
             };
-            let (_rates, setup) =
-                crate::rates::Rates::prepare(&options, [&sensor], &io.ingress_drops).unwrap();
+            let (_rates, setup) = crate::rates::Rates::prepare(
+                &options,
+                [&sensor],
+                std::iter::empty(),
+                &io.ingress_drops,
+            )
+            .unwrap();
             io.install_rates(setup)
         }
         ColdSetup::Forces => {

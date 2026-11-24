@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-24T03:47:30.930400+00:00",
+  "as_of": "2026-11-24T14:39:00.915482+00:00",
   "execution_state": "active",
-  "current_phase": "M114",
+  "current_phase": "M115",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -14361,6 +14361,64 @@
         "new_Python_methods": 0
       },
       "independent_Source_review_scope": "Whole Server source and Root integration reviewed independently. The six pre-execution findings were corrected as one batch and independently closed before formatting or verification."
+    },
+    {
+      "id": "M115",
+      "title": "Runtime CPU-lidar update-rate control",
+      "max_working_days": 5,
+      "depends_on": [
+        "M2",
+        "M114"
+      ],
+      "scope": "Read/set authored maximum and effective rates of existing CPU lidars using the exact retained IMU policy and SampleSchedule. Add the canonical Double-to-Empty rate sibling on the existing bounded IO/CPU owner, with at most eight lidar providers and unchanged scan/cloud defaults. Normalize the whole constructed raw topic plus /set_rate, then remap once and qualify.",
+      "acceptance": "Complete implementation, meaningful regressions, documentation and independent Source review before one consolidated verification cycle. Demonstrate exact policy/phase and atomic refusal, paused/no-interest handoff, same noisy scan/cloud acquisition, bounded fair queues and native canonical interoperability, live/original key preflight and repair, reset/retirement/old-generation cancellation, and unchanged IMU controls. Require both profiles, strict workspace/crate/changed-base coverage against all20 bases, independent local DATA, exact hosted CI and original-artifact audit. Parent qualification and formal browser/shutdown gates remain.",
+      "excluded": "Reflectance/hit provenance, new rays/resolution/noise models, camera clouds, other sensor families, IMU or scheduler changes, new schemas/sessions/runtime frameworks/SDK campaigns, DART/MuJoCo, Fuel, demo actions and cleanup.",
+      "delivery_guide": "docs/M115_DELIVERY.md",
+      "source_parent": "2419c92342dcd6f869c9832ba1d691b50a51a020",
+      "parent_tree": "c08baf47e466479d9eb359180280b809841d3490",
+      "parent_normal_passed": true,
+      "parent_local_DATA_passed": true,
+      "parent_hosted_passed": true,
+      "parent_official_passed": false,
+      "parent_fully_qualified": false,
+      "parent_accepted": false,
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": false,
+      "author_Source_reviews_complete": true,
+      "normalization_correction_complete": true,
+      "shared_integration_review_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "Source_control_declarations": {
+        "Rust_unique": 27,
+        "headless": 27,
+        "renderer": 11,
+        "shared": 11,
+        "public": 10,
+        "private": 17,
+        "new_Python_methods": 0,
+        "expected_Python_methods": 498,
+        "scope": "27 Source declarations; original22H11R observed in failed attempt2, additional5 unexecuted. No full normal qualification."
+      },
+      "strict_base_count": 20,
+      "Source_count": 1875,
+      "changed_Source_paths": 24,
+      "formatter_run": false,
+      "checks_run": false,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "future_tree": null,
+      "future_commit": null,
+      "actual_new_test_passes": null,
+      "accepted": false,
+      "Main_promoted": false,
+      "qualification_inherited": false,
+      "local_verification_may_overlap_parent_remote_closeout": true,
+      "parent_qualification_required_before_review_publication": true,
+      "prior_full_hook_failed": true,
+      "prior_coverage_failure": true
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -14478,10 +14536,11 @@
     "M111": "regression_compilation_lint_correction_unqualified",
     "M112": "regression_compilation_lint_correction_unqualified",
     "M113": "regression_compilation_lint_correction_unqualified",
-    "M114": "in_progress"
+    "M114": "in_progress",
+    "M115": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-24T03:03:13.519729+00:00",
+  "phase_started_at": "2026-11-24T13:57:14.048804+00:00",
   "active_phases": [
     "M77",
     "M78",
@@ -14520,7 +14579,8 @@
     "M111",
     "M112",
     "M113",
-    "M114"
+    "M114",
+    "M115"
   ],
   "execution_policy": "D30–D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -15855,30 +15915,37 @@
       ],
       "max_working_days": 5,
       "integration": "M114 implementation, regression source and guides are complete and independently reviewed; six pre-execution findings are corrected. No candidate checks, inherited qualification or acceptance. Root owns serial final verification after fresh resource admission."
+    },
+    {
+      "phases": [
+        "M115"
+      ],
+      "max_working_days": 5,
+      "integration": "Scene, Server and shared integration Source are independently reviewed, including the complete constructed-sibling normalization correction. Documentation review and final census remain. Parent normal/local passed; hosted is active and official pending. No M115 checks, inherited qualification or acceptance."
     }
   ],
-  "acceptance_boundary": "M114 has no check result. Parent02592 passed full normal, local DATA and exact hosted CI45297968661 attempt1; original-artifact audit also passed. Accepted M1–M76/202 slices and M77 formal browser/owner-confirmed shutdown gates remain.",
+  "acceptance_boundary": "M115 second full hook failed only the reported Server changed-line gate195/208 after4478.606s; H2195/R1694/Python498 passed, no commit or capacity stop. All available coverage gaps are batched as five private regressions with no production/gate changes. Parent hosted passed; parent official and own normal/local DATA remain publication gates; acceptance/M77 unchanged.",
   "current_delivery_group": [
-    "M114"
+    "M115"
   ],
-  "current_development_phase": "M114",
+  "current_development_phase": "M115",
   "board": {
-    "updated_at": "2026-11-24T03:47:30.930400+00:00",
+    "updated_at": "2026-11-24T16:30:26.225231+00:00",
     "current": {
-      "title": "M114 organized CPU-lidar point clouds",
+      "title": "Runtime CPU-lidar rate control: coverage regressions",
       "items": [
-        "Opt-in native-layout point clouds reuse the existing acquired scan sample.",
-        "Implementation, regression source and guides are complete and independently reviewed; no M114 verification result exists.",
-        "The parent passed local, hosted and independent original-artifact audits; M114 has no check result."
+        "Both Rust test profiles passed, but Server changed-line coverage failed the full hook. Five boundary regressions are being reviewed.",
+        "M114 hosted checks passed. Its independent official audit remains pending."
       ]
     },
     "done": [
-      "M102–M113 full normal and independent local DATA passed.",
-      "Exact hosted CI45297968661 attempt1 and independent original-artifact audit passed; all originals are retained."
+      "Preserved both M115 failures and the successful individual test results without claiming a full normal pass.",
+      "Mapped every available coverage gap; kept production behavior, assertions and all thresholds unchanged."
     ],
     "next": [
-      "Format the complete reviewed source once and restore SSD headroom for one full verification cycle.",
-      "Resolve formal browser and owner-confirmed shutdown evidence before acceptance."
+      "Finish the complete boundary regression and documentation review, then one affected formatter and one full mandatory retry.",
+      "Require parent official qualification and own full normal/local audit before review publication.",
+      "Complete formal browser and owner-confirmed shutdown evidence before acceptance."
     ],
     "blocker": {
       "text": "Formal acceptance still awaits M77 browser and owner-confirmed shutdown evidence. The persistent demo stays running.",
@@ -15887,7 +15954,7 @@
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M114"
+    "M115"
   ],
   "camera_integration": {
     "scope": "Atomic M61–M64 qualification on accepted M60; no new phase",
@@ -16036,7 +16103,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "Prepare one consolidated M114 final verification cycle after complete implementation, regressions, documentation and independent Source review; restore required SSD headroom first.",
+  "current_development_task": "Complete the five-case boundary coverage regression Source and documentation review before one affected formatter and one unchanged full required hook retry.",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -17193,7 +17260,7 @@
     },
     "official_qualified": true
   },
-  "phase_started_at_scope": "M114 Source implementation; five working days including review and gates",
+  "phase_started_at_scope": "M115 isolated Source implementation; at most five working days including independent review and all gates",
   "current_M82_parent_qualification": {
     "commit": "039a1e5142dd48705a23acb6f817613f509408f0",
     "tree": "420197183a1ec5b71f85f9c2181b9caa1d82a4c6",
@@ -22061,5 +22128,211 @@
     },
     "phase_catalog_checkpoint_scope": "First101 phase objects and prior58 parallel groups are exact historical parent observations. Current parent qualification and newly selected102/103 Source are recorded separately; no phase is accepted here.",
     "phase_started_at_scope": "Actual Root selection ca34205a followed by implementation dispatch4e9d; no verification result."
+  },
+  "current_wave_projection_scope": "Current M115 Source describes this isolated implementation. Earlier phase objects, groups and current_M* Source containers retain their checkpoint observations. current_M114_parent_qualification records actual parent normal, local DATA and exact hosted success, with independent official audit pending.",
+  "current_M114_parent_qualification": {
+    "state": "NORMAL_LOCAL_DATA_AND_EXACT_HOSTED_PASSED_OFFICIAL_PENDING",
+    "commit": "2419c92342dcd6f869c9832ba1d691b50a51a020",
+    "tree": "c08baf47e466479d9eb359180280b809841d3490",
+    "normal_actual": {
+      "filename": "m114-cpp-sequence-loop-normal-actual.json",
+      "sha256": "ac16a457e5746986d760ecee65121a1360d29f1a08348abf33e9feb01908abce",
+      "bytes": 1607,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "filename": "m114-retained-audit-actual.json",
+      "sha256": "5f3933cdc94b6703702047f613a60e3cb2535788408197975d094335ea00b39b",
+      "bytes": 2746,
+      "mode": 436
+    },
+    "review_publication": {
+      "filename": "review-publication.json",
+      "sha256": "210fff6e8a15f2d34e4a6581e813146c4267f7af3f17ce47160ba65734ee2103",
+      "bytes": 1886,
+      "mode": 436
+    },
+    "review_branch": "review/m114-organized-lidar-point-clouds",
+    "review_published": true,
+    "hosted_run": 45412754337,
+    "hosted_attempt": 1,
+    "hosted_state": "success",
+    "hosted_actual": {
+      "filename": "m114-hosted-terminal-metadata-actual.json",
+      "run": 45412754337,
+      "attempt": 1,
+      "conclusion": "success",
+      "head": "2419c92342dcd6f869c9832ba1d691b50a51a020"
+    },
+    "official_actual": null,
+    "fully_qualified": false,
+    "accepted": false,
+    "Main_promoted": false,
+    "scope": "The parent owns these normal/local proofs and current hosted observation. M115 inherits no qualification. Earlier phase objects retain their historical checkpoints."
+  },
+  "current_M115_Source": {
+    "state": "COMPLETE_REACHABLE_COVERAGE_REGRESSION_SOURCE_AUTHORING_REVIEW_PENDING",
+    "phase": "M115",
+    "phase_contract": "phases[M115]",
+    "source_parent": "2419c92342dcd6f869c9832ba1d691b50a51a020",
+    "parent_tree": "c08baf47e466479d9eb359180280b809841d3490",
+    "parent_evidence": "current_M114_parent_qualification",
+    "parent_normal_passed": true,
+    "parent_local_DATA_passed": true,
+    "parent_hosted_passed": true,
+    "parent_official_passed": false,
+    "parent_qualified": false,
+    "parent_accepted": false,
+    "selection": {
+      "filename": "source-selection-proposal.json",
+      "sha256": "41eac2105b40b1e2b1bf9eb5ff3900c465eab42f50a2916e43579c51e24cf9dd",
+      "bytes": 28442,
+      "mode": 436
+    },
+    "implementation_admission": {
+      "filename": "source-implementation-admission.json",
+      "sha256": "0244d87a4de407d1f18c7ad277a4ec280fa96ed1955443b625137c7f47a7fb99",
+      "bytes": 3530,
+      "mode": 436
+    },
+    "author_completions": [
+      {
+        "filename": "m115-lidar-rate-scene-source-completion.json",
+        "sha256": "143927ac71fed6aa571ca07a29535b996a5e9e06b7e874ff6f5be0d8e4d43437",
+        "bytes": 17836,
+        "mode": 436
+      },
+      {
+        "filename": "m115-lidar-rate-server-source-completion.json",
+        "sha256": "c0c21996a19c8f09aed3bd04082c1613add03be2379fbbebdceab08942029301",
+        "bytes": 58172,
+        "mode": 436
+      }
+    ],
+    "normalization_correction": {
+      "filename": "m115-normalized-sibling-server-source-completion.json",
+      "sha256": "4feabf88cabfff166d264f7472501e6b2b2a2c645761afb9bb4043eef1ee217a",
+      "bytes": 13487,
+      "mode": 436
+    },
+    "implementation_started": true,
+    "implementation_complete": true,
+    "regression_Source_complete": false,
+    "author_Source_reviews_complete": true,
+    "shared_integration_review_complete": true,
+    "independent_whole_Source_review_complete": false,
+    "documentation_Source_written": true,
+    "documentation_review_complete": false,
+    "Source_control_declarations": {
+      "Rust_unique": 27,
+      "headless": 27,
+      "renderer": 11,
+      "shared": 11,
+      "public": 10,
+      "private": 17,
+      "new_Python_methods": 0,
+      "expected_Python_methods": 498,
+      "scope": "27 Source declarations; original22H11R observed in failed attempt2, additional5 unexecuted. No full normal qualification."
+    },
+    "strict_base_count": 20,
+    "strict_bases": [
+      "2419c92342dcd6f869c9832ba1d691b50a51a020",
+      "02592f7aaf21d616bd6299aa87123455834794e7",
+      "08a0eeae97dede8daee6efe6cb2922bdb86ca722",
+      "1a4bdbb57f41b0cba3c7b71c1695fca9bc8387fc",
+      "a578c68a3fe4daa5e83ab0bc801e641f540576ee",
+      "ac4af1c738a9daaf3d9d899eca46c690d3aac22a",
+      "cc83ca4a62773edb80b05992fa67a03ff1dad134",
+      "e264c6494d69ccacf41e0b21ddf3827d1f12cd40",
+      "1e54399a4b1fbf565b64f3ddc8e35a1a8439137f",
+      "ee4df6c5851cc40b77a15b19c6e992434ee7bfff",
+      "22cffebd3d1f9f0be82e7ac35e557b42d08edea9",
+      "ba2d85ee2a0989ad192d224fbf76ba6ab27a51d0",
+      "11afe37a4747cd7c4c0ad9a2f466721b86b1a156",
+      "039a1e5142dd48705a23acb6f817613f509408f0",
+      "6ef85e9f2fbc0b371b2e0db3c366230ac8d9106e",
+      "ac75646aa5db9d1a1f983e47c0c86857415b9a2c",
+      "8ad64532489ffbb9bf62badb4a0835c34af81eaf",
+      "57b44de10713dc6132c5549d769dac00dc041f56",
+      "353dc9ae86aac56c7653f36a933d688b43fa6fbf",
+      "dddf1f4284557c420e384d263a4365b2153dfde2"
+    ],
+    "Source_count": 1875,
+    "changed_Source_paths": 24,
+    "new_Source_paths": 7,
+    "final_tree": null,
+    "future_commit": null,
+    "formatter_run": false,
+    "checks_run": false,
+    "verification_released": false,
+    "resource_admitted": false,
+    "resource_scope": "Fresh reviewed M115 resource admission is required; no inherited fit, cleanup or eviction authorization.",
+    "normal_actual": null,
+    "local_DATA_actual": null,
+    "hosted_actual": null,
+    "official_actual": null,
+    "actual_new_test_passes": null,
+    "guide_URL": null,
+    "Source_publication_available": false,
+    "qualified": false,
+    "accepted": false,
+    "Main_promoted": false,
+    "qualification_inherited": false,
+    "scope": "All10 reachable Server misses addressed by five new boundary controls; three unreachable defensive alternatives kept. Source/docs/review/affected formatter/full required retry remain; production and22 old bodies unchanged. Parent hosted passed, official pending.",
+    "local_verification_may_overlap_parent_remote_closeout": true,
+    "parent_qualification_required_before_review_publication": true,
+    "local_scheduling_amendment": {
+      "filename": "m115-local-parallel-verification-admission.json",
+      "authority": "Root scheduling decision under owner D31/continuous parallel delivery; independently Source reviewed",
+      "normal_result_inherited": false,
+      "one_local_heavy_workload": true,
+      "publication_released": false
+    },
+    "prior_formatter_completed": true,
+    "prior_full_hook_failed": true,
+    "prior_normal_failure": {
+      "filename": "m115-local-normal-attempt1-failure.json",
+      "sha256": "4d1d9c9c91c4ab9e87845d0e37dd04567200348b55e3baa822cfb0b3b2826c04",
+      "Root_actual_exit_code": 1,
+      "Git_actual_exit_code": 1,
+      "elapsed_seconds": 32.98771235800814,
+      "tree": "f1cceff609b3e1bf0c2e334ffe60be6b181ae1fd",
+      "tests_or_coverage_reached": false,
+      "capacity_stop": false
+    },
+    "prior_coverage_failure": {
+      "filename": "m115-local-normal-attempt2-coverage-failure.json",
+      "sha256": "a505371d2ae341e8411d86fc58a62d496767b5cbca1d4630ab8684d565153816",
+      "Root_actual_exit_code": 1,
+      "Git_actual_exit_code": 1,
+      "elapsed_seconds": 4478.606205538032,
+      "tree": "b52683da00458ed3071670f938b683c1077aeb82",
+      "tests": {
+        "headless": [
+          2195,
+          0,
+          2
+        ],
+        "renderer": [
+          1694,
+          0,
+          2
+        ],
+        "Python_passed": 498
+      },
+      "coverage": {
+        "Server_changed_executable_lines": [
+          195,
+          208
+        ],
+        "threshold": "strictlygreaterthan95percent"
+      },
+      "capacity_stop": false
+    },
+    "complete_retained_coverage_analysis": {
+      "filename": "m115-attempt2-retained-coverage-analysis.json",
+      "sha256": "daccfba481ca25ad18a3d42c1527b77c1c062e95e1060876046ba0169068b469",
+      "interpretation": "Read-only analytical allavailablegate/20base projections, not qualification or test replay"
+    }
   }
 }

@@ -4,6 +4,7 @@
 use super::*;
 use gz_sensors::lidar::{PlanarLidarConfig, SpatialLidar, VerticalLidarConfig};
 use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
+use gz_sim_core::entity_by_id;
 
 #[derive(Clone)]
 struct LidarNoise {
@@ -87,7 +88,77 @@ pub(super) struct Lidar {
     link: u64,
     model: SpatialLidar,
     schedule: SampleSchedule,
+    sdf_rate_hz: f64,
+    rate_hz: f64,
     noise: Option<Box<LidarNoise>>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct LidarRateInfo {
+    /// Raw SDF rate; native values below 1e-6 disable the service ceiling.
+    pub sdf_max_hz: f64,
+    /// Effective runtime rate, including the native NaN/infinity controls.
+    pub rate_hz: f64,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum LidarRateError {
+    #[error("public CPU lidar entity {0} does not exist")]
+    MissingLidar(u64),
+    #[error("rate has no representable native sampling period")]
+    InvalidPeriod,
+    #[error(transparent)]
+    Clock(#[from] gz_sim_core::StepError),
+}
+
+/// Read the authored maximum and effective rate of an existing CPU lidar.
+/// Public publication metadata alone cannot stand in for the private sensor.
+pub fn lidar_rate(sim: &Simulation, id: u64) -> Result<LidarRateInfo, LidarRateError> {
+    let sensor = entity_by_id(sim.world(), id)
+        .and_then(|entity| sim.world().get::<Lidar>(entity))
+        .ok_or(LidarRateError::MissingLidar(id))?;
+    Ok(LidarRateInfo {
+        sdf_max_hz: sensor.sdf_rate_hz,
+        rate_hz: sensor.rate_hz,
+    })
+}
+
+/// Apply the same capped service policy as `set_imu_rate`, preserving the next
+/// deadline, existing sample and noise stream. A rate change does not acquire a
+/// scan or change either publication counter. Invalid finite periods are
+/// rejected on a schedule clone before any sensor state is changed.
+pub fn set_lidar_rate(
+    sim: &mut Simulation,
+    id: u64,
+    requested_hz: f64,
+) -> Result<RateChange, LidarRateError> {
+    sim.validate_steps(0)?;
+    let entity = entity_by_id(sim.world(), id).ok_or(LidarRateError::MissingLidar(id))?;
+    let sensor = sim
+        .world()
+        .get::<Lidar>(entity)
+        .ok_or(LidarRateError::MissingLidar(id))?;
+    let rate = if requested_hz < 0.0 {
+        0.0
+    } else {
+        requested_hz
+    };
+    // Native lessOrNearEqual is strict a < b + 1e-6, including NaN behavior.
+    let near = |a: f64, b: f64| a < b + 1e-6;
+    if !near(sensor.sdf_rate_hz, 0.0) && (near(rate, 0.0) || !near(rate, sensor.sdf_rate_hz)) {
+        return Ok(RateChange::Ignored);
+    }
+    let mut schedule = sensor.schedule.clone();
+    schedule
+        .change_runtime_rate(rate)
+        .map_err(|_| LidarRateError::InvalidPeriod)?;
+    let mut sensor = sim
+        .world_mut()
+        .get_mut::<Lidar>(entity)
+        .expect("checked CPU lidar");
+    sensor.schedule = schedule;
+    sensor.rate_hz = rate;
+    Ok(RateChange::Applied)
 }
 
 #[derive(Component, Debug)]
@@ -303,6 +374,8 @@ pub(super) fn spawn(
             link: parent.id,
             model: ray_model,
             schedule,
+            sdf_rate_hz: sensor.update_rate,
+            rate_hz: sensor.update_rate,
             noise,
         },
     ));
@@ -435,3 +508,7 @@ mod tests;
 #[cfg(test)]
 #[path = "../tests/private/multiple_lidars_native.rs"]
 mod multiple_lidars_native_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/lidar_rates.rs"]
+mod rate_tests;

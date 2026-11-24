@@ -230,6 +230,9 @@ pub struct Counters {
     pub imu_rates_applied: u64,
     pub imu_rates_ignored: u64,
     pub imu_rates_rejected: u64,
+    pub lidar_rates_applied: u64,
+    pub lidar_rates_ignored: u64,
+    pub lidar_rates_rejected: u64,
     /// Double packets consumed within the joint-force ingress budget.
     pub force_messages_received: u64,
     /// Malformed packets or packets with at least one rejected target.
@@ -375,6 +378,7 @@ fn sensor_reserved_keys_from_base(
 #[derive(Clone, Copy, PartialEq)]
 enum PublicationFamily {
     Lidar,
+    LidarRate,
     Altimeter,
     AirPressure,
     AirSpeed,
@@ -460,8 +464,98 @@ fn new_system_roles(
         Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
         Err(error) => return Err(error.into()),
     }
+    // Rate controls are a separate role from both data channels. Original
+    // roles stay reserved after removal, and an own-family query may not
+    // borrow a scan, point or another family's key.
+    for entity in sim.world().iter_entities() {
+        if entity.contains::<gz_sim_scene::PendingResetRemoval>() {
+            continue;
+        }
+        if let Some(metadata) = entity.get::<gz_sim_scene::LidarPublication>() {
+            roles.push((
+                PublicationFamily::LidarRate,
+                entity.get::<EntityId>().map_or(0, EntityId::get),
+                0,
+                options::as_valid_topic(&format!("{}/set_rate", metadata.topic)),
+            ));
+        }
+    }
+    match gz_sim_scene::initial_lidar_publications_with_identity(sim) {
+        Ok(values) => {
+            for (id, _, _, metadata) in values {
+                roles.push((
+                    PublicationFamily::LidarRate,
+                    id,
+                    0,
+                    options::as_valid_topic(&format!("{}/set_rate", metadata.topic)),
+                ));
+            }
+        }
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
     Ok(roles)
 }
+
+fn lidar_rate_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::LidarRate)
+}
+
+// Pure preflight only. The caller retains the existing lidar/legacy collision
+// order before reaching this additional control role.
+fn validate_lidar_rate_topics(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<(), Error> {
+    let roles = new_system_roles(simulation)?;
+    let mut selected = roles
+        .iter()
+        .filter(|role| role.0 == PublicationFamily::LidarRate)
+        .peekable();
+    if selected.peek().is_none() {
+        return Ok(());
+    }
+    let occupied = lidar_rate_reserved_keys(simulation, io, config)?;
+    let mut mapped = BTreeMap::new();
+    for (_, owner, channel, raw) in selected {
+        let key = config.topic_key(raw)?;
+        let identity = (*owner, *channel, raw.clone());
+        if *owner == 0
+            || options::as_valid_topic(raw) != *raw
+            || occupied.contains(&key)
+            || mapped
+                .insert(key, identity.clone())
+                .is_some_and(|old| old != identity)
+        {
+            return Err(Error::LidarIdentity);
+        }
+    }
+    for entity in simulation.world().iter_entities() {
+        if entity.contains::<gz_sim_scene::PendingResetRemoval>() {
+            continue;
+        }
+        if let Some(metadata) = entity.get::<gz_sim_scene::LidarPublication>() {
+            let id = entity.get::<EntityId>().ok_or(Error::LidarIdentity)?.get();
+            let raw = options::as_valid_topic(&format!("{}/set_rate", metadata.topic));
+            if metadata.entity_name.is_empty()
+                || entity.get::<gz_sim_scene::EntityKind>()
+                    != Some(&gz_sim_scene::EntityKind::Sensor)
+                || entity_by_id(simulation.world(), id) != Some(entity.id())
+                || gz_sim_scene::lidar_rate(simulation, id).is_err()
+                || rates::lidar_endpoint(config, metadata)? != config.topic_key(&raw)?
+            {
+                return Err(Error::LidarIdentity);
+            }
+        }
+    }
+    Ok(())
+}
+
 fn lidar_reserved_keys(
     simulation: &Simulation,
     io: &world_io::WorldIo,
@@ -617,6 +711,7 @@ fn validate_lidar_peer_topics(
         }
     }
     lidar::boundary_keys(simulation, config, io, reset, false)?;
+    validate_lidar_rate_topics(simulation, io, config)?;
     Ok(())
 }
 
@@ -1759,17 +1854,30 @@ impl Server {
                 });
             }
         }
-        let lidars = lidar::streams(&simulation, &world_io, &config, &imus, None)?;
+        let rate_lidars: Vec<_> = match gz_sim_scene::initial_lidar_publications(&simulation) {
+            Ok(sensors) => sensors.cloned().collect(),
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => simulation
+                .world()
+                .iter_entities()
+                .filter(|entity| !entity.contains::<gz_sim_scene::PendingResetRemoval>())
+                .filter_map(|entity| entity.get::<gz_sim_scene::LidarPublication>().cloned())
+                .collect(),
+            Err(error) => return Err(error.into()),
+        };
         let (mut rates, rate_setup) = match gz_sim_scene::initial_imu_publications(&simulation) {
-            Ok(sensors) => rates::Rates::prepare(&config, sensors, &world_io.ingress_drops)?,
+            Ok(sensors) => {
+                rates::Rates::prepare(&config, sensors, &rate_lidars, &world_io.ingress_drops)?
+            }
             Err(gz_sim_scene::SceneResetError::MissingInitialState) => rates::Rates::prepare(
                 &config,
                 imus.iter().map(|stream| &stream.metadata),
+                &rate_lidars,
                 &world_io.ingress_drops,
             )?,
             Err(error) => return Err(error.into()),
         };
         rates.bind(&simulation)?;
+        let lidars = lidar::streams(&simulation, &world_io, &config, &imus, None)?;
         world_io.install_rates(rate_setup)?;
         let rates = rates.into_active();
         let configurations: Vec<_> =

@@ -1,3 +1,38 @@
+## Current M115: complete the coverage regression batch
+
+The second full hook on frozen `b52683da` exited 1 after 4,478.606 seconds.
+Both Rust profiles had zero failed tests (2,195 headless and 1,694 renderer;
+two ignored in each), and 498 Python tests passed. Server changed executable
+line coverage was 195/208, below the required strictly-greater-than-95% gate.
+No commit or capacity stop occurred. Keep this and the earlier three-match
+compilation failure intact; test passes do not make the full hook a pass.
+
+Work is isolated in `work/m115-lidar-rate-boundary-coverage` over `2419c923`.
+Five new private boundary regressions address all ten reachable missed lines:
+no-blueprint absence and restart, pure preflight refusal and repair, pending
+original reservations, prepared-owner disappearance and fresh reconstruction,
+and forged public metadata without a private sensor. Keep the three defensive
+error arms that current getters cannot produce. No production behavior, old
+assertions, coverage denominator or threshold changes are permitted.
+
+Complete all regression Source, documentation and independent review, then one
+affected formatter and one unchanged full mandatory retry. The 22 original
+M115 declarations remain, plus five headless-only private declarations: 27
+unique, 27 headless, 11 renderer, 11 shared, 10 public and 17 private. These new
+controls have no executed result. Reuse only byte-identical formatting evidence.
+See [the delivery contract](docs/M115_DELIVERY.md).
+
+Parent M114's exact hosted run 45412754337 attempt 1 passed. Its original
+artifacts are retained; independent official audit remains a separate gate.
+Root serializes local heavy work. Parent hosted/official plus own normal/local
+DATA still gate review publication; every profile, all 20 coverage bases and
+acceptance gates remain. Preserve Fuel, all frozen evidence and the live M77
+no-expiry demo until explicit stop confirmation.
+
+The checkpoints below are historical and retain their original observations.
+
+---
+
 ## Current M114: organized CPU-lidar point clouds
 
 M114 adds opt-in point-cloud publication from the same acquired CPU-lidar sample,

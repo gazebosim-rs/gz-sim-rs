@@ -76,7 +76,10 @@ pub use world_spawn::{ModelTemplate, prepare_model_template, spawn_model_templat
 mod imu_lifecycle;
 mod imu_reference;
 mod lidar;
-pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};
+pub use lidar::{
+    LidarPublication, LidarRateError, LidarRateInfo, LidarSample, clear_lidar_interest, lidar_rate,
+    set_lidar_interest, set_lidar_rate,
+};
 mod logical_camera;
 pub use logical_camera::{
     LogicalCameraPublication, LogicalCameraSample, clear_logical_camera_interest,

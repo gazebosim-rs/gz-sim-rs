@@ -765,6 +765,7 @@ fn joint_state_removed_or_reused_joint_identity_cannot_publish_or_retain_old_str
 fn family_key(server: &Server, family: PublicationFamily) -> String {
     match family {
         PublicationFamily::Lidar
+        | PublicationFamily::LidarRate
         | PublicationFamily::GroundTruthOdometry
         | PublicationFamily::LinkWrench
         | PublicationFamily::JointController
@@ -789,6 +790,7 @@ fn family_key(server: &Server, family: PublicationFamily) -> String {
 fn topic_mut(server: &mut Server, family: PublicationFamily, value: String) {
     match family {
         PublicationFamily::Lidar
+        | PublicationFamily::LidarRate
         | PublicationFamily::GroundTruthOdometry
         | PublicationFamily::LinkWrench
         | PublicationFamily::JointController
@@ -906,6 +908,7 @@ fn assert_family_refuses(
 ) {
     match family {
         PublicationFamily::Lidar
+        | PublicationFamily::LidarRate
         | PublicationFamily::GroundTruthOdometry
         | PublicationFamily::LinkWrench
         | PublicationFamily::JointController
