@@ -31,7 +31,19 @@ The host considers adding a solve only if the preceding spatial shelf step loade
 
 The symmetric release, the two rough spinning arrests and the frictionless spinning control reproduced their earlier trajectories bit-for-bit. The two larger glancing releases changed final yaw by 0.009°. Every settling case retained its earlier 40 ms sustained-rest onset. The positive glancing case finished at −1.090°, while the continuous 32-substep native run finished at +2.441°.
 
-Across three alternating paired release runs, median single-world throughput was 193.4 public steps/s with retiming and 197.9 before. Median p95 was 7.636 ms and 7.710 ms, respectively. These observed times include the full Bevy step and GPU readback on a shared RTX 5090. All 47 ordinary hardware SDF cases, the matched device substep audit and the split admission controls passed. Changed production coverage was 97/99 lines and 165/170 regions. The qualification examples covered 238/239 changed lines and 499/503 regions. Native WebGPU playback checked 4,200 poses across the two new marked archives and rewound both to zero.
+Across three alternating paired release runs, median single-world throughput was 193.4 public steps/s with retiming and 197.9 before. Median p95 was 7.636 ms and 7.710 ms, respectively. These observed times include the full Bevy step and GPU readback on a shared RTX 5090. All 47 ordinary hardware SDF cases, the matched device substep audit and the split admission controls passed. Changed production coverage was 97/99 lines and 165/170 regions. Native WebGPU playback checked 4,200 poses across the two new marked archives and rewound both to zero.
+
+## Changed executable coverage
+
+| Frozen target | Executed lines | Executed regions |
+| --- | ---: | ---: |
+| GPU shelf contact and step selection | 97/99 (97.98%) | 165/170 (97.06%) |
+| Spatial SDF and recording example | 60/60 (100%) | 100/100 (100%) |
+| Native glancing-strike example, including its corner audit | 178/179 (99.44%) | 400/403 (99.26%) |
+
+The native example entry point covered 24/25 lines and 48/49 regions. Its corner audit covered 154/154 lines and 352/354 regions. The fixture consistently inserted the parcel as the second collider, leaving the alternate first-collider arm lookup uncovered. The two remaining audit regions propagate errors from decoding the embedded JSON and encoding the measured result. The five uncovered device regions comprise three GPU pipeline initialization error returns and the unobserved energy-rejection return and propagation.
+
+The spatial CLI returned the expected errors for missing arguments, an unknown release case and an unavailable adapter. None produced a recording. Four ordinary scene tests also rechecked incompatible geometry or release settings, bounded restitution and the stop before an unsupported shelf side or floor. The receipt records the exact changed source lines and spans, executable and profile hashes, and the seven verified outcomes. [Per-file LLVM coverage and rejection checks](gpu-glancing-corner-coverage.json)
 
 ## Run and inspect the strike
 

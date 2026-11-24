@@ -14,11 +14,11 @@
       },
       "marked": {
         "executable_sha256": "ce182429e6ab816743f4e2d51eec411166d84140e24316dd77b6f4124ea78d51",
-        "profile_sha256": "b806f576f26bf0dc13a4f21ce8588559542ed83292493a2f89c9b7cfa6c220c1"
+        "profile_sha256": "b288490066ae7aaf404027563940da14ded1192ec7b9b6d23770261d1701880e"
       },
       "scene": {
         "executable_sha256": "30403a2ecdb25652ed3712bdaa6eec0d87a03850d288a198c716e004bc66f2ed",
-        "profile_sha256": "89c11c57c5ee4ad85100a0a9729ce06b10db1c15bc584a5db7d31c4b65ff77e4"
+        "profile_sha256": "60b03ee3cb972fffe597ed91c03b7784a9ae6a1be3e85170294c35a3f6bb5069"
       }
     },
     "production": {
@@ -37,7 +37,7 @@
         239
       ],
       "regions": [
-        499,
+        500,
         503
       ]
     },
@@ -140,20 +140,46 @@
           60
         ],
         "regions": [
-          99,
+          100,
           100
         ],
         "missing_lines": [],
-        "missing_regions": [
-          [
-            386,
-            57,
-            386,
-            58
-          ]
+        "missing_regions": []
+      }
+    },
+    "targets": {
+      "gz-physics-gpu spatial shelf": {
+        "lines": [
+          97,
+          99
+        ],
+        "regions": [
+          165,
+          170
+        ]
+      },
+      "gpu_box_shelf_glance": {
+        "lines": [
+          178,
+          179
+        ],
+        "regions": [
+          400,
+          403
+        ]
+      },
+      "gpu_box_shelf_spatial": {
+        "lines": [
+          60,
+          60
+        ],
+        "regions": [
+          100,
+          100
         ]
       }
-    }
+    },
+    "closure_receipt": "gpu-glancing-corner-coverage.json"
   },
   "native_resolution_per_ms": [
     32,
@@ -2974,6 +3000,7 @@
     "gpu-shelf-glance-mirrored-states.json": "3376a2df2b1d7031dc130a3a9916f519556d54bb62e08bc37b1ef3b088850462",
     "gpu-glancing-corner.svg": "006b60d4d5f590d937a9be71c6579cd11500e9bee517334e50fc5468d1ec9517",
     "gpu-glancing-corner.jpg": "a4b3f7ed59ce588a9a398c4bfd2e2126004e114a50f07b4f9076d1ff08788df8",
-    "gpu-glancing-corner-replays.tar.xz": "d8a94312cef96429b4a0ab556e7e21f2786a882ef6f907e5f2fecbbd4d5c6384"
+    "gpu-glancing-corner-replays.tar.xz": "d8a94312cef96429b4a0ab556e7e21f2786a882ef6f907e5f2fecbbd4d5c6384",
+    "gpu-glancing-corner-coverage.json": "f0ca25a07913797a25b0f56d54560d5266a0712e14239cd26d956012300f6d4c"
   }
 }

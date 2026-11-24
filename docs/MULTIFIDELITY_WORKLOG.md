@@ -2375,3 +2375,7 @@ At 2.193 s one GPU corner was already supported and the second was 339 µm above
 ## 2026-11-24 — A rocked parcel loads its next shelf corner at the measured time
 
 The GPU now adds one short contact solve when a single supported corner is about to share its shelf edge with a new corner. Across both reflected SDF releases, the second strike moved from 500.000 to 433.154 µs in the matched millisecond. The independent native arrival interval was 432.541–432.556 µs. Linear impulse error fell from 87.14 to 3.92 µN s and angular impulse error from 562.94 to 44.96 nN m s against the independent plastic impact calculation. The four symmetric and spinning controls retained their exact trajectories. Subsequent glancing rotation still needs a converged reference. All 47 SDF hardware cases passed. Changed production coverage reached 97/99 lines and 165/170 regions. [Witnessed forces, native comparison, replay and timing](measurements/local-manipulation/gpu-glancing-corner.md)
+
+## 2026-11-24 — Glancing-strike coverage by executable
+
+The spatial recording example exercised 60/60 changed lines and 100/100 regions. The native point-impulse example and its corner audit covered 178/179 lines and 400/403 regions, and the GPU shelf step covered 97/99 lines and 165/170 regions. Seven negative controls verified command-line and scene admission behavior on the retained binaries. [Exact changed spans and native evidence](measurements/local-manipulation/gpu-glancing-corner-coverage.json)
