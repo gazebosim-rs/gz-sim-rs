@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Specify the gripper pad stiffness in N/m
+
+At 3 N per finger, the 40, 80 and 160 g pads all settled at 0.100 mm of compression with a 30,000 N/m material. The 80 g default pad compressed 1.478 mm. A block in four-point contact on each face followed the same force law as a sphere. A weaker grip dropped the sphere within 0.449 µm of prediction. An adjacent unmodified gripper reproduced all 2,917 observed state and event records, including 1,608 under load. The authored and default release and hold recordings reproduced across one and eight threads, and the new production code exceeded 95% changed-line and region coverage in each crate. [Measurements, cost and coverage](measurements/local-manipulation/pad-stiffness.md) · [Measured gz-web-rs recordings](measurements/local-manipulation/pad-stiffness-view.md)
+
+The static response passed. Both fingers first reached 95% of the target compression after 0.230 s at a 200 µs step and 1.224 s at a 25 µs step. The next phase is to preserve the compliant normal velocity during solver relaxation and check loading and release against a spring-and-damper reference across step sizes.
+
 ## 2026-11-24 — Two fingers share a load and let it slip
 
 Two powered fingers held a 200 g sphere at 3 N per finger. Reducing each drive to 1.5 N produced 13.9747 mm of slip in 110 ms, within 0.81 µm of the independent prediction. An unequal squeeze transferred 3.4994 N from one travel stop to the other when the commands were swapped. A second, inclined grasp loaded both stops simultaneously. At a 25 µs step each stop carried 0.4806 N against a predicted 0.481 N as the sphere slid and began to roll. [Force balance, trajectories and controls](measurements/local-manipulation/two-finger-load.md) · [Measured gz-web-rs recordings](measurements/local-manipulation/two-finger-view.md)

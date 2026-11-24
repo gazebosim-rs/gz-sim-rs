@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+The two-finger gripper accepts a pad stiffness in N/m for each slider. Under a 3 N squeeze, 30,000 N/m pads compressed by 0.100 mm each on three different finger masses. [SDF example](../examples/worlds/local_stiff_pad_grasp.sdf) · [Qualification and current loading-speed limitation](measurements/local-manipulation/pad-stiffness.md) · [Watch the grip and release in gz-web-rs](measurements/local-manipulation/pad-stiffness-view.md)
+
 The two-finger experiment shows a 200 g parcel holding, slipping as the motors weaken, and falling when the jaws open. A second view shows a sphere rolling along inclined jaws while both travel stops carry its weight. [Grasp and release](measurements/local-manipulation/two-finger-view.md) · [Double-stop loads and groove replay](measurements/local-manipulation/two-finger-load.md)
 
 The powered finger can brace at the end of its travel, release under a strike from the opposite side, and reverse under a held motor force. Compare the first collision in slow motion or follow the full 40 mm stroke on the same mechanism. [Impact close-ups](measurements/local-manipulation/powered-slider-view.md) · [Full stroke, forces and commands](measurements/local-manipulation/powered-slider-cycle.md)
