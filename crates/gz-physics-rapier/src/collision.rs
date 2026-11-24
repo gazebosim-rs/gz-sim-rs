@@ -61,9 +61,7 @@ impl PhysicsHooks for SupportedGroups<'_> {
         if held && let Some(m) = ctx.rigid_mut() {
             m.solver_contacts.clear();
         }
-        for hit in self.2 {
-            hit.apply(ctx);
-        }
+        axial_cap::Impact::apply_for(self.2, ctx);
         #[cfg(feature = "landing-audit")]
         if !held && let Some(rows) = self.3 {
             rows.apply(ctx);

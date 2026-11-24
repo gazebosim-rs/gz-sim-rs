@@ -6,8 +6,8 @@ use crate::contact_prediction::dynamic::{free_sweep, swept_aabb};
 use rapier3d_f64::parry::bounding_volume::{Aabb, BoundingVolume};
 use std::cell::OnceCell;
 mod index;
-use index::Index;
 pub(super) use index::Registry;
+use index::{Fixed, Index};
 
 pub(super) struct Impact {
     cylinder: ColliderHandle,
@@ -29,7 +29,17 @@ pub(super) fn primitive(c: &Collider) -> Option<(Pose, &dyn rapier3d_f64::parry:
 }
 const ROUND: f64 = 256. * f64::EPSILON;
 impl Impact {
-    pub(super) fn apply(&self, ctx: &mut ContactModificationContext) {
+    pub(super) fn apply_for(hits: &[Self], ctx: &mut ContactModificationContext) {
+        for collider in [ctx.collider1, ctx.collider2] {
+            if let Ok(i) = hits
+                .binary_search_by_key(&collider.into_raw_parts(), |h| h.cylinder.into_raw_parts())
+            {
+                hits[i].apply(ctx);
+                break;
+            }
+        }
+    }
+    fn apply(&self, ctx: &mut ContactModificationContext) {
         let forward = ctx.collider1 == self.cylinder && ctx.collider2 == self.floor;
         if !forward && !(ctx.collider2 == self.cylinder && ctx.collider1 == self.floor) {
             return;
@@ -75,11 +85,30 @@ impl RapierBackend {
             return Vec::new();
         };
         let swept = OnceCell::new();
-        let found: Vec<_> = ids
-            .ids
+        if ids.bodies.is_empty() || self.world.integration_parameters.max_ccd_substeps > 1 {
+            return Vec::new();
+        }
+        let floors = ids.floors.get_or_init(|| Fixed::new(&self.world));
+        let dt = self.world.integration_parameters.dt;
+        let prediction = self.world.integration_parameters.prediction_distance();
+        let mut found: Vec<_> = ids
+            .bodies
             .iter()
-            .filter_map(|id| self.axial_cap(*id, ids, &swept))
+            .filter_map(|(&id, &(h, r))| {
+                let body = self.world.bodies.get(h)?;
+                if !body.is_dynamic() || body.is_sleeping() {
+                    return None;
+                }
+                let gravity = self.world.gravity.length() * body.gravity_scale().abs();
+                let acceleration = gravity + body.user_force().length() / body.mass();
+                let reach = r + prediction + (body.linvel().length() + acceleration * dt) * dt;
+                if !floors.supports.could_reach(body.translation(), reach) {
+                    return None;
+                }
+                self.axial_cap(id, h, floors, &swept)
+            })
             .collect();
+        found.sort_unstable_by_key(|h| h.cylinder.into_raw_parts());
         for hit in &found {
             self.world.colliders[hit.cylinder]
                 .set_active_hooks(hit.original | ActiveHooks::MODIFY_SOLVER_CONTACTS);
@@ -89,30 +118,11 @@ impl RapierBackend {
     pub(super) fn end_axial_cap_impacts(&mut self, found: &[Impact]) {
         for hit in found {
             self.world.colliders[hit.cylinder].set_active_hooks(hit.original);
-            // A positive center impulse has no equivalent warm seed at a rim
-            // vertex. On the next full native query, discard just this pair's
-            // originally cold patch. Leave its committed public impulse readable now.
-            if !hit.centered.load(std::sync::atomic::Ordering::Relaxed) {
-                continue;
-            }
-            let applied = self
-                .world
-                .narrow_phase
-                .contact_pair(hit.cylinder, hit.floor)
-                .is_some_and(|p| {
-                    p.solver_manifolds().iter().any(|m| {
-                        let rows = &m.data.solver_contacts;
-                        rows.len() == 1
-                            && m.points.len() == 4
-                            && m.points[(rows[0].contact_id[0]
-                                & !rapier3d_f64::geometry::NEW_CONTACT_BIT)
-                                as usize]
-                                .data
-                                .impulse
-                                > 0.
-                    })
-                });
-            if applied
+            // This pair had only cold rim rows before the hook. Never recycle a
+            // virtual center lever or its warm seed at a physical rim vertex, even
+            // when a speculative center row carried zero impulse. The committed
+            // public impulse stays readable until the next native query.
+            if hit.centered.load(std::sync::atomic::Ordering::Relaxed)
                 && let Some(pair) = self.world.colliders[hit.cylinder]
                     .parent()
                     .zip(self.world.colliders[hit.floor].parent())
@@ -124,10 +134,10 @@ impl RapierBackend {
     fn axial_cap(
         &self,
         id: BodyId,
-        registry: &Registry,
+        handle: RigidBodyHandle,
+        floors: &Fixed,
         swept: &OnceCell<Index>,
     ) -> Option<Impact> {
-        let handle = self.bodies.get(&id)?.0;
         let world = &self.world;
         let body = &world.bodies[handle];
         let &[cylinder] = body.colliders() else {
@@ -139,6 +149,7 @@ impl RapierBackend {
         if !body.is_dynamic()
             || body.is_sleeping()
             || body.is_ccd_enabled()
+            || body.soft_ccd_prediction() != 0.
             || !body.locked_axes().is_empty()
             || self.has_joint(id) != Some(false)
             || c.contact_skin() != 0.
@@ -177,18 +188,15 @@ impl RapierBackend {
         let bound = primitive_shape.compute_aabb(&pose).loosened(reach);
         // The fixed-face tree is shared across all flights and rebuilt only by structural
         // changes. Only a possible arrival requests a swept index of all moving obstacles.
-        if registry
-            .floors
-            .get_or_init(|| Index::floors(world))
-            .query(&bound)
-            .next()
-            .is_none()
-        {
-            return None;
-        }
+        floors.supports.query(&bound).next()?;
         let cap = center - outward * geom.half_height;
         let mut floor = None;
-        for other in swept.get_or_init(|| Index::swept(world)).query(&bound) {
+        for other in floors
+            .supports
+            .query(&bound)
+            .chain(floors.obstacles.query(&bound))
+            .chain(swept.get_or_init(|| Index::swept(world)).query(&bound))
+        {
             let obstacle = &world.colliders[other];
             if other == cylinder {
                 continue;
@@ -245,6 +253,11 @@ impl RapierBackend {
             floor = Some((other, loc.rotation * face));
         }
         let (floor, outward) = floor?;
+        if world.narrow_phase.contact_pairs_with(cylinder).any(|pair| {
+            pair.collider1 != floor && pair.collider2 != floor && pair.has_any_active_contact()
+        }) {
+            return None;
+        }
         Some(Impact {
             cylinder,
             floor,
@@ -255,3 +268,6 @@ impl RapierBackend {
         })
     }
 }
+
+#[cfg(test)]
+mod tests;

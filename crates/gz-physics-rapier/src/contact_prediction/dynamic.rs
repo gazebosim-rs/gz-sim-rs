@@ -71,7 +71,7 @@ pub(crate) fn swept_aabb(
         .loosened(margin)
 }
 
-pub(super) fn deflected_aabb(
+pub(crate) fn deflected_aabb(
     body: &RigidBody,
     shape: &dyn Shape,
     pose: &Pose,

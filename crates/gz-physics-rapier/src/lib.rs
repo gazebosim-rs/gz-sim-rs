@@ -626,6 +626,9 @@ impl RapierBackend {
             spec.collider.clone(),
             None,
         );
+        if let Some(ids) = &mut self.axial_caps {
+            ids.floors.take();
+        }
         self.bodies.insert(id, (handle, spec, rotation, None, None));
         self.next_id = next;
         Ok(id)
@@ -771,10 +774,7 @@ impl RapierBackend {
             properties,
         );
         if let Some(caps) = &mut self.axial_caps {
-            if axial_cap::primitive(&spec.collider).is_some_and(|(_, s)| s.as_cylinder().is_some())
-            {
-                caps.ids.insert(id);
-            }
+            caps.insert(id, handle, &spec.collider);
             if self.world.bodies[handle].is_fixed() {
                 caps.floors.take();
             }
@@ -882,6 +882,11 @@ impl DynamicBackend for RapierBackend {
             construction.collider.clone(),
             properties,
         );
+        if spec.mass.is_none()
+            && let Some(ids) = &mut self.axial_caps
+        {
+            ids.floors.take();
+        }
         self.bodies
             .insert(id, (handle, construction, rotational, inertia, None));
         self.next_id = next;
@@ -938,7 +943,7 @@ impl DynamicBackend for RapierBackend {
         }
         if let Some((handle, ..)) = self.bodies.remove(&id) {
             if let Some(ids) = &mut self.axial_caps {
-                ids.ids.remove(&id);
+                ids.bodies.remove(&id);
                 if self.world.bodies[handle].is_fixed() {
                     ids.floors.take();
                 }
@@ -1133,9 +1138,6 @@ impl DynamicBackend for RapierBackend {
 
     /// Restores remaining bodies to their spawn state. Removed bodies stay removed.
     fn reset(&mut self) -> Result<(), PhysicsError> {
-        if self.axial_caps.is_some() {
-            self.set_axial_cap_impact(true);
-        }
         let joints = self.joints.initial();
         #[cfg(feature = "partition-checkpoint")]
         {
@@ -1172,6 +1174,9 @@ impl DynamicBackend for RapierBackend {
         }
         self.joints = joints::Joints::restore(&joints, &mut self.world, &self.bodies);
         self.refresh_max_boundary_spin();
+        if self.axial_caps.is_some() {
+            self.set_axial_cap_impact(true);
+        }
         self.restore_fleet_clock();
         Ok(())
     }

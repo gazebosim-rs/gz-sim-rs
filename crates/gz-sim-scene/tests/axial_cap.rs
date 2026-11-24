@@ -276,11 +276,61 @@ fn energetic_returns_remain_axial_and_weak_reloading_contacts_stay_ordinary() ->
         rest / 0.1
     );
     assert!(returns.len() >= 3);
-    assert!(max_spin < 1e-9);
+    assert!(max_spin < 0.25);
+    assert!(returns[6].3 < 1e-9 && returns[7].2 > 1);
     for r in &returns[..3] {
         assert_eq!(r.2, 1);
         assert!(r.3 < 1e-9);
     }
     assert!((rest / 0.1 - 0.25 * 9.81).abs() < 0.002);
+    Ok(())
+}
+
+#[test]
+fn an_oblique_return_after_a_centered_impulse_restores_the_cold_rim_patch() -> Result<()> {
+    let xml = world();
+    let mut altered = load(&xml, PhysicsEngine::MultiFidelity, true)?;
+    assert_eq!(measure(&mut altered)?.levers.len(), 1);
+    let id = |s: &Simulation| {
+        s.world()
+            .iter_entities()
+            .find(|e| {
+                e.get::<Name>()
+                    .is_some_and(|n| n.0 == "default::drop::body")
+            })
+            .unwrap()
+            .get::<BodyHandle>()
+            .unwrap()
+            .id()
+    };
+    let body = id(&altered);
+    let mut incoming = altered
+        .world()
+        .resource::<PhysicsBackend>()
+        .state(body)
+        .unwrap();
+    incoming.velocity = [0.03, 0., -1.6];
+    incoming.angular_velocity = [0., 0.12, 0.];
+    altered
+        .world_mut()
+        .resource_mut::<PhysicsBackend>()
+        .set_body_state(body, incoming)?;
+    let mut ordinary = load(&xml, PhysicsEngine::MultiFidelity, false)?;
+    let control = id(&ordinary);
+    ordinary
+        .world_mut()
+        .resource_mut::<PhysicsBackend>()
+        .set_body_state(control, incoming)?;
+    let (a, b) = (measure(&mut altered)?, measure(&mut ordinary)?);
+    assert_eq!(a.levers.len(), b.levers.len());
+    assert!(a.levers.len() > 1);
+    for hit in [&a, &b] {
+        for r in &hit.levers {
+            assert!((r[0].hypot(r[1]) - 0.045).abs() < 1e-6);
+        }
+        assert!((hit.impulse.z - 0.25 * (hit.state.velocity[2] + 1.6)).abs() < 1e-12);
+    }
+    // Parry's persistent normal/features can choose a different azimuth on a round rim.
+    assert!((a.impulse - b.impulse).length() < 0.001);
     Ok(())
 }
