@@ -23,8 +23,11 @@ pub(super) struct Controller {
 }
 impl Controller {
     pub(super) fn new(sim: &Simulation) -> Result<Self> {
+        Self::with_jaw_damping(sim, 12.)
+    }
+    pub(super) fn with_jaw_damping(sim: &Simulation, damping_ns_per_m: f64) -> Result<Self> {
         let id = |s| entity_id(sim, &format!("default::arm::{s}"));
-        let jaw = JointDrive::new(650., 12., 0.55, 9.)?;
+        let jaw = JointDrive::new(650., damping_ns_per_m, 0.55, 9.)?;
         Ok(Self {
             ids: [
                 id("shoulder")?,

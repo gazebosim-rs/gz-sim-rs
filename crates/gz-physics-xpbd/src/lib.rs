@@ -486,6 +486,11 @@ impl SoftBody {
     pub fn last_sweep_refinements(&self) -> u32 {
         self.sweep_refinements
     }
+    /// Accepted leaf intervals when a shell used local subdivision on the last
+    /// committed step. Uniform solves have no local subdivision count.
+    pub fn last_local_shell_intervals(&self) -> Option<u32> {
+        self.surface.as_ref().and_then(|s| s.local_intervals)
+    }
     pub fn last_boundary_impulses(&self) -> &[BoundaryImpulse] {
         &self.reactions
     }
@@ -572,6 +577,9 @@ impl SoftBody {
         self.path_substeps = schedule.as_ref().map_or(0, |s| s.len() as u32);
         self.reactions = reactions;
         self.sweep_refinements = 0;
+        if let Some(surface) = &mut self.surface {
+            surface.local_intervals = None;
+        }
         self.publish_self_contact();
         Ok(())
     }

@@ -21,7 +21,7 @@ const END: usize = 3400;
 const RELEASED_TICKS: usize = 200;
 pub(super) const JAW_STROKE: f64 = 0.07725;
 const STRIDE: usize = 25;
-const NOMINAL_FLARE: f64 = 0.00015;
+pub(super) const NOMINAL_FLARE: f64 = 0.00015;
 pub(super) const STRETCH: f64 = 0.00001;
 pub(super) const SHEAR: f64 = 0.00002;
 pub(super) const BEND: f64 = 0.02;
@@ -186,6 +186,8 @@ pub(super) struct Metrics {
     pub max_compression_m: f64,
     pub max_linear_impulse_residual_ns: f64,
     pub step_p95_ns: u64,
+    #[serde(skip)]
+    pub actuator_updates: usize,
     pub refined_ticks: usize,
     pub max_refinement_doublings: u32,
     pub max_material_substeps: usize,
@@ -273,8 +275,18 @@ fn cycle(case: Case, flare: f64, out: Option<&Path>) -> Result<Metrics> {
     simulate(&scene(arm::SCENE, case, flare)?, case, flare, out)
 }
 fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Metrics> {
+    simulate_with_jaw_damping(xml, case, flare, out, 12.)
+}
+
+pub(super) fn simulate_with_jaw_damping(
+    xml: &str,
+    case: Case,
+    flare: f64,
+    out: Option<&Path>,
+    damping_ns_per_m: f64,
+) -> Result<Metrics> {
     let mut r = Recording::new(xml, "arm_sheet.sdf", "default")?;
-    let controller = Controller::new(&r.sim)?;
+    let controller = Controller::with_jaw_damping(&r.sim, damping_ns_per_m)?;
     let jaws = [
         entity_id(&r.sim, "default::arm::left")?,
         entity_id(&r.sim, "default::arm::right")?,
@@ -285,7 +297,14 @@ fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Met
     ];
     let bench_box = arm_cable::half_size(&r.sdf, "source", "body")?;
     let bench_center = state(&r.sim, entity_id(&r.sim, "default::source::body")?)?.position;
-    let hold_ticks = HOLD.clone().count() as f64;
+    let native_ns = r.sim.step_duration().as_nanos();
+    if native_ns == 0 || !1_000_000_u128.is_multiple_of(native_ns) {
+        return Err("the native step must divide the 1 ms actuator period exactly".into());
+    }
+    let exchanges = (1_000_000 / native_ns) as usize;
+    let dt = r.sim.step_duration().as_secs_f64();
+    let hold_samples = (HOLD.clone().count() * exchanges) as f64;
+    let hold_duration = HOLD.clone().count() as f64 * DT;
     let mass = NODE_MASS * case.mass_scale;
     let mut m = Metrics {
         case,
@@ -314,21 +333,31 @@ fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Met
     if out.is_some() {
         capture(&mut r, &mut frames)?
     }
-    for tick in 1..=END {
-        arm_cable::lift_with_jaws(
-            &controller,
-            &mut r.sim,
-            (tick - 1) as f64 * DT,
-            if case.closed { JAW_STROKE } else { 0. },
-        )?;
+    for native_tick in 1..=END * exchanges {
+        let tick = (native_tick - 1) / exchanges + 1;
+        if (native_tick - 1).is_multiple_of(exchanges) {
+            m.actuator_updates += 1;
+            arm_cable::lift_with_jaws(
+                &controller,
+                &mut r.sim,
+                (tick - 1) as f64 * DT,
+                if case.closed { JAW_STROKE } else { 0. },
+            )?;
+        }
         r.advance().map_err(|e| SheetStepFault {
             tick,
-            diagnostic: format!("{e} {:?}", r.sim.fault()),
+            diagnostic: if exchanges == 1 {
+                format!("{e} {:?}", r.sim.fault())
+            } else {
+                format!("{e} {:?} at native step {native_tick}", r.sim.fault())
+            },
         })?;
         let b = cloth(&r.sim)?;
         m.energy.observe(&r.sim, b)?;
         let refinements = b.last_sweep_refinements();
-        let accepted = case.substeps << refinements;
+        let accepted = b
+            .last_local_shell_intervals()
+            .map_or_else(|| case.substeps << refinements, |n| n as usize);
         m.refined_ticks += usize::from(refinements > 0);
         m.max_refinement_doublings = m.max_refinement_doublings.max(refinements);
         m.max_material_substeps = m.max_material_substeps.max(accepted);
@@ -337,7 +366,7 @@ fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Met
         let self_load = b.last_self_contact_impulse().normal;
         m.sum_sheet_self_contact_ns += self_load;
         if HOLD.contains(&tick) {
-            m.mean_hold_self_contact_n += self_load / (hold_ticks * DT);
+            m.mean_hold_self_contact_n += self_load / hold_duration;
         }
         let [left, right, bench] = b.last_boundary_impulses() else {
             return Err("missing sheet boundary loads".into());
@@ -349,14 +378,14 @@ fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Met
             let j = DVec3::from(load.normal) + DVec3::from(load.tangent);
             measured[load.boundary] += j;
             if HOLD.contains(&tick) {
-                let up = -j.z / (hold_ticks * DT);
+                let up = -j.z / hold_duration;
                 let layer = panel(load.particle);
                 m.mean_hold_panel_up_by_jaw_n[load.boundary][layer] += up;
                 if layer == load.boundary {
-                    same_panel_normal[layer] += DVec3::from(load.normal).length() / DT;
+                    same_panel_normal[layer] += DVec3::from(load.normal).length() / dt;
                 }
                 m.mean_hold_panel_normal_by_jaw_n[load.boundary][layer] +=
-                    DVec3::from(load.normal).length() / (hold_ticks * DT);
+                    DVec3::from(load.normal).length() / hold_duration;
             }
         }
         for (observed, total) in measured.into_iter().zip(js) {
@@ -370,7 +399,7 @@ fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Met
             .sum::<DVec3>();
         m.max_linear_impulse_residual_ns = m
             .max_linear_impulse_residual_ns
-            .max((now - momentum + DT * m.weight_n * DVec3::Z + js.iter().sum::<DVec3>()).length());
+            .max((now - momentum + dt * m.weight_n * DVec3::Z + js.iter().sum::<DVec3>()).length());
         momentum = now;
         for &(i, j, rest) in &edges {
             m.max_strain = m.max_strain.max(
@@ -385,7 +414,7 @@ fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Met
             let inv = glam::DQuat::from_array(jaw.orientation).conjugate();
             if HOLD.contains(&tick) {
                 m.mean_hold_jaw_squeeze_n[index] +=
-                    (inv * js[index]).x * if index == 0 { -1. } else { 1. } / (hold_ticks * DT);
+                    (inv * js[index]).x * if index == 0 { -1. } else { 1. } / hold_duration;
             }
             for p in points {
                 let q = (inv * (DVec3::from(p.position) - DVec3::from(jaw.position))).abs()
@@ -407,36 +436,41 @@ fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Met
                 heights[panel(i)] += (z - jaw_z) / (COUNT / 2) as f64;
                 m.min_hold_bench_gap_m = m.min_hold_bench_gap_m.min(z - BENCH - RADIUS);
                 m.mean_hold_lift_m[panel(i)] +=
-                    (z - seed(i, flare).z) / (hold_ticks * (COUNT / 2) as f64);
+                    (z - seed(i, flare).z) / (hold_samples * (COUNT / 2) as f64);
             }
         }
         if HOLD.contains(&tick) {
-            if tick == *HOLD.start() {
+            if native_tick == (*HOLD.start() - 1) * exchanges + 1 {
                 relative_at_hold_start = heights;
             }
             for i in 0..2 {
-                m.mean_hold_panel_relative_height_m[i] += heights[i] / hold_ticks;
+                m.mean_hold_panel_relative_height_m[i] += heights[i] / hold_samples;
                 m.max_hold_panel_drift_m[i] =
                     m.max_hold_panel_drift_m[i].max((heights[i] - relative_at_hold_start[i]).abs());
                 m.min_hold_panel_squeeze_n[i] =
                     m.min_hold_panel_squeeze_n[i].min(same_panel_normal[i]);
             }
             for (up, j) in m.mean_hold_jaw_up_n.iter_mut().zip(js) {
-                *up -= j.z / (hold_ticks * DT);
+                *up -= j.z / hold_duration;
             }
-            m.mean_hold_bench_up_n -= js[2].z / (hold_ticks * DT);
+            m.mean_hold_bench_up_n -= js[2].z / hold_duration;
         }
         if tick > END - RELEASED_TICKS {
             m.mean_released_bench_up_n -= js[2].z / (RELEASED_TICKS as f64 * DT);
             m.mean_released_jaw_force_n +=
                 (js[0].length() + js[1].length()) / (RELEASED_TICKS as f64 * DT);
         }
-        if out.is_some() && tick % STRIDE == 0 {
+        if out.is_some() && native_tick.is_multiple_of(STRIDE * exchanges) {
             capture(&mut r, &mut frames)?;
         }
     }
-    r.costs_ns.sort_unstable();
-    m.step_p95_ns = r.costs_ns[(END * 95).div_ceil(100) - 1];
+    let mut controller_period_costs: Vec<u64> = r
+        .costs_ns
+        .chunks_exact(exchanges)
+        .map(|steps| steps.iter().sum())
+        .collect();
+    controller_period_costs.sort_unstable();
+    m.step_p95_ns = controller_period_costs[(END * 95).div_ceil(100) - 1];
     if let Some(out) = out {
         save_archive(
             r,

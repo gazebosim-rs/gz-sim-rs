@@ -82,6 +82,7 @@ fn matched_supported_shell_refines_the_737th_millisecond() {
             let mut retry = ShellRetry {
                 remaining_splits: 1024 - base,
                 deepest: 0,
+                accepted: 0,
             };
             solve_at_resolution(
                 &mut [&mut sheet],
@@ -92,6 +93,10 @@ fn matched_supported_shell_refines_the_737th_millisecond() {
                 Some(&mut retry),
             )
             .unwrap();
+            assert_eq!(retry.accepted, if base == 512 { 768 } else { 361 });
+        }
+        if order == RowOrder::Time {
+            assert_eq!(sheet.last_local_shell_intervals(), Some(196));
         }
         let elapsed = began.elapsed();
         let support = DVec3::from(sheet.last_boundary_impulses()[2].linear);

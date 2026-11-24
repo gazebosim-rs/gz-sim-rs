@@ -33,6 +33,8 @@ mod inertia;
 mod robot;
 #[path = "local_robot_foundations/sheet_energy.rs"]
 mod sheet_energy;
+#[path = "local_robot_foundations/sheet_jaws.rs"]
+mod sheet_jaws;
 #[path = "local_robot_foundations/sheet_sweep.rs"]
 mod sheet_sweep;
 use clap::{Parser, Subcommand};
@@ -90,6 +92,23 @@ enum Study {
     FoldHold { output: PathBuf },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
+    /// Measure the stability of a folded-sheet grasp with lighter jaws or stiffer pads.
+    SheetJaws {
+        output: PathBuf,
+        #[arg(long, default_value_t = 1.0)]
+        jaw_mass_scale: f64,
+        /// Scale derivative gain with sqrt(jaw mass) at fixed jaw position stiffness.
+        #[arg(long)]
+        tune_damping: bool,
+        /// Number of native rigid/material exchanges per 1 ms actuator period.
+        #[arg(long, default_value_t = 1)]
+        exchanges_per_ms: usize,
+        /// Pad compliance in m/N.
+        #[arg(long, default_value_t = 0.001)]
+        pad_compliance: f64,
+        #[arg(long, default_value_t = 2)]
+        substeps: usize,
+    },
     /// Compare nine folded-sheet mass and stiffness combinations on two material clocks.
     SheetSweep { output: PathBuf },
     /// Lift and release a flexible cable with the driven arm, and measure both jaw reactions.
@@ -267,6 +286,23 @@ fn main() -> Result<()> {
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),
         Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
+        Study::SheetJaws {
+            output,
+            jaw_mass_scale,
+            tune_damping,
+            exchanges_per_ms,
+            pad_compliance,
+            substeps,
+        } => write_new(&output, |out| {
+            sheet_jaws::run(
+                out,
+                jaw_mass_scale,
+                pad_compliance,
+                substeps,
+                tune_damping,
+                exchanges_per_ms,
+            )
+        }),
         Study::SheetSweep { output } => write_new(&output, sheet_sweep::run),
         Study::ArmCable { output } => write_new(&output, arm_cable::run),
         Study::ArmSwitch { output } => write_new(&output, arm_switching::run),

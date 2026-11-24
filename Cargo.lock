@@ -2823,6 +2823,7 @@ dependencies = [
  "hyper-util",
  "parry3d-f64",
  "plotters",
+ "roxmltree",
  "rustix",
  "sdformat",
  "serde",

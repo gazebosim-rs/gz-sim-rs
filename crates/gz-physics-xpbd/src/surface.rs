@@ -121,6 +121,7 @@ pub(super) struct Surface {
     pub(super) subdivide_on_budget: bool,
     pub(super) retry_plane: bool,
     pub(super) row_order: RowOrder,
+    pub(super) local_intervals: Option<u32>,
 }
 
 fn edge(a: usize, b: usize) -> [usize; 2] {
@@ -215,6 +216,7 @@ impl Surface {
             subdivide_on_budget: false,
             retry_plane: false,
             row_order: RowOrder::Time,
+            local_intervals: None,
         };
         let positions = particles
             .iter()

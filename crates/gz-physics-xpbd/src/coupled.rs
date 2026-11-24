@@ -530,6 +530,9 @@ fn solve<M: Copy + Into<RigidMobility>>(
         if result.is_ok() {
             for body in bodies.iter_mut() {
                 body.sweep_refinements = refinements;
+                if let Some(surface) = &mut body.surface {
+                    surface.local_intervals = None;
+                }
             }
             return result;
         }

@@ -12,6 +12,7 @@ use std::time::Duration;
 pub(super) struct ShellRetry {
     pub remaining_splits: u32,
     pub deepest: u32,
+    pub accepted: u32,
 }
 
 fn splittable(error: &XpbdError, body: &SoftBody) -> bool {
@@ -35,6 +36,7 @@ pub(super) fn solve<M: Copy + Into<RigidMobility>>(
     // First try changing only the order of the certified velocity constraints.
     let mut result = solve_at_resolution(bodies, dt, boundaries, mobility, count.into(), None);
     let mut depth = 0;
+    let mut accepted = None;
     // If a finer base cannot resolve the tick within its budget, retain the
     // original coarse-grid subdivision and terminal-only ordering as a fallback.
     for (base, order) in [
@@ -51,6 +53,7 @@ pub(super) fn solve<M: Copy + Into<RigidMobility>>(
         let mut retry = ShellRetry {
             remaining_splits: maximum - base,
             deepest: 0,
+            accepted: 0,
         };
         result = solve_at_resolution(
             bodies,
@@ -60,12 +63,14 @@ pub(super) fn solve<M: Copy + Into<RigidMobility>>(
             base.into(),
             Some(&mut retry),
         );
+        accepted = Some(retry.accepted);
         depth = retry.deepest + u32::from(base > count);
     }
     let surface = bodies[0].surface.as_mut().unwrap();
     surface.retry_plane = false;
     surface.row_order = RowOrder::Time;
     if result.is_ok() {
+        surface.local_intervals = accepted;
         bodies[0].sweep_refinements = depth;
     }
     result
@@ -97,6 +102,7 @@ impl ShellRetry {
             false,
         ) {
             Ok(()) => {
+                self.accepted += 1;
                 self.deepest = self.deepest.max(depth);
                 return Ok(());
             }

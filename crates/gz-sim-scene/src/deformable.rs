@@ -186,6 +186,7 @@ pub struct DeformableSample {
     reactions: Vec<BoundaryImpulse>,
     self_impulse: gz_physics_xpbd::SelfContactImpulse,
     sweep_refinements: u32,
+    local_shell_intervals: Option<u32>,
     path_substeps: u32,
     time: Duration,
     epoch: u64,
@@ -270,6 +271,10 @@ impl DeformableSample {
     /// Number of finer contact clocks attempted before publishing this tick.
     pub fn last_sweep_refinements(&self) -> u32 {
         self.sweep_refinements
+    }
+    /// Exact number of accepted intervals for a locally subdivided shell step.
+    pub fn last_local_shell_intervals(&self) -> Option<u32> {
+        self.local_shell_intervals
     }
     pub fn sim_time(&self) -> Duration {
         self.time
@@ -444,6 +449,7 @@ impl Deformables {
             sample.applied_forcing.clear();
             sample.self_impulse = body.last_self_contact_impulse();
             sample.sweep_refinements = body.last_sweep_refinements();
+            sample.local_shell_intervals = body.last_local_shell_intervals();
             sample.path_substeps = body.last_path_substeps();
             if !time.is_zero() {
                 sample
