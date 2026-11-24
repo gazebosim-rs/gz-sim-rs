@@ -39,3 +39,11 @@ cargo run --release --locked --no-default-features -p gz-sim-cli --bin gz-sim-rs
 ```
 
 [Machine-readable measurements](fold-slide-refinement.json) · [Recorded cut](../../../crates/gz-physics-xpbd/tests/fixtures/fold_slide_737.rs) · [Rust comparison](../../../crates/gz-physics-xpbd/tests/private/fold_slide_cut.rs) · [Both mesh resolutions and rest criteria](fold-rest.md)
+
+### Cost of the same sliding contact
+
+Sampling the native solver at the saved 736 ms state put 75 of 117 useful CPU stacks in the continuous contact search. Material neighbors now use immutable, shared membership tables. Candidate points and edges reuse their separation calculations. A swept-box distance bound skips expensive narrow-phase work only if the surfaces remain outside tolerance for the entire segment. Each skipped pair still consumes its original query allowance. Removing that charge changed the numerical trajectory and was rejected.
+
+Across six trials per build, alternating the order on the same CPU, the median cost of the difficult 737th millisecond fell from 13.096 to 9.204 s (29.7%). In the complete seven-column control, the same step fell from 11.322 to 8.294 s and p95 fell from 53.04 to 38.24 ms. Complete-trial timings are individual measurements. For all four mesh/guard combinations, nine physical and replay files per trial matched the earlier version byte for byte. All 70 changed solver lines and 132 regions were covered, including both sides of the 64-vertex representation threshold. The interactive replays show the recorded seven-column trials.
+
+[Guarded grasp](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9912%2F) · [Released sheet](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9913%2F) · [Paired measurements](fold-slide-cost.json)

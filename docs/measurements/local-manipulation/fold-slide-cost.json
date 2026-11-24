@@ -1,0 +1,115 @@
+{
+  "cpu": "AMD Ryzen 9 9950X3D",
+  "cut_seconds": {
+    "control": [
+      13.009771893,
+      11.436014951,
+      14.364092603,
+      14.340883932,
+      13.182305245,
+      12.93570401
+    ],
+    "final": [
+      9.355247468,
+      9.334356055,
+      9.559020143,
+      9.07418966,
+      8.492224542,
+      8.974415689
+    ]
+  },
+  "trials": {
+    "mesh-5-1250-control": {
+      "before": {
+        "median_ns": 14856125.0,
+        "p95_ns": 26696631,
+        "at_737_ns": 11763116
+      },
+      "after": {
+        "median_ns": 9558509.0,
+        "p95_ns": 14859005,
+        "at_737_ns": 9958270
+      },
+      "identical_files": [
+        "world.sdf",
+        "trace.json",
+        "particle-frames.json",
+        "frames.json",
+        "rest.json",
+        "landing.json",
+        "escape-clearance.json",
+        "replay/frames.jsonl",
+        "replay/manifest.json"
+      ]
+    },
+    "mesh-5-1250-guard": {
+      "before": {
+        "median_ns": 17635678.5,
+        "p95_ns": 31911417,
+        "at_737_ns": 16979642
+      },
+      "after": {
+        "median_ns": 10918138.0,
+        "p95_ns": 17802214,
+        "at_737_ns": 17007382
+      },
+      "identical_files": [
+        "world.sdf",
+        "trace.json",
+        "particle-frames.json",
+        "frames.json",
+        "rest.json",
+        "landing.json",
+        "escape-clearance.json",
+        "replay/frames.jsonl",
+        "replay/manifest.json"
+      ]
+    },
+    "mesh-7-1300-control": {
+      "before": {
+        "median_ns": 31879477.0,
+        "p95_ns": 53037461,
+        "at_737_ns": 11321976487
+      },
+      "after": {
+        "median_ns": 23279975.5,
+        "p95_ns": 38243785,
+        "at_737_ns": 8294096634
+      },
+      "identical_files": [
+        "world.sdf",
+        "trace.json",
+        "particle-frames.json",
+        "frames.json",
+        "rest.json",
+        "landing.json",
+        "escape-clearance.json",
+        "replay/frames.jsonl",
+        "replay/manifest.json"
+      ]
+    },
+    "mesh-7-1300-guard": {
+      "before": {
+        "median_ns": 31553640.5,
+        "p95_ns": 74705627,
+        "at_737_ns": 24956415
+      },
+      "after": {
+        "median_ns": 20015060.5,
+        "p95_ns": 34811645,
+        "at_737_ns": 17184802
+      },
+      "identical_files": [
+        "world.sdf",
+        "trace.json",
+        "particle-frames.json",
+        "frames.json",
+        "rest.json",
+        "landing.json",
+        "escape-clearance.json",
+        "replay/frames.jsonl",
+        "replay/manifest.json"
+      ]
+    }
+  }
+}

@@ -659,3 +659,148 @@ fn retry_resolves_swept_geometry_before_certified_endpoint_velocity() {
         RowOrder::CertifiedSpeed
     ));
 }
+
+#[test]
+fn compact_and_sparse_one_rings_exclude_the_same_material_neighbours() {
+    let edges = BTreeSet::from([[0, 1], [1, 2], [2, 63], [62, 63]]);
+    let compact = OneRing::new(64, edges.clone());
+    let sparse = OneRing::new(65, edges.clone());
+    let vertices = [0, 1, 2, 17, 62, 63];
+    for a in vertices {
+        for b in vertices {
+            for c in vertices {
+                for d in vertices {
+                    let ids = [a, b, c, d];
+                    for (vf, split) in [(true, 1), (false, 2)] {
+                        let expected = ids[..split].iter().any(|&x| {
+                            ids[split..]
+                                .iter()
+                                .any(|&y| x == y || edges.contains(&edge(x, y)))
+                        });
+                        assert_eq!(compact.excludes(ids, vf), expected);
+                        assert_eq!(sparse.excludes(ids, vf), expected);
+                    }
+                }
+            }
+        }
+    }
+    assert!(!sparse.excludes([64, 0, 1, 2], true));
+}
+
+#[test]
+fn diagonally_separated_features_charge_the_same_first_query() {
+    // A distant triangle supplies the material topology. The only nearby
+    // non-neighbouring features are the two free point probes.
+    let p = [
+        [-9., 0., 0.],
+        [-9., 1., 0.],
+        [-9., 0., 1.],
+        [0.; 3],
+        [0.8, 0.8, 0.],
+    ]
+    .map(|position| Particle {
+        position,
+        velocity: [0.; 3],
+        inverse_mass: 1.,
+    });
+    let mut shell = Surface::new(vec![[0, 1, 2]], &p).unwrap();
+    let x = p.map(|v| DVec3::from(v.position));
+    let gap = 1.;
+    let eps = Surface::tolerance(&x, &p, gap).unwrap();
+    for initial in [0, MAX_DISTANCE_QUERIES - 1, MAX_DISTANCE_QUERIES] {
+        let mut actual = initial;
+        let mut reference = initial;
+        let hit = shell.next_hit(&x, &p, gap, eps, (&mut 0, &mut actual), Search::Ordinary);
+        let full = Stencil {
+            ids: [3, 3, 4, 4],
+            vf: false,
+        }
+        .sweep(&x, &p, gap, eps, &mut reference, SweepMode::Geometric);
+        assert_eq!(hit.as_ref().err(), full.as_ref().err());
+        assert_eq!(actual, initial + 1);
+        assert_eq!(actual, reference);
+        if let Ok(hit) = hit {
+            assert!(hit.is_none());
+        }
+    }
+    assert!(shell.subdivide_on_budget);
+    // Endpoints remain outside the skin, but the moving probe enters it in
+    // between. A broad-phase rejection here would miss the impact.
+    let mut y = x;
+    y[4] = DVec3::new(-0.8, -0.8, 0.);
+    let moving = shell
+        .next_hit(&y, &p, gap, eps, (&mut 0, &mut 0), Search::Ordinary)
+        .unwrap()
+        .unwrap();
+    assert!(moving.time > 0. && moving.time < 0.5);
+}
+
+#[test]
+fn every_motion_bound_rejection_matches_one_full_distance_query() {
+    let mut seed = 737_u64;
+    let mut random = || {
+        seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+        (seed >> 11) as f64 * 2f64.powi(-52) - 1.
+    };
+    let mut accepted = 0;
+    for (scale, translation) in [(1e-4, 0.), (1., 1000.), (1e3, -1e5)] {
+        let origin = DVec3::splat(translation);
+        let gap = 0.25 * scale;
+        let eps = 1e-9 * gap + 128. * f64::EPSILON * (origin.abs().max_element() + 2. * scale);
+        for _ in 0..400 {
+            let a =
+                std::array::from_fn(|_| origin + scale * DVec3::new(random(), random(), random()));
+            let b = a.map(|p| p + 0.03 * scale * DVec3::new(random(), random(), random()));
+            let travel = a
+                .into_iter()
+                .zip(b)
+                .map(|(x, y)| x.distance(y))
+                .fold(0., f64::max);
+            let bound = |indices: std::ops::Range<usize>| {
+                let mut lo = DVec3::splat(f64::INFINITY);
+                let mut hi = DVec3::splat(f64::NEG_INFINITY);
+                for i in indices {
+                    lo = lo.min(a[i]).min(b[i]);
+                    hi = hi.max(a[i]).max(b[i]);
+                }
+                Bound {
+                    feature: Feature::Point(0),
+                    lo: lo - (gap + eps) * 0.5,
+                    hi: hi + (gap + eps) * 0.5,
+                }
+            };
+            for (vf, split) in [(true, 1), (false, 2)] {
+                if bound(0..split).clears_motion(
+                    &bound(split..4),
+                    gap + eps,
+                    (gap + 4. * eps + 2. * travel).powi(2),
+                ) {
+                    let mut queries = 0;
+                    assert!(
+                        first_entry_mode(a, b, vf, gap, eps, &mut queries, true)
+                            .unwrap()
+                            .is_none()
+                    );
+                    assert_eq!(queries, 1);
+                    for k in 0..=4 {
+                        let t = f64::from(k) / 4.;
+                        assert!(reference(std::array::from_fn(|i| a[i].lerp(b[i], t)), vf) > gap);
+                    }
+                    accepted += 1;
+                }
+            }
+        }
+    }
+    assert!((500..2300).contains(&accepted));
+    let huge = Bound {
+        feature: Feature::Point(0),
+        lo: DVec3::splat(1e300),
+        hi: DVec3::splat(1e300),
+    };
+    let zero = Bound {
+        feature: Feature::Point(1),
+        lo: DVec3::ZERO,
+        hi: DVec3::ZERO,
+    };
+    assert!(!huge.clears_motion(&zero, 1., 1.));
+}
