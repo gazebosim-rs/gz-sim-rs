@@ -108,3 +108,53 @@ fn spring_pads_allow_at_most_one_distinct_rigid_plane_at_the_endpoint() {
         );
     }
 }
+
+#[test]
+fn a_static_plane_row_rejects_an_unrepresentable_force_before_moving_the_node() {
+    let boundary = PreparedBoundary::new(Boundary::Plane {
+        point: [0.; 3],
+        normal: [0., 0., 1.],
+        velocity: [0.; 3],
+    })
+    .unwrap();
+    let mut p = Particle {
+        position: [0., 0., 0.1],
+        velocity: [0.; 3],
+        inverse_mass: f64::from_bits(1),
+    };
+    let mut x = DVec3::new(0.001, 0., 0.1);
+    let mut contacts = Contacts::default();
+    contacts.record(
+        0,
+        0,
+        &Projection {
+            event: None,
+            normal: DVec3::Z,
+            depth: 0.01,
+            initial_overlap: 0.,
+        },
+        0.,
+        None,
+    );
+    let mut reaction = BoundaryImpulse::default();
+    let time = Interval {
+        h: 0.001,
+        t0: 0.,
+        t1: 0.001,
+        radius: 0.1,
+    };
+    assert_eq!(
+        contacts.items[0].stick_on_plane(
+            &mut x,
+            (&mut p, DVec3::ZERO),
+            &boundary,
+            time,
+            0.5,
+            &mut reaction
+        ),
+        Err(XpbdError::Numerical)
+    );
+    assert_eq!(x, DVec3::new(0.001, 0., 0.1));
+    assert_eq!(p.velocity, [0.; 3]);
+    assert_eq!(reaction.linear, [0.; 3]);
+}

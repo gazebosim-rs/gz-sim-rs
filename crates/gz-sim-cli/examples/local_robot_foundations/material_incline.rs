@@ -7,7 +7,11 @@ const WORLD: &str = include_str!("../../../../examples/worlds/local_material_inc
 const MATERIALS: [&str; 2] = ["gripping", "sliding"];
 
 pub(super) fn run(out: &Path) -> Result<()> {
-    let mut recording = Recording::new(WORLD, "local_material_incline.sdf", "default")?;
+    record_world(out, WORLD)
+}
+
+fn record_world(out: &Path, world: &str) -> Result<()> {
+    let mut recording = Recording::new(world, "local_material_incline.sdf", "default")?;
     let downhill = DVec3::new(1., 0., -0.25).normalize();
     let normal = DVec3::new(0.25, 0., 1.).normalize();
     let mut frames = Vec::new();
@@ -84,13 +88,46 @@ pub(super) fn run(out: &Path) -> Result<()> {
         &out.join("incline.json"),
         &json!({"slope":0.25, "static_plane_friction":[0.55,0.1],"sliding_friction":0.1, "step_ns":10_000_000, "reset_states":trace.len(),"distance_m":final_distances,"speed_m_s":final_speeds,"sliding_analytic_speed_m_s":expected,"support_impulse_ns":impulses.map(|j| j.to_array())}),
     )?;
-    fs::write(out.join("world.sdf"), WORLD)?;
+    fs::write(out.join("world.sdf"), world)?;
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn a_sliding_control_and_incomplete_archives_cannot_report_a_qualified_hold() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let sliding = WORLD.replace(" static_plane_friction=\"0.55\"", "");
+        let e = record_world(dir.path(), &sliding).unwrap_err();
+        assert!(e.to_string().contains("incline disagreement"));
+        assert!(record_world(dir.path(), "<").is_err());
+        let renamed = WORLD.replace("gripping", "other_strip");
+        assert!(
+            record_world(dir.path(), &renamed)
+                .unwrap_err()
+                .to_string()
+                .contains("missing material")
+        );
+        for file in [
+            "replay",
+            "particle-frames.json",
+            "frames.json",
+            "incline.json",
+            "world.sdf",
+        ] {
+            let dir = tempfile::tempdir()?;
+            let path = dir.path().join(file);
+            if file == "replay" {
+                fs::write(path, "occupied")?;
+            } else {
+                fs::create_dir(path)?;
+            }
+            assert!(run(dir.path()).is_err());
+        }
+        Ok(())
+    }
+
     #[test]
     fn the_authored_incline_sticks_slides_and_resets() -> Result<()> {
         let dir = tempfile::tempdir()?;
