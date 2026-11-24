@@ -7,6 +7,10 @@ The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain press
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-23 — The gripper retains the sheet when a loaded receiver drops during early opening
+
+When the finite bench dropped 50 mm eight milliseconds into opening, the robot paused the jaws on the next actuator tick. They retained the 8.4 g folded sheet through the 4 mm search limit. After 40 ms of opening the fingers were already unloaded. The sheet then hit the lower bench after 101 ms, matching free fall at both solver rates. Its later bouncing and final opening time still varied with the solver interval. [Experiment, replays and remaining limitation](measurements/local-manipulation/sheet-receiver-drop.md)
+
 ## 2026-11-23 — The robot transfers sheet weight before opening
 
 A 1 ms controller now lowers the gripper until its receiving surface carries the folded sheet for twenty consecutive observations. It took about 1.12 mm of additional travel to eliminate the free drop measured with timed opening. When the physical bench moved 262.5 mm aside, the jaws held the 8.4 g sheet and stopped their search after 4 mm. Both outcomes repeated after reset. [Measured loads, convergence, coverage and three native gz-web-rs recordings](measurements/local-manipulation/sheet-supported-setdown.md)
