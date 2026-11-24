@@ -161,12 +161,15 @@ fn joint_state_invalid_wire_identity_metadata_measurements_and_stamp_never_encod
     }
 }
 fn server(xml: &str) -> Server {
+    server_with_engine(xml, PhysicsEngine::Rapier)
+}
+fn server_with_engine(xml: &str, engine: PhysicsEngine) -> Server {
     let simulation = load_world_with_sdf_step(
         xml,
         "server-m18.sdf",
         "default",
         &sdformat::NoResources,
-        PhysicsEngine::Rapier,
+        engine,
     )
     .unwrap();
     let mut config = zenoh::Config::default();
@@ -1258,4 +1261,47 @@ fn slider_packets_retain_prismatic_type_and_meter_coordinates() {
         msg.joint[0].axis1.as_ref().unwrap().position,
         state.joints[0].position
     );
+}
+
+#[test]
+fn the_live_cpu_transfer_robot_reports_real_slider_positions_on_its_native_topic() {
+    let mut server = server_with_engine(
+        include_str!("../../../../examples/worlds/local_robot_serial_transfer.sdf"),
+        PhysicsEngine::MultiFidelity,
+    );
+    let stream = &server.joint_states[0];
+    let subscriber = server
+        .world_io
+        .session
+        .declare_subscriber(stream.endpoint.clone())
+        .wait()
+        .unwrap();
+    let rail = stream.metadata.joints[0].id;
+    gz_sim_scene::JointForceCommand::set_batch(&mut server.simulation, [(rail, 2.)]).unwrap();
+    server.set_paused(false);
+    for _ in 0..10 {
+        server.update().unwrap();
+    }
+    let packet = receive(&subscriber);
+    assert_eq!(packet.name, "gripper");
+    assert_eq!(packet.joint.len(), 3);
+    assert_eq!(packet.header.unwrap().stamp.unwrap().nsec, 10_000_000);
+    for (msg, (id, entity)) in packet.joint.iter().zip(&server.joint_states[0].joints) {
+        assert_eq!(
+            msg.r#type,
+            gz_sim_proto::msgs::joint::Type::Prismatic as i32
+        );
+        assert_eq!(u64::from(msg.id), *id);
+        let axis = msg.axis1.as_ref().unwrap();
+        let reading = server
+            .simulation
+            .world()
+            .get::<gz_sim_scene::JointSample>(*entity)
+            .unwrap();
+        assert_eq!(
+            (axis.position, axis.velocity),
+            (reading.state.position, reading.state.velocity)
+        );
+    }
+    assert!(packet.joint[0].axis1.as_ref().unwrap().position > 0.);
 }

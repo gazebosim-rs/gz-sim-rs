@@ -109,6 +109,12 @@
         <joint_name>wrist</joint_name><joint_index>1</joint_index><use_velocity_commands>true</use_velocity_commands>
         <initial_position>0.06</initial_position><cmd_max>0.1</cmd_max>
       </plugin>
+      <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+        <joint_name>travel</joint_name>
+        <joint_name>close_left</joint_name>
+        <joint_name>close_right</joint_name>
+        <update_rate>100</update_rate>
+      </plugin>
     </model>
   </world>
 </sdf>

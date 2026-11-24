@@ -204,8 +204,10 @@ impl Plan {
         placement: (bool, bool),
     ) -> Result<(), LoadError> {
         require(
-            matches!(engine, Some("rapier" | "gpu-planar" | "gpu-gripper"))
-                && placement.0
+            matches!(
+                engine,
+                Some("rapier" | "multifidelity" | "gpu-planar" | "gpu-gripper")
+            ) && placement.0
                 && !placement.1
                 && model.models.is_empty()
                 && model.raw_namespace.is_none(),
@@ -224,20 +226,26 @@ impl Plan {
             "multiple joint-state models",
         )?;
         require(
-            model.joints.iter().all(|j| {
-                j.kind
-                    == if engine == Some("gpu-gripper") {
-                        sdformat::JointKind::Prismatic
-                    } else {
-                        sdformat::JointKind::Revolute
-                    }
-                    && j.axis.is_some()
-                    && j.axis2.is_none()
-                    && (j.parent == "world" || model.links.iter().any(|link| link.name == j.parent))
-                    && model.links.iter().any(|link| link.name == j.child)
-            }),
+            model
+                .joints
+                .iter()
+                .filter(|j| self.names.contains(&j.name))
+                .all(|j| {
+                    use sdformat::JointKind::{Prismatic, Revolute};
+                    let supported = match engine {
+                        Some("multifidelity") => matches!(j.kind, Revolute | Prismatic),
+                        Some("gpu-gripper") => j.kind == Prismatic,
+                        _ => j.kind == Revolute,
+                    };
+                    supported
+                        && j.axis.is_some()
+                        && j.axis2.is_none()
+                        && (j.parent == "world"
+                            || model.links.iter().any(|link| link.name == j.parent))
+                        && model.links.iter().any(|link| link.name == j.child)
+                }),
             &model.scoped_name,
-            "joint-state single-axis revolute joints",
+            "joint-state publisher requires supported single-axis joints",
         )
     }
 }
@@ -286,7 +294,7 @@ pub(super) fn build(
             .iter()
             .find(|j| &j.name == name)
             .expect("plan checked joint name");
-        let axis = joint.axis.as_ref().expect("validated revolute axis");
+        let axis = joint.axis.as_ref().expect("validated scalar axis");
         metadata.push(JointStateJointPublication {
             kind: if joint.kind == sdformat::JointKind::Prismatic {
                 JointStateKind::Prismatic

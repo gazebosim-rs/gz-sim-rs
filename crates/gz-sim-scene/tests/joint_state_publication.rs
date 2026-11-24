@@ -125,3 +125,96 @@ fn unsupported_configuration_does_not_silently_degrade_to_a_publisher() {
     );
     assert!(load(&multi).is_err());
 }
+
+#[test]
+fn the_local_transfer_robot_publishes_only_its_three_sliders_and_repeats_after_reset() {
+    use gz_sim_scene::{JointForceCommand, JointStateKind};
+    use std::time::Duration;
+    const TRANSFER: &str = include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf");
+    let make = |xml: &str| {
+        load_world_with_sdf_step(
+            xml,
+            "transfer.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::MultiFidelity,
+        )
+    };
+    // An unrequested universal wrist is valid in this robot; a scalar
+    // publication cannot silently substitute one of its axes if it is requested.
+    let unsupported = TRANSFER.replace(
+        "<joint_name>travel</joint_name>",
+        "<joint_name>wrist</joint_name>",
+    );
+    assert!(matches!(
+        make(&unsupported),
+        Err(gz_sim_scene::LoadError::Unsupported {
+            feature: "joint-state publisher requires supported single-axis joints",
+            ..
+        })
+    ));
+    let mut sim = make(TRANSFER).unwrap();
+    let model = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<Name>().is_some_and(|n| n.0 == "default::gripper"))
+        .unwrap()
+        .id();
+    let config = sim
+        .world()
+        .get::<JointStatePublication>(model)
+        .unwrap()
+        .clone();
+    assert_eq!(config.topic, "/world/default/model/gripper/joint_state");
+    assert_eq!(
+        config
+            .joints
+            .iter()
+            .map(|j| j.name.as_str())
+            .collect::<Vec<_>>(),
+        ["travel", "close_left", "close_right"]
+    );
+    assert!(
+        config
+            .joints
+            .iter()
+            .all(|j| j.kind == JointStateKind::Prismatic)
+    );
+    let model_id = sim.world().get::<EntityId>(model).unwrap().get();
+    let mut passes = Vec::new();
+    for pass in 0..2 {
+        if pass == 1 {
+            gz_sim_scene::reset_loaded_world(&mut sim, |_| ()).unwrap();
+        }
+        let model = gz_sim_core::entity_by_id(sim.world(), model_id).unwrap();
+        assert!(sim.world().get::<JointStateSample>(model).is_none());
+        JointForceCommand::set_batch(&mut sim, [(config.joints[0].id, 2.)]).unwrap();
+        sim.step_exact(9).unwrap();
+        assert!(sim.world().get::<JointStateSample>(model).is_none());
+        let mut readings = Vec::new();
+        for tick in [10, 20, 30] {
+            sim.step_exact(if tick == 10 { 1 } else { 10 }).unwrap();
+            let sample = sim.world().get::<JointStateSample>(model).unwrap();
+            assert_eq!(sample.time, Duration::from_millis(tick));
+            assert_eq!(sample.epoch, sim.epoch());
+            assert_eq!(sample.joints.len(), 3);
+            for (reading, joint) in sample.joints.iter().zip(&config.joints) {
+                assert_eq!(reading.id, joint.id);
+                let entity = gz_sim_core::entity_by_id(sim.world(), joint.id).unwrap();
+                let native = sim
+                    .world()
+                    .resource::<PhysicsBackend>()
+                    .joint_state(sim.world().get::<JointHandle>(entity).unwrap().id())
+                    .unwrap();
+                assert_eq!(
+                    (reading.position, reading.velocity),
+                    (native.position, native.velocity)
+                );
+            }
+            readings.push(sample.joints.clone());
+        }
+        assert!(readings[2][0].position > 1e-5);
+        passes.push(readings);
+    }
+    assert_eq!(passes[0], passes[1]);
+}
