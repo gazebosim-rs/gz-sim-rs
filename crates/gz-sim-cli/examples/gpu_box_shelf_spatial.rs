@@ -18,7 +18,61 @@ struct Trial {
     loads: Vec<SpatialShelfLoads>,
 }
 
-fn run(adapter: &str, name: &str, src: &str, dir: &Path) -> Result<Trial, Box<dyn Error>> {
+/// The two material vertices that share the narrow edge on the measured landing.
+#[derive(Clone, Copy)]
+struct CornerView {
+    y: f64,
+}
+impl CornerView {
+    fn points(self) -> [(&'static str, DVec3, &'static str); 2] {
+        [
+            (
+                "held_corner",
+                DVec3::new(-0.024, self.y, -0.020),
+                "0.08 0.90 0.98",
+            ),
+            (
+                "arriving_corner",
+                DVec3::new(0.024, self.y, -0.020),
+                "1.0 0.36 0.08",
+            ),
+        ]
+    }
+    fn sdf(self, src: &str) -> String {
+        let mut markers = String::new();
+        for (name, p, rgb) in self.points() {
+            markers += &format!(
+                r#"<visual name="{name}"><pose>{} {} {} 0 0 0</pose><geometry><sphere><radius>0.0035</radius></sphere></geometry><material><diffuse>{rgb} 1</diffuse></material></visual>"#,
+                p.x, p.y, p.z
+            );
+        }
+        src.replace(
+            r#"<visual name="marker">"#,
+            &(markers + r#"<visual name="marker">"#),
+        )
+    }
+}
+fn visual_pose(tick: usize, b: &CarryGripperBatch, marks: Option<CornerView>) -> Value {
+    let mut frame = visual::visual_frame(tick, b);
+    if let Some(marks) = marks {
+        let transform = &frame["poses"]["sphere"];
+        let q = DQuat::from_array(serde_json::from_value(transform["rotation"].clone()).unwrap());
+        let pos =
+            DVec3::from_array(serde_json::from_value(transform["translation"].clone()).unwrap());
+        for (name, p, _) in marks.points() {
+            frame["poses"][name] =
+                json!({"translation":(pos+q*p).to_array(),"rotation":q.to_array()});
+        }
+    }
+    frame
+}
+fn run(
+    adapter: &str,
+    name: &str,
+    src: &str,
+    dir: &Path,
+    marks: Option<CornerView>,
+) -> Result<Trial, Box<dyn Error>> {
     let sdf = sdformat::load_str(src, name, &sdformat::NoResources)?;
     let mut sim = load_world_on_adapter(
         src,
@@ -34,9 +88,10 @@ fn run(adapter: &str, name: &str, src: &str, dir: &Path) -> Result<Trial, Box<dy
         Some(adapter),
     )?;
     let mut frames = vec![gz_sim_cli::primitive_frame(&sim, &sdf, "default", 1)?];
-    let mut poses = vec![visual::visual_frame(
+    let mut poses = vec![visual_pose(
         0,
         sim.world().resource::<CarryGripperBatch>(),
+        marks,
     )];
     let mut measured = Vec::new();
     let mut cpu_trace = Vec::new();
@@ -86,9 +141,10 @@ fn run(adapter: &str, name: &str, src: &str, dir: &Path) -> Result<Trial, Box<dy
             let elapsed = start.elapsed().as_secs_f64();
             let b = sim.world().resource::<CarryGripperBatch>();
             if epoch == 0 {
-                poses.push(visual::visual_frame(tick, b));
+                poses.push(visual_pose(tick, b, marks));
                 if tick % 80 == 0
                     || tick == end
+                    || (marks.is_some() && (2182..=2206).contains(&tick))
                     || (2118..=2140).contains(&tick)
                     || (2165..=2180).contains(&tick)
                     || (2155..=2350).contains(&tick) && tick % 3 == 0
@@ -307,7 +363,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         ("yaw_plus", "0.003 0.006 0.045", "0.009 0.002 0.004"),
         ("yaw_minus", "0.003 -0.006 0.045", "0.009 -0.002 0.004"),
     ] {
-        if only.is_some_and(|v| v != name) {
+        let marked = only.is_some_and(|key| key == "corner-window");
+        if only.is_some_and(|key| key != name && !(marked && name.starts_with("oblique_"))) {
             continue;
         }
         let mut src = SDF
@@ -316,7 +373,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         if name == "spin_slick" {
             src = src.replace("<mu>0.45</mu><mu2>0.45</mu2>", "<mu>0</mu><mu2>0</mu2>");
         }
-        let trial = run(adapter, name, &src, dir)?;
+        let marks = marked.then_some(CornerView {
+            y: if name == "oblique_plus" {
+                -0.012
+            } else {
+                0.012
+            },
+        });
+        if let Some(m) = marks {
+            src = m.sdf(&src);
+        }
+        let trial = run(adapter, name, &src, dir, marks)?;
         println!("{}", serde_json::to_string_pretty(&trial.result)?);
         all.push(trial.result.clone());
         trials.insert(name, trial);
