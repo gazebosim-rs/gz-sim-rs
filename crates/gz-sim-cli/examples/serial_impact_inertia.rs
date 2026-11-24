@@ -68,6 +68,9 @@ struct Trial {
     /// Solver iterations per native call on a selected impact. The ordinary and comparison grids use their own default.
     #[arg(long, requires = "automatic", value_parser = clap::value_parser!(u32).range(1..=32))]
     impact_iterations: Option<u32>,
+    /// Fixed-time projected Gauss–Seidel passes per selected solver iteration.
+    #[arg(long, requires = "automatic", value_parser = clap::value_parser!(u32).range(1..=32))]
+    impact_pgs: Option<u32>,
     /// Strike the outer right jaw from positive X.
     #[arg(long)]
     right: bool,
@@ -133,9 +136,13 @@ fn fixture(trial: &Trial) -> String {
         }
     }
     if trial.automatic {
+        let pgs = trial
+            .impact_pgs
+            .map(|n| format!("<pgs_iterations>{n}</pgs_iterations>"))
+            .unwrap_or_default();
         xml=xml.replace("</world>", &format!(r#"
           <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
-            <native_steps>{}</native_steps><solver_iterations>{}</solver_iterations>
+            <native_steps>{}</native_steps><solver_iterations>{}</solver_iterations>{pgs}
             <pair><foot>default::parcel::box</foot><support>default::gripper::left</support><incoming_face>-x</incoming_face></pair>
             <pair><foot>default::parcel::box</foot><support>default::gripper::right</support><incoming_face>+x</incoming_face></pair>
           </plugin></world>"#, trial.substeps, trial.impact_iterations.unwrap_or(4)));

@@ -117,6 +117,7 @@ pub(super) fn against_fine(a: &Run) -> Result<Comparison<'_>> {
             substeps,
             automatic: false,
             impact_iterations: None,
+            impact_pgs: None,
             replay: None,
             ..a.trial.clone()
         })

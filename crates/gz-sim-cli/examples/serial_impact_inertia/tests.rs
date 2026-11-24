@@ -267,6 +267,8 @@ fn impact_iteration_budget_only_applies_to_the_selected_interval() -> Result<()>
         vec!["study", "--impact-iterations", "8"],
         vec!["study", "--automatic", "--impact-iterations", "0"],
         vec!["study", "--automatic", "--impact-iterations", "33"],
+        vec!["study", "--impact-pgs", "8"],
+        vec!["study", "--automatic", "--impact-pgs", "0"],
     ] {
         assert!(Args::try_parse_from(arguments).is_err());
     }
@@ -275,6 +277,8 @@ fn impact_iteration_budget_only_applies_to_the_selected_interval() -> Result<()>
         "--automatic",
         "--impact-iterations",
         "8",
+        "--impact-pgs",
+        "3",
         "--substeps",
         "40",
         "--ticks",
@@ -282,6 +286,7 @@ fn impact_iteration_budget_only_applies_to_the_selected_interval() -> Result<()>
     ])?
     .trial;
     assert!(fixture(&trial).contains("<solver_iterations>8</solver_iterations>"));
+    assert!(fixture(&trial).contains("<pgs_iterations>3</pgs_iterations>"));
     let run = run(trial)?;
     assert_eq!(
         run.samples
