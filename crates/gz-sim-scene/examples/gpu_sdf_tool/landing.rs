@@ -12,6 +12,41 @@ struct LandingFrame {
     motor_demand_rad_s: [f64; 2],
 }
 
+/// Replay one loaded tick from the same incoming state. Vary the contact
+/// iterations separately from the external sample and motor clocks.
+fn native_contact_iterations(
+    lane: &PlanarToolLane,
+    limits: [Option<[f64; 2]>; 2],
+    steps: NonZeroUsize,
+) -> Vec<serde_json::Value> {
+    let mut values = vec![];
+    for (iterations, unbiased) in [
+        (1, 1),
+        (2, 1),
+        (4, 1),
+        (8, 1),
+        (16, 1),
+        (1, 4),
+        (4, 4),
+        (8, 8),
+    ] {
+        let mut model = native_tool::NativeTool::new_with_limits(lane, limits);
+        model.set_steps_per_ms(steps);
+        let settings = &mut model.arm.world.integration_parameters;
+        settings.num_internal_pgs_iterations = iterations;
+        settings.num_internal_stabilization_iterations = unbiased;
+        let sample = model.step(lane);
+        let q = model.arm.angles();
+        let w = model.arm.rates();
+        let distal = lane.arm.length[1] * (q[0] + q[1]).cos();
+        let vertical = (lane.arm.length[0] * q[0].cos() + distal) * w[0] + distal * w[1];
+        values.push(json!({"contact_iterations":iterations,"stabilization_iterations":unbiased,
+            "normal_impulse_ns":sample.n,"first_internal_normal_impulse_ns":sample.first_n,
+            "tip_vertical_velocity_m_s":vertical,"landing_offset_s":sample.first,"tangent_impulse_ns":sample.t}));
+    }
+    values
+}
+
 pub(super) fn run(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
     let frames: Vec<LandingFrame> = serde_json::from_slice(&fs::read(trace)?)?;
     let landing = frames
@@ -33,6 +68,7 @@ pub(super) fn run(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
     let origin = [0.48, -0.62];
     let cut: [f64; 2] = std::array::from_fn(|i| origin[i] + incoming.sample.position_rad[i]);
     let mut results = vec![];
+    let mut iteration_sweep = vec![];
     for substeps in [8, 16, 32, 64, 128, 256, 512] {
         let mut rows = vec![];
         let mut analytic = None;
@@ -88,6 +124,13 @@ pub(super) fn run(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
                 })
             };
             if matched {
+                if substeps == 512 {
+                    iteration_sweep = native_contact_iterations(
+                        &lane,
+                        limits,
+                        NonZeroUsize::new(substeps).unwrap(),
+                    );
+                }
                 let mut state = reference::State::new(&lane.arm);
                 let obs = tool_reference::refined_step(
                     &mut state,
@@ -109,7 +152,7 @@ pub(super) fn run(trace: &Path, out: &Path) -> Result<(), Box<dyn Error>> {
         results.push(json!({"native_steps_per_ms":substeps,"runs":rows,"matched_cartesian_reference":analytic}));
     }
     let report = json!({"public_tick_ms":hit.sample.tick_ms,"incoming_angles_rad":cut,"incoming_rates_rad_s":incoming.velocity_rad_s,
-        "gpu_normal_impulse_ns":hit.sample.normal_impulse_ns,"gpu_rates_after_rad_s":hit.velocity_rad_s,"native":results});
+        "gpu_normal_impulse_ns":hit.sample.normal_impulse_ns,"gpu_rates_after_rad_s":hit.velocity_rad_s,"native":results,"matched_native_iterations_at_512_steps":iteration_sweep});
     fs::write(out, serde_json::to_vec_pretty(&report)?)?;
     Ok(())
 }

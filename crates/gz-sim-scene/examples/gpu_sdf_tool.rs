@@ -167,7 +167,12 @@ struct Published {
     #[serde(default)]
     stop_impulse_nms: [f64; 2],
 }
-fn compare_commands(trace: &Path, out: &Path, stopped: bool) -> Result<(), Box<dyn Error>> {
+fn compare_commands(
+    trace: &Path,
+    out: &Path,
+    stopped: bool,
+    passes: Option<std::num::NonZeroUsize>,
+) -> Result<(), Box<dyn Error>> {
     let frames: Vec<Published> = serde_json::from_slice(&fs::read(trace)?)?;
     if frames.len() != 600 {
         return Err("expected 600 consecutive transport observations".into());
@@ -180,17 +185,30 @@ fn compare_commands(trace: &Path, out: &Path, stopped: bool) -> Result<(), Box<d
     } else {
         [None; 2]
     };
-    let mut native = native_tool::NativeTool::new_with_limits(&l, limits);
+    let arm_at_limits = |limits| {
+        let mut native = native_tool::NativeTool::new_with_limits(&l, limits);
+        if let Some(passes) = passes {
+            native
+                .arm
+                .world
+                .integration_parameters
+                .num_internal_stabilization_iterations = passes.get();
+        }
+        native
+    };
+    let mut native = arm_at_limits(limits);
+    let stabilization = native
+        .arm
+        .world
+        .integration_parameters
+        .num_internal_stabilization_iterations;
     let mut first_stop = [[None; 2]; 2];
     let mut reference_residual = [0_f64; 2];
     let mut max_free_elbow = 0_f64;
     let mut controls = stopped.then(|| {
         [
-            native_tool::NativeTool::new_with_limits(&l, [None, limits[1]]),
-            native_tool::NativeTool::new_with_limits(
-                &l,
-                [limits[0].map(|[lo, _]| [lo, f64::MAX]), limits[1]],
-            ),
+            arm_at_limits([None, limits[1]]),
+            arm_at_limits([limits[0].map(|[lo, _]| [lo, f64::MAX]), limits[1]]),
         ]
     });
     let mut native_departure = [None; 2];
@@ -273,7 +291,7 @@ fn compare_commands(trace: &Path, out: &Path, stopped: bool) -> Result<(), Box<d
             }
         }
     }
-    let result = json!({"order":["published_gpu_trace","independent_native_rapier"],"first_loaded_public_tick_and_impulse_ns":first,"last_loaded_public_tick":last,"total_normal_impulse_ns":total,"max_tip_error_m":max_tip,"native_seconds_per_substep":0.001/16.,"authored_stops":stopped,"native_lower_upper_departure_tick":native_departure,"native_signed_limit_residual_nms":reference_residual,"max_native_free_elbow_residual_nms":max_free_elbow,"limits_rad":limits,"first_stop_tick_and_signed_impulse_nms":first_stop,"floor_and_stop_loaded_ticks":combined,"total_signed_stop_impulses_nms":stop_impulse,"max_abs_stop_impulse_nms":peak_stop,"max_travel_violation_rad":travel_error,"max_joint_difference_rad":coordinate_error});
+    let result = json!({"order":["published_gpu_trace","independent_native_rapier"],"first_loaded_public_tick_and_impulse_ns":first,"last_loaded_public_tick":last,"total_normal_impulse_ns":total,"max_tip_error_m":max_tip,"native_seconds_per_substep":0.001/16.,"native_stabilization_passes":stabilization,"authored_stops":stopped,"native_lower_upper_departure_tick":native_departure,"native_signed_limit_residual_nms":reference_residual,"max_native_free_elbow_residual_nms":max_free_elbow,"limits_rad":limits,"first_stop_tick_and_signed_impulse_nms":first_stop,"floor_and_stop_loaded_ticks":combined,"total_signed_stop_impulses_nms":stop_impulse,"max_abs_stop_impulse_nms":peak_stop,"max_travel_violation_rad":travel_error,"max_joint_difference_rad":coordinate_error});
     fs::write(out, serde_json::to_vec_pretty(&result)?)?;
     println!("{result}");
     Ok(())
@@ -288,10 +306,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         return landing::run(Path::new(trace), Path::new(out));
     }
-    if let [mode, trace, out] = args.as_slice()
+    if let [mode, trace, out, options @ ..] = args.as_slice()
         && matches!(mode.as_str(), "--commands" | "--stops")
     {
-        return compare_commands(Path::new(trace), Path::new(out), mode == "--stops");
+        let passes = match options {
+            [] => None,
+            [flag, count] if flag == "--stabilization-passes" => Some(count.parse()?),
+            _ => return Err("expected optional --stabilization-passes POSITIVE_COUNT".into()),
+        };
+        return compare_commands(Path::new(trace), Path::new(out), mode == "--stops", passes);
     }
     let [adapter, out] = args.as_slice() else {
         return Err("expected ADAPTER NEW_OUTPUT_DIRECTORY".into());
