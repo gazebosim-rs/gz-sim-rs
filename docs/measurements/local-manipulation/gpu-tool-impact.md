@@ -26,3 +26,5 @@ RUSTC_WRAPPER= cargo run --release --locked -p gz-sim-scene --features gpu-batch
 ```
 
 The trace supplies the published joint coordinates and velocities and the actual velocity motor demands. Each refinement starts once from rest and once from the measured 64 ms state. Both use the same public command period. The viewer checks archived transforms against positions reconstructed from the published joint angles and the authored visual offsets.
+
+LLVM's exact release binaries exercised 224/230 changed production and measurement lines and 537/558 regions at 8003e09. The subsequent optimized bracketing change at 4e03563 covered 22/22 changed lines and 73/73 regions. The final hardware suite passed all 17 device-only GPU library tests, and the stopped-arm release trace and its reset repeat matched byte for byte. The browser independently checked 185 poses and shapes across all 37 frames with rewind to zero.
