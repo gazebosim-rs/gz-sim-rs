@@ -429,8 +429,8 @@ pub(super) fn queue_world_wrench_batch(
     Ok(())
 }
 
-/// Latest persistent generalized torque in Nm, applied once per advancing step.
-/// Set through `set_joint_force`; reset clears it and retirement removes it.
+/// Latest persistent joint effort, applied on each advancing step.
+/// A slider uses newtons and a hinge uses newton-metres. Reset clears the value.
 #[derive(Component, Clone, Copy, Debug, Default)]
 pub struct JointForceCommand(f64);
 
