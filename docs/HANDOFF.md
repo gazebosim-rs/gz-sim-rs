@@ -1,3 +1,24 @@
+## Current M114: organized CPU-lidar point clouds
+
+M114 adds opt-in organized PointCloudPacked output to existing CPU lidars, using
+one acquired sample for scan and cloud. Native five-field layout, sensor-local
+coordinates, bounded payloads and separate cloud sequences preserve the existing
+LaserScan behavior. See [M114_DELIVERY.md](M114_DELIVERY.md) for the closed scope,
+regressions and native Source limitations. The budget is five working days,
+including independent review and mandatory gates.
+
+The isolated parent `02592f7a` passed its full normal hook, independent local DATA
+and exact hosted CI 45297968661 attempt 1. Its original-artifact audit also passed.
+M114 implementation and regression source are complete; its checks and acceptance have not occurred.
+Finish code, regressions, guides and independent review before one consolidated
+check cycle. No prior result transfers to this candidate. Accepted M1–M76 and
+202 slices remain unchanged. Preserve the live no-expiry M77 demo; formal browser
+and owner-confirmed shutdown evidence remain outstanding.
+
+The following checkpoints are historical and retain their original evidence.
+
+---
+
 ## Current M102–M113 renderer test correction batch
 
 The frozen `7c8a5de4` full staged hook exited 1 after 4,440.450 seconds.

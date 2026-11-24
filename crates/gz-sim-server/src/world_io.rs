@@ -175,6 +175,7 @@ enum WorldWork {
     Poses(u64, Vec<u8>),
     Imu(u64, crate::imu_io::ImuJob),
     Lidar(u64, crate::lidar_io::LidarJob),
+    LidarPair(u64, crate::lidar_io::LidarJob, crate::lidar_io::LidarJob),
     Altimeter(u64, crate::altimeter_io::AltimeterJob),
     AirPressure(u64, crate::air_pressure_io::AirPressureJob),
     AirSpeed(u64, crate::air_speed_io::AirSpeedJob),
@@ -194,6 +195,10 @@ enum WorldWork {
         crate::joint_controller_io::Receipt,
     ),
     InstallLidar(
+        String,
+        mpsc::SyncSender<std::result::Result<Arc<LidarOutput>, String>>,
+    ),
+    InstallLidarPoints(
         String,
         mpsc::SyncSender<std::result::Result<Arc<LidarOutput>, String>>,
     ),
@@ -1001,6 +1006,32 @@ impl WorldIo {
                                 .map_err(|error| error.to_string());
                             let _ = receipt.try_send(result);
                         }
+                        Ok(WorldWork::LidarPair(generation, scan, points)) => {
+                            if generation == worker_epoch.load(Ordering::Acquire)
+                                && lidars.as_ref().is_some_and(|declarations| {
+                                    declarations.publish_pair(scan, points).is_err()
+                                })
+                            {
+                                failures[4].fetch_add(1, Ordering::Relaxed);
+                            }
+                        }
+                        Ok(WorldWork::InstallLidarPoints(key, receipt)) => {
+                            let declarations =
+                                lidars.get_or_insert_with(crate::lidar_io::LidarDeclarations::new);
+                            let (retired, _) = lidar_retirement
+                                .get_or_insert_with(|| mpsc::sync_channel(capacity));
+                            let result = declarations
+                                .get_or_create_kind(
+                                    &publication_session,
+                                    key,
+                                    &publication_process,
+                                    &publication_node,
+                                    retired.clone(),
+                                    crate::lidar_io::Kind::Points,
+                                )
+                                .map_err(|error| error.to_string());
+                            let _ = receipt.try_send(result);
+                        }
                         Ok(WorldWork::Altimeter(generation, job)) => {
                             if generation == worker_epoch.load(Ordering::Acquire)
                                 && altimeters
@@ -1494,6 +1525,26 @@ impl WorldIo {
             .map_err(Into::into)
     }
 
+    pub(super) fn lidar_points_output(&self, key: String) -> Result<Arc<LidarOutput>> {
+        if key == self.clock.key_expr().as_str()
+            || key == self.poses.key_expr().as_str()
+            || key.len() > crate::lidar_io::POINTS_MAX_NAME_BYTES
+        {
+            return Err("lidar point key collides or exceeds its bound".into());
+        }
+        if self.session.is_closed() {
+            return Err("world session is closed".into());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(WorldWork::InstallLidarPoints(key, receipt), deadline)
+            .map_err(|error| format!("lidar point setup admission failed: {error}"))?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
+            .map_err(Into::into)
+    }
+
     /// The three original world keys used by legacy setup error precedence.
     pub(super) fn fixed_keys(&self) -> std::collections::BTreeSet<String> {
         std::collections::BTreeSet::from([
@@ -1941,13 +1992,44 @@ impl WorldIo {
     }
 
     pub(super) fn publish_lidar(&self, output: &Arc<LidarOutput>, bytes: Vec<u8>) -> Result<()> {
-        if bytes.len() > self.max_message_bytes || self.session.is_closed() {
+        if bytes.len() > self.max_message_bytes || self.session.is_closed() || output.is_points() {
             return Err("invalid lidar publication".into());
         }
         self.incoming
             .try_send(WorldWork::Lidar(
                 self.epoch.load(Ordering::Acquire),
                 crate::lidar_io::LidarJob::new(output, bytes),
+            ))
+            .map_err(|_| "world publication queue unavailable".into())
+    }
+
+    /// One queue slot admits both encoded messages. This is not a transaction
+    /// across remote subscriber delivery or the two subsequent transport puts.
+    pub(super) fn publish_lidar_pair(
+        &self,
+        scan: &Arc<LidarOutput>,
+        scan_bytes: Vec<u8>,
+        points: &Arc<LidarOutput>,
+        point_bytes: Vec<u8>,
+    ) -> Result<()> {
+        if self.session.is_closed()
+            || scan.is_points()
+            || !points.is_points()
+            || scan_bytes.len() > self.max_message_bytes
+            || point_bytes.len() > self.max_message_bytes
+            || point_bytes.len() > crate::lidar_io::POINTS_MAX_MESSAGE_BYTES
+            || scan_bytes
+                .len()
+                .checked_add(point_bytes.len())
+                .is_none_or(|n| n > 8192)
+        {
+            return Err("invalid paired lidar publication".into());
+        }
+        self.incoming
+            .try_send(WorldWork::LidarPair(
+                self.epoch.load(Ordering::Acquire),
+                crate::lidar_io::LidarJob::new(scan, scan_bytes),
+                crate::lidar_io::LidarJob::new(points, point_bytes),
             ))
             .map_err(|_| "world publication queue unavailable".into())
     }

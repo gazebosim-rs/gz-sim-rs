@@ -88,8 +88,10 @@ impl Runtime {
         worker: Option<PathBuf>,
         mixed_pair: bool,
         rgb_family: bool,
+        lidar_point_clouds: bool,
     ) -> Result<Self, Box<dyn Error>> {
-        let options = gz_sim_server::ServerOptions::from_env()?;
+        let mut options = gz_sim_server::ServerOptions::from_env()?;
+        options.lidar_point_clouds = lidar_point_clouds;
         let budget = NonZeroUsize::new(64).expect("nonzero command budget");
         #[cfg(feature = "rgb-camera")]
         if let Some(worker_path) = worker {
@@ -238,6 +240,7 @@ pub(super) fn run(
     world: &str,
     running: bool,
     iterations: u64,
+    lidar_point_clouds: bool,
     camera: CameraOptions,
     viewer: ViewerOptions,
 ) -> Result<(Simulation, u64), Box<dyn Error>> {
@@ -264,6 +267,7 @@ pub(super) fn run(
         camera.worker,
         camera.mixed_pair,
         camera.rgb_family,
+        lidar_point_clouds,
     )?;
     runtime.server_mut().prepare_run(Duration::from_secs(5))?;
     let mut viewer = web_viewer
@@ -422,6 +426,7 @@ mod tests {
                 Some(PathBuf::from("relative-worker-must-not-launch")),
                 false,
                 family,
+                false,
             )
             .err()
             .expect("preflight must refuse before creating runtime resources")

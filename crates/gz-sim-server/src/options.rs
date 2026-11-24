@@ -47,6 +47,8 @@ pub struct ServerOptions {
     pub capacity: usize,
     /// Maximum admitted protobuf payload, in bytes; must fit a signed 64-bit count.
     pub max_message_bytes: usize,
+    /// Opt in to organized CPU-lidar clouds alongside unchanged LaserScan output.
+    pub lidar_point_clouds: bool,
 }
 
 impl Default for ServerOptions {
@@ -57,6 +59,7 @@ impl Default for ServerOptions {
             topic_remaps: HashMap::new(),
             capacity: 1000,
             max_message_bytes: 16 * 1024 * 1024,
+            lidar_point_clouds: false,
         }
     }
 }
@@ -92,6 +95,8 @@ impl ServerOptions {
             || self.capacity > i32::MAX as usize
             || self.max_message_bytes == 0
             || self.max_message_bytes > i64::MAX as usize
+            || self.lidar_point_clouds
+                && self.max_message_bytes < crate::lidar_io::POINTS_MAX_MESSAGE_BYTES
             || self.topic_remaps.len() > self.capacity
         {
             return Err(SetupError::InvalidConfig);

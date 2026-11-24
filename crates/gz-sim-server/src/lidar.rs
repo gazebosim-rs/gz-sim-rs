@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Canonical bounded CPU scans and CPU publication handoff; never casts physics rays.
 use super::*;
-use gz_sim_proto::msgs::{Header, LaserScan, Pose, header::Map};
+use gz_sim_proto::msgs::{
+    Header, LaserScan, PointCloudPacked, Pose,
+    header::Map,
+    point_cloud_packed::{Field, field::DataType},
+};
 use gz_sim_scene::{
     EntityKind, LidarPublication, LidarSample, Name as SceneName, PendingResetRemoval,
 };
@@ -15,7 +19,14 @@ pub(super) struct Stream {
     pub(super) endpoint: String,
     pub(super) publisher: Arc<world_io::LidarOutput>,
     sequence: u64,
+    points: Option<PointStream>,
     last_sample: Option<(u64, Duration)>,
+}
+
+struct PointStream {
+    endpoint: String,
+    publisher: Arc<world_io::LidarOutput>,
+    sequence: u64,
 }
 
 fn valid_metadata(metadata: &LidarPublication) -> bool {
@@ -114,6 +125,126 @@ fn packet(metadata: &LidarPublication, sample: &LidarSample, sequence: u64) -> O
     })
 }
 
+fn valid_point_metadata(metadata: &LidarPublication) -> bool {
+    valid_metadata(metadata)
+        && metadata.frame_id.len() <= lidar_io::POINTS_MAX_NAME_BYTES
+        && metadata.config.range_max <= f64::from(f32::MAX)
+}
+
+/// The native unaligned XYZ/intensity/ring layout, in the acquisition sensor
+/// frame. Misses deliberately keep componentwise direction*infinity results.
+pub(super) fn points_packet(
+    metadata: &LidarPublication,
+    sample: &LidarSample,
+    sequence: u64,
+) -> Option<PointCloudPacked> {
+    if !valid_point_metadata(metadata) {
+        return None;
+    }
+    let scan = packet(metadata, sample, sequence)?;
+    let model = metadata.spatial_model().ok()?;
+    for (direction, range) in model.directions().iter().zip(&sample.ranges) {
+        if range.is_finite()
+            && direction
+                .iter()
+                .any(|d| !(*d * *range).is_finite() || !((*d * *range) as f32).is_finite())
+        {
+            return None;
+        }
+    }
+    let width = u32::try_from(metadata.config.samples).ok()?;
+    let height = u32::try_from(metadata.vertical.samples).ok()?;
+    let row_step = width.checked_mul(18)?;
+    let mut data = Vec::with_capacity(usize::try_from(row_step.checked_mul(height)?).ok()?);
+    for (index, (direction, range)) in model.directions().iter().zip(&sample.ranges).enumerate() {
+        for component in direction {
+            data.extend_from_slice(&((*component * *range) as f32).to_le_bytes());
+        }
+        data.extend_from_slice(&0.0_f32.to_le_bytes());
+        data.extend_from_slice(
+            &u16::try_from(index / metadata.config.samples)
+                .ok()?
+                .to_le_bytes(),
+        );
+    }
+    let field = |name: &str, offset, datatype: DataType| Field {
+        name: name.into(),
+        offset,
+        datatype: datatype as i32,
+        count: 1,
+    };
+    let message = PointCloudPacked {
+        header: scan.header,
+        field: vec![
+            field("x", 0, DataType::Float32),
+            field("y", 4, DataType::Float32),
+            field("z", 8, DataType::Float32),
+            field("intensity", 12, DataType::Float32),
+            field("ring", 16, DataType::Uint16),
+        ],
+        height,
+        width,
+        is_bigendian: false,
+        point_step: 18,
+        row_step,
+        data,
+        is_dense: sample.ranges.iter().all(|range| range.is_finite()),
+    };
+    (message.encoded_len() <= lidar_io::POINTS_MAX_MESSAGE_BYTES).then_some(message)
+}
+
+pub(super) fn points_endpoint(
+    metadata: &LidarPublication,
+    options: &ServerOptions,
+) -> Result<Option<String>, Error> {
+    if !options.lidar_point_clouds {
+        return Ok(None);
+    }
+    if !valid_point_metadata(metadata)
+        || options.max_message_bytes < lidar_io::POINTS_MAX_MESSAGE_BYTES
+    {
+        return Err(Error::LidarIdentity);
+    }
+    // Both independently remapped native topics retain their own meaning.
+    let native = options::as_valid_topic(&metadata.topic);
+    options.topic_key(&native)?;
+    let endpoint = options.topic_key(&options::as_valid_topic(&format!("{native}/points")))?;
+    if endpoint.len() > lidar_io::POINTS_MAX_NAME_BYTES {
+        return Err(Error::LidarIdentity);
+    }
+    // A maximal valid timestamp/sequence/nonzero pose bounds all protobuf
+    // scalar sizes before any publisher is looked up or declared.
+    let sample = LidarSample {
+        time: Duration::new(i64::MAX as u64, 999_999_999),
+        epoch: 0,
+        world_pose: gz_sim_scene::WorldPose {
+            translation: [1.0; 3],
+            rotation: [0.5; 4],
+        },
+        ranges: vec![
+            metadata.config.range_max;
+            metadata
+                .config
+                .samples
+                .checked_mul(metadata.vertical.samples)
+                .ok_or(Error::LidarIdentity)?
+        ],
+    };
+    let scan = packet(metadata, &sample, u64::MAX)
+        .ok_or(Error::LidarIdentity)?
+        .encoded_len();
+    let points = points_packet(metadata, &sample, u64::MAX)
+        .ok_or(Error::LidarIdentity)?
+        .encoded_len();
+    if scan > options.max_message_bytes
+        || points > options.max_message_bytes
+        || scan.checked_add(points).is_none_or(|size| size > 8192)
+    {
+        return Err(Error::LidarIdentity);
+    }
+    Ok(Some(endpoint))
+}
+
 // Keep the metadata/output prefix used by existing reset controls.
 type Prepared = BTreeMap<String, (LidarPublication, Arc<world_io::LidarOutput>, u64, String)>;
 const MAX_LIDARS: usize = 8;
@@ -182,6 +313,11 @@ fn originals(
         if !keys.insert(endpoint.clone()) {
             return Err(Error::LidarIdentity);
         }
+        if let Some(points) = points_endpoint(&metadata, options)?
+            && !keys.insert(points)
+        {
+            return Err(Error::LidarIdentity);
+        }
         result.push((id, name, metadata, endpoint));
     }
     Ok(result)
@@ -198,9 +334,26 @@ fn reset_plan(server: &Server, occupied: &BTreeSet<String>) -> Result<Vec<Origin
             .find(|stream| &stream.endpoint == endpoint)
             && (stream.identity != *id
                 || &stream.scoped_name != name
-                || &stream.metadata != metadata)
+                || &stream.metadata != metadata
+                || !stream.publisher.matches(endpoint, lidar_io::Kind::Scan))
         {
             return Err(Error::ResetLidars);
+        }
+        if let Some(stream) = server
+            .lidars
+            .iter()
+            .find(|stream| &stream.endpoint == endpoint)
+        {
+            match (
+                points_endpoint(metadata, &server.network_config)?,
+                &stream.points,
+            ) {
+                (None, None) => {}
+                (Some(key), Some(points))
+                    if points.endpoint == key
+                        && points.publisher.matches(&key, lidar_io::Kind::Points) => {}
+                _ => return Err(Error::ResetLidars),
+            }
         }
     }
     Ok(selected)
@@ -219,6 +372,21 @@ pub(super) fn prepare_reset(server: &Server) -> Result<Prepared, Error> {
                 .lidar_output(key.clone())
                 .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
+        if let Some(point_key) = points_endpoint(&metadata, &server.network_config)? {
+            let points = match server
+                .lidars
+                .iter()
+                .find(|stream| stream.endpoint == key)
+                .and_then(|stream| stream.points.as_ref())
+            {
+                Some(points) => Arc::clone(&points.publisher),
+                None => server
+                    .world_io
+                    .lidar_points_output(point_key.clone())
+                    .map_err(|error| Error::WorldNetwork(error.to_string()))?,
+            };
+            prepared.insert(point_key, (metadata.clone(), points, id, name.clone()));
+        }
         prepared.insert(key, (metadata, publisher, id, name));
     }
     Ok(prepared)
@@ -282,6 +450,12 @@ fn admission_plan(
         if !keys.insert(endpoint.clone()) {
             return Err(Error::LidarIdentity);
         }
+        let point_key = points_endpoint(metadata, options)?;
+        if let Some(point_key) = &point_key
+            && !keys.insert(point_key.clone())
+        {
+            return Err(Error::LidarIdentity);
+        }
         let initial = original
             .iter()
             .find(|(initial_id, initial_name, _, _)| *initial_id == id && initial_name == &name.0)
@@ -294,15 +468,32 @@ fn admission_plan(
             });
         }
         if let Some(prepared) = prepared {
-            let (initial_metadata, _, initial_id, initial_name) =
+            let (initial_metadata, publisher, initial_id, initial_name) =
                 prepared.get(&endpoint).ok_or(Error::ResetLidars)?;
-            if initial_metadata != metadata || *initial_id != id || initial_name != &name.0 {
+            if initial_metadata != metadata
+                || *initial_id != id
+                || initial_name != &name.0
+                || !publisher.matches(&endpoint, lidar_io::Kind::Scan)
+            {
                 return Err(Error::ResetLidars);
+            }
+            if let Some(key) = &point_key {
+                let (initial_metadata, publisher, initial_id, initial_name) =
+                    prepared.get(key).ok_or(Error::ResetLidars)?;
+                if initial_metadata != metadata
+                    || *initial_id != id
+                    || initial_name != &name.0
+                    || !publisher.matches(key, lidar_io::Kind::Points)
+                {
+                    return Err(Error::ResetLidars);
+                }
             }
         }
         selected.push((entity, id, name.0.clone(), metadata.clone(), endpoint));
     }
-    if prepared.is_some_and(|p| p.len() != selected.len()) {
+    if prepared
+        .is_some_and(|p| p.len() != selected.len() * if options.lidar_point_clouds { 2 } else { 1 })
+    {
         return Err(Error::ResetLidars);
     }
     Ok(selected)
@@ -327,22 +518,33 @@ pub(super) fn boundary_keys(
     };
     if let Some(server) = reset {
         let occupied = reserved()?;
-        return Ok(reset_plan(server, &occupied)?
-            .into_iter()
-            .map(|row| row.3)
-            .collect());
+        let mut keys = BTreeSet::new();
+        for (_, _, metadata, key) in reset_plan(server, &occupied)? {
+            keys.insert(key);
+            if let Some(points) = points_endpoint(&metadata, options)? {
+                keys.insert(points);
+            }
+        }
+        return Ok(keys);
     }
     let current = admission_plan(simulation, options, reserved, None)?;
-    let mut keys: BTreeSet<_> = current.into_iter().map(|row| row.4).collect();
+    let mut keys = BTreeSet::new();
+    for (_, _, _, metadata, key) in current {
+        keys.insert(key);
+        if let Some(points) = points_endpoint(&metadata, options)? {
+            keys.insert(points);
+        }
+    }
     // Empty manually constructed families keep their existing no-blueprint path.
     match gz_sim_scene::initial_lidar_publications(simulation) {
         Ok(_) => {
             let occupied = reserved()?;
-            keys.extend(
-                originals(simulation, options, &occupied)?
-                    .into_iter()
-                    .map(|row| row.3),
-            );
+            for (_, _, metadata, key) in originals(simulation, options, &occupied)? {
+                keys.insert(key);
+                if let Some(points) = points_endpoint(&metadata, options)? {
+                    keys.insert(points);
+                }
+            }
         }
         Err(gz_sim_scene::SceneResetError::MissingInitialState) if keys.is_empty() => {}
         Err(error) => return Err(error.into()),
@@ -375,6 +577,21 @@ pub(super) fn streams(
                 .lidar_output(endpoint.clone())
                 .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
+        let points = if let Some(key) = points_endpoint(&metadata, options)? {
+            let publisher = match prepared {
+                Some(p) => Arc::clone(&p.get(&key).expect("entire typed prepared set validated").1),
+                None => io
+                    .lidar_points_output(key.clone())
+                    .map_err(|error| Error::WorldNetwork(error.to_string()))?,
+            };
+            Some(PointStream {
+                endpoint: key,
+                publisher,
+                sequence: 0,
+            })
+        } else {
+            None
+        };
         result.push(Stream {
             entity,
             identity,
@@ -383,6 +600,7 @@ pub(super) fn streams(
             endpoint,
             publisher,
             sequence: 0,
+            points,
             last_sample: None,
         });
     }
@@ -423,7 +641,14 @@ impl Server {
                 match if self.world_io.session.is_closed() {
                     Err("world session is closed")
                 } else {
-                    stream.publisher.matching()
+                    stream.publisher.matching().and_then(|scan| {
+                        stream
+                            .points
+                            .as_ref()
+                            .map(|points| points.publisher.matching())
+                            .transpose()
+                            .map(|points| scan || points.unwrap_or(false))
+                    })
                 } {
                     Ok(true) => Some(stream.entity),
                     Ok(false) => None,
@@ -448,6 +673,43 @@ impl Server {
             if stream.last_sample == Some(key) {
                 continue;
             }
+            let point_message = if let Some(points) = &stream.points {
+                match points.publisher.matching() {
+                    Ok(true) => {
+                        let message = (sample.epoch == self.simulation.epoch()
+                            && sample.time <= self.simulation.elapsed())
+                        .then(|| points_packet(&stream.metadata, sample, points.sequence))
+                        .flatten();
+                        let Some(message) = message else {
+                            self.counters.invalid_lidar_samples += 1;
+                            continue;
+                        };
+                        Some(message)
+                    }
+                    Ok(false) => None,
+                    Err(_) => {
+                        self.counters.lidar_failures += 1;
+                        continue;
+                    }
+                }
+            } else {
+                None
+            };
+            // Validate both encoded lengths before changing sample/counter state.
+            if let Some(points) = &point_message {
+                let scan = packet(&stream.metadata, sample, stream.sequence);
+                if scan.as_ref().is_none_or(|scan| {
+                    scan.encoded_len() > self.network_config.max_message_bytes
+                        || points.encoded_len() > self.network_config.max_message_bytes
+                        || scan
+                            .encoded_len()
+                            .checked_add(points.encoded_len())
+                            .is_none_or(|n| n > 8192)
+                }) {
+                    self.counters.invalid_lidar_samples += 1;
+                    continue;
+                }
+            }
             stream.last_sample = Some(key);
             let message = (sample.epoch == self.simulation.epoch()
                 && sample.time <= self.simulation.elapsed())
@@ -458,11 +720,21 @@ impl Server {
                 continue;
             };
             stream.sequence = stream.sequence.wrapping_add(1);
-            if self
-                .world_io
-                .publish_lidar(&stream.publisher, message.encode_to_vec())
-                .is_ok()
-            {
+            let queued = match (point_message, stream.points.as_mut()) {
+                (Some(points), Some(output)) => {
+                    output.sequence = output.sequence.wrapping_add(1);
+                    self.world_io.publish_lidar_pair(
+                        &stream.publisher,
+                        message.encode_to_vec(),
+                        &output.publisher,
+                        points.encode_to_vec(),
+                    )
+                }
+                _ => self
+                    .world_io
+                    .publish_lidar(&stream.publisher, message.encode_to_vec()),
+            };
+            if queued.is_ok() {
                 self.counters.lidars_queued += 1;
             } else {
                 self.counters.lidar_failures += 1;
@@ -488,3 +760,7 @@ mod tests;
 #[cfg(test)]
 #[path = "../tests/private/spatial_lidar_packets.rs"]
 mod spatial_packet_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/lidar_points.rs"]
+mod point_tests;

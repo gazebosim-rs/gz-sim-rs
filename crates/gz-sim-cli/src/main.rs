@@ -44,6 +44,9 @@ struct Args {
     /// Start the server running instead of paused.
     #[arg(short = 'r', long, requires = "server")]
     run: bool,
+    /// Publish organized CPU-lidar point clouds alongside the existing laser scans.
+    #[arg(long, requires = "server", conflicts_with = "replay")]
+    lidar_point_clouds: bool,
     /// Override the SDF physics step, in nanoseconds.
     #[arg(long)]
     step_ns: Option<NonZeroU64>,
@@ -178,6 +181,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             &args.world,
             args.run,
             args.iterations.unwrap_or(0),
+            args.lidar_point_clouds,
             live::CameraOptions {
                 worker: args.camera_worker,
                 mixed_pair: args.camera_mixed_pair,
@@ -232,3 +236,7 @@ mod recording_cli_tests;
 #[cfg(test)]
 #[path = "../tests/private/rgb_family_cli.rs"]
 mod rgb_family_cli_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/lidar_points_cli.rs"]
+mod lidar_points_cli_tests;

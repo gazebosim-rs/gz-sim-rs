@@ -1,4 +1,18 @@
-## Current M102–M113 renderer test correction batch
+## Current M114: organized CPU-lidar point clouds
+
+M114 adds opt-in point-cloud publication from the same acquired CPU-lidar sample,
+while preserving the existing LaserScan output. The CLI option is
+`--server --lidar-point-clouds`; see [the delivery guide](docs/M114_DELIVERY.md)
+for the native layout, limits and compatibility choices. Implementation, regression source and documentation are complete. M114
+verification is pending; no candidate result is inherited. Its parent `02592f7a` passed local and hosted qualification and both
+independent evidence audits. Formal acceptance remains separate: preserve the
+no-expiry M77 demo until confirmed stop, and retain its browser/shutdown gates.
+
+The checkpoints below are historical; their original failures remain retained.
+
+---
+
+## Historical M102–M113 renderer test correction checkpoint
 
 The frozen `7c8a5de4` full staged hook exited 1 after 4,440.450 seconds.
 Both Clippy stages, documentation and the 498-test Python aggregate passed.

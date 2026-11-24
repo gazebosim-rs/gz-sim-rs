@@ -1,7 +1,10 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! CPU lidar leases and declarations owned exclusively by the publication IO thread.
-use gz_sim_proto::{msgs::LaserScan, prost::Name};
+use gz_sim_proto::{
+    msgs::{LaserScan, PointCloudPacked},
+    prost::Name,
+};
 use std::{
     collections::BTreeMap,
     sync::{
@@ -18,6 +21,25 @@ use zenoh::{
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub(super) struct LidarId(uuid::Uuid);
 
+pub(super) const POINTS_MAX_MESSAGE_BYTES: usize = 4096;
+pub(super) const POINTS_MAX_NAME_BYTES: usize = 1024;
+const MAX_DECLARATIONS: usize = 16;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(super) enum Kind {
+    Scan,
+    Points,
+}
+
+impl Kind {
+    fn message_name(self) -> String {
+        match self {
+            Self::Scan => LaserScan::full_name(),
+            Self::Points => PointCloudPacked::full_name(),
+        }
+    }
+}
+
 struct Interest {
     matching: AtomicBool,
     usable: AtomicBool,
@@ -26,11 +48,20 @@ struct Interest {
 /// Contains no Session, publisher, listener or liveliness declaration.
 pub(super) struct LidarOutput {
     id: LidarId,
+    key: String,
+    kind: Kind,
     interest: Arc<Interest>,
     retired: mpsc::SyncSender<LidarId>,
     dirty: Arc<AtomicBool>,
 }
 impl LidarOutput {
+    pub(super) fn matches(&self, key: &str, kind: Kind) -> bool {
+        self.key == key && self.kind == kind
+    }
+
+    pub(super) fn is_points(&self) -> bool {
+        self.kind == Kind::Points
+    }
     /// The caller also checks its world Session for immediate closed-session errors.
     pub(super) fn matching(&self) -> Result<bool, &'static str> {
         if !self.interest.usable.load(Ordering::Acquire) {
@@ -66,6 +97,7 @@ impl LidarJob {
 
 struct Declaration {
     key: String,
+    kind: Kind,
     lease: Weak<LidarOutput>,
     interest: Arc<Interest>,
     _listener: MatchingListener<()>,
@@ -99,6 +131,18 @@ impl LidarDeclarations {
         node: &str,
         retired: mpsc::SyncSender<LidarId>,
     ) -> zenoh::Result<Arc<LidarOutput>> {
+        self.get_or_create_kind(session, key, process, node, retired, Kind::Scan)
+    }
+
+    pub(super) fn get_or_create_kind(
+        &mut self,
+        session: &zenoh::Session,
+        key: String,
+        process: &str,
+        node: &str,
+        retired: mpsc::SyncSender<LidarId>,
+        kind: Kind,
+    ) -> zenoh::Result<Arc<LidarOutput>> {
         self.reconcile(session.is_closed());
         if session.is_closed() {
             return Err("world session is closed".into());
@@ -106,6 +150,9 @@ impl LidarDeclarations {
         // Topic sharing is resolved at setup, not by retaining a second CPU registry.
         if let Some((&id, entry)) = self.entries.iter().find(|(_, entry)| entry.key == key) {
             if let Some(output) = entry.lease.upgrade() {
+                if entry.kind != kind {
+                    return Err("lidar key is reserved for another message type".into());
+                }
                 return Ok(output);
             }
             // Arc's strong count reaches zero before the CPU destructor sets dirty.
@@ -114,7 +161,18 @@ impl LidarDeclarations {
                 self.dirty = None;
             }
         }
-        let token = crate::world_io::presence(&key, process, node, "MP", &LaserScan::full_name())?;
+        if self.entries.len() >= MAX_DECLARATIONS
+            || self
+                .entries
+                .values()
+                .filter(|entry| entry.kind == kind)
+                .count()
+                >= 8
+            || kind == Kind::Points && key.len() > POINTS_MAX_NAME_BYTES
+        {
+            return Err("lidar declaration bound exceeded".into());
+        }
+        let token = crate::world_io::presence(&key, process, node, "MP", &kind.message_name())?;
         let publisher = session
             .declare_publisher(key.clone())
             .congestion_control(CongestionControl::Drop)
@@ -143,6 +201,8 @@ impl LidarDeclarations {
             .get_or_insert_with(|| Arc::new(AtomicBool::new(false)));
         let output = Arc::new(LidarOutput {
             id: LidarId(uuid::Uuid::new_v4()),
+            key: key.clone(),
+            kind,
             interest: Arc::clone(&interest),
             retired,
             dirty: Arc::clone(dirty),
@@ -152,6 +212,7 @@ impl LidarDeclarations {
             output.id,
             Declaration {
                 key,
+                kind,
                 lease: Arc::downgrade(&output),
                 interest,
                 _listener: listener,
@@ -193,12 +254,37 @@ impl LidarDeclarations {
         if !Weak::ptr_eq(&entry.lease, &job.lease) || job.lease.strong_count() == 0 {
             return Ok(false);
         }
+        if entry.kind == Kind::Points && job.bytes.len() > POINTS_MAX_MESSAGE_BYTES {
+            return Err("lidar point cloud exceeds its message bound".into());
+        }
         entry
             .publisher
             .put(job.bytes)
-            .attachment(LaserScan::full_name())
+            .attachment(entry.kind.message_name())
             .wait()?;
         Ok(true)
+    }
+
+    /// Queue admission is paired; transport puts keep their existing independent
+    /// completion semantics if a subscriber or CPU owner retires meanwhile.
+    pub(super) fn publish_pair(&self, scan: LidarJob, points: LidarJob) -> zenoh::Result<bool> {
+        let valid = |job: &LidarJob, kind| {
+            self.entries.get(&job.id).is_some_and(|entry| {
+                entry.kind == kind
+                    && Weak::ptr_eq(&entry.lease, &job.lease)
+                    && job.lease.strong_count() != 0
+            })
+        };
+        if scan.id == points.id || !valid(&scan, Kind::Scan) || !valid(&points, Kind::Points) {
+            return Ok(false);
+        }
+        if points.bytes.len() > POINTS_MAX_MESSAGE_BYTES {
+            return Err("lidar point cloud exceeds its message bound".into());
+        }
+        if !self.publish(scan)? {
+            return Ok(false);
+        }
+        self.publish(points)
     }
 }
 

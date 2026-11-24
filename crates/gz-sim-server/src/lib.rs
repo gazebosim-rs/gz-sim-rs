@@ -317,6 +317,9 @@ fn sensor_reserved_keys_from_base(
         }
         if include_lidars && let Some(metadata) = entity.get::<gz_sim_scene::LidarPublication>() {
             keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+            if let Some(key) = lidar::points_endpoint(metadata, config)? {
+                keys.insert(key);
+            }
         }
         if include_legacy_peer_inputs
             && let Some(metadata) = entity.get::<gz_sim_scene::DiffDriveConfiguration>()
@@ -340,6 +343,9 @@ fn sensor_reserved_keys_from_base(
             if include_lidars {
                 for metadata in gz_sim_scene::initial_lidar_publications(simulation)? {
                     keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+                    if let Some(key) = lidar::points_endpoint(metadata, config)? {
+                        keys.insert(key);
+                    }
                 }
             }
             if include_legacy_peer_inputs {
@@ -1054,7 +1060,7 @@ fn diff_drive_legacy_keys(
 ) -> Result<BTreeSet<String>, Error> {
     let mut keys = io.fixed_keys();
     keys.insert(config.topic_key("/clock")?);
-    let mut add = |raw: &str| -> Result<(), Error> {
+    let add = |keys: &mut BTreeSet<String>, raw: &str| -> Result<(), Error> {
         keys.insert(config.topic_key(&options::as_valid_topic(raw))?);
         Ok(())
     };
@@ -1062,10 +1068,13 @@ fn diff_drive_legacy_keys(
         match gz_sim_scene::initial_imu_publications(simulation) {
             Ok(values) => {
                 for metadata in values {
-                    add(&metadata.topic)?;
+                    add(&mut keys, &metadata.topic)?;
                 }
                 for metadata in gz_sim_scene::initial_lidar_publications(simulation)? {
-                    add(&metadata.topic)?;
+                    add(&mut keys, &metadata.topic)?;
+                    if let Some(key) = lidar::points_endpoint(metadata, config)? {
+                        keys.insert(key);
+                    }
                 }
             }
             Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
@@ -1074,12 +1083,15 @@ fn diff_drive_legacy_keys(
     } else {
         for entity in simulation.world().iter_entities() {
             if let Some(metadata) = entity.get::<ImuPublication>() {
-                add(&metadata.topic)?;
+                add(&mut keys, &metadata.topic)?;
             }
             if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
                 && let Some(metadata) = entity.get::<gz_sim_scene::LidarPublication>()
             {
-                add(&metadata.topic)?;
+                add(&mut keys, &metadata.topic)?;
+                if let Some(key) = lidar::points_endpoint(metadata, config)? {
+                    keys.insert(key);
+                }
             }
         }
     }

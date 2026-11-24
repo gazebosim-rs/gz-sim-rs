@@ -1,3 +1,46 @@
+## Current M114: organized CPU-lidar point clouds
+
+M114 adds explicit default-off PointCloudPacked publication from the existing
+CPU-lidar sample, alongside the unchanged LaserScan path. Read
+[the delivery contract](docs/M114_DELIVERY.md) before edits. Keep the native
+five-field 18-byte layout, sensor-local coordinates and bounded organized grid;
+cloud sequencing is separate to preserve existing scan sequences. Native Source
+inspection and canonical transport decoding do not establish native sensor
+Source-to-binary equivalence.
+
+Work is isolated in `work/m114-cpp-sequence-loop-correction` over `02592f7a`.
+Both failed trees `367a2c34` and `471e7448` remain frozen.
+That parent passed its full normal hook, independent local audit and exact hosted
+CI and its independent original-artifact audit. It is not accepted.
+The first full hook failed after 121.851 seconds: its 498-test Python aggregate
+reported one missing native-peer CLI registration. Resource floors held; no Rust
+runtime profiles or qualified commit resulted. This successor adds the missing
+client choice and explicit Zenoh-only refusal, extending the existing regression
+method without changing its identity or count. Its full retry on `471e7448`
+failed after 4,428.109 seconds: headless recorded 2,170 passed, one failed and
+two ignored; renderer recorded 1,683 passed, zero failed and two ignored. The
+only failure was compilation of the new C++ client under the retained
+`-Werror=misleading-indentation` flag. This successor braces the decimal-sequence
+loop and separates its existing canonical-sequence check without changing any
+assertion or runtime code. All Rust bytes remain exact. No C++ native runtime
+proof or qualified commit resulted; the successor is unverified and inherits
+no qualification or acceptance.
+The Server author owns lidar, lidar IO, WorldIo, options, new regressions and the
+delivery guide. Root owns CLI exposure, existing native-peer registrations,
+shared documentation and integration. Keep all changes inside these leases.
+
+Finish implementation, meaningful regression Source, documentation and
+independent review; batch fixes before one consolidated verification cycle.
+Retain the staged hook, strict workspace/crate/changed-base coverage, exact hosted
+CI and independent local/official audits. Do not run per-edit tests or lint.
+Rapier f64 and TPE remain; DART/MuJoCo stay retired. Preserve Fuel, frozen trees,
+all prior evidence and the no-expiry M77 demo. No stop or restart is authorized.
+Formal browser and owner-confirmed shutdown still gate acceptance.
+
+The checkpoints below describe prior work and do not override this current scope.
+
+---
+
 ## Current M102–M113 renderer test correction batch
 
 The frozen `7c8a5de4` full staged hook exited 1 after 4,440.450 seconds.

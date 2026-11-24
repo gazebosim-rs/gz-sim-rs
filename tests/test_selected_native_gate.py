@@ -350,7 +350,7 @@ class SelectedNativeGate(unittest.TestCase):
             (base / 'raw/control.profraw').write_text('not an LLVM profile')
             peers = base / 'native-peers'
             peers.mkdir()
-            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'spatial_lidar', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control'}
+            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'spatial_lidar', 'lidar_points', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control'}
             for client in sorted(expected):
                 output = peers / (client + '-control')
                 output.mkdir()
@@ -458,7 +458,7 @@ class SelectedNativeGate(unittest.TestCase):
             self.assertEqual((output / 'zenoh-native-reference.json').read_bytes(), (run / 'zenoh-native-reference.json').read_bytes())
             preparation = Path(run.name) / 'renderer/renderer-build-output.log'
             self.assertEqual((output / preparation).read_bytes(), (coverage / preparation).read_bytes())
-            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'spatial_lidar', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control']), ('renderer', ['camera'])]:
+            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'spatial_lidar', 'lidar_points', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control']), ('renderer', ['camera'])]:
                 for client in clients:
                     relative = Path(run.name) / profile / 'native-peers' / (client + '-control')
                     for filename in ['source.cc', client + '-client', 'provenance.json']:
@@ -546,7 +546,7 @@ class SelectedNativeGate(unittest.TestCase):
                 verify.retain_staged_evidence('a' * 40, candidate, 'passed')
 
     def test_new_wind_and_force_peer_sources_cannot_be_missing_from_retained_inputs(self):
-        for client in ("air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "spatial_lidar", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers", "multiple_diff_drives", "velocity_control"):
+        for client in ("air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "spatial_lidar", "lidar_points", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers", "multiple_diff_drives", "velocity_control"):
             root, candidate, coverage, _, index = self.staged_fixture()
             source = verify.zenoh_peer.CLIENTS[client]
             index['inputs'].pop(source)
@@ -555,26 +555,27 @@ class SelectedNativeGate(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
                     verify.retain_staged_evidence('a' * 40, candidate, 'passed')
 
-        # A complete source-input map is insufficient when the captured spatial
-        # peer is absent. Keep its index internally consistent so rejection
-        # must enforce the required peer, not merely detect a stale index.
-        root, candidate, _, run, _ = self.staged_fixture()
-        peer_index = run / 'headless/native-peers.json'
-        records = json.loads(peer_index.read_text())
-        self.assertEqual(sum(record['client'] == 'spatial_lidar' for record in records), 1)
-        shutil.rmtree(run / 'headless/native-peers/spatial_lidar-control')
-        peer_index.write_text(json.dumps([
-            record for record in records if record['client'] != 'spatial_lidar'
-        ]))
-        with self.subTest(client='spatial_lidar', missing='captured_peer'), \
-             patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
-            with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
-                verify.retain_staged_evidence('a' * 40, candidate, 'passed')
-        output = next((root / 'artifacts/staged').iterdir())
-        result = json.loads((output / 'stage-result.json').read_text())
-        self.assertEqual(result['evidence_state'], 'partial')
-        self.assertIn(str(Path(run.name) / 'headless/native-peers evidence'),
-                      result['missing_artifacts'])
+        # A complete input map cannot replace either required lidar capture.
+        # Keep each index internally consistent so the required-client check
+        # must detect the missing peer, rather than a stale index entry.
+        for client in ('spatial_lidar', 'lidar_points'):
+            root, candidate, _, run, _ = self.staged_fixture()
+            peer_index = run / 'headless/native-peers.json'
+            records = json.loads(peer_index.read_text())
+            self.assertEqual(sum(record['client'] == client for record in records), 1)
+            shutil.rmtree(run / 'headless/native-peers' / (client + '-control'))
+            peer_index.write_text(json.dumps([
+                record for record in records if record['client'] != client
+            ]))
+            with self.subTest(client=client, missing='captured_peer'), \
+                 patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
+                    verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+            output = next((root / 'artifacts/staged').iterdir())
+            result = json.loads((output / 'stage-result.json').read_text())
+            self.assertEqual(result['evidence_state'], 'partial')
+            self.assertIn(str(Path(run.name) / 'headless/native-peers evidence'),
+                          result['missing_artifacts'])
 
     def test_current_rgb_stage_requires_the_renderer_build_output(self):
         root, candidate, _, run, _ = self.staged_fixture()

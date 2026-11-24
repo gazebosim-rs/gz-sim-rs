@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-23T22:54:30.020289+00:00",
+  "as_of": "2026-11-24T03:47:30.930400+00:00",
   "execution_state": "active",
-  "current_phase": "M104",
+  "current_phase": "M114",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -14321,6 +14321,46 @@
       "official_actual": null,
       "accepted": false,
       "Main_promoted": false
+    },
+    {
+      "id": "M114",
+      "title": "Organized CPU-lidar point clouds",
+      "max_working_days": 5,
+      "depends_on": [
+        "M54",
+        "M108"
+      ],
+      "scope": "Explicit default-off PointCloudPacked output from the same acquired sample as existing LaserScan: native five-field 18-byte organized sensor-frame layout, at most 128 rays and eight owners. Separate cloud counters preserve existing scan sequences. Use the existing publication IO owner and canonical transport schema.",
+      "acceptance": "Independent analytic coordinates, native layout and wire decoding; default, scan-only, cloud-only and dual demand; one acquisition/noise draw; bounded finite narrowing, misses, clipping, sequence and timestamps; all-owner endpoint/preflight/queue atomicity, pause/reset/removal/retirement and absence. Complete implementation/regressions/docs and independent review before one full staged hook, strict coverage, exact hosted CI and independent local/official audits. Accepted predecessor and formal browser/shutdown gates remain.",
+      "excluded": "Depth-camera clouds, new rays/noise or reflectance models, new protocol/session/runtime frameworks, native sensor Source-to-binary parity claims, and DART/MuJoCo.",
+      "delivery_guide": "docs/M114_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": true,
+      "checks_run": false,
+      "source_parent": "02592f7aaf21d616bd6299aa87123455834794e7",
+      "parent_accepted": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false,
+      "parent_qualified": true,
+      "Source_control_declarations": {
+        "Rust_unique": 16,
+        "headless": 16,
+        "renderer": 2,
+        "shared": 2,
+        "public": 3,
+        "private": 13,
+        "new_Python_methods": 0
+      },
+      "independent_Source_review_scope": "Whole Server source and Root integration reviewed independently. The six pre-execution findings were corrected as one batch and independently closed before formatting or verification."
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -14437,10 +14477,11 @@
     "M110": "regression_compilation_lint_correction_unqualified",
     "M111": "regression_compilation_lint_correction_unqualified",
     "M112": "regression_compilation_lint_correction_unqualified",
-    "M113": "regression_compilation_lint_correction_unqualified"
+    "M113": "regression_compilation_lint_correction_unqualified",
+    "M114": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-22T21:54:13.267063+00:00",
+  "phase_started_at": "2026-11-24T03:03:13.519729+00:00",
   "active_phases": [
     "M77",
     "M78",
@@ -14478,7 +14519,8 @@
     "M110",
     "M111",
     "M112",
-    "M113"
+    "M113",
+    "M114"
   ],
   "execution_policy": "D30–D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -15806,58 +15848,46 @@
         "strict_coverage_reached": false,
         "commit_created": false
       }
+    },
+    {
+      "phases": [
+        "M114"
+      ],
+      "max_working_days": 5,
+      "integration": "M114 implementation, regression source and guides are complete and independently reviewed; six pre-execution findings are corrected. No candidate checks, inherited qualification or acceptance. Root owns serial final verification after fresh resource admission."
     }
   ],
-  "acceptance_boundary": "Frozen7c8a full normal exited1/4440.450s: H2153/0/2 and maintained coverage passed; R1677/4/2. Three reviewed test corrections need their own full hook, local DATA, exact hosted CI and original-artifact audit. Accepted76/202 and M77 formal browser/shutdown gates remain unchanged.",
+  "acceptance_boundary": "M114 has no check result. Parent02592 passed full normal, local DATA and exact hosted CI45297968661 attempt1; original-artifact audit also passed. Accepted M1–M76/202 slices and M77 formal browser/owner-confirmed shutdown gates remain.",
   "current_delivery_group": [
-    "M104",
-    "M105",
-    "M106",
-    "M107",
-    "M108",
-    "M109",
-    "M110",
-    "M111",
-    "M112",
-    "M113"
+    "M114"
   ],
-  "current_development_phase": "M104",
+  "current_development_phase": "M114",
   "board": {
-    "updated_at": "2026-11-23T22:54:30.020289+00:00",
+    "updated_at": "2026-11-24T03:47:30.930400+00:00",
     "current": {
-      "title": "Complete renderer test correction batch ready",
+      "title": "M114 organized CPU-lidar point clouds",
       "items": [
-        "Headless passed 2,153 tests and maintained coverage; renderer completed 1,677 passed, four failed and two ignored.",
-        "Three reviewed test corrections preserve Capsule admission, camera publication and the exact opaque empty background.",
-        "The no-expiry demo stays live until owner-confirmed stop; formal browser and shutdown evidence remain pending."
+        "Opt-in native-layout point clouds reuse the existing acquired scan sample.",
+        "Implementation, regression source and guides are complete and independently reviewed; no M114 verification result exists.",
+        "The parent passed local, hosted and independent original-artifact audits; M114 has no check result."
       ]
     },
     "done": [
-      "The headless coverage correction cleared the previous Server gate: 19,357/20,312 regions and 13,035/13,446 lines.",
-      "Both Clippy stages, documentation and the 498-test Python aggregate passed in the frozen current run."
+      "M102–M113 full normal and independent local DATA passed.",
+      "Exact hosted CI45297968661 attempt1 and independent original-artifact audit passed; all originals are retained."
     ],
     "next": [
-      "Run one affected formatter and one full staged hook for the complete reviewed correction batch.",
-      "Complete independent local DATA, exact hosted CI and original-artifact audit.",
-      "Resolve browser authority and complete formal browser and owner-confirmed shutdown proof."
+      "Format the complete reviewed source once and restore SSD headroom for one full verification cycle.",
+      "Resolve formal browser and owner-confirmed shutdown evidence before acceptance."
     ],
     "blocker": {
-      "text": "Release acceptance awaits strict coverage and qualification, plus formal browser and owner-confirmed shutdown evidence. The recorded browser permission denial remains unresolved.",
+      "text": "Formal acceptance still awaits M77 browser and owner-confirmed shutdown evidence. The persistent demo stays running.",
       "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
     },
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M104",
-    "M105",
-    "M106",
-    "M107",
-    "M108",
-    "M109",
-    "M110",
-    "M111",
-    "M112",
-    "M113"
+    "M114"
   ],
   "camera_integration": {
     "scope": "Atomic M61–M64 qualification on accepted M60; no new phase",
@@ -16006,7 +16036,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "Verify the complete reviewed four-failure renderer test correction through one full mandatory staged hook and independent audits.",
+  "current_development_task": "Prepare one consolidated M114 final verification cycle after complete implementation, regressions, documentation and independent Source review; restore required SSD headroom first.",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -17163,7 +17193,7 @@
     },
     "official_qualified": true
   },
-  "phase_started_at_scope": "Current wave implementation dispatch8446e0c3 follows reviewed selection998f0cd8 over the exact unverified93a2 foundation. This is an authoring checkpoint, not a verification timestamp.",
+  "phase_started_at_scope": "M114 Source implementation; five working days including review and gates",
   "current_M82_parent_qualification": {
     "commit": "039a1e5142dd48705a23acb6f817613f509408f0",
     "tree": "420197183a1ec5b71f85f9c2181b9caa1d82a4c6",

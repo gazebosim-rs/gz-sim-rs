@@ -31,6 +31,8 @@ class ZenohPeerTests(unittest.TestCase):
                          'crates/gz-sim-server/tests/native_multiple_lidars_peer.cc')
         self.assertEqual(peer.CLIENTS['spatial_lidar'],
                          'crates/gz-sim-server/tests/native_spatial_lidar_peer.cc')
+        self.assertEqual(peer.CLIENTS['lidar_points'],
+                         'crates/gz-sim-server/tests/native_lidar_points_peer.cc')
         self.assertEqual(peer.CLIENTS['multiple_pose_publishers'],
                          'crates/gz-sim-server/tests/native_multiple_pose_publishers_peer.cc')
         self.assertEqual(peer.CLIENTS['multiple_odometry_publishers'],
@@ -77,7 +79,7 @@ class ZenohPeerTests(unittest.TestCase):
                     self.assertEqual(json.loads(result.stdout), expected)
                     self.assertEqual(json.loads(record.read_text()), expected)
             marker = record.read_bytes()
-            for client in ['camera', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'spatial_lidar', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control']:
+            for client in ['camera', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'spatial_lidar', 'lidar_points', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control']:
                 for profile in ['transport-client-v1', 'clean-headless-sdk-v1']:
                     with self.subTest(client=client, profile=profile):
                         result = subprocess.run([
