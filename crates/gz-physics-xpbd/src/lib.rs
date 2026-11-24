@@ -434,7 +434,6 @@ impl SoftBody {
         if let Some(loads) = &mut self.contacts.pad_loads {
             loads.begin();
         }
-        self.path_substeps = 0;
         if let Some(m) = &mut self.capsule_material {
             m.begin_step();
         }
@@ -482,7 +481,8 @@ impl SoftBody {
     pub fn config(&self) -> SolverConfig {
         self.config
     }
-    /// Number of finer-clock retries needed by the last committed coupled step.
+    /// Refinement depth of the last committed coupled step. For locally split
+    /// shell contact this is the deepest accepted bisection from its base grid.
     pub fn last_sweep_refinements(&self) -> u32 {
         self.sweep_refinements
     }

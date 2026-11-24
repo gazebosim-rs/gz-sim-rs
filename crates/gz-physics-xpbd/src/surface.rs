@@ -67,6 +67,7 @@ pub(super) struct Surface {
     // Topology and broad-phase capacity failures retain their hard limits.
     pub(super) subdivide_on_budget: bool,
     pub(super) retry_plane: bool,
+    pub(super) prioritize_terminal_speed: bool,
 }
 
 fn edge(a: usize, b: usize) -> [usize; 2] {
@@ -160,6 +161,7 @@ impl Surface {
             loads: None,
             subdivide_on_budget: false,
             retry_plane: false,
+            prioritize_terminal_speed: false,
         };
         let positions = particles
             .iter()
@@ -276,7 +278,11 @@ impl Surface {
                 gap,
                 eps,
                 (&mut candidates, &mut queries),
-                on_plane || self.retry_plane,
+                if on_plane || self.retry_plane {
+                    Search::Supported
+                } else {
+                    Search::Ordinary
+                },
             )?
             else {
                 return Ok(());
@@ -331,8 +337,14 @@ impl Surface {
         let eps = Self::tolerance(x, p, gap)?;
         let (mut candidates, mut queries) = (0, 0);
         for _ in 0..MAX_PROJECTIONS {
-            let Some(mut hit) =
-                self.next_hit(x, p, gap, eps, (&mut candidates, &mut queries), true)?
+            let Some(mut hit) = self.next_hit(
+                x,
+                p,
+                gap,
+                eps,
+                (&mut candidates, &mut queries),
+                Search::TerminalVelocity,
+            )?
             else {
                 return Ok(());
             };
@@ -355,7 +367,18 @@ impl Surface {
     pub fn verify(&mut self, x: &[DVec3], p: &[Particle], gap: f64) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
         if self
-            .next_hit(x, p, gap, eps, (&mut 0, &mut 0), self.retry_plane)?
+            .next_hit(
+                x,
+                p,
+                gap,
+                eps,
+                (&mut 0, &mut 0),
+                if self.retry_plane {
+                    Search::Supported
+                } else {
+                    Search::Ordinary
+                },
+            )?
             .is_some()
         {
             return Err(XpbdError::UnresolvedSurface);
@@ -381,12 +404,12 @@ impl Surface {
         gap: f64,
         eps: f64,
         budget: (&mut usize, &mut usize),
-        terminal: bool,
+        search: Search,
     ) -> Result<Option<Hit>, XpbdError> {
         let (candidates, queries) = budget;
         let mode = if self.friction.is_none() {
             SweepMode::Geometric
-        } else if terminal {
+        } else if search != Search::Ordinary {
             SweepMode::SupportedShell
         } else {
             SweepMode::MaterialShell
@@ -417,8 +440,18 @@ impl Surface {
                     })?;
                 if let Some(hit) = hit
                     && earliest.as_ref().is_none_or(|old| {
-                        hit.time
-                            .total_cmp(&old.time)
+                        // Geometry has already been resolved in the terminal
+                        // velocity pass. Resolve its most violated normal first
+                        // when retrying a cluster of near-parallel constraints.
+                        let velocity_order = if self.prioritize_terminal_speed
+                            && search == Search::TerminalVelocity
+                        {
+                            old.speed.total_cmp(&hit.speed)
+                        } else {
+                            std::cmp::Ordering::Equal
+                        };
+                        velocity_order
+                            .then(hit.time.total_cmp(&old.time))
                             .then(stencil.ids.cmp(&old.stencil.ids))
                             .is_lt()
                     })
@@ -429,6 +462,13 @@ impl Surface {
         }
         Ok(earliest)
     }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Search {
+    Ordinary,
+    Supported,
+    TerminalVelocity,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

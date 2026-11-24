@@ -176,4 +176,14 @@ fn invalid_curve_schedule_keeps_previously_published_particles_and_reactions() {
     assert_eq!(s.particles(), particles);
     assert_eq!(s.last_boundary_impulses(), reactions);
     assert_eq!(s.last_path_substeps(), steps);
+    // A later refusal inside the coupled numerical solve also preserves all
+    // published metadata from the successful curved-boundary step.
+    s.set_gravity([f64::MAX, 0., 0.]).unwrap();
+    assert!(
+        gz_physics_xpbd::step_coupled_rigid(&mut [&mut s], Duration::from_secs(10), &[], &[],)
+            .is_err()
+    );
+    assert_eq!(s.particles(), particles);
+    assert_eq!(s.last_boundary_impulses(), reactions);
+    assert_eq!(s.last_path_substeps(), steps);
 }

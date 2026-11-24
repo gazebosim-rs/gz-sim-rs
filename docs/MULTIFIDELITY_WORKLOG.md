@@ -3,13 +3,13 @@
 
 # Multi-fidelity physics worklog
 
-The local serial arm now lifts a free 200 g parcel, and a tactile controller can rescue a folded sheet as it slips. An ordinary SDF tabletop supports cloth at the nodes and inside its triangles. The gripper can also catch a parcel if its receiving shelf withdraws during release. [Serial gripper](measurements/local-manipulation/serial-grasp.md) · [Folded-sheet recovery](measurements/local-manipulation/fold-recovery-rescue.md) · [Finite tabletop](measurements/local-manipulation/static-soft-bench.md)
+The Rust/Bevy serial robot lifts a free 200 g parcel, carries it 46 cm and places it on a fixed shelf after measuring that the shelf supports its weight. The same robot holds the load when the commanded destination misses the shelf. The folded-sheet trials now continue from grasp loss through impact and measured rest on two mesh resolutions. [Rigid parcel transfer](measurements/local-manipulation/serial-transfer.md) · [Cloth landing and rest](measurements/local-manipulation/fold-rest.md)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
 ## 2026-11-23 — Design review and implementation roadmap
 
-**The next deliverable is a local robot that can detect a slipping grasp and either recover or put the object down.** We have a working Rust/Bevy rigid-body engine, a gripper that places a free parcel, a controlled humanoid, and working cable and cloth examples. The immediate gap is knowing when the robot can safely repeat a task as the payload, contact surfaces and motion change. The [approved technical design](../../physics_tdd.md) defines five acceptance milestones. The table records the evidence for each, and the phases below give the proposed implementation order.
+**The next local robot acceptance case is carrying a load around an obstacle and placing it across a measured range of payloads and friction.** The serial arm already completes a straight pickup, carry and placement with a free parcel. The folded-sheet gripper detects and sometimes recovers a slipping grasp. The open local questions are when each recovery succeeds, whether tier switching preserves the loads throughout the transfer, and how the complete port passes its release gates. The [approved technical design](../../physics_tdd.md) defines five acceptance milestones. The table records the evidence for each, and the phases below give the proposed implementation order.
 
 | TDD milestone | What works today | What is still open |
 |---|---|---|
@@ -2006,3 +2006,18 @@ Finite box ridges now catch a cloth edge during oblique motion, including a comp
 The five-column sheet reached sustained rest 1.588 s after the matched guarded grasp and 1.786 s after the control grasp. During steady sliding its measured deceleration was within 0.14% of the Coulomb prediction. The recorder captures the first real landing even when playback continues, follows the cloth in the camera audit, and requires 50 consecutive force- and speed-qualified ticks. The two replays passed independent momentum, geometry and particle checks. Changed solver code covered 29/29 lines and 68/69 regions. The recording command covered 85/85 lines and 157/161 regions across its unit and native runs. The seven-column control still reaches a self-contact refusal at 682 ms. [Slide, rest and both native replays](measurements/local-manipulation/fold-rest.md)
 
 Five native transport test harnesses now check the actual routing or demand transition before asserting on the first delivered samples. The five complete targets passed all 23 tests in the instrumented Noble image, with 25 additional repeated scenarios. The aggregate qualification is open. An earlier hosted candidate passed the test suite and measured 94.47% whole-crate Rapier region coverage against a gate above 95%. A later candidate exposed module ordering under rustfmt, corrected alongside the replay audit. [Native transport receipts](measurements/local-manipulation/native-transport-readiness.md)
+
+## 2026-11-23 — A complete pickup and transfer onto a fixed shelf
+
+The lead-screw hand and universal wrist held a free 200 g parcel through every one of 4,001 commanded rail steps, then placed it 460.16 mm from pickup. The shelf carried it continuously throughout opening and retraction with 0.013 mm of settling. Open jaws left the parcel on the tray, and stopping 280 mm short of the shelf kept the gripper closed. All three runs repeated exactly after reset. Seven release tests passed, and the instrumented command covered 192/193 changed lines and 404/423 regions. [Pickup to placement in gz-web-rs](measurements/local-manipulation/serial-transfer.md)
+
+Authored hinge limits also work on the GPU contact arm. GPU and Rapier hit the shoulder stops at the same 211 and 510 ms ticks. The floor and stop carried simultaneous load for 90 ms and the tool position stayed within 0.840 mm of Rapier. The first floor impulse was still 5.9% lower. The changed runtime and qualification covered 422/425 lines and 993/996 regions. [GPU joint-stop replay](measurements/local-manipulation/gpu-joint-stops.md)
+
+## 2026-11-23 — Bounded refinement for the finer sliding sheet
+
+The seven-column guarded and control sheets now both reach sustained rest. The control previously stopped at 682 ms. The new fallback retries only an unresolved time interval, with a shared budget, full reaction rollback, and no advancement of the actuator clock. Independent audits checked the actual first landing, 50 consecutive rest samples per trial, 11,228 displayed material positions and rewind. The first landing impulses and all recorded pre-impact positions matched the earlier references. The finer control also reproduced all 2,281 saved force and motion samples through the last previously accepted tick. The five-column physical archives and velocity traces repeated byte for byte. The 180 XPBD unit and integration tests and strict Clippy passed. On a pinned CPU the finer control’s first 681 postgrip samples had 63.4 ms p95 step cost. The full run had 51.6 ms p95, with the hardest individual step taking 18.5 s. The five-column browser camera changes also covered 33/34 changed lines and 81/83 regions. [Finer guarded and control replays](measurements/local-manipulation/fold-rest.md)
+
+
+## 2026-11-23 — Publishing a fully observed fleet
+
+Streaming adjacent canonical links in the Bevy scene reduced median model publication from 2.870 to 1.174 ms and p95 from 4.870 to 1.983 ms for 100,000 decks and 1,000 payloads. Across four independently compiled matched trials, median whole-tick cost fell from 5.186 to 4.656 ms. Whole-tick p95 varied with the benchmark and did not improve consistently. All 96,480,480 world/local pose pairs, 24,120,000 twists and 240 IMU samples matched. The change covered 32/32 lines and 102/103 regions. [Three benchmark methods and native replay](measurements/local-manipulation/fleet-canonical.md)

@@ -5,6 +5,8 @@ use super::{Boundary, BoundaryImpulse, PreparedBoundary, SoftBody, XpbdError};
 use super::{PrincipalRigidMotion, tensor::TensorMotion};
 use glam::{DQuat, DVec3};
 use std::time::Duration;
+mod shell_retry;
+use shell_retry::ShellRetry;
 
 /// World-frame mobility of a free sphere with isotropic inertia about its COM.
 #[derive(Clone, Copy, Debug)]
@@ -516,7 +518,7 @@ fn solve<M: Copy + Into<RigidMobility>>(
                 material.retry_manifold = retry_material;
             }
         }
-        let result = solve_at_resolution(bodies, dt, boundaries, mobility, u128::from(steps));
+        let result = solve_at_resolution(bodies, dt, boundaries, mobility, u128::from(steps), None);
         for body in bodies.iter_mut() {
             if let Some(surface) = &mut body.surface {
                 surface.retry_plane = false;
@@ -542,6 +544,49 @@ fn solve<M: Copy + Into<RigidMobility>>(
             return result;
         }
         if steps >= maximum {
+            if shell_contact
+                && count < maximum
+                && bodies.len() == 1
+                && boundaries
+                    .iter()
+                    .any(|b| matches!(b, Boundary::Plane { .. }))
+                && boundaries.iter().zip(mobility).all(|(b, m)| {
+                    matches!(
+                        (b, m.map(Into::into)),
+                        (Boundary::Plane { .. }, None)
+                            | (
+                                Boundary::Cuboid { .. },
+                                Some(RigidMobility::PrescribedCuboid { .. })
+                            )
+                    )
+                })
+            {
+                // All receivers follow prescribed trajectories. Reuse the
+                // original substep grid and spend its remaining leaf budget
+                // only at an interval that refuses its contact constraints.
+                let mut retry = ShellRetry {
+                    remaining_splits: maximum - count,
+                    deepest: 0,
+                };
+                let surface = bodies[0].surface.as_mut().unwrap();
+                surface.retry_plane = true;
+                surface.prioritize_terminal_speed = true;
+                let result = solve_at_resolution(
+                    bodies,
+                    dt,
+                    boundaries,
+                    mobility,
+                    u128::from(count),
+                    Some(&mut retry),
+                );
+                let surface = bodies[0].surface.as_mut().unwrap();
+                surface.retry_plane = false;
+                surface.prioritize_terminal_speed = false;
+                if result.is_ok() {
+                    bodies[0].sweep_refinements = retry.deepest;
+                }
+                return result;
+            }
             if capsule_sweep && finite_material && !retry_material {
                 // The ordinary coupled sweep exhausted its grid. Reconstruct
                 // from the committed input with the same physical tolerances.
@@ -567,6 +612,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
     boundaries: &[Boundary],
     mobility: &[Option<M>],
     count: u128,
+    mut retry: Option<&mut ShellRetry>,
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
     let ticks = dt.as_nanos();
     if ticks != 0 && ticks < count {
@@ -722,15 +768,26 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
                     limit =
                         super::impact_group::remaining_step(bodies, &prepared[0], ticks - time)?;
                 } else {
-                    substep_interval(
-                        bodies,
-                        &mut prepared,
-                        &mut reactions,
-                        time,
-                        tail,
-                        iterations,
-                        false,
-                    )?;
+                    if let Some(local) = retry.as_deref_mut() {
+                        local.advance(
+                            bodies[0],
+                            &mut prepared,
+                            &mut reactions,
+                            time..time + tail,
+                            iterations,
+                            0,
+                        )?;
+                    } else {
+                        substep_interval(
+                            bodies,
+                            &mut prepared,
+                            &mut reactions,
+                            time,
+                            tail,
+                            iterations,
+                            false,
+                        )?;
+                    }
                     time += tail;
                 }
             }
@@ -742,6 +799,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
             std::mem::swap(&mut body.particles, &mut body.scratch);
         }
         body.reactions = impulses;
+        body.path_substeps = 0;
         body.publish_self_contact();
     }
     Ok(prepared

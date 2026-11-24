@@ -1,3 +1,6 @@
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # A dropped sheet sliding to rest
 
 An 8.4 g folded sheet escaped a pair of loaded fingers during a lateral 1.25 N pull. The two five-column runs start at the same measured grasp. The guarded controller tightened and lowered the gripper. The control kept its original grip. Both sheets fell onto the infinite reference plane, slid beyond the visible bench, and came to rest. The finite bench has a separate catch-and-miss study. [Finite receiving bench](fold-finite-bench.md)
@@ -16,13 +19,21 @@ The plane carried the full load throughout the last 100 ms of the 1.2 s comparis
 
 ![The settled sheet viewed in gz-web-rs](fold-rest.jpg)
 
-The continuous-collision check can now certify clearance between moving material features using a separating direction that rotates during a substep. For linearly moving vertices and a linearly changing direction, the signed projection is a quadratic. All its Bernstein coefficients must clear the gap times an upper bound on the direction length, with a rounding allowance. A deterministic regression checks every accepted certificate against independently computed geometry at 65 instants. The original gap tolerances, contact budgets and 1 ms public clock remain in effect.
+The continuous-collision check can now certify clearance between moving material features using a separating direction that rotates during a substep. For linearly moving vertices and a linearly changing direction, the signed projection is a quadratic. All its Bernstein coefficients must clear the gap times an upper bound on the direction length, with a rounding allowance. A deterministic regression checks every accepted certificate against independently computed geometry at 65 instants. The original gap tolerances, contact budgets and 1 ms public clock remain in effect. The two five-column physical traces, all particle velocities and replay bytes repeated on the refined solver.
 
-The seven-column 1.30 N control reaches its first impact but still refuses a later step at 682 ms. The seven-column slide to rest remains open. [Both meshes at first landing](fold-first-landing-view.md)
+## The finer mesh
+
+The seven-column sheet under a 1.30 N pull also settled in both trials. Its 28 particles reached the same 50 ms force-and-speed criterion at 1.588 s with the guard and 1.800 s without it. At the last tick their maximum speeds were 3.15 × 10⁻⁸ and 4.12 × 10⁻⁹ m/s respectively. The upward landing impulses remained 11.096 mN·s at 275 ms and 1.757 mN·s at 267 ms. The complete traces up to first impact and all 142 previously recorded particle frames per trial matched their references exactly. The independent geometry check found zero panel or jaw-core crossings in 401 rendered frames. gz-web-rs checked 16,441 visual poses and 11,228 particle positions, then rewound both archives. [Guarded run](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9888%2F) · [Control run](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9889%2F)
+
+Previously the finer control refused its step at 682 ms. On a single material shell with prescribed jaws and plane support, the solver can now return to the original substep grid after exhausting uniform refinements. It bisects only an interval where contact remains unresolved and restores particles, receiver motion and accumulated reactions before retrying. The split children use the same integer clock and share the existing substep budget. The geometry solve processes impacts in time order. Once a path is clear, the final velocity solve gives priority to the contact closing fastest. An immovable overlap still refuses and preserves the published state. The previous solver and the refined solver produced the same 2,281 force and motion records up to and including the last previously accepted step at 681 ms. [First-impact measurements](fold-first-landing-view.md)
+
+On one shared-host CPU pinned to core 5, the seven-column control recorded a median 28.3 ms and p95 51.6 ms for the 1,800 postgrip controller-and-solve intervals. At ticks 682 and 737 it spent 2.61 s and 18.53 s respectively. At the first interval, changing the terminal row order succeeded on the 32 base slices. At the second, 361 slices with a maximum bisection depth of ten were needed. The timed run reproduced the complete native particle, impulse and rest traces byte for byte. These costs measure offline simulation on this host.
+
+![The finer sheet settled on the reference plane in gz-web-rs](fold-rest-fine.jpg)
 
 ## Reproduce
 
-Use a fresh recording directory. To inspect the 1.2 s comparison, replace the rest switch with `--follow-dropped`.
+Use a fresh recording directory. For the finer sheet use `--columns 7 --load-mn 1300`. To inspect the 1.2 s comparison, replace the rest switch with `--follow-dropped`.
 
 ```sh
 export RUSTC_WRAPPER=

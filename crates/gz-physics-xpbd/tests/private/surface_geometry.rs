@@ -531,13 +531,20 @@ fn only_distance_exhaustion_requests_temporal_subdivision() {
     shell.set_friction(0.3).unwrap();
     let mut candidates = MAX_CANDIDATES;
     assert!(matches!(
-        shell.next_hit(&x, &p, gap, eps, (&mut candidates, &mut 0), true),
+        shell.next_hit(
+            &x,
+            &p,
+            gap,
+            eps,
+            (&mut candidates, &mut 0),
+            Search::Supported
+        ),
         Err(XpbdError::SurfaceBudget)
     ));
     assert!(!shell.subdivide_on_budget);
     let mut queries = MAX_DISTANCE_QUERIES;
     assert!(matches!(
-        shell.next_hit(&x, &p, gap, eps, (&mut 0, &mut queries), true),
+        shell.next_hit(&x, &p, gap, eps, (&mut 0, &mut queries), Search::Supported),
         Err(XpbdError::SurfaceBudget)
     ));
     assert!(shell.subdivide_on_budget);
@@ -568,5 +575,38 @@ fn a_rotating_separator_certifies_only_truly_clear_sweeps() {
             }
         }
         assert!(counts.into_iter().all(|n| n > 0));
+    }
+}
+
+#[test]
+fn terminal_speed_priority_preserves_geometric_event_order() {
+    let gap = 0.022;
+    let mut particles = Vec::new();
+    let mut faces = Vec::new();
+    for (offset, speed) in [(0., 0.25), (4., 2.)] {
+        for (height, vertical) in [(0., 0.), (gap, -speed)] {
+            let i = particles.len();
+            faces.push([i, i + 1, i + 2]);
+            for (x, y) in [(0., 0.), (1., 0.), (0., 1.)] {
+                particles.push(Particle {
+                    position: [offset + x, y, height],
+                    velocity: [0., 0., vertical],
+                    inverse_mass: 1.,
+                });
+            }
+        }
+    }
+    let x: Vec<_> = particles.iter().map(|p| DVec3::from(p.position)).collect();
+    let mut surface = Surface::new(faces, &particles).unwrap();
+    surface.set_friction(0.3).unwrap();
+    let eps = Surface::tolerance(&x, &particles, gap).unwrap();
+    surface.prioritize_terminal_speed = true;
+    for (search, speed) in [(Search::Supported, 0.25), (Search::TerminalVelocity, 2.)] {
+        let hit = surface
+            .next_hit(&x, &particles, gap, eps, (&mut 0, &mut 0), search)
+            .unwrap()
+            .unwrap();
+        assert_eq!(hit.time, 0.);
+        assert!((hit.speed - speed).abs() < 1e-12);
     }
 }

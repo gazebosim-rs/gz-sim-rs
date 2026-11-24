@@ -440,3 +440,56 @@ fn reported_normal_footprints_balance_on_both_skins_and_survive_a_refused_step()
         assert!((next - loaded.last_self_contact_impulse().normal).abs() < 1e-12);
     }
 }
+
+#[test]
+fn local_refinement_refuses_an_immovable_overlap_without_publishing() {
+    use gz_physics_xpbd::{Boundary, RigidMobility, step_coupled_rigid};
+    let mut particles = Vec::new();
+    for z in [0.1, 0.119] {
+        for (x, y) in [(0., 0.), (1., 0.), (0., 1.)] {
+            particles.push(Particle {
+                position: [x, y, z],
+                velocity: [0.; 3],
+                inverse_mass: 0.,
+            });
+        }
+    }
+    let mut shell = SoftBody::new(
+        particles.clone(),
+        vec![],
+        pair(false, 1, 0., DQuat::IDENTITY).config(),
+    )
+    .unwrap()
+    .with_self_contact_surface(vec![[0, 1, 2], [3, 4, 5]])
+    .unwrap()
+    .with_self_contact_friction(0.3)
+    .unwrap();
+    let pad = Boundary::Cuboid {
+        center: [8., 0., 0.],
+        half_extents: [0.1; 3],
+        velocity: [0.; 3],
+        angular_velocity: [0.; 3],
+    };
+    let ground = Boundary::Plane {
+        point: [0.; 3],
+        normal: [0., 0., 1.],
+        velocity: [0.; 3],
+    };
+    let jaw = Some(RigidMobility::PrescribedCuboid {
+        normal_compliance: 0.001,
+        start_angular_velocity: [0.; 3],
+        start_orientation: DQuat::IDENTITY.to_array(),
+        end_orientation: DQuat::IDENTITY.to_array(),
+    });
+    let contacts = shell.last_self_contact_impulse();
+    for dt in [Duration::from_nanos(64), Duration::from_secs(4)] {
+        assert!(matches!(
+            step_coupled_rigid(&mut [&mut shell], dt, &[pad, ground], &[jaw, None]),
+            Err(XpbdError::UnresolvedSurface)
+        ));
+        assert_eq!(shell.particles(), particles);
+        assert_eq!(shell.last_self_contact_impulse(), contacts);
+        assert!(shell.last_boundary_impulses().is_empty());
+        assert_eq!(shell.last_sweep_refinements(), 0);
+    }
+}
