@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Deliver curved parcels with their physical material and correct the cloth endpoint solve
+
+A cylinder and capsule added after startup matched independently authored bodies through 750 steps. The ordinary simulator, input journal and live viewer retain the shapes and their restitution after the original templates are removed. All 1,531 records repeated across one and eight threads. The cylinder’s four-point cap still tipped on a straight drop, including at 5 µs, while the capsule stayed upright. [Curved deliveries and both native replays](measurements/local-manipulation/curved-delivery.md)
+
+The full robot example suite exposed a cloth contact bug: the rigid endpoint correction treated an interpolated compliant pad sample as a mesh particle. Limiting that correction to rigid boundaries fixed both failing cases. All 123 active example tests passed, and 111,800 sheet measurements matched their pre-fix qualifying runs exactly. All three changed XPBD lines and regions ran. [Guarded and unguarded sheet controls](measurements/local-manipulation/sheet-deck-margin.md)
+
 ## 2026-11-24 — The gripper keeps hold when the receiver loads at its edge
 
 An opt-in 2 mm release margin projects the measured table force and torque onto the finite deck. It preserved the successful overhang placement and kept both fingers on the sheet where pressure alone let it fall, including the finer contact controls. After a subsequent 100 mm deck withdrawal, the jaws still carried all 82.4 mN of sheet weight. A placement only about 1 mm inside the edge showed the cost of the conservative setting. After the compliant-pad correction, the combined build replayed all 111,800 pressure-only and guarded samples exactly. [Measured comparison, regression and three native recordings](measurements/local-manipulation/sheet-deck-margin.md)

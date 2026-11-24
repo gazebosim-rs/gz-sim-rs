@@ -62,6 +62,10 @@ cargo test --release --locked --offline --no-default-features -p gz-sim-scene --
 
 The qualification records describe restitution and friction configuration, inertia checks, the selection of fast bodies for continuous collision checking, and the available slider and wrist controls. [Measurements and all phase replays](../artifacts/local-robot-foundations/README.md)
 
+## Add parts while the robot world is running
+
+Spawn a cylinder and capsule, watch them hit a slab, remove them and repeat from reset. Both parts use the same physical material and generated mesh as their source model. The command and live viewer paths accept the same local templates. [Run the curved deliveries and compare the two native replays](measurements/local-manipulation/curved-delivery.md)
+
 ## Pick up and place a free parcel
 
 The gripper uses four prismatic joints. Two bring the fingers together, one lifts the palm, and one carries it between the stands. The controller applies forces to those joints at 1 kHz. The parcel has its own rigid body and rests on the source stand before the fingers close. [Gripper SDF](../examples/local_robot_gripper.sdf) · [Rust controller and acceptance checks](../crates/gz-sim-cli/examples/local_robot_foundations/gripper.rs)
