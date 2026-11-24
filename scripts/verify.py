@@ -619,21 +619,23 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
         (directory / "headless-artifacts.json").write_text(json.dumps(artifacts))
         suite = "renderer_scene_operators" if shared_operators else "real_worker_fixtures"
         result = profile_process.run([str(harness), "--ignored", "--exact", "--test-threads=1",
-                                      suite, "real_trajectory_checkpoint",
+                                      suite, "real_trajectory_checkpoint", "loaded_supervisor_operators",
                                       "loaded_grippers_match_local_scene"],
                                      cwd=ROOT, env=dict(env, GZ_HEADLESS_EVIDENCE=str(directory),
                                                         GZ_PHYSICS_CARGO_SELECTION=json.dumps(command[2:])),
                                      directory=directory, label="worker-qualification")
         if result.returncode or not (directory / "headless-workers.json").is_file():
             raise ValueError(f"physical worker qualification failed: {result.stdout}{result.stderr}")
-        for label in ("worker-trajectory", "worker-grippers"):
+        for label in ("worker-trajectory", "worker-grippers", "worker-supervisor"):
             receipt = json.loads((directory / f"{label}.json").read_text())
-            artifact = receipt["artifact"]
-            with Path(artifact["executable"]).open("rb") as executable:
-                if hashlib.file_digest(executable, "sha256").hexdigest() != receipt["example_sha256"]:
-                    raise ValueError(f"{label} example changed after qualification")
-            artifacts.append(artifact)
-            objects.append(artifact["executable"])
+            entries = receipt["examples"] if label == "worker-supervisor" else [receipt]
+            for entry in entries:
+                artifact = entry["artifact"]
+                with Path(artifact["executable"]).open("rb") as executable:
+                    if hashlib.file_digest(executable, "sha256").hexdigest() != entry["example_sha256"]:
+                        raise ValueError(f"{label} example changed after qualification")
+                artifacts.append(artifact)
+                objects.append(artifact["executable"])
     if name == "renderer":
         target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
         if (len(worker_objects) != 1 or not Path(worker_objects[0]).is_file()
@@ -832,6 +834,13 @@ def coverage(changed_file=None):
                                  ROOT / HEADLESS_WORKER_TEST, ROOT / HEADLESS_WORKER_CASES,
                                  ROOT / "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs",
                                  ROOT / "crates/gz-physics-distributed/tests/support/production_example.rs",
+                                 ROOT / "crates/gz-physics-distributed/tests/support/supervisor.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/convoy_supervisor_trial.rs",
+                                 *sorted((ROOT / "crates/gz-sim-cli/examples/convoy_supervisor_trial").glob("*.rs")),
+                                 ROOT / "crates/gz-sim-cli/examples/convoy_operator_fixture.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/driven_hinge.rs",
+                                 ROOT / "crates/gz-physics-distributed/examples/convoy_drive_oracle.rs",
+                                 ROOT / "examples/distributed_sphere_pair_island.sdf",
                                  ROOT / "crates/gz-physics-distributed/tests/support/loaded_grippers.rs",
                                  ROOT / "crates/gz-sim-cli/examples/support/humanoid_return_cli.rs",
                                  ROOT / "crates/gz-sim-cli/examples/support/humanoid_return_tests.rs",
@@ -1054,6 +1063,8 @@ def retain_profile_evidence(candidate, output, hashes, missing):
                             and "gz-physics-distributed" in contract.get("profiles", {}).get("renderer", {}).get("consumer_packages", []))
         if (profile == "headless" or shared_operators) and HEADLESS_WORKER_TEST in data.get("inputs", {}):
             required.append("headless-workers.json")
+            if "crates/gz-physics-distributed/tests/support/supervisor.rs" in data["inputs"]:
+                required.append("worker-supervisor.json")
             if "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs" in data["inputs"]:
                 required.append("worker-trajectory.json")
             if "crates/gz-physics-distributed/tests/support/loaded_grippers.rs" in data["inputs"]:

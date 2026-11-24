@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use super::{Result, production_example, sha256};
+use super::{Inputs, Result, production_example, sha256};
 use serde_json::{Value, json};
 use std::{
     fs,
@@ -53,18 +53,12 @@ fn actor(
     Ok(states)
 }
 
-pub(super) fn run(
-    root: &Path,
-    target: &Path,
-    directory: &Path,
-    artifacts: &[Value],
-    worker: &Path,
-) -> Result<()> {
+pub(super) fn run(inputs: Inputs) -> Result<()> {
+    let directory = &inputs.directory;
+    let worker = &inputs.worker;
     let (artifact, program) = production_example::build(
-        root,
-        target,
-        directory,
-        artifacts,
+        &inputs,
+        "gz-sim-cli",
         "curved_scene_crash",
         "worker-trajectory",
     )?;

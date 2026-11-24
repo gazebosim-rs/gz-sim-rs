@@ -13,10 +13,8 @@ const LAST_TICK: usize = 1020;
 
 pub(super) fn run(input: Inputs) -> Result<()> {
     let (artifact, program) = production_example::build(
-        &input.root,
-        &input.target,
-        &input.directory,
-        &input.artifacts,
+        &input,
+        "gz-sim-cli",
         "grasp_fleet_profiles",
         "worker-grippers",
     )?;

@@ -37,7 +37,7 @@ class SelectedNativeGate(unittest.TestCase):
         for name in ['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.cargo',
                      'scripts', 'planning', 'third_party', 'reference', 'LICENSE', 'NOTICE',
                      'crates', 'tests/support', 'examples/multifidelity_curved_shuttle.sdf',
-                     'examples/distributed_grasp_fleet.sdf']:
+                     'examples/distributed_grasp_fleet.sdf', 'examples/distributed_sphere_pair_island.sdf']:
             source, target = ROOT / name, root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             if source.is_dir():

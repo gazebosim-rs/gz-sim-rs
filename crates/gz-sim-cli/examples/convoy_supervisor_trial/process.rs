@@ -111,6 +111,26 @@ impl Supervisor {
         }
         Ok(children)
     }
+    pub fn stop(&mut self) -> Result<()> {
+        use rustix::process::{Pid, PidfdFlags, Signal, pidfd_open, pidfd_send_signal};
+        let fd = pidfd_open(Pid::from_child(&self.0), PidfdFlags::empty())?;
+        pidfd_send_signal(fd, Signal::TERM)?;
+        let deadline = Instant::now() + Duration::from_secs(10);
+        loop {
+            if let Some(status) = self.0.try_wait()? {
+                return check(
+                    status.success(),
+                    format!("supervisor shutdown returned {status}"),
+                );
+            }
+            check(
+                Instant::now() < deadline,
+                "supervisor did not acknowledge shutdown",
+            )?;
+            thread::sleep(Duration::from_millis(5));
+        }
+    }
+
     pub fn kill(&mut self) -> Result<()> {
         self.0.kill()?;
         check(

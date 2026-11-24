@@ -20,6 +20,9 @@ mod curved_checkpoint;
 mod loaded_grippers;
 #[path = "support/production_example.rs"]
 mod production_example;
+#[cfg(target_os = "linux")]
+#[path = "support/supervisor.rs"]
+mod supervisor;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const CASES: &str = include_str!("support/headless-worker-cases.json");
@@ -101,20 +104,20 @@ impl Inputs {
 #[test]
 #[ignore = "requires the headless qualification's Cargo artifacts"]
 fn real_trajectory_checkpoint() -> Result<()> {
-    let input = Inputs::load()?;
-    curved_checkpoint::run(
-        &input.root,
-        &input.target,
-        &input.directory,
-        &input.artifacts,
-        &input.worker,
-    )
+    curved_checkpoint::run(Inputs::load()?)
 }
 
 #[test]
 #[ignore = "requires the headless qualification's Cargo artifacts"]
 fn loaded_grippers_match_local_scene() -> Result<()> {
     loaded_grippers::run(Inputs::load()?)
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+#[ignore = "requires Linux pidfds and the instrumented native graph"]
+fn loaded_supervisor_operators() -> Result<()> {
+    supervisor::run(Inputs::load()?)
 }
 
 // These are the cuts actually reopened by the rigid/material, off-grid and loaded-foot cases.

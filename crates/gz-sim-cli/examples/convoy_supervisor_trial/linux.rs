@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Linux process qualification for operator-selected reconstruction after supervisor loss.
+mod orderly;
 mod process;
 mod wire;
 
@@ -447,6 +448,10 @@ fn run(a: &Args) -> Result<()> {
             .arg(&cut0)
             .arg(&cut1),
     )?;
+    if a.case == Case::Paused {
+        let result = orderly::reopen(a, &session, &next, &cut1, &mut events)?;
+        saved_json(&a.run, "orderly.json", &result)?;
+    }
     saved_json(&a.run, "oracle.json", &oracle)?;
     check(
         oracle["exact_native_archives"] == 2 && oracle["ordinary_observations"] == 2,

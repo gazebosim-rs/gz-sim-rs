@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use super::{Result, executable};
+use super::{Inputs, Result, executable};
 use serde_json::Value;
 use std::{
     fs::File,
@@ -12,18 +12,20 @@ use std::{
 /// Cargo's default test pass builds a libtest harness for an example. Its
 /// physical scenarios need the ordinary executable with the same feature graph.
 pub(super) fn build(
-    root: &Path,
-    target: &Path,
-    directory: &Path,
-    input: &[Value],
+    inputs: &Inputs,
+    package: &str,
     example: &str,
     label: &str,
 ) -> Result<(Value, std::path::PathBuf)> {
-    let source = root
-        .join("crates/gz-sim-cli/examples")
+    let source = inputs
+        .root
+        .join("crates")
+        .join(package)
+        .join("examples")
         .join(format!("{example}.rs"));
-    let harness = executable(input, &source, target, true)?;
-    let test = input
+    let harness = executable(&inputs.artifacts, &source, &inputs.target, true)?;
+    let test = inputs
+        .artifacts
         .iter()
         .find(|a| a["executable"].as_str().map(Path::new) == Some(&harness))
         .ok_or("missing Cargo test artifact")?;
@@ -33,7 +35,7 @@ pub(super) fn build(
         .iter()
         .map(|v| v.as_str().ok_or("invalid Cargo feature"))
         .collect::<std::result::Result<Vec<_>, _>>()?;
-    let output = directory.join(format!("{label}-build.stdout"));
+    let output = inputs.directory.join(format!("{label}-build.stdout"));
     let mut cargo = Command::new("cargo");
     cargo.args(["build", "--profile", "test"]);
     if let Some(selection) = std::env::var_os("GZ_PHYSICS_CARGO_SELECTION") {
@@ -50,7 +52,7 @@ pub(super) fn build(
         cargo.args([
             "--locked",
             "-p",
-            "gz-sim-cli",
+            package,
             "--no-default-features",
             "--features",
             &features.join(","),
@@ -60,7 +62,7 @@ pub(super) fn build(
         .args(["--example", example, "--message-format=json"])
         .stdout(File::create_new(&output)?)
         .stderr(File::create_new(
-            directory.join(format!("{label}-build.stderr")),
+            inputs.directory.join(format!("{label}-build.stderr")),
         )?)
         .status()?;
     if !status.success() {
@@ -77,6 +79,6 @@ pub(super) fn build(
             binaries.push(artifact);
         }
     }
-    let program = executable(&binaries, &source, target, false)?;
+    let program = executable(&binaries, &source, &inputs.target, false)?;
     Ok((binaries.pop().ok_or("missing production example")?, program))
 }
