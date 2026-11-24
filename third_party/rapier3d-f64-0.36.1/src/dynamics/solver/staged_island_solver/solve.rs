@@ -352,6 +352,9 @@ pub(super) unsafe fn solve_pass(
                     solve_friction,
                 );
             }
+            // The serial generic joint and contact tails have both finished.
+            // Resolve a marked stop before positions integrate this velocity.
+            super::travel::project(unsafe { &mut *ctx.joint_constraints }, contacts, vs, false);
         }
         sync.complete(stage, 1, 1);
     }

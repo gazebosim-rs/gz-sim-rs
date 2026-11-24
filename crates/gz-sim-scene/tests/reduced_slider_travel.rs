@@ -1,5 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+use gz_physics::PhysicsBackend;
+use gz_physics_multifidelity::MultiFidelityBackend;
 use gz_sim_core::{EntityId, Simulation};
 use gz_sim_scene::{JointSample, Name, PhysicsEngine, load_world_with_sdf_step, set_joint_force};
 
@@ -103,5 +105,45 @@ fn unpowered_slider_is_passive_and_joint_force_has_one_owner() {
             )
             .is_err()
         );
+    }
+}
+
+#[test]
+fn a_seated_drive_shares_the_first_sphere_impulse_with_its_native_stop() {
+    let mass = 0.08;
+    let inertia = 0.0004266666666666667 + 0.00003208666666666667 + mass * 0.1 * 0.1;
+    for restitution in [0., 0.6, 1.] {
+        for ns in [1_000u32, 100] {
+            for sign in [-1., 1.] {
+                let ends = if sign > 0. { [-0.01, 0.] } else { [0., 0.01] };
+                let sdf = xml(ends[0], ends[1], true)
+                    .replace("3.0 0.12", &format!("{} 0.12", -sign * 0.02405))
+                    .replace(">0.75 0 0<", &format!(">{} 0 0<", sign * 0.75))
+                    .replace(">0.00001<", &format!(">{:.9}<", f64::from(ns) * 1e-9))
+                    .replace(">0.6<", &format!(">{restitution}<"));
+                let mut sim = load(&sdf);
+                let (id, _) = slider(&sim);
+                set_joint_force(&mut sim, id, sign * 2.).unwrap();
+                let expected = (1. + restitution) * 0.75 / (1. / 0.2 + 0.12 * 0.12 / inertia);
+                sim.step_exact(66_666 / u64::from(ns)).unwrap();
+                sim.step_exact(1).unwrap();
+                let p = sim
+                    .world()
+                    .resource::<PhysicsBackend>()
+                    .downcast_ref::<MultiFidelityBackend>()
+                    .unwrap();
+                let measured: f64 = p
+                    .rigid_contact_patches()
+                    .iter()
+                    .flat_map(|p| &p.points)
+                    .map(|p| p.normal_impulse)
+                    .sum();
+                assert!(
+                    (measured - expected).abs() < 1e-10,
+                    "{sign} {ns} {restitution}: {measured} vs {expected}"
+                );
+                assert!(slider(&sim).1.state.velocity.abs() < 1e-9);
+            }
+        }
     }
 }

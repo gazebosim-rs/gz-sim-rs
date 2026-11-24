@@ -872,9 +872,12 @@ pub(super) unsafe fn run_worker(ctx: &SharedCtx, worker_id: usize) {
             let contacts = unsafe { &mut *ctx.contact_constraints };
             // Generic rows are owned exclusively by worker zero. Other workers
             // at this barrier only write impulses from disjoint rigid manifolds.
-            super::travel::finish(joint_constraints, contacts, unsafe {
-                &mut *ctx.velocity_solver
-            });
+            super::travel::project(
+                joint_constraints,
+                contacts,
+                unsafe { &mut *ctx.velocity_solver },
+                true,
+            );
             joint_constraints.writeback_impulses(joints_all);
             for c in contacts.generic_velocity_constraints.iter_mut() {
                 c.writeback_impulses(ctx.store);

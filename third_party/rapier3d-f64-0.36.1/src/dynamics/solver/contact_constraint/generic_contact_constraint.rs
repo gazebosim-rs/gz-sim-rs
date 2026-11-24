@@ -497,19 +497,10 @@ impl GenericContactConstraintBuilder {
         constraint.cfm_factor = cfm_factor;
     }
 
-    /// Set the velocity target for a loaded frictionless point after the native
-    /// integration. Speculative points that never carried impulse stay inactive.
-    pub(crate) fn prepare_travel_target(&self, contact: &mut GenericContactConstraint) -> bool {
-        if contact.num_contacts != 1
-            || contact.limit != 0.0
-            || contact.normal_part[0].total_impulse() <= 0.0
-            || contact.normal_part[0].r == 0.0
-        {
-            return false;
-        }
+    /// Finish the native normal impulse using its original impact velocity.
+    pub(crate) fn set_travel_target(&self, contact: &mut GenericContactConstraint) {
         contact.normal_part[0].rhs = self.infos[0].restitution_seed.min(0.0);
         contact.cfm_factor = 1.0;
-        true
     }
 
     /// Does any active point of this constraint hold a restitution seed (an approaching
