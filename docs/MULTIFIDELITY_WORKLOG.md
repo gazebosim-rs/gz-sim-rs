@@ -2169,3 +2169,7 @@ The local CPU profile reproduced 595 observations in two fresh processes with on
 ## 2026-11-23 — Reducing collision-search cost during a cloth grasp
 
 Reusing proven clear separation between cloth features reduced the damped gripper's median p95 from 4.80 to 3.75 ms and from 5.92 to 3.69 ms in two campaigns. The spring-only case used less total CPU but its p95 rose about 4–5%. All 32 runs matched the original physical results, and the separate fine-rate check reproduced all 261 refined contacts. Changed production coverage reached 98.06% of lines and 98.91% of regions. [Both campaigns and the native replay](measurements/local-manipulation/cloth-clearance-cost.md)
+
+## 2026-11-23 — Separating jaw release from the sheet hitting the table
+
+The two finest runs released both jaws within 2 µs of one another. Their first table impulses agreed within 0.4%, but by 2.710 s one corner differed by 0.200 mm. Repeating the same jaw motion showed that the cloth and table contact produced most of the subsequent divergence within each matched run. An independent regression fixed a one-tick delay when material reaches a plane or sphere exactly at the tick boundary. [Matched releases, native replays and tests](measurements/local-manipulation/folded-sheet-release-contact.md)

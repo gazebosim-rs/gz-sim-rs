@@ -1,0 +1,316 @@
+{
+  "revision": "37ef33c",
+  "start_ns": 2675000000,
+  "end_ns": 2710000000,
+  "pad_damping_ns_per_m": 4,
+  "public_actuator_ns": 1000000,
+  "rates": [
+    {
+      "exchanges_per_ms": 16,
+      "native_intervals_reproduced": 560,
+      "branches": [
+        {
+          "material_substeps": 1,
+          "last_positive_jaw_end_ns": [
+            2676312500,
+            2676312500
+          ],
+          "first_positive_table_end_ns": 2689250000,
+          "first_interval_table_impulse_ns": [
+            -4.926573112300911e-07,
+            -4.707449136823248e-06,
+            0.0006735813406831137
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            7.066245858476404e-08,
+            1.7641279635878624e-08,
+            0.0028067339612007627
+          ],
+          "max_pose_error_m_through_first_contact": 0.0,
+          "max_pose_error_m_over_window": 0.0,
+          "max_pose_error_time_ns": 2675062500
+        },
+        {
+          "material_substeps": 2,
+          "last_positive_jaw_end_ns": [
+            2676375000,
+            2676375000
+          ],
+          "first_positive_table_end_ns": 2689250000,
+          "first_interval_table_impulse_ns": [
+            1.9669371053606403e-07,
+            -1.7086951591888316e-06,
+            0.00038411811854038104
+          ],
+          "lowest_node_at_first_table_contact": 2,
+          "total_table_impulse_ns": [
+            -8.94706192174223e-07,
+            1.255278273127608e-07,
+            0.0028054973183040724
+          ],
+          "max_pose_error_m_through_first_contact": 4.055899318146925e-06,
+          "max_pose_error_m_over_window": 6.069481837755066e-05,
+          "max_pose_error_time_ns": 2693687500
+        },
+        {
+          "material_substeps": 4,
+          "last_positive_jaw_end_ns": [
+            2676375000,
+            2676375000
+          ],
+          "first_positive_table_end_ns": 2689250000,
+          "first_interval_table_impulse_ns": [
+            2.61546566372635e-07,
+            -9.259771492819318e-08,
+            0.00018337878319025266
+          ],
+          "lowest_node_at_first_table_contact": 2,
+          "total_table_impulse_ns": [
+            -2.300554658618725e-06,
+            4.017912915984609e-07,
+            0.002804521903736854
+          ],
+          "max_pose_error_m_through_first_contact": 6.0851484183090184e-06,
+          "max_pose_error_m_over_window": 0.0001151310080413974,
+          "max_pose_error_time_ns": 2694375000
+        },
+        {
+          "material_substeps": 8,
+          "last_positive_jaw_end_ns": [
+            2676375000,
+            2676375000
+          ],
+          "first_positive_table_end_ns": 2689312500,
+          "first_interval_table_impulse_ns": [
+            -2.915746795181347e-07,
+            -3.755748318813884e-06,
+            0.0006538076133083132
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            -2.401061050664271e-05,
+            -7.343350164071099e-06,
+            0.0028296276006969713
+          ],
+          "max_pose_error_m_through_first_contact": 7.100402178288304e-06,
+          "max_pose_error_m_over_window": 0.0001562857729749382,
+          "max_pose_error_time_ns": 2695312500
+        }
+      ]
+    },
+    {
+      "exchanges_per_ms": 500,
+      "native_intervals_reproduced": 17500,
+      "branches": [
+        {
+          "material_substeps": 1,
+          "last_positive_jaw_end_ns": [
+            2676366000,
+            2676366000
+          ],
+          "first_positive_table_end_ns": 2689298000,
+          "first_interval_table_impulse_ns": [
+            -9.359822919941251e-07,
+            1.8597082498238674e-08,
+            0.00018260385112601663
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            5.117011869137738e-05,
+            -1.1256703518771598e-05,
+            0.0027405191441573456
+          ],
+          "max_pose_error_m_through_first_contact": 0.0,
+          "max_pose_error_m_over_window": 0.0,
+          "max_pose_error_time_ns": 2675002000
+        },
+        {
+          "material_substeps": 2,
+          "last_positive_jaw_end_ns": [
+            2676368000,
+            2676368000
+          ],
+          "first_positive_table_end_ns": 2689300000,
+          "first_interval_table_impulse_ns": [
+            -9.450315475206759e-07,
+            1.932837126603654e-08,
+            0.0001826352594718703
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            2.311898460549062e-05,
+            -2.4477361789513038e-05,
+            0.0026994330076355547
+          ],
+          "max_pose_error_m_through_first_contact": 1.3005672589270215e-07,
+          "max_pose_error_m_over_window": 2.121573733044807e-05,
+          "max_pose_error_time_ns": 2701834000
+        },
+        {
+          "material_substeps": 4,
+          "last_positive_jaw_end_ns": [
+            2676368000,
+            2676368000
+          ],
+          "first_positive_table_end_ns": 2689300000,
+          "first_interval_table_impulse_ns": [
+            -9.490013989941441e-07,
+            1.0572372083015896e-08,
+            0.00018258133332408154
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            3.6962236339973135e-05,
+            -2.416205849528507e-05,
+            0.002773029886035192
+          ],
+          "max_pose_error_m_through_first_contact": 1.9537531338711358e-07,
+          "max_pose_error_m_over_window": 3.1743483413783196e-05,
+          "max_pose_error_time_ns": 2701892000
+        },
+        {
+          "material_substeps": 8,
+          "last_positive_jaw_end_ns": [
+            2676368000,
+            2676368000
+          ],
+          "first_positive_table_end_ns": 2689300000,
+          "first_interval_table_impulse_ns": [
+            -9.514584787661456e-07,
+            5.483682239238445e-09,
+            0.00018255957889598142
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            3.400465068113421e-05,
+            8.061454114820283e-07,
+            0.002763863433357406
+          ],
+          "max_pose_error_m_through_first_contact": 2.2807722249093484e-07,
+          "max_pose_error_m_over_window": 3.681036240417672e-05,
+          "max_pose_error_time_ns": 2701912000
+        }
+      ],
+      "viewer": {
+        "frames": 161,
+        "renderer": "WebGPU",
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9993%2F",
+        "reset_ms": 2675.002,
+        "independent_particle_positions_checked": 1932,
+        "body_poses_and_shapes_checked": 5635
+      }
+    },
+    {
+      "exchanges_per_ms": 1000,
+      "native_intervals_reproduced": 35000,
+      "branches": [
+        {
+          "material_substeps": 1,
+          "last_positive_jaw_end_ns": [
+            2676368000,
+            2676368000
+          ],
+          "first_positive_table_end_ns": 2689245000,
+          "first_interval_table_impulse_ns": [
+            -1.3754286497432196e-06,
+            5.0129721305102915e-09,
+            0.0001820170509745003
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            -5.323661082029577e-06,
+            4.988579486918218e-05,
+            0.002846903916962918
+          ],
+          "max_pose_error_m_through_first_contact": 0.0,
+          "max_pose_error_m_over_window": 0.0,
+          "max_pose_error_time_ns": 2675001000
+        },
+        {
+          "material_substeps": 2,
+          "last_positive_jaw_end_ns": [
+            2676368000,
+            2676368000
+          ],
+          "first_positive_table_end_ns": 2689245000,
+          "first_interval_table_impulse_ns": [
+            -1.3766415708422306e-06,
+            -4.141859540822202e-09,
+            0.00018198862993832116
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            4.4075349032733977e-05,
+            -3.6350527792840475e-05,
+            0.0026201180646926395
+          ],
+          "max_pose_error_m_through_first_contact": 6.389300389032434e-08,
+          "max_pose_error_m_over_window": 7.544203940071171e-05,
+          "max_pose_error_time_ns": 2709854000
+        },
+        {
+          "material_substeps": 4,
+          "last_positive_jaw_end_ns": [
+            2676369000,
+            2676369000
+          ],
+          "first_positive_table_end_ns": 2689246000,
+          "first_interval_table_impulse_ns": [
+            -1.3787708024170816e-06,
+            -9.009263301221816e-09,
+            0.00018200694959959315
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            4.666561957313929e-05,
+            -2.4361434297819407e-05,
+            0.002683713346850987
+          ],
+          "max_pose_error_m_through_first_contact": 9.604378571201183e-08,
+          "max_pose_error_m_over_window": 6.360105665204493e-05,
+          "max_pose_error_time_ns": 2709770000
+        },
+        {
+          "material_substeps": 8,
+          "last_positive_jaw_end_ns": [
+            2676369000,
+            2676369000
+          ],
+          "first_positive_table_end_ns": 2689246000,
+          "first_interval_table_impulse_ns": [
+            -1.378370648439867e-06,
+            -1.3501611697684828e-08,
+            0.00018199879156698123
+          ],
+          "lowest_node_at_first_table_contact": 0,
+          "total_table_impulse_ns": [
+            6.072886670370789e-05,
+            -5.206087474966062e-05,
+            0.002642318079459803
+          ],
+          "max_pose_error_m_through_first_contact": 1.1219472255748252e-07,
+          "max_pose_error_m_over_window": 9.547533941432786e-05,
+          "max_pose_error_time_ns": 2709881000
+        }
+      ],
+      "viewer": {
+        "frames": 161,
+        "renderer": "WebGPU",
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9994%2F",
+        "reset_ms": 2675.001,
+        "independent_particle_positions_checked": 1932,
+        "body_poses_and_shapes_checked": 5635
+      }
+    }
+  ],
+  "two_complete_worlds_at_cut_end": {
+    "node": 9,
+    "distance_m": 0.00019960337299309184,
+    "position_difference_1000_minus_500_m": [
+      4.333256148136844e-05,
+      0.00019416967369403904,
+      -1.6184357980258968e-05
+    ]
+  }
+}
