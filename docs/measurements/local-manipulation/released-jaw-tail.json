@@ -1,0 +1,3152 @@
+{
+  "host": "AMD Ryzen 9 9950X3D, Linux x86-64, rustc 1.97.1; Rapier 0.36.1 f64. WebGPU playback on NVIDIA GeForce RTX 5090.",
+  "cost_protocol": {
+    "25ns": "Five pinned batches per case on CPU 8. Each batch warms a fresh world, then times four new worlds. Case order reverses each round. p95 is nearest rank, 19th of 20. An additional 20-run block on CPUs 9\u201312 is provided as a cross-check.",
+    "1ns": "One pinned 20-sample block per case after warmup; one independent core per mirror/gap (9\u201312). Mirrored order reverses baseline/candidate order. Each sample initializes a fresh Bevy world. The public first tick alone is timed and all six bodies are compared outside the timed interval."
+  },
+  "production": "4eb2b0a",
+  "baseline": "108ef65",
+  "release_executable_sha256": "a5fb45e1380ec6897403c3ec32ea468810d5c7c1d8627039aae31ba020be5a16",
+  "public_dt_ns": 1000000,
+  "measurements": [
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 25,
+      "release_guard_ns": 2000,
+      "max_tail_ns": 125,
+      "calls_first_tick": [
+        2560,
+        2118
+      ],
+      "calls_each_later_tick": 1,
+      "pulse_source_full_uniform_native_calls": 40000,
+      "all_pulse_fields_exact": true,
+      "pulses": [
+        {
+          "jaw": "left",
+          "start_ns": 46875,
+          "end_ns": 46925,
+          "loaded_steps": 2,
+          "positive_rows": 3,
+          "normal_impulse_ns": 0.03345155284239182,
+          "linear_on_parcel_ns": [
+            -0.0334515528423809,
+            -6.399521597951185e-10,
+            1.82138330181399e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -2.9278153467207635e-10,
+            0.0011708027962216367,
+            0.00020332637873264912
+          ]
+        },
+        {
+          "jaw": "left",
+          "start_ns": 47100,
+          "end_ns": 47175,
+          "loaded_steps": 3,
+          "positive_rows": 4,
+          "normal_impulse_ns": 0.014217081641975953,
+          "linear_on_parcel_ns": [
+            -0.014217081641960557,
+            -3.0725915723148953e-09,
+            2.056583591757426e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -3.3609036650304016e-10,
+            -0.0004975980155905105,
+            -0.00028038268481851274
+          ]
+        }
+      ],
+      "sum_normal_mNs": 47.66863448436777,
+      "motion_24ms_vs_original_prefix": {
+        "max_mm": 1.500848997252601e-08,
+        "max_deg": 3.350394500062398e-09
+      },
+      "motion_24ms_vs_continuous_25ns": {
+        "max_mm": 0.16477692482446263,
+        "max_deg": 0.09824542152064274
+      },
+      "first_step_cost": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            351.258011,
+            350.182289,
+            374.342934,
+            388.577187,
+            321.539642,
+            331.343075,
+            357.067105,
+            320.24466,
+            320.70066,
+            323.442377,
+            344.089324,
+            321.942724,
+            313.067353,
+            300.612414,
+            301.705717,
+            305.653076,
+            311.282669,
+            304.168872,
+            305.061844,
+            358.739288
+          ],
+          "median_ms": 321.741183,
+          "p95_ms": 374.342934
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            331.399334,
+            356.004132,
+            361.542054,
+            354.614859,
+            270.448894,
+            279.982366,
+            275.409466,
+            285.138938,
+            264.671092,
+            266.875176,
+            273.003701,
+            266.294245,
+            259.373279,
+            263.398668,
+            251.29443,
+            265.526643,
+            300.917644,
+            311.979091,
+            311.259648,
+            271.592357
+          ],
+          "median_ms": 274.20658349999997,
+          "p95_ms": 356.004132
+        }
+      },
+      "separate_25ns_cost_block": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            340.869738,
+            340.835108,
+            323.651497,
+            322.862544,
+            323.283276,
+            324.877093,
+            325.126114,
+            339.606492,
+            332.679309,
+            337.237351,
+            338.431207,
+            326.240979,
+            324.171769,
+            325.239835,
+            322.632663,
+            324.004909,
+            323.854378,
+            329.918856,
+            316.380213,
+            319.062126
+          ],
+          "median_ms": 325.0016035,
+          "p95_ms": 340.835108
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            252.761115,
+            261.077794,
+            259.446176,
+            258.11715,
+            254.931035,
+            261.258364,
+            255.478218,
+            248.242283,
+            248.094283,
+            256.246011,
+            255.83425,
+            259.713758,
+            262.189719,
+            252.807735,
+            257.632988,
+            258.188391,
+            259.435566,
+            252.533083,
+            251.072437,
+            253.719099
+          ],
+          "median_ms": 256.04013050000003,
+          "p95_ms": 261.258364
+        }
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "release_guard_ns": 3000,
+      "max_tail_ns": 25,
+      "calls_first_tick": [
+        62560,
+        50241
+      ],
+      "calls_each_later_tick": 1,
+      "pulse_source_full_uniform_native_calls": 1000000,
+      "all_pulse_fields_exact": true,
+      "pulses": [
+        {
+          "jaw": "left",
+          "start_ns": 46883,
+          "end_ns": 46912,
+          "loaded_steps": 29,
+          "positive_rows": 29,
+          "normal_impulse_ns": 0.027835128079781918,
+          "linear_on_parcel_ns": [
+            -0.027835128079776932,
+            -2.8560854678707953e-11,
+            8.27169998779523e-09
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            1.9338519049530897e-10,
+            0.0009742280614443554,
+            0.0006541252372750825
+          ]
+        },
+        {
+          "jaw": "left",
+          "start_ns": 46943,
+          "end_ns": 46974,
+          "loaded_steps": 31,
+          "positive_rows": 32,
+          "normal_impulse_ns": 0.0066309441364835065,
+          "linear_on_parcel_ns": [
+            -0.006630944136476495,
+            -1.3502139185077572e-09,
+            9.539485890017304e-09
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -3.012168218423319e-10,
+            0.00023208280864223566,
+            -0.00017659186876671184
+          ]
+        },
+        {
+          "jaw": "left",
+          "start_ns": 46981,
+          "end_ns": 47021,
+          "loaded_steps": 40,
+          "positive_rows": 40,
+          "normal_impulse_ns": 5.1370658687870454e-08,
+          "linear_on_parcel_ns": [
+            -5.137065868781865e-08,
+            -1.5253714837793882e-14,
+            7.13349142019077e-14
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -2.4955896737366685e-15,
+            1.7979716891991678e-09,
+            -1.41269305582593e-09
+          ]
+        },
+        {
+          "jaw": "left",
+          "start_ns": 47098,
+          "end_ns": 47099,
+          "loaded_steps": 1,
+          "positive_rows": 1,
+          "normal_impulse_ns": 0.013788844209968575,
+          "linear_on_parcel_ns": [
+            -0.013788844209940289,
+            -7.099131230307684e-09,
+            2.7017302633621792e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -4.94506026473043e-10,
+            -0.00048260992305019715,
+            -0.0003791932109442445
+          ]
+        }
+      ],
+      "sum_normal_mNs": 48.254967796892686,
+      "motion_24ms_vs_original_prefix": {
+        "max_mm": 3.313371092690104e-09,
+        "max_deg": 7.443208584065785e-10
+      },
+      "motion_24ms_vs_continuous_25ns": {
+        "max_mm": 0.46944572146676056,
+        "max_deg": 0.7441882266483547
+      },
+      "first_step_cost": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            7403.83568,
+            7128.380929,
+            7836.84035,
+            8325.30323,
+            9457.94727,
+            8570.326298,
+            7328.075485,
+            7914.431474,
+            8067.952893,
+            11229.649146,
+            8596.386561,
+            8388.274496,
+            8983.411205,
+            9986.443878,
+            8603.650945,
+            10562.156017,
+            7983.190776,
+            8239.783829,
+            8468.884924,
+            8053.545706
+          ],
+          "median_ms": 8356.788863,
+          "p95_ms": 10562.156017
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            6592.661487,
+            6164.039777,
+            6292.926682,
+            6198.51746,
+            6190.23121,
+            6781.319162,
+            6358.5999,
+            6198.386019,
+            6414.982694,
+            6356.042938,
+            6284.697533,
+            6295.347023,
+            6700.725671,
+            6386.451566,
+            6335.202037,
+            6221.815875,
+            6297.14285,
+            6385.824924,
+            6268.949503,
+            6243.252915
+          ],
+          "median_ms": 6296.2449365,
+          "p95_ms": 6700.725671
+        }
+      },
+      "separate_25ns_cost_block": null
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 25,
+      "release_guard_ns": 2000,
+      "max_tail_ns": 125,
+      "calls_first_tick": [
+        2560,
+        2118
+      ],
+      "calls_each_later_tick": 1,
+      "pulse_source_full_uniform_native_calls": 40000,
+      "all_pulse_fields_exact": true,
+      "pulses": [
+        {
+          "jaw": "right",
+          "start_ns": 46850,
+          "end_ns": 46925,
+          "loaded_steps": 3,
+          "positive_rows": 4,
+          "normal_impulse_ns": 0.03204204983505464,
+          "linear_on_parcel_ns": [
+            0.03204204983503762,
+            5.169183289619706e-09,
+            -2.748292814193755e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -1.128245912671379e-10,
+            0.0011214707011738443,
+            0.00030353093531223336
+          ]
+        },
+        {
+          "jaw": "right",
+          "start_ns": 47075,
+          "end_ns": 47125,
+          "loaded_steps": 2,
+          "positive_rows": 2,
+          "normal_impulse_ns": 0.014865719439404635,
+          "linear_on_parcel_ns": [
+            0.014865719439393263,
+            3.893804563108118e-09,
+            -1.7961371401632256e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -2.8580929066628396e-10,
+            -0.0005203002928400237,
+            -0.0003493446150711168
+          ]
+        },
+        {
+          "jaw": "right",
+          "start_ns": 47175,
+          "end_ns": 47225,
+          "loaded_steps": 2,
+          "positive_rows": 2,
+          "normal_impulse_ns": 0.0006253470983507747,
+          "linear_on_parcel_ns": [
+            0.0006253470983503074,
+            1.265088496164803e-10,
+            -7.541275562444529e-10
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            2.5166319031175642e-11,
+            -2.1887146710865318e-05,
+            1.7197046736949832e-05
+          ]
+        }
+      ],
+      "sum_normal_mNs": 47.53311637281005,
+      "motion_24ms_vs_original_prefix": {
+        "max_mm": 0.0009523569285861697,
+        "max_deg": 9.325469967038084e-06
+      },
+      "motion_24ms_vs_continuous_25ns": {
+        "max_mm": 0.18615903869105438,
+        "max_deg": 0.11183647888292975
+      },
+      "first_step_cost": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            426.778155,
+            353.247046,
+            356.452863,
+            412.072972,
+            323.662587,
+            384.261367,
+            350.015168,
+            333.48442,
+            317.814254,
+            330.120452,
+            316.840732,
+            326.700934,
+            318.480165,
+            311.559989,
+            315.123758,
+            306.959419,
+            302.017577,
+            301.684797,
+            314.681606,
+            324.083718
+          ],
+          "median_ms": 323.87315249999995,
+          "p95_ms": 412.072972
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            355.238611,
+            342.08928,
+            345.450868,
+            284.548337,
+            273.294181,
+            271.417887,
+            274.267553,
+            275.507886,
+            278.262462,
+            275.632216,
+            269.973013,
+            277.28243,
+            258.030435,
+            251.21797,
+            251.606891,
+            256.311462,
+            258.950278,
+            271.358177,
+            248.496124,
+            249.912647
+          ],
+          "median_ms": 272.356034,
+          "p95_ms": 345.450868
+        }
+      },
+      "separate_25ns_cost_block": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            316.508874,
+            315.59936,
+            304.269116,
+            305.166531,
+            309.112509,
+            310.101294,
+            308.799478,
+            308.763757,
+            305.993184,
+            299.461384,
+            297.187003,
+            301.028161,
+            305.469462,
+            302.9181,
+            305.367182,
+            305.04358,
+            312.382205,
+            310.943758,
+            299.504784,
+            304.579478
+          ],
+          "median_ms": 305.418322,
+          "p95_ms": 315.59936
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            260.18804,
+            288.950684,
+            276.338095,
+            266.799851,
+            270.83941,
+            266.892271,
+            267.191773,
+            264.265079,
+            272.98856,
+            285.161957,
+            292.31528,
+            273.322431,
+            284.129762,
+            269.899925,
+            270.332338,
+            272.318807,
+            269.253002,
+            264.982413,
+            269.497804,
+            270.245917
+          ],
+          "median_ms": 270.2891275,
+          "p95_ms": 288.950684
+        }
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "release_guard_ns": 3000,
+      "max_tail_ns": 25,
+      "calls_first_tick": [
+        62560,
+        50241
+      ],
+      "calls_each_later_tick": 1,
+      "pulse_source_full_uniform_native_calls": 1000000,
+      "all_pulse_fields_exact": true,
+      "pulses": [
+        {
+          "jaw": "right",
+          "start_ns": 46871,
+          "end_ns": 46890,
+          "loaded_steps": 19,
+          "positive_rows": 19,
+          "normal_impulse_ns": 0.0258250228233844,
+          "linear_on_parcel_ns": [
+            0.025825022823377973,
+            1.95371516778507e-09,
+            -1.02987912058062e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            2.1483672785224805e-10,
+            0.000903875022650353,
+            0.0007101879342227635
+          ]
+        },
+        {
+          "jaw": "right",
+          "start_ns": 46929,
+          "end_ns": 47091,
+          "loaded_steps": 162,
+          "positive_rows": 163,
+          "normal_impulse_ns": 0.021513514199628683,
+          "linear_on_parcel_ns": [
+            0.02151351419959291,
+            1.0276310927651333e-08,
+            -3.7091449823237236e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -6.782952428176618e-10,
+            -0.00022865990107117794,
+            -0.0005055679672780159
+          ]
+        }
+      ],
+      "sum_normal_mNs": 47.338537023013075,
+      "motion_24ms_vs_original_prefix": {
+        "max_mm": 0.00038800082709610493,
+        "max_deg": 4.153735920326635e-06
+      },
+      "motion_24ms_vs_continuous_25ns": {
+        "max_mm": 0.5379957470985589,
+        "max_deg": 1.2767096832064648
+      },
+      "first_step_cost": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            8198.556566,
+            7761.214246,
+            7744.324196,
+            7645.986846,
+            7970.747838,
+            7940.449376,
+            7608.095527,
+            7615.198031,
+            8383.081312,
+            7889.910899,
+            8032.834099,
+            7592.064623,
+            7519.569036,
+            8048.598702,
+            8010.785366,
+            7947.246409,
+            7729.581506,
+            7690.600366,
+            7680.413413,
+            7883.274171
+          ],
+          "median_ms": 7822.2442085,
+          "p95_ms": 8198.556566
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            5680.821243,
+            5738.952185,
+            5699.037098,
+            6100.984632,
+            6801.270036,
+            6985.911071,
+            7633.509437,
+            7017.72218,
+            5737.576668,
+            7753.732561,
+            6086.234813,
+            6877.462873,
+            9344.369358,
+            6994.355731,
+            6813.918795,
+            7048.254843,
+            7378.777523,
+            8460.688445,
+            7034.647859,
+            8199.878372
+          ],
+          "median_ms": 6990.133401,
+          "p95_ms": 8460.688445
+        }
+      },
+      "separate_25ns_cost_block": null
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 25,
+      "release_guard_ns": 2000,
+      "max_tail_ns": 125,
+      "calls_first_tick": [
+        3808,
+        3006
+      ],
+      "calls_each_later_tick": 1,
+      "pulse_source_full_uniform_native_calls": 40000,
+      "all_pulse_fields_exact": true,
+      "pulses": [
+        {
+          "jaw": "left",
+          "start_ns": 67100,
+          "end_ns": 67200,
+          "loaded_steps": 4,
+          "positive_rows": 5,
+          "normal_impulse_ns": 0.034785380786951155,
+          "linear_on_parcel_ns": [
+            -0.03478538078689681,
+            -2.0135406595433786e-09,
+            4.2332100149570835e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -7.331695351507511e-11,
+            0.0012174850326389635,
+            0.0004401769362477911
+          ]
+        },
+        {
+          "jaw": "left",
+          "start_ns": 67550,
+          "end_ns": 67575,
+          "loaded_steps": 1,
+          "positive_rows": 1,
+          "normal_impulse_ns": 0.01406030131773918,
+          "linear_on_parcel_ns": [
+            -0.01406030131763071,
+            -1.3284681633903621e-08,
+            5.360702701704046e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -1.0092287708908447e-09,
+            -0.0004921112493533601,
+            -0.000386658299231563
+          ]
+        }
+      ],
+      "sum_normal_mNs": 48.84568210469033,
+      "motion_24ms_vs_original_prefix": {
+        "max_mm": 2.7337769377129216e-08,
+        "max_deg": 6.360487891858999e-09
+      },
+      "motion_24ms_vs_continuous_25ns": {
+        "max_mm": 0.16379716991696544,
+        "max_deg": 0.09794144257207012
+      },
+      "first_step_cost": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            499.960064,
+            485.384211,
+            489.21598,
+            573.266864,
+            476.45215,
+            492.043636,
+            472.384631,
+            474.285615,
+            494.14181,
+            480.77551,
+            483.755447,
+            478.022524,
+            454.126339,
+            446.12408,
+            443.429814,
+            458.509438,
+            477.062272,
+            452.398454,
+            440.978168,
+            447.267213
+          ],
+          "median_ms": 476.757211,
+          "p95_ms": 499.960064
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            405.468226,
+            415.95446,
+            387.542984,
+            389.76653,
+            378.238983,
+            379.187305,
+            375.566618,
+            383.635236,
+            378.490074,
+            393.075038,
+            395.828884,
+            376.086178,
+            364.03964,
+            354.767079,
+            365.180723,
+            366.892467,
+            364.201211,
+            359.047199,
+            406.905019,
+            421.304903
+          ],
+          "median_ms": 378.8386895,
+          "p95_ms": 415.95446
+        }
+      },
+      "separate_25ns_cost_block": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            645.329555,
+            671.8824,
+            676.250351,
+            641.364647,
+            496.823619,
+            482.698063,
+            488.047368,
+            469.774392,
+            480.705584,
+            475.014177,
+            468.055014,
+            463.159212,
+            449.199706,
+            452.278381,
+            454.022749,
+            456.912062,
+            447.095386,
+            440.168254,
+            455.873437,
+            450.547242
+          ],
+          "median_ms": 468.91470300000003,
+          "p95_ms": 671.8824
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            356.776583,
+            360.54291,
+            352.593783,
+            365.947236,
+            373.859482,
+            375.194569,
+            377.67709,
+            378.207573,
+            372.489166,
+            386.012399,
+            366.662449,
+            375.976672,
+            376.445645,
+            373.009509,
+            385.736858,
+            374.609956,
+            380.282833,
+            401.902514,
+            390.138099,
+            373.28373
+          ],
+          "median_ms": 374.9022625,
+          "p95_ms": 390.138099
+        }
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "release_guard_ns": 3000,
+      "max_tail_ns": 25,
+      "calls_first_tick": [
+        93808,
+        70689
+      ],
+      "calls_each_later_tick": 1,
+      "pulse_source_full_uniform_native_calls": 1000000,
+      "all_pulse_fields_exact": true,
+      "pulses": [
+        {
+          "jaw": "left",
+          "start_ns": 67111,
+          "end_ns": 67146,
+          "loaded_steps": 35,
+          "positive_rows": 35,
+          "normal_impulse_ns": 0.02635545091997773,
+          "linear_on_parcel_ns": [
+            -0.026355450919962452,
+            -2.0363296361194038e-11,
+            1.2389933152239735e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            2.904503161527504e-10,
+            0.0009224379657661238,
+            0.0006193525920508063
+          ]
+        },
+        {
+          "jaw": "left",
+          "start_ns": 67224,
+          "end_ns": 67225,
+          "loaded_steps": 1,
+          "positive_rows": 2,
+          "normal_impulse_ns": 0.0073153734882583565,
+          "linear_on_parcel_ns": [
+            -0.007315373488224832,
+            -3.2269263064373063e-09,
+            2.191057051340966e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -6.935045863909109e-10,
+            0.0002560375143653409,
+            -0.00019383479184655644
+          ]
+        },
+        {
+          "jaw": "left",
+          "start_ns": 67532,
+          "end_ns": 67573,
+          "loaded_steps": 41,
+          "positive_rows": 41,
+          "normal_impulse_ns": 0.01376511602841288,
+          "linear_on_parcel_ns": [
+            -0.013765116028327147,
+            -1.0354797376667077e-08,
+            4.5590327822218536e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -8.913153755525126e-10,
+            -0.00048177954334010077,
+            -0.0003785405868643206
+          ]
+        }
+      ],
+      "sum_normal_mNs": 47.43594043664896,
+      "motion_24ms_vs_original_prefix": {
+        "max_mm": 6.2587663016467106e-09,
+        "max_deg": 1.413581614647153e-09
+      },
+      "motion_24ms_vs_continuous_25ns": {
+        "max_mm": 0.3210827282021347,
+        "max_deg": 0.43757507177291577
+      },
+      "first_step_cost": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            10699.850193,
+            12298.836028,
+            13994.99838,
+            11422.083978,
+            11639.294547,
+            15184.541477,
+            13160.315827,
+            12687.689302,
+            14723.388995,
+            15249.21664,
+            12501.70266,
+            12253.963948,
+            12191.748757,
+            11700.827085,
+            11243.919853,
+            11401.366291,
+            12451.835195,
+            12202.593238,
+            11331.907496,
+            11159.987052
+          ],
+          "median_ms": 12228.278593,
+          "p95_ms": 15184.541477
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            9037.783466,
+            8789.454883,
+            9056.37507,
+            8671.493601,
+            9480.848019,
+            8346.647521,
+            8789.637404,
+            8672.016472,
+            8622.166327,
+            10716.137271,
+            8966.620632,
+            8429.668393,
+            10412.733272,
+            8760.424977,
+            8949.829414,
+            8754.777113,
+            8797.174651,
+            8782.396487,
+            8628.939192,
+            8403.059092
+          ],
+          "median_ms": 8785.925685,
+          "p95_ms": 10412.733272
+        }
+      },
+      "separate_25ns_cost_block": null
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 25,
+      "release_guard_ns": 2000,
+      "max_tail_ns": 125,
+      "calls_first_tick": [
+        3808,
+        3006
+      ],
+      "calls_each_later_tick": 1,
+      "pulse_source_full_uniform_native_calls": 40000,
+      "all_pulse_fields_exact": true,
+      "pulses": [
+        {
+          "jaw": "right",
+          "start_ns": 67075,
+          "end_ns": 67550,
+          "loaded_steps": 19,
+          "positive_rows": 21,
+          "normal_impulse_ns": 0.04819475974163046,
+          "linear_on_parcel_ns": [
+            0.04819475974147076,
+            2.4533897841057557e-08,
+            -9.343774788966727e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -9.83049575311301e-10,
+            0.0006266400678623415,
+            0.00017141892887583167
+          ]
+        }
+      ],
+      "sum_normal_mNs": 48.19475974163046,
+      "motion_24ms_vs_original_prefix": {
+        "max_mm": 9.154683429636961e-05,
+        "max_deg": 8.783792643636627e-07
+      },
+      "motion_24ms_vs_continuous_25ns": {
+        "max_mm": 0.18317069664163269,
+        "max_deg": 0.11023836900354064
+      },
+      "first_step_cost": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            486.373213,
+            493.91941,
+            491.385364,
+            492.075826,
+            467.959151,
+            478.925126,
+            470.049796,
+            471.243768,
+            487.365265,
+            500.355506,
+            478.910516,
+            480.53223,
+            467.333579,
+            487.551125,
+            507.079511,
+            453.523557,
+            469.200633,
+            446.30277,
+            460.847834,
+            552.174815
+          ],
+          "median_ms": 479.728678,
+          "p95_ms": 507.079511
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            375.737728,
+            385.834301,
+            386.601133,
+            384.098097,
+            399.114602,
+            402.446929,
+            390.235181,
+            373.155121,
+            441.317219,
+            449.974709,
+            410.987629,
+            462.778419,
+            556.486605,
+            495.367204,
+            418.372776,
+            386.683763,
+            369.740023,
+            372.377039,
+            358.290757,
+            376.165549
+          ],
+          "median_ms": 388.459472,
+          "p95_ms": 495.367204
+        }
+      },
+      "separate_25ns_cost_block": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            445.139087,
+            444.135953,
+            447.411558,
+            447.119266,
+            449.411907,
+            450.231291,
+            449.99766,
+            443.432239,
+            463.431392,
+            469.483461,
+            472.868147,
+            475.841201,
+            473.411839,
+            473.60387,
+            469.654741,
+            477.87366,
+            474.791406,
+            476.782186,
+            473.598121,
+            506.387624
+          ],
+          "median_ms": 469.569101,
+          "p95_ms": 477.87366
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            399.015291,
+            377.853681,
+            377.955672,
+            374.305495,
+            380.058952,
+            377.883082,
+            411.64304,
+            393.251544,
+            386.035039,
+            383.022555,
+            377.777971,
+            372.860088,
+            374.820787,
+            380.084511,
+            373.497801,
+            369.972455,
+            371.843283,
+            355.554627,
+            355.153285,
+            359.430675
+          ],
+          "median_ms": 377.815826,
+          "p95_ms": 399.015291
+        }
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "release_guard_ns": 3000,
+      "max_tail_ns": 25,
+      "calls_first_tick": [
+        93808,
+        70689
+      ],
+      "calls_each_later_tick": 1,
+      "pulse_source_full_uniform_native_calls": 1000000,
+      "all_pulse_fields_exact": true,
+      "pulses": [
+        {
+          "jaw": "right",
+          "start_ns": 67085,
+          "end_ns": 67114,
+          "loaded_steps": 29,
+          "positive_rows": 29,
+          "normal_impulse_ns": 0.02554682534589999,
+          "linear_on_parcel_ns": [
+            0.025546825345886582,
+            1.99013182347566e-09,
+            -1.0503658491672671e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            2.1919599569222291e-10,
+            0.0008941373929788919,
+            0.0007025372960459295
+          ]
+        },
+        {
+          "jaw": "right",
+          "start_ns": 67206,
+          "end_ns": 67561,
+          "loaded_steps": 355,
+          "positive_rows": 356,
+          "normal_impulse_ns": 0.02104434658975045,
+          "linear_on_parcel_ns": [
+            0.021044346589617947,
+            1.9668686432622992e-08,
+            -6.9723262566642e-08
+          ],
+          "angular_normal_at_parcel_com_nms": [
+            -1.2320263508085804e-09,
+            -0.00021521476949975182,
+            -0.0004945429068595074
+          ]
+        }
+      ],
+      "sum_normal_mNs": 46.591171935650436,
+      "motion_24ms_vs_original_prefix": {
+        "max_mm": 0.0004896020311672753,
+        "max_deg": 5.640117849202144e-06
+      },
+      "motion_24ms_vs_continuous_25ns": {
+        "max_mm": 0.250974421556004,
+        "max_deg": 0.27901149533668784
+      },
+      "first_step_cost": {
+        "original": {
+          "n": 20,
+          "step_ms": [
+            12308.132582,
+            11470.078443,
+            12330.736128,
+            11763.040691,
+            11771.759948,
+            12432.711585,
+            11526.450702,
+            12498.340417,
+            12327.452112,
+            12206.429382,
+            11325.482469,
+            13799.50703,
+            11689.62045,
+            11814.879708,
+            13342.809266,
+            10807.399232,
+            11077.687427,
+            11895.973485,
+            10950.201772,
+            11220.719117
+          ],
+          "median_ms": 11793.319828,
+          "p95_ms": 13342.809266
+        },
+        "after_release": {
+          "n": 20,
+          "step_ms": [
+            8332.109951,
+            8121.322253,
+            9242.029658,
+            10028.410974,
+            10203.551305,
+            8272.02054,
+            8909.884851,
+            9291.413129,
+            12060.190719,
+            9514.022263,
+            9925.10873,
+            11247.001408,
+            9812.856164,
+            11574.792084,
+            10504.974489,
+            9608.055943,
+            9022.78181,
+            8642.812219,
+            9242.4314,
+            8500.872773
+          ],
+          "median_ms": 9402.717696,
+          "p95_ms": 11574.792084
+        }
+      },
+      "separate_25ns_cost_block": null
+    }
+  ],
+  "holdouts": [
+    {
+      "gap_um": 0,
+      "miss": false,
+      "side": "left",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 0,
+      "miss": false,
+      "side": "left",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 0,
+      "miss": false,
+      "side": "right",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 0,
+      "miss": false,
+      "side": "right",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 175,
+      "miss": false,
+      "side": "left",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 175,
+      "miss": false,
+      "side": "left",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 175,
+      "miss": false,
+      "side": "right",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 175,
+      "miss": false,
+      "side": "right",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 350,
+      "miss": false,
+      "side": "left",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 350,
+      "miss": false,
+      "side": "left",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 350,
+      "miss": false,
+      "side": "right",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 350,
+      "miss": false,
+      "side": "right",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 64
+    },
+    {
+      "gap_um": 1200,
+      "miss": false,
+      "side": "left",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 1
+    },
+    {
+      "gap_um": 1200,
+      "miss": false,
+      "side": "left",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 1
+    },
+    {
+      "gap_um": 1200,
+      "miss": false,
+      "side": "right",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 1
+    },
+    {
+      "gap_um": 1200,
+      "miss": false,
+      "side": "right",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 1
+    },
+    {
+      "gap_um": 50,
+      "miss": true,
+      "side": "left",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 1
+    },
+    {
+      "gap_um": 50,
+      "miss": true,
+      "side": "left",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 1
+    },
+    {
+      "gap_um": 50,
+      "miss": true,
+      "side": "right",
+      "fine_ns": 25,
+      "guard_ns": 2000,
+      "all_24_samples_identical": true,
+      "first_calls": 1
+    },
+    {
+      "gap_um": 50,
+      "miss": true,
+      "side": "right",
+      "fine_ns": 1,
+      "guard_ns": 3000,
+      "all_24_samples_identical": true,
+      "first_calls": 1
+    }
+  ],
+  "moderate_approach_study": [
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 0,
+      "guard_ns": 0,
+      "post_ns": 0,
+      "native_calls": 62560,
+      "pulse_count": 4,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        46883,
+        46943,
+        46981,
+        47098
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.46944572160114806,
+        "max_deg": 0.7441882266718183
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 1,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 49120,
+      "pulse_count": 4,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        46883,
+        46943,
+        46981,
+        47098
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.4694457214544914,
+        "max_deg": 0.7441882266460939
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 10,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 9070,
+      "pulse_count": 4,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": 0.03203912229416517,
+      "peak_per_pulse_mNs_error": 0.12937150078614312,
+      "arrivals_ns": [
+        46883,
+        46943,
+        46981,
+        47096
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.2767043080249023,
+        "max_deg": 1.3202869860570134
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 100,
+      "guard_ns": 1000,
+      "post_ns": 100,
+      "native_calls": 2665,
+      "pulse_count": 3,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": -0.8200487900609943,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46884,
+        46940,
+        47094
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.4645194591181627,
+        "max_deg": 0.6033826433483436
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 125,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 4528,
+      "pulse_count": 3,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": -0.7392832338875124,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46884,
+        46941,
+        47096
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.48042403669400074,
+        "max_deg": 0.6953685934384722
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 2,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 26870,
+      "pulse_count": 4,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": -0.10230490075553433,
+      "peak_per_pulse_mNs_error": 0.10091004908459669,
+      "arrivals_ns": [
+        46883,
+        46943,
+        46981,
+        47096
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.3197745637529352,
+        "max_deg": 1.2082271698224616
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 1000,
+      "post_ns": 25,
+      "native_calls": 4480,
+      "pulse_count": 4,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": -0.002897050890744879,
+      "peak_per_pulse_mNs_error": 0.05419654809964234,
+      "arrivals_ns": [
+        46883,
+        46942,
+        46981,
+        47098
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.25964398150635903,
+        "max_deg": 1.3001860181038907
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 10000,
+      "post_ns": 25,
+      "native_calls": 21760,
+      "pulse_count": 4,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": -0.04027624197201618,
+      "peak_per_pulse_mNs_error": 0.05930859080244266,
+      "arrivals_ns": [
+        46883,
+        46942,
+        46981,
+        47098
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.27152849500892073,
+        "max_deg": 1.2685569709119782
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 6400,
+      "pulse_count": 3,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": -0.4842250132154078,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46883,
+        46942,
+        47101
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.5110131835640641,
+        "max_deg": 0.836879906552791
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 5,
+      "guard_ns": 10000,
+      "post_ns": 25,
+      "native_calls": 27600,
+      "pulse_count": 3,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": 1.0318531430699878,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46883,
+        46943,
+        47101
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.42873505028672465,
+        "max_deg": 0.6317747219429029
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 5,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 13520,
+      "pulse_count": 4,
+      "control_pulse_count": 4,
+      "summed_normal_mNs_error": 0.16642834628592595,
+      "peak_per_pulse_mNs_error": 0.131424225720312,
+      "arrivals_ns": [
+        46883,
+        46943,
+        46981,
+        47099
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.4597359028826956,
+        "max_deg": 0.710264766309508
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 0,
+      "guard_ns": 0,
+      "post_ns": 0,
+      "native_calls": 2560,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        46875,
+        47100
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.1647769245264584,
+        "max_deg": 0.09824542250312779
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 100,
+      "guard_ns": 1000,
+      "post_ns": 100,
+      "native_calls": 745,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.1607835964304698,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46875,
+        47075,
+        47475
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.16649910849413685,
+        "max_deg": 0.7855630654507371
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 125,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 688,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.4704746065074019,
+      "peak_per_pulse_mNs_error": 0.47042055860651266,
+      "arrivals_ns": [
+        46875,
+        47100
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.18177629013723098,
+        "max_deg": 0.09909943350887758
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 25,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 2112,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        46875,
+        47100
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.16477692482914955,
+        "max_deg": 0.09824542150180339
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 250,
+      "guard_ns": 2000,
+      "post_ns": 250,
+      "native_calls": 454,
+      "pulse_count": 4,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.10632640184785203,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46875,
+        47100,
+        47175,
+        47350
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.16928789532007985,
+        "max_deg": 0.866008040352934
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 50,
+      "guard_ns": 2000,
+      "post_ns": 50,
+      "native_calls": 1390,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.1552799967844578,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46875,
+        47100,
+        47200
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.1661360083591817,
+        "max_deg": 0.7027578159945677
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 50,
+      "guard_ns": 6000,
+      "post_ns": 50,
+      "native_calls": 1550,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.00549270086346354,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46875,
+        47100,
+        47175
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.16524204503585174,
+        "max_deg": 0.6052360088806423
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 0,
+      "guard_ns": 0,
+      "post_ns": 0,
+      "native_calls": 62560,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        46871,
+        46929
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.5379957470053547,
+        "max_deg": 1.2767096832452842
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 1,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 49120,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        46871,
+        46929
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.5379957471076879,
+        "max_deg": 1.2767096832027718
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 10,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 9070,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.35251959649218634,
+      "peak_per_pulse_mNs_error": 0.4007845864759073,
+      "arrivals_ns": [
+        46871,
+        46929
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.5621547595465394,
+        "max_deg": 1.3747571902513778
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 100,
+      "guard_ns": 1000,
+      "post_ns": 100,
+      "native_calls": 2665,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.6064484480137438,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46871,
+        46925,
+        48500
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.3869906368239426,
+        "max_deg": 1.0721381753167925
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 125,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 4528,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.35561736282794243,
+      "peak_per_pulse_mNs_error": 0.2548304314940117,
+      "arrivals_ns": [
+        46871,
+        46929
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.26990556562402385,
+        "max_deg": 1.8857807184191515
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 2,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 26870,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.40312047746405,
+      "peak_per_pulse_mNs_error": 0.47936123948820464,
+      "arrivals_ns": [
+        46871,
+        46929
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.482689789945433,
+        "max_deg": 1.219340592134296
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 1000,
+      "post_ns": 25,
+      "native_calls": 4480,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.3691506887070375,
+      "peak_per_pulse_mNs_error": 0.20546492161844718,
+      "arrivals_ns": [
+        46871,
+        46930
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.5220419794889466,
+        "max_deg": 1.295107621682887
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 10000,
+      "post_ns": 25,
+      "native_calls": 21760,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.2832029439709274,
+      "peak_per_pulse_mNs_error": 0.15769784517490407,
+      "arrivals_ns": [
+        46871,
+        46930
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.3080258280746204,
+        "max_deg": 1.8431051369468563
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 6400,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.3399322528261166,
+      "peak_per_pulse_mNs_error": 1.3855211459201309,
+      "arrivals_ns": [
+        46871,
+        46926
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.23910456778723826,
+        "max_deg": 1.394763096362654
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 5,
+      "guard_ns": 10000,
+      "post_ns": 25,
+      "native_calls": 27600,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.25208673776558754,
+      "peak_per_pulse_mNs_error": 1.3556819056757021,
+      "arrivals_ns": [
+        46871,
+        46926
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.24288937170564917,
+        "max_deg": 1.3667124766955234
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 5,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 13520,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.8459772918652959,
+      "peak_per_pulse_mNs_error": 0.8643912267984922,
+      "arrivals_ns": [
+        46871,
+        46929
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.4641036575743648,
+        "max_deg": 1.1727900023355962
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 0,
+      "guard_ns": 0,
+      "post_ns": 0,
+      "native_calls": 2560,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        46850,
+        47075,
+        47175
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.1859507794132483,
+        "max_deg": 0.11183653291913172
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 100,
+      "guard_ns": 1000,
+      "post_ns": 100,
+      "native_calls": 745,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.4499004556951718,
+      "peak_per_pulse_mNs_error": 1.8226167900504269,
+      "arrivals_ns": [
+        46850,
+        47075,
+        51700
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.29007009588408417,
+        "max_deg": 0.7633460284084784
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 125,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 688,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.30085592282607365,
+      "peak_per_pulse_mNs_error": 2.067007158773816,
+      "arrivals_ns": [
+        46850,
+        47100,
+        47200
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.3042850440217376,
+        "max_deg": 0.9641748413645641
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 25,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 2112,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        46850,
+        47075,
+        47175
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.18614250660883824,
+        "max_deg": 0.11183648297279777
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 250,
+      "guard_ns": 2000,
+      "post_ns": 250,
+      "native_calls": 454,
+      "pulse_count": 2,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.7608493122170756,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46850,
+        47100
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.3332393625225146,
+        "max_deg": 1.5624392030707686
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 50,
+      "guard_ns": 2000,
+      "post_ns": 50,
+      "native_calls": 1390,
+      "pulse_count": 2,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.5288759570120192,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46850,
+        47100
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.27179596023329006,
+        "max_deg": 0.845792266118977
+      }
+    },
+    {
+      "gap_um": 35,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 50,
+      "guard_ns": 6000,
+      "post_ns": 50,
+      "native_calls": 1550,
+      "pulse_count": 2,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.5727784402997287,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        46850,
+        47100
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.2683699388916397,
+        "max_deg": 0.8492498687571169
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 0,
+      "guard_ns": 0,
+      "post_ns": 0,
+      "native_calls": 93808,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        67111,
+        67224,
+        67532
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.32108272850949615,
+        "max_deg": 0.43757507193624867
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 1,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 69568,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        67111,
+        67224,
+        67532
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.32108272818919914,
+        "max_deg": 0.4375750717649809
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 10,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 11518,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.8277292624988064,
+      "peak_per_pulse_mNs_error": 0.5191297145249324,
+      "arrivals_ns": [
+        67111,
+        67224,
+        67537
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.17106770110996594,
+        "max_deg": 0.22423858014167414
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 100,
+      "guard_ns": 1000,
+      "post_ns": 100,
+      "native_calls": 2976,
+      "pulse_count": 4,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 1.411417976905497,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67111,
+        67237,
+        67280,
+        67500
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.1736452951285121,
+        "max_deg": 0.2527106071537266
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 125,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 4776,
+      "pulse_count": 5,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": -0.10664196124098879,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67111,
+        67221,
+        67227,
+        67269,
+        67524
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.22165979202861866,
+        "max_deg": 0.22817456960191213
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 2,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 37318,
+      "pulse_count": 4,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 1.02795530412957,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67111,
+        67223,
+        67271,
+        67528
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.18397971175563563,
+        "max_deg": 0.4158069278691183
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 1000,
+      "post_ns": 25,
+      "native_calls": 5728,
+      "pulse_count": 4,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 1.059280262364041,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67111,
+        67227,
+        67274,
+        67525
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.16562400033230568,
+        "max_deg": 0.31878820795618057
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 10000,
+      "post_ns": 25,
+      "native_calls": 23008,
+      "pulse_count": 4,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.727820663376292,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67111,
+        67227,
+        67275,
+        67538
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.1808329146961319,
+        "max_deg": 0.22991033774699354
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 7648,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": 0.3033852444011558,
+      "peak_per_pulse_mNs_error": 0.3437860803334435,
+      "arrivals_ns": [
+        67111,
+        67227,
+        67545
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.26217818898321416,
+        "max_deg": 0.5946837300877432
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 5,
+      "guard_ns": 10000,
+      "post_ns": 25,
+      "native_calls": 32048,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": -0.4823072475610317,
+      "peak_per_pulse_mNs_error": 0.5467733201066481,
+      "arrivals_ns": [
+        67111,
+        67224,
+        67532
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.2515955029721842,
+        "max_deg": 0.11770893307238202
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 1,
+      "approach_ns": 5,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 17968,
+      "pulse_count": 3,
+      "control_pulse_count": 3,
+      "summed_normal_mNs_error": -0.09007886227593787,
+      "peak_per_pulse_mNs_error": 0.3878444263969195,
+      "arrivals_ns": [
+        67111,
+        67223,
+        67537
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.22120990304721325,
+        "max_deg": 0.09729835101977505
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 0,
+      "guard_ns": 0,
+      "post_ns": 0,
+      "native_calls": 3808,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        67100,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.16379716918124151,
+        "max_deg": 0.09794144436346859
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 100,
+      "guard_ns": 1000,
+      "post_ns": 100,
+      "native_calls": 1056,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.15039226704833908,
+      "peak_per_pulse_mNs_error": 0.2027380010724989,
+      "arrivals_ns": [
+        67100,
+        67500
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.17061708951453747,
+        "max_deg": 0.09853940914219768
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 125,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 936,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.06426085669067305,
+      "peak_per_pulse_mNs_error": 0.10040100654595992,
+      "arrivals_ns": [
+        67100,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.1667667016841301,
+        "max_deg": 0.09824479686058696
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 25,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 3000,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        67100,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.16379716992431873,
+        "max_deg": 0.09794144255596944
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 250,
+      "guard_ns": 2000,
+      "post_ns": 250,
+      "native_calls": 577,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.17000336179650333,
+      "peak_per_pulse_mNs_error": 0.129770463821028,
+      "arrivals_ns": [
+        67100,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.17141778448870698,
+        "max_deg": 0.09841135887291771
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 50,
+      "guard_ns": 2000,
+      "post_ns": 50,
+      "native_calls": 2013,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.14976095521833344,
+      "peak_per_pulse_mNs_error": 0.18578205050801683,
+      "arrivals_ns": [
+        67100,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.17024966242192088,
+        "max_deg": 0.09845413388105931
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "left",
+      "fine_ns": 25,
+      "approach_ns": 50,
+      "guard_ns": 6000,
+      "post_ns": 50,
+      "native_calls": 2173,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": -0.1514106752451454,
+      "peak_per_pulse_mNs_error": 0.18746193619342474,
+      "arrivals_ns": [
+        67100,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.17029656452268915,
+        "max_deg": 0.09845820921057967
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 0,
+      "guard_ns": 0,
+      "post_ns": 0,
+      "native_calls": 93808,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        67085,
+        67206
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.2509744206984727,
+        "max_deg": 0.27901149552035537
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 1,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 69568,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        67085,
+        67206
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.2509744215975269,
+        "max_deg": 0.2790114953273803
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 10,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 11518,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.010821944068283074,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67085,
+        67199,
+        71800
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.23059347697752935,
+        "max_deg": 0.2230135599976343
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 100,
+      "guard_ns": 1000,
+      "post_ns": 100,
+      "native_calls": 2976,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 1.8006033513328177,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67085,
+        67207,
+        67500
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.1782566365343455,
+        "max_deg": 0.38876547263855693
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 125,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 4776,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.7284178869540767,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67086,
+        67200,
+        67524
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.19283811323840802,
+        "max_deg": 0.4996990962052295
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 2,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 37318,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.5826044744519479,
+      "peak_per_pulse_mNs_error": 0.6926866756088168,
+      "arrivals_ns": [
+        67085,
+        67206
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.2088357371200602,
+        "max_deg": 0.6953845560505877
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 1000,
+      "post_ns": 25,
+      "native_calls": 5728,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 2.182878312072937,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67085,
+        67208,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.18215530201322133,
+        "max_deg": 0.4753626188630464
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 10000,
+      "post_ns": 25,
+      "native_calls": 23008,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.6620312878979817,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67085,
+        67208,
+        67559
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.3166127030660341,
+        "max_deg": 0.7036214035766652
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 25,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 7648,
+      "pulse_count": 3,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.8618192811602654,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67085,
+        67208,
+        67554
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.19340277772053402,
+        "max_deg": 0.8081396340560433
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 5,
+      "guard_ns": 10000,
+      "post_ns": 25,
+      "native_calls": 32048,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 1.5735145900341152,
+      "peak_per_pulse_mNs_error": 1.5942600982714015,
+      "arrivals_ns": [
+        67085,
+        67206
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.18134979832303516,
+        "max_deg": 0.11025105502859427
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 1,
+      "approach_ns": 5,
+      "guard_ns": 2000,
+      "post_ns": 25,
+      "native_calls": 17968,
+      "pulse_count": 2,
+      "control_pulse_count": 2,
+      "summed_normal_mNs_error": 0.7519962704839074,
+      "peak_per_pulse_mNs_error": 0.7776706534193718,
+      "arrivals_ns": [
+        67085,
+        67206
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.21858634878387467,
+        "max_deg": 0.7961304393288624
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 0,
+      "guard_ns": 0,
+      "post_ns": 0,
+      "native_calls": 3808,
+      "pulse_count": 1,
+      "control_pulse_count": 1,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        67075
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.18315285446894472,
+        "max_deg": 0.11023837632311113
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 100,
+      "guard_ns": 1000,
+      "post_ns": 100,
+      "native_calls": 1056,
+      "pulse_count": 2,
+      "control_pulse_count": 1,
+      "summed_normal_mNs_error": 0.05311304143323525,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67075,
+        67500
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.2107164066990766,
+        "max_deg": 0.5133879333836007
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 125,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 936,
+      "pulse_count": 2,
+      "control_pulse_count": 1,
+      "summed_normal_mNs_error": 0.21762490744135476,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67075,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.21205363212066672,
+        "max_deg": 0.5276462313275356
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 25,
+      "guard_ns": 2000,
+      "post_ns": 125,
+      "native_calls": 3000,
+      "pulse_count": 1,
+      "control_pulse_count": 1,
+      "summed_normal_mNs_error": 0.0,
+      "peak_per_pulse_mNs_error": 0.0,
+      "arrivals_ns": [
+        67075
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.1831708140554075,
+        "max_deg": 0.11023836894912137
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 250,
+      "guard_ns": 2000,
+      "post_ns": 250,
+      "native_calls": 577,
+      "pulse_count": 3,
+      "control_pulse_count": 1,
+      "summed_normal_mNs_error": -1.017375977694961,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67075,
+        67500,
+        69500
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.19797335081765255,
+        "max_deg": 0.4941526823001687
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 50,
+      "guard_ns": 2000,
+      "post_ns": 50,
+      "native_calls": 2013,
+      "pulse_count": 1,
+      "control_pulse_count": 1,
+      "summed_normal_mNs_error": -0.07440410626203686,
+      "peak_per_pulse_mNs_error": 0.07440410626203403,
+      "arrivals_ns": [
+        67075
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.18055783798221905,
+        "max_deg": 0.11026605102881121
+      }
+    },
+    {
+      "gap_um": 50,
+      "jaw": "right",
+      "fine_ns": 25,
+      "approach_ns": 50,
+      "guard_ns": 6000,
+      "post_ns": 50,
+      "native_calls": 2173,
+      "pulse_count": 2,
+      "control_pulse_count": 1,
+      "summed_normal_mNs_error": 0.32817709407905227,
+      "peak_per_pulse_mNs_error": null,
+      "arrivals_ns": [
+        67075,
+        67550
+      ],
+      "motion_vs_continuous_25ns": {
+        "max_mm": 0.20609407943572713,
+        "max_deg": 0.5262974706537259
+      }
+    }
+  ],
+  "webgpu": [
+    {
+      "captured_ms": {
+        "end": 1.0,
+        "first_load": 0.0469,
+        "incoming": 0.0,
+        "second_load": 0.047125
+      },
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11424%2F",
+      "frames": 75,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "body_poses_and_shapes_checked": 1650,
+      "indicator_positions_checked": 0,
+      "coordinate_tolerance": 1e-12
+    },
+    {
+      "captured_ms": {
+        "end": 1.0,
+        "first_load": 0.0671,
+        "incoming": 0.0
+      },
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11425%2F",
+      "frames": 72,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "body_poses_and_shapes_checked": 1584,
+      "indicator_positions_checked": 0,
+      "coordinate_tolerance": 1e-12
+    }
+  ],
+  "changed_coverage": {
+    "base": "108ef65",
+    "method": "Distinct changed executable lines and code region coordinates covered by the exact binaries, excluding cfg(test) sections and test definitions.",
+    "bins": {
+      "example-exact": "5cc1568a19c6ea5483f023bc9c5ecb5f0d3389becfdb6676099a1c9fab7818b0",
+      "scene-exact": "2363efdcd1e112087fba032a628f92e60d2497cfd049fc494b66cd6e3864293d",
+      "unit-exact": "32b49297821f7626adc59fcb2603992b5c012e51866e1f8958cff064e6ae258c",
+      "native-exact": "838a3273f7add065b642a0a30b29d56558c9870ca20463f016d4bced8986b631"
+    },
+    "profile": "5fbb69aa65564db1c67bd32acf80b4267100ee6fd954804a60ada0c8ccffcc17",
+    "by_crate": {
+      "gz-physics-rapier": {
+        "lines": [
+          75,
+          77
+        ],
+        "regions": [
+          131,
+          133
+        ]
+      },
+      "gz-physics-multifidelity": {
+        "lines": [
+          13,
+          13
+        ],
+        "regions": [
+          11,
+          11
+        ]
+      },
+      "gz-sim-scene": {
+        "lines": [
+          104,
+          104
+        ],
+        "regions": [
+          184,
+          187
+        ]
+      },
+      "gz-sim-cli": {
+        "lines": [
+          12,
+          12
+        ],
+        "regions": [
+          23,
+          23
+        ]
+      }
+    },
+    "by_path": {
+      "crates/gz-physics-multifidelity/src/lib.rs": {
+        "lines": [
+          13,
+          13
+        ],
+        "regions": [
+          11,
+          11
+        ]
+      },
+      "crates/gz-physics-rapier/src/contact_interval.rs": {
+        "lines": [
+          75,
+          77
+        ],
+        "regions": [
+          131,
+          133
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_impact_inertia.rs": {
+        "lines": [
+          9,
+          9
+        ],
+        "regions": [
+          17,
+          17
+        ]
+      },
+      "crates/gz-sim-cli/examples/serial_impact_inertia/compare.rs": {
+        "lines": [
+          3,
+          3
+        ],
+        "regions": [
+          6,
+          6
+        ]
+      },
+      "crates/gz-sim-scene/src/primary_contact.rs": {
+        "lines": [
+          40,
+          40
+        ],
+        "regions": [
+          79,
+          82
+        ]
+      },
+      "crates/gz-sim-scene/src/primary_contact/early_face.rs": {
+        "lines": [
+          41,
+          41
+        ],
+        "regions": [
+          53,
+          53
+        ]
+      },
+      "crates/gz-sim-scene/src/primary_contact/sdf.rs": {
+        "lines": [
+          23,
+          23
+        ],
+        "regions": [
+          52,
+          52
+        ]
+      }
+    }
+  },
+  "replay_archive_sha256": "7a96eabbcbea8073fc5780494ba6161eb5b3d68ac468b9264da070f779719c4c",
+  "guard_control_1ns_50um_left": {
+    "1000": 93808,
+    "3000": 70689,
+    "5000": 72609,
+    "10000": 77409,
+    "15000": 82209,
+    "2000": 93808
+  },
+  "moderate_window_reproduction": {
+    "predicted_center_ns": {
+      "35": 46500,
+      "50": 66500
+    },
+    "original_prefix_end_ns": {
+      "35": 62500,
+      "50": 93750
+    },
+    "schedule": "When approach_ns is positive, use that target step until center minus guard, fine_ns until center plus guard, and post_ns until the original prefix end. First three intervals use ordinary solver iterations. The fourth uses 15,625 ns steps and 8 temporal x 8 PGS iterations until the end of the 1 ms public tick. Ceil segment duration divided by target timestep for step count and evenly distribute integer nanoseconds. A zero approach_ns means the full original fine prefix. Subsequent ticks each have one ordinary native call."
+  }
+}
