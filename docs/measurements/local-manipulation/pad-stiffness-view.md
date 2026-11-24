@@ -3,6 +3,8 @@
 
 # Gripping a sphere with a specified pad stiffness
 
+These measurements and recordings describe revision `5e1645c`. The subsequent solver revision corrected the loading speed and measured slip against a time-varying grip force. [Current results](pad-transient.md) · [Current recordings](pad-transient-view.md)
+
 Both 80 g fingers squeeze the same 200 g sphere with 3 N each. With a pad stiffness of 30,000 N/m, the expected compression is 3 ÷ 30,000 m, or **0.100 mm per pad**. The left and right contacts both settled at 0.100 mm. With the default contact, they settled at 1.478 mm. The graph follows the average overlap of the two pad faces with the sphere. The image beside it is the native gz-web-rs view of the authored pads at 20 s. [Open the authored hold](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11438%2F) · [Open the default hold](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11437%2F)
 
 ![The default grip settles at 1.478 mm per pad, and the 30,000 N/m grip at 0.100 mm. The simulator shows the two jaws holding a red sphere.](pad-stiffness-view.png)

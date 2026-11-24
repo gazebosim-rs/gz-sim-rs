@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Preserve the speed of gripper compression and release
+
+The gripper reached 95% compression in 82.525–82.600 ms across four simulation step sizes, against 82.497 ms predicted. Previously its measured times ranged from 230 to 1,224 ms. A guided four-point pad now follows the same spring-and-damper response as a single contact within 0.017 µm. When the squeeze weakened, the sphere dropped 13.96212 mm against 13.96250 mm predicted. Opening the fingers unloaded both pads within two public steps of the predicted release. Authored-pad p95 step costs were 12.81–13.01 µs. [Numerical comparison, cost and scope](measurements/local-manipulation/pad-transient.md) · [Loading, slipping and release in gz-web-rs](measurements/local-manipulation/pad-transient-view.md)
+
+All ten gripper tests, the native pad and travel-stop checks, adjacent grasp and impact tests and 20 replay CLI tests passed locally. LLVM covered every changed executable line and region in the solver and the two changed test harnesses. Four existing unmodified scenes reproduced their traces exactly. Next, rock a tilted parcel from a pad face onto an edge and back, and check force and torque continuity as the number of contact points changes.
+
 ## 2026-11-24 — Specify the gripper pad stiffness in N/m
 
 At 3 N per finger, the 40, 80 and 160 g pads all settled at 0.100 mm of compression with a 30,000 N/m material. The 80 g default pad compressed 1.478 mm. A block in four-point contact on each face followed the same force law as a sphere. A weaker grip dropped the sphere within 0.449 µm of prediction. An adjacent unmodified gripper reproduced all 2,917 observed state and event records, including 1,608 under load. The authored and default release and hold recordings reproduced across one and eight threads, and the new production code exceeded 95% changed-line and region coverage in each crate. [Measurements, cost and coverage](measurements/local-manipulation/pad-stiffness.md) · [Measured gz-web-rs recordings](measurements/local-manipulation/pad-stiffness-view.md)

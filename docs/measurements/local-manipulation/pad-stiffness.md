@@ -3,6 +3,8 @@
 
 # Normal stiffness of two gripper pads
 
+These measurements and recordings describe revision `5e1645c`. The subsequent solver revision corrected the loading speed and measured slip against a time-varying grip force. [Current results](pad-transient.md) · [Current recordings](pad-transient-view.md)
+
 A pad with stiffness 30,000 N/m compresses by 0.100 mm when it carries 3 N. The 40, 80 and 160 g fingers each reproduced that value on a 200 g sphere. The default 80 g finger reached 1.4776 mm. These are geometric overlaps measured from body poses. [Hold, slip and release in gz-web-rs](pad-stiffness-view.md) · [Numerical results](pad-stiffness.json)
 
 ## Specify the material
