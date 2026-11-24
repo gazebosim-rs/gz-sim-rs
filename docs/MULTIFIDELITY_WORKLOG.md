@@ -2165,3 +2165,7 @@ Adding physical damping eliminated all 182 simultaneous pressure losses in the 3
 ## 2026-11-23 — Replaying the local serial gripper from an input journal
 
 The local CPU profile reproduced 595 observations in two fresh processes with one and eight Bevy compute threads. The gripper repeated 200 advancing steps after reset, including contact warm starts and a noisy IMU. A queued wrench survived a paused tick and changed the next solve. A spawned 200 g parcel settled at 1.96205 N before removal. The checked domain is the pinned Linux x86-64 binary and CPU, inline rigid primitives, native joint controllers and IMUs. The next independent replay domain is a resilient midrun restart or another numerical backend. [Commands, measurements and two gz-web-rs replays](measurements/local-manipulation/local-cpu-input-replay.md)
+
+## 2026-11-23 — Reducing collision-search cost during a cloth grasp
+
+Reusing proven clear separation between cloth features reduced the damped gripper's median p95 from 4.80 to 3.75 ms and from 5.92 to 3.69 ms in two campaigns. The spring-only case used less total CPU but its p95 rose about 4–5%. All 32 runs matched the original physical results, and the separate fine-rate check reproduced all 261 refined contacts. Changed production coverage reached 98.06% of lines and 98.91% of regions. [Both campaigns and the native replay](measurements/local-manipulation/cloth-clearance-cost.md)
