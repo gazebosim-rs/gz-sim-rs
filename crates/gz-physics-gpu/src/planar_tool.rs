@@ -171,29 +171,41 @@ fn impact_boundary<T: Scalar>(
     let motor = Some(([v[38], v[39]], [v[40], v[41]]));
     let [a, b, _, _] = mass.dynamics(v, start, speed, motor, z);
     let gap = |[[c, s], [d, t]]: [[T; 2]; 2]| v[6] * s + v[7] * (s * d + c * t) - v[29] - v[28];
-    let reaches = |dt: T| {
+    let predicted_gap = |dt: T| {
         let ht = half * dt;
         gap([
             rotate_by(v[0], v[1], ht * (v[4] + ht * a), one),
             rotate_by(v[2], v[3], ht * (v[5] + ht * b), one),
         ])
-        .at_most(z)
     };
     let end = half_step + half_step;
-    let middle_loaded = reaches(half_step);
+    let initial = gap(start);
+    let middle = predicted_gap(half_step);
+    let last = predicted_gap(end);
+    let middle_loaded = middle.at_most(z);
     let crossed = v[31]
         .at_most(z)
-        .and(gap(start).greater(z))
-        .and(middle_loaded.or(reaches(end)));
-    let mut lo = middle_loaded.select(z, half_step);
-    let mut hi = middle_loaded.select(half_step, end);
+        .and(initial.greater(z))
+        .and(middle_loaded.or(last.at_most(z)));
+    let start_time = middle_loaded.select(z, half_step);
+    let initial_gap = middle_loaded.select(initial, middle);
+    let final_gap = middle_loaded.select(middle, last);
+    // Interpolate the gap on this half interval, then check the selected upper
+    // bound against the actual midpoint trajectory before changing the step.
+    let curvature = half * (initial + last - middle - middle);
+    let mut lo = z;
+    let mut hi = one;
     for _ in 0..7 {
-        let mid = (lo + hi) * half;
-        let hit = reaches(mid);
-        hi = hit.select(mid, hi);
-        lo = hit.select(lo, mid);
+        let u = (lo + hi) * half;
+        let hit = (initial_gap + u * (final_gap - initial_gap + (u - one) * curvature)).at_most(z);
+        hi = hit.select(u, hi);
+        lo = hit.select(lo, u);
     }
-    crossed.and(hi.less(end)).select(hi, half_step)
+    let upper = start_time + half_step * hi;
+    crossed
+        .and(upper.less(end))
+        .and(predicted_gap(upper).at_most(z))
+        .select(upper, half_step)
 }
 
 fn solve<T: Scalar, const BOUNDED: bool>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 17] {
