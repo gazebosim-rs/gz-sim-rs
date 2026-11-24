@@ -35,7 +35,7 @@ On an AMD Ryzen 9 9950X3D, the median across five 201-impact release runs pinned
 
 ## SDF admission and checks
 
-Place the following marker on a local multi-fidelity model with one world mount, a connected passive tree of unbounded revolute or prismatic joints, and at least one prismatic joint. Model-local contact material and joint-state publication are supported. The loader rejects controls, elastic joint settings, finite travel stops, additional constraint owners and other joint types in the marked model. Paint, shapes, inertias, friction and restitution come from the ordinary scene. The public point-force input and native body/joint samples stay available.
+Place the following marker on a local multi-fidelity model with one world mount, a connected passive tree of unbounded revolute or prismatic joints, and at least one prismatic joint. Model-local contact material and joint-state publication are supported. At this study’s revision, the loader rejected controls, elastic joint settings, finite travel stops, additional constraint owners and other joint types in the marked model. A subsequent [powered-slider study](powered-slider-native.md) added qualified prismatic travel and force commands. Paint, shapes, inertias, friction and restitution come from the ordinary scene. The public point-force input and native body/joint samples stay available.
 
 ```xml
 <plugin name="gz::sim::systems::ReducedScalarJoints"
