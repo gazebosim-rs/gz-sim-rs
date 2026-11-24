@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Measure both fingers through load, release and regrip
+
+Two round fingertips held a 200 g parcel, released it for 24 ms and recaptured it at 178 ms. Under a known side load and pitching torque, the fingers carried 1.564 and 2.398 N vertically, matching the two-point balance. Finer native physics reduced the largest normal-force error from 1.096 to 0.036 N. Flat pads still differed by 1.034 N per finger after the biased regrip between the two finest clocks. Three regressions passed and the Rust study covered 263/267 changed lines and 459/476 regions. [Both native replays, loads and controls](measurements/local-manipulation/serial-bilateral.md)
+
 ## 2026-11-24 — The folded sheet balances or tips on the finite table edge
 
 The robot now exchanges reactions with a linearly translating finite table inside each 1 ms Bevy tick. A sheet resting 10 mm inside the edge supported its full weight with four particle centers overhanging. Placed 5 mm outside, it tipped and fell at all four tested rates. The tighter reference exposed another offset where coarse steps kept the jaws closed but the two finer runs released the sheet. Every one of 47,300 compared public material states matched separate native commits. The next controller phase will use the measured table moment to reject support concentrated at the lip. [Forces, errors and three native recordings](measurements/local-manipulation/sheet-table-edge.md)
