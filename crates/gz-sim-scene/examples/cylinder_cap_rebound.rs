@@ -4,6 +4,7 @@
 use glam::DVec3;
 use gz_physics::PhysicsBackend;
 use gz_physics_multifidelity::MultiFidelityBackend;
+use gz_physics_rapier::RigidContactPatch;
 use gz_sim_core::entity_by_id;
 use gz_sim_scene::{
     BodyHandle, PhysicsEngine, WorldLoadOptions, WorldPose, WorldRuntimeOptions,
@@ -93,20 +94,16 @@ fn drop_at(world: &str, passes: usize, per_point: bool, axial: bool) -> Result<V
                     continue;
                 }
                 let on_a = patch.a == body;
-                let direction = DVec3::from_array(patch.normal_on_a) * if on_a { 1. } else { -1. };
-                let mut angular_normal_impulse = DVec3::ZERO;
-                let mut points = Vec::new();
-                for p in &patch.points {
-                    let lever = if on_a { p.lever_a } else { p.lever_b };
-                    let normal_impulse = direction * p.normal_impulse;
-                    angular_normal_impulse += DVec3::from_array(lever).cross(normal_impulse);
-                    points.push(json!({"lever_m": lever, "normal_impulse_ns": p.normal_impulse}));
-                }
+                let (normal_impulse, angular_normal_impulse, points) = normal_reaction(patch, on_a);
+                let (floor_normal_impulse, floor_angular_impulse, floor_points) =
+                    normal_reaction(patch, !on_a);
                 records[i] = Some(json!({
                     "flight_steps": step, "normal_impulse_ns": impulse,
                     "linear_velocity": state.linear_velocity, "angular_velocity": state.angular_velocity,
-                    "points": points, "normal_impulse_world_ns": (direction * impulse).to_array(),
+                    "points": points, "normal_impulse_world_ns": normal_impulse.to_array(),
                     "angular_normal_impulse_at_com_nms": angular_normal_impulse.to_array(),
+                    "floor_points": floor_points, "floor_normal_impulse_world_ns": floor_normal_impulse.to_array(),
+                    "floor_angular_normal_impulse_at_origin_nms": floor_angular_impulse.to_array(),
                 }));
             }
         }
@@ -118,6 +115,22 @@ fn drop_at(world: &str, passes: usize, per_point: bool, axial: bool) -> Result<V
         "per_point_friction": per_point, "pgs_passes": passes, "axial_cap_impact": axial,
         "cylinder": cylinder, "capsule": capsule, "apex_height_m": peaks,
     }))
+}
+
+// The moving side stores COM-relative levers. The fixed slab stores world anchors.
+fn normal_reaction(patch: &RigidContactPatch, on_a: bool) -> (DVec3, DVec3, Vec<Value>) {
+    let direction = DVec3::from_array(patch.normal_on_a) * if on_a { 1. } else { -1. };
+    let mut linear = DVec3::ZERO;
+    let mut angular = DVec3::ZERO;
+    let mut points = Vec::new();
+    for point in &patch.points {
+        let lever = if on_a { point.lever_a } else { point.lever_b };
+        let impulse = direction * point.normal_impulse;
+        linear += impulse;
+        angular += DVec3::from_array(lever).cross(impulse);
+        points.push(json!({"lever_m": lever, "normal_impulse_ns": point.normal_impulse}));
+    }
+    (linear, angular, points)
 }
 
 fn main() -> Result<()> {
@@ -136,6 +149,22 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn both_sides_report_equal_and_opposite_reactions_at_the_drop_location() {
+        let run = drop_at(WORLD, 1, false, true).unwrap();
+        let vector =
+            |value: &Value| DVec3::from_array(serde_json::from_value(value.clone()).unwrap());
+        for (name, x) in [("cylinder", -0.15), ("capsule", 0.15)] {
+            let hit = &run[name];
+            let body = vector(&hit["normal_impulse_world_ns"]);
+            let floor = vector(&hit["floor_normal_impulse_world_ns"]);
+            let floor_moment = vector(&hit["floor_angular_normal_impulse_at_origin_nms"]);
+            assert!(body.z > 0.65);
+            assert!((body + floor).length() < 1e-12);
+            assert!((floor_moment - DVec3::new(x, -0.12, 0.).cross(floor)).length() < 1e-12);
+        }
+    }
 
     #[test]
     fn two_impacts_and_a_valid_native_budget_are_required_to_report_rebound() {
