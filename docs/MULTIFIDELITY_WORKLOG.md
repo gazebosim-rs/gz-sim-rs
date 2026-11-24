@@ -2137,3 +2137,7 @@ A force balance on each cloth panel explains the stiff-grip asymmetry. At 64 nat
 ## 2026-11-23 — Updating every public pose in the loaded CPU fleet
 
 For 100,000 moving decks and 1,000 payloads, batching the parent-pose reads lowered complete-tick p95 in two independent campaigns, from 16.89 to 16.28 ms and from 6.52 to 5.41 ms. The faster campaign reached 2.36× real time, leaving a 42.4-fold gap to the 100× target. All 96.48 million public pose pairs, 480,000 native contact points and 240 IMU samples matched across the loaded and sparse controls. All 323 scene tests passed, with 100% changed production line and region coverage. Native constraint velocity resolution remains the largest measured solver cost. [Stage timings, both campaigns and native replay](measurements/local-manipulation/fleet-parent-poses.md)
+
+## 2026-11-23 — Physical damping of a cloth fold
+
+A cloth fold can now dissipate bending vibration at an authored rate. In the controlled test, increasing the damping reduced late tip displacement from 40.99 to 0.14 mm. All 901 states repeated after reset. Seven stiff-gripper trials completed, but at the highest tested rate each jaw briefly lost pressure despite the mean load dividing almost equally. [Measurements and three native replays](measurements/local-manipulation/cloth-bending-damping.md)
