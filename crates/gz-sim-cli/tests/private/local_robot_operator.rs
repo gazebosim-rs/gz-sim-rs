@@ -44,7 +44,7 @@ fn start(path: &Path) -> (Network, Process, u16) {
 }
 
 fn operator(port: u16, arguments: &[&str], passed: bool) -> Value {
-    let child = Command::new(env!("CARGO_BIN_EXE_gz-sim-convoy-control"))
+    let child = Command::new(env!("CARGO_BIN_EXE_gz-sim-control"))
         .args(["--port", &port.to_string()])
         .args(arguments)
         .stdout(Stdio::piped())
@@ -137,6 +137,21 @@ fn fresh_operators_step_the_loaded_serial_robot_once_per_authorized_cut() {
     let cut = operator(port, &["status"], true);
     assert_eq!(cut["scene"]["seconds"], paused["seconds"]);
     assert_eq!(cut["scene"]["nanoseconds"], paused["nanoseconds"]);
+    assert_eq!(operator(port, &["play"], true)["paused"], false);
+    let reset = operator(port, &["reset"], true);
+    assert_eq!(reset["epoch"], 1);
+    assert_eq!(reset["paused"], true);
+    assert_eq!(reset["seconds"], 0);
+    assert_eq!(reset["nanoseconds"], 0);
+    let origin = operator(port, &["status"], true);
+    assert_eq!(
+        origin["scene"]["visuals"].as_array().unwrap(),
+        first.as_ref().unwrap()
+    );
+    assert_eq!(operator(port, &["step", "0", "0"], false)["epoch"], 1);
+    let next = operator(port, &["step", "1", "0"], true);
+    assert_eq!(next["ok"], true);
+    assert_eq!(next["nanoseconds"], 1_000_000);
     let pid = rustix::process::Pid::from_child(process.0.as_ref().unwrap());
     rustix::process::kill_process(pid, rustix::process::Signal::TERM).unwrap();
     assert!(process.wait(TIMEOUT).status.success());

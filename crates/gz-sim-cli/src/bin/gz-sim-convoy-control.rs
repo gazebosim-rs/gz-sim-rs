@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Inspect a live convoy and issue operator controls at an explicit physics cut.
+//! Shared WebSocket operator for the local and legacy convoy command names.
 use clap::{Parser, Subcommand};
 use serde_json::{Value, json};
 use std::{
@@ -13,7 +13,7 @@ use tungstenite::{Message, WebSocket};
 
 #[derive(Parser)]
 struct Args {
-    /// Loopback WebSocket port of driven_hinge.
+    /// Loopback WebSocket port of a running Gazebo viewer server.
     #[arg(long)]
     port: u16,
     #[command(subcommand)]
@@ -35,6 +35,8 @@ enum Command {
     Play,
     /// Pause the live drive at its next boundary.
     Pause,
+    /// Restore the initial world and pause at the beginning of the new epoch.
+    Reset,
 }
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 fn frame(ws: &mut WebSocket<TcpStream>, deadline: Instant) -> Result<Value> {
@@ -51,7 +53,7 @@ fn frame(ws: &mut WebSocket<TcpStream>, deadline: Instant) -> Result<Value> {
         }
     }
 }
-fn main() -> Result<()> {
+pub(crate) fn main() -> Result<()> {
     let a = Args::parse();
     let addr = SocketAddrV4::new(Ipv4Addr::LOCALHOST, a.port);
     let stream = TcpStream::connect_timeout(&addr.into(), Duration::from_secs(5))?;
@@ -99,6 +101,7 @@ fn main() -> Result<()> {
         }
         Command::Play => json!({"version":1,"kind":"control","request_id":1,"action":"resume"}),
         Command::Pause => json!({"version":1,"kind":"control","request_id":1,"action":"pause"}),
+        Command::Reset => json!({"version":1,"kind":"control","request_id":1,"action":"reset"}),
     };
     ws.send(Message::Text(request.to_string().into()))?;
     loop {
