@@ -22,6 +22,7 @@ struct Trial {
 #[derive(Clone, Copy)]
 struct CornerView {
     y: f64,
+    end_tick: usize,
 }
 impl CornerView {
     fn points(self) -> [(&'static str, DVec3, &'static str); 2] {
@@ -144,7 +145,7 @@ fn run(
                 poses.push(visual_pose(tick, b, marks));
                 if tick % 80 == 0
                     || tick == end
-                    || (marks.is_some() && (2182..=2206).contains(&tick))
+                    || marks.is_some_and(|m| (2182..=m.end_tick).contains(&tick))
                     || (2118..=2140).contains(&tick)
                     || (2165..=2180).contains(&tick)
                     || (2155..=2350).contains(&tick) && tick % 3 == 0
@@ -363,7 +364,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         ("yaw_plus", "0.003 0.006 0.045", "0.009 0.002 0.004"),
         ("yaw_minus", "0.003 -0.006 0.045", "0.009 -0.002 0.004"),
     ] {
-        let marked = only.is_some_and(|key| key == "corner-window");
+        let marked =
+            only.is_some_and(|key| matches!(key.as_str(), "corner-window" | "reload-window"));
         if only.is_some_and(|key| key != name && !(marked && name.starts_with("oblique_"))) {
             continue;
         }
@@ -374,6 +376,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             src = src.replace("<mu>0.45</mu><mu2>0.45</mu2>", "<mu>0</mu><mu2>0</mu2>");
         }
         let marks = marked.then_some(CornerView {
+            end_tick: if only.is_some_and(|s| s == "reload-window") {
+                2245
+            } else {
+                2206
+            },
             y: if name == "oblique_plus" {
                 -0.012
             } else {
