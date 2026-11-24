@@ -942,3 +942,114 @@ fn the_touching_solver_requires_one_centered_parallel_impact_and_a_valid_native_
         .is_err()
     );
 }
+
+#[test]
+fn separated_face_budget_preserves_public_time_reset_and_fallbacks() {
+    use gz_sim_scene::primary_contact::set_refined_observer;
+    use std::{
+        sync::{Arc, Mutex},
+        time::Duration,
+    };
+    // Drop 4 mm at 4 m/s: the crossing is at 1 ms on the original 0.2 ms grid.
+    let raw = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let tag = "<early_face_step_ns>10000</early_face_step_ns><early_face_max_steps>200</early_face_max_steps>";
+    let world = raw
+        .replacen("<pair>", &format!("{tag}<pair>"), 1)
+        .replace("-0.02 0 0.079", "0 0 0.043")
+        .replace("2 0 -4</linear_velocity>", "0 0 -4</linear_velocity>");
+    let mut sim = load(&world);
+    let control = first(&mut sim);
+    let [fine, rest] = control.early_face_schedule.unwrap();
+    assert_eq!(fine.duration, Duration::from_micros(1200));
+    assert_eq!((fine.native_steps, rest.native_steps), (120, 94));
+    assert!(control.requested_pairs[0].normal_impulse > 0.);
+    sim.reset().unwrap();
+    let samples = Arc::new(Mutex::new(Vec::new()));
+    let output = samples.clone();
+    set_refined_observer(&mut sim, move |clock, cut| {
+        output
+            .lock()
+            .unwrap()
+            .push((clock.iteration, cut.duration, cut.elapsed));
+    })
+    .unwrap();
+    let repeat = first(&mut sim);
+    assert_eq!(control.early_face_schedule, repeat.early_face_schedule);
+    assert_eq!(control.interval, repeat.interval);
+    let rows = samples.lock().unwrap();
+    assert_eq!(rows.len(), 214);
+    assert!(
+        rows[..120]
+            .iter()
+            .all(|s| s.0 == repeat.iteration && s.1 == Duration::from_micros(10))
+    );
+    assert!(
+        rows[120..]
+            .iter()
+            .all(|s| s.1 == Duration::from_micros(200))
+    );
+    assert_eq!(rows.last().unwrap().2, sim.step_duration());
+
+    for xml in [
+        world.replace("200</early_face_max", "119</early_face_max"),
+        world.replace("10000</early_face_step", "200000</early_face_step"),
+        world.replace("0 0 0.043", "0 0 0.1186"),
+        world.replace("0 0 0.043", "0 0 0.039"),
+        world.replace("0 0 -4</linear_velocity>", "0.01 0 -4</linear_velocity>"),
+        world.replace("-0.02 0.11 0.079", "0 0.05 0.043"),
+    ] {
+        let before = first(&mut load(&xml.replace(tag, "")));
+        let r = first(&mut load(&xml));
+        assert_eq!(r.early_face_schedule, None);
+        assert_eq!(r.interval, before.interval);
+    }
+    let mut active = load(
+        &world
+            .replace("0 0 0.043", "0.1 0 0.043")
+            .replace("-0.02 0.11 0.079", "0 0.05 0.039"),
+    );
+    active.step_exact(1).unwrap();
+    let parcel = id(&active, "parcel");
+    let mut pose = gz_sim_scene::model_state(&active, parcel).unwrap();
+    pose.translation = [0., 0., 0.043];
+    pose.linear_velocity = [0., 0., -4.];
+    gz_sim_scene::set_model_state(&mut active, parcel, pose).unwrap();
+    active.step_exact(1).unwrap();
+    let r = last_refinement(&active).unwrap();
+    assert_eq!(r.sim_time, active.elapsed());
+    assert_eq!(r.early_face_schedule, None);
+}
+
+#[test]
+fn early_face_fields_require_positive_budgets_and_named_incoming_pairs() {
+    let raw = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let step = "<early_face_step_ns>25</early_face_step_ns>";
+    let cap = "<early_face_max_steps>4096</early_face_max_steps>";
+    for (sdf, tags) in [
+        (raw.to_owned(), step.to_owned()),
+        (raw.to_owned(), cap.to_owned()),
+        (raw.to_owned(), format!("{step}{step}{cap}")),
+        (raw.to_owned(), format!("{step}{cap}{cap}")),
+        (raw.to_owned(), format!("{}{cap}", step.replace("25", "0"))),
+        (
+            raw.to_owned(),
+            format!("{step}{}", cap.replace("4096", "x")),
+        ),
+        (
+            raw.replace("<incoming_face>+z</incoming_face>", ""),
+            format!("{step}{cap}"),
+        ),
+    ] {
+        let xml = sdf.replacen("<pair>", &format!("{tags}<pair>"), 1);
+        assert!(
+            load_world_with_sdf_step(
+                &xml,
+                "early.sdf",
+                "default",
+                &NoResources,
+                PhysicsEngine::MultiFidelity
+            )
+            .is_err()
+        );
+    }
+}

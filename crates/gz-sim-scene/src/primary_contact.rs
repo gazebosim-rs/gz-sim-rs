@@ -1207,23 +1207,21 @@ fn advance(
                 && native.active_contact_pairs() == 0
         })
         .unwrap_or((policy.calls, policy.iterations));
-    let early_face_schedule =
-        policy
-            .early_face
-            .zip(separated_face)
-            .and_then(|(window, arrival)| {
-                (requests.len() == 1 && native.active_contact_pairs() == 0)
-                    .then(|| {
-                        window.schedule(
-                            time.dt,
-                            arrival,
-                            impact_calls,
-                            impact_solver,
-                            native.ordinary_contact_iterations(),
-                        )
-                    })
-                    .flatten()
-            });
+    let early_face_schedule = if let (Some(window), Some(arrival)) =
+        (policy.early_face, separated_face)
+        && requests.len() == 1
+        && native.active_contact_pairs() == 0
+    {
+        window.schedule(
+            time.dt,
+            arrival,
+            impact_calls,
+            impact_solver,
+            native.ordinary_contact_iterations(),
+        )
+    } else {
+        None
+    };
     let receipt = if !returning_features.is_empty()
         || !timing_pairs.is_empty()
         || !projections.is_empty()

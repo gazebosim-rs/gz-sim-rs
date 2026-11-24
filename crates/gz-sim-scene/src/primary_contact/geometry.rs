@@ -264,9 +264,8 @@ pub(super) fn incoming_face(
                 FaceArrival::TouchingParallelFaces
             } else {
                 // The finite face and overlap tests above exclude a crossing of the infinite plane alone.
-                FaceArrival::SeparatedParallelFaces(std::time::Duration::from_secs_f64(
-                    (gap / -start.velocity.z).min(dt),
-                ))
+                std::time::Duration::try_from_secs_f64(gap / -start.velocity.z)
+                    .map_or(FaceArrival::Predicted, FaceArrival::SeparatedParallelFaces)
             }
         } else {
             FaceArrival::Predicted

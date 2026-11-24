@@ -428,3 +428,66 @@ fn mounted_guide_prevents_the_delayed_solver_switch_from_launching_the_unloaded_
     }
     Ok(())
 }
+
+#[test]
+fn early_parallel_jaw_loading_matches_the_fine_impulse_on_both_sides() -> Result<()> {
+    let args = Args::try_parse_from([
+        "study",
+        "--divisor",
+        "1.75",
+        "--automatic",
+        "--gap-um",
+        "50",
+        "--substeps",
+        "64",
+        "--impact-iterations",
+        "8",
+        "--impact-pgs",
+        "8",
+        "--guide-hz",
+        "100000",
+        "--early-face-step-ns",
+        "25",
+        "--early-face-max-steps",
+        "4096",
+        "--ticks",
+        "1",
+    ])?;
+    for right in [false, true] {
+        let trial = Trial {
+            right,
+            ..args.trial.clone()
+        };
+        let primary = run(trial.clone())?;
+        let [fine, rest] = primary.first_early_schedule.unwrap();
+        assert_eq!(
+            (fine.duration, fine.native_steps, rest.native_steps),
+            (Duration::from_nanos(93_750), 3750, 58)
+        );
+        let continuous = run(Trial {
+            automatic: false,
+            substeps: 40_000,
+            ..trial.clone()
+        })?;
+        assert_eq!(continuous.incoming, primary.incoming);
+        let hit = |r: &Run| {
+            let i = &r.samples[0].impact;
+            (
+                i.left_ns + i.right_ns,
+                i.first_end_ns,
+                i.normal_on_parcel_ns,
+            )
+        };
+        assert!(hit(&primary).0 > 0.04);
+        assert_eq!(hit(&primary), hit(&continuous));
+        // Tail comparisons with the speed guard must reproduce the incoming state of
+        // the next public tick even when the first interval uses two solver settings.
+        let matched = run(Trial {
+            stop_guard: true,
+            ..trial
+        })?;
+        let cmp = compare::against_fine(&matched)?;
+        assert_eq!(cmp.primary_vs_fine.max_translation_mm, 0.);
+    }
+    Ok(())
+}
