@@ -36,7 +36,8 @@ class SelectedNativeGate(unittest.TestCase):
         ignore = shutil.ignore_patterns('artifacts', 'target', '__pycache__', '.git')
         for name in ['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.cargo',
                      'scripts', 'planning', 'third_party', 'reference', 'LICENSE', 'NOTICE',
-                     'crates', 'tests/support', 'examples/multifidelity_curved_shuttle.sdf']:
+                     'crates', 'tests/support', 'examples/multifidelity_curved_shuttle.sdf',
+                     'examples/distributed_grasp_fleet.sdf']:
             source, target = ROOT / name, root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             if source.is_dir():

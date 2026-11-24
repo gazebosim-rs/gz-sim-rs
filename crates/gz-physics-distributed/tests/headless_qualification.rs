@@ -16,6 +16,10 @@ use std::{
 
 #[path = "support/curved_checkpoint.rs"]
 mod curved_checkpoint;
+#[path = "support/loaded_grippers.rs"]
+mod loaded_grippers;
+#[path = "support/production_example.rs"]
+mod production_example;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const CASES: &str = include_str!("support/headless-worker-cases.json");
@@ -105,6 +109,12 @@ fn real_trajectory_checkpoint() -> Result<()> {
         &input.artifacts,
         &input.worker,
     )
+}
+
+#[test]
+#[ignore = "requires the headless qualification's Cargo artifacts"]
+fn loaded_grippers_match_local_scene() -> Result<()> {
+    loaded_grippers::run(Inputs::load()?)
 }
 
 #[test]

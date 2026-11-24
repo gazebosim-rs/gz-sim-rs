@@ -1,74 +1,13 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use super::{Result, executable, sha256};
+use super::{Result, production_example, sha256};
 use serde_json::{Value, json};
 use std::{
-    fs::{self, File},
-    io::{BufRead, BufReader, Write},
+    fs,
+    io::Write,
     path::Path,
     process::{Command, Stdio},
 };
-
-const EXAMPLE: &str = "crates/gz-sim-cli/examples/curved_scene_crash.rs";
-
-/// Cargo's default test pass builds a libtest harness for an example. Its
-/// recursive actor protocol needs the ordinary Cargo example executable.
-fn build(
-    root: &Path,
-    target: &Path,
-    directory: &Path,
-    input: &[Value],
-) -> Result<(Value, std::path::PathBuf)> {
-    let source = root.join(EXAMPLE);
-    let harness = executable(input, &source, target, true)?;
-    let test = input
-        .iter()
-        .find(|a| a["executable"].as_str().map(Path::new) == Some(&harness))
-        .ok_or("missing Cargo test artifact")?;
-    let features = test["features"]
-        .as_array()
-        .ok_or("missing Cargo features")?
-        .iter()
-        .map(|v| v.as_str().ok_or("invalid Cargo feature"))
-        .collect::<std::result::Result<Vec<_>, _>>()?;
-    let output = directory.join("worker-trajectory-build.stdout");
-    let status = Command::new("cargo")
-        .args([
-            "build",
-            "--locked",
-            "--profile",
-            "test",
-            "-p",
-            "gz-sim-cli",
-            "--example",
-            "curved_scene_crash",
-            "--no-default-features",
-            "--features",
-            &features.join(","),
-            "--message-format=json",
-        ])
-        .stdout(File::create_new(&output)?)
-        .stderr(File::create_new(
-            directory.join("worker-trajectory-build.stderr"),
-        )?)
-        .status()?;
-    if !status.success() {
-        return Err("building the production curved-scene example failed".into());
-    }
-    let mut binaries = Vec::new();
-    for line in BufReader::new(File::open(output)?).lines() {
-        let artifact: Value = serde_json::from_str(&line?)?;
-        if artifact["reason"] == "compiler-artifact"
-            && artifact["features"] == test["features"]
-            && artifact["target"]["src_path"] == test["target"]["src_path"]
-            && artifact["profile"]["test"] == false
-        {
-            binaries.push(artifact);
-        }
-    }
-    let program = executable(&binaries, &source, target, false)?;
-    Ok((binaries.pop().ok_or("missing production example")?, program))
-}
 
 fn actor(
     program: &Path,
@@ -121,7 +60,14 @@ pub(super) fn run(
     artifacts: &[Value],
     worker: &Path,
 ) -> Result<()> {
-    let (artifact, program) = build(root, target, directory, artifacts)?;
+    let (artifact, program) = production_example::build(
+        root,
+        target,
+        directory,
+        artifacts,
+        "curved_scene_crash",
+        "worker-trajectory",
+    )?;
     let session = tempfile::tempdir_in(directory)?;
     let pattern = directory.join("raw/worker-trajectory-%p-%m.profraw");
     let output = Command::new(&program)

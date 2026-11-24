@@ -36,3 +36,17 @@ GZ_MULTI_TEST_WORKER="$PWD/target/debug/physics_worker" RUSTC_WRAPPER= \
 ```
 
 The full-workspace report determines release coverage for each crate. Individual fixture measurements describe only the paths that fixture executes.
+
+## Loaded grippers against the ordinary solver
+
+The headless gate runs the ordinary Cargo example `grasp_fleet_profiles` with the authored two-gripper SDF. One Bevy world advances both grippers locally. A second world advances the same motors and independent parcels through the stock worker processes. The example compares the complete native and public rigid state, joints, motor targets and contact reactions at every millisecond. At 750 ms it migrates the first gripper, replaces its worker, returns it to its original owner, replaces that worker, saves the checkpoint and reopens the scene. Both grippers carry pad load across the cut. At 1,020 ms the first has released while the second still holds.
+
+| Time (ms) | First hand, left / right (mN·s) | Second hand, left / right (mN·s) |
+| ---: | ---: | ---: |
+| 0 | 0 / 0 | 0 / 0 |
+| 749 | 1.311192 / 1.311534 | 1.311695 / 1.312039 |
+| 750 | 1.311180 / 1.311521 | 1.311690 / 1.312033 |
+| 751 | 1.311167 / 1.311508 | 1.311684 / 1.312027 |
+| 1,020 | 0 / 0 | 1.308613 / 1.308917 |
+
+All 1,021 frames matched the ordinary run. The fresh Ubuntu test took 33.5 seconds for this fixture and the curved checkpoint fixture together, including their production example builds. The physical run newly exercised 185 of 248 lines and 295 of 413 regions in the scene's gripper-fleet backend, previously zero in the combined headless report. The gate saves the example and worker hashes, checkpoint hash, measured pad impulses and frame count in `worker-grippers.json`. Its production Cargo object and real process counters enter the headless LLVM report.

@@ -609,18 +609,20 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
             raise ValueError("headless worker qualification harness is outside the owned target")
         (directory / "headless-artifacts.json").write_text(json.dumps(artifacts))
         result = profile_process.run([str(harness), "--ignored", "--exact", "--test-threads=1",
-                                      "real_worker_fixtures", "real_trajectory_checkpoint"],
+                                      "real_worker_fixtures", "real_trajectory_checkpoint",
+                                      "loaded_grippers_match_local_scene"],
                                      cwd=ROOT, env=dict(env, GZ_HEADLESS_EVIDENCE=str(directory)),
                                      directory=directory, label="worker-qualification")
         if result.returncode or not (directory / "headless-workers.json").is_file():
             raise ValueError(f"physical worker qualification failed: {result.stdout}{result.stderr}")
-        receipt = json.loads((directory / "worker-trajectory.json").read_text())
-        trajectory = receipt["artifact"]
-        with Path(trajectory["executable"]).open("rb") as executable:
-            if hashlib.file_digest(executable, "sha256").hexdigest() != receipt["example_sha256"]:
-                raise ValueError("curved-scene example changed after qualification")
-        artifacts.append(trajectory)
-        objects.append(trajectory["executable"])
+        for label in ("worker-trajectory", "worker-grippers"):
+            receipt = json.loads((directory / f"{label}.json").read_text())
+            artifact = receipt["artifact"]
+            with Path(artifact["executable"]).open("rb") as executable:
+                if hashlib.file_digest(executable, "sha256").hexdigest() != receipt["example_sha256"]:
+                    raise ValueError(f"{label} example changed after qualification")
+            artifacts.append(artifact)
+            objects.append(artifact["executable"])
     if name == "renderer":
         target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
         if (len(worker_objects) != 1 or not Path(worker_objects[0]).is_file()
@@ -818,6 +820,12 @@ def coverage(changed_file=None):
                                  wrapper, ROOT / "scripts/verify.py", ROOT / "scripts/profile_process.py",
                                  ROOT / HEADLESS_WORKER_TEST, ROOT / HEADLESS_WORKER_CASES,
                                  ROOT / "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs",
+                                 ROOT / "crates/gz-physics-distributed/tests/support/production_example.rs",
+                                 ROOT / "crates/gz-physics-distributed/tests/support/loaded_grippers.rs",
+                                 ROOT / "crates/gz-sim-cli/examples/grasp_fleet_profiles.rs",
+                                 *[ROOT / "crates/gz-sim-cli/examples/support" / name for name in
+                                   ("floating_tree_drive.rs", "grasp_drive.rs", "grasp_fleet_drive.rs", "tree_visuals.rs")],
+                                 ROOT / "examples/distributed_grasp_fleet.sdf",
                                  ROOT / "crates/gz-sim-cli/examples/curved_scene_crash.rs",
                                  ROOT / "crates/gz-sim-cli/examples/support/curved_world.rs",
                                  ROOT / "crates/gz-sim-cli/examples/support/scene_actor.rs",
@@ -1032,6 +1040,8 @@ def retain_profile_evidence(candidate, output, hashes, missing):
             required.append("headless-workers.json")
             if "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs" in data["inputs"]:
                 required.append("worker-trajectory.json")
+            if "crates/gz-physics-distributed/tests/support/loaded_grippers.rs" in data["inputs"]:
+                required.append("worker-grippers.json")
             required.extend(sorted(path.name for path in base.glob("worker-*.std*") if path.is_file()))
         # Partial child transcripts survive an interrupted profile even when
         # no final test-output/evidence file was produced.
