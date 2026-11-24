@@ -603,6 +603,16 @@ pub(super) fn save_archive(
     out: &Path,
     captures: Value,
 ) -> Result<()> {
+    save_archive_with_camera(r, frames, out, captures, "right")
+}
+
+pub(super) fn save_archive_with_camera(
+    r: Recording,
+    frames: Vec<Frame>,
+    out: &Path,
+    captures: Value,
+    camera: &str,
+) -> Result<()> {
     r.save(out)?;
     write_json(
         &out.join("particle-frames.json"),
@@ -610,7 +620,7 @@ pub(super) fn save_archive(
     )?;
     write_json(
         &out.join("frames.json"),
-        &json!({"kind":"authored-archive-v1","camera":"right","dt_ns":1,"cloth_grid":{"rows":ROWS,"columns":COLUMNS,"skin_radius_m":RADIUS,"last_row_left":1,"first_row_right":ROWS-2},"particle_visuals":(0..COUNT).map(name).collect::<Vec<_>>(),"captures":captures}),
+        &json!({"kind":"authored-archive-v1","camera":camera,"dt_ns":1,"cloth_grid":{"rows":ROWS,"columns":COLUMNS,"skin_radius_m":RADIUS,"last_row_left":1,"first_row_right":ROWS-2},"particle_visuals":(0..COUNT).map(name).collect::<Vec<_>>(),"captures":captures}),
     )
 }
 pub(super) fn run(out: &Path) -> Result<()> {

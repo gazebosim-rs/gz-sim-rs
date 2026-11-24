@@ -39,6 +39,8 @@ mod robot;
 mod sheet_energy;
 #[path = "local_robot_foundations/sheet_jaws.rs"]
 mod sheet_jaws;
+#[path = "local_robot_foundations/sheet_setdown.rs"]
+mod sheet_setdown;
 #[path = "local_robot_foundations/sheet_sweep.rs"]
 mod sheet_sweep;
 use clap::{Parser, Subcommand};
@@ -108,6 +110,20 @@ enum Study {
     },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
+    /// Place the folded sheet using measured table loads on a 1 ms actuator clock.
+    SheetSetdown {
+        output: PathBuf,
+        #[arg(long, value_enum, default_value = "supported")]
+        mode: sheet_setdown::Mode,
+        #[arg(long, default_value_t = 16)]
+        exchanges: usize,
+        /// Step Bevy at the native exchange rate and hold each command for 1 ms.
+        #[arg(long)]
+        native_steps: bool,
+        /// Reset the loaded world and repeat the measured physical trajectory.
+        #[arg(long)]
+        verify_reset: bool,
+    },
     /// Measure the stability of a folded-sheet grasp with lighter jaws or stiffer pads.
     SheetJaws {
         output: PathBuf,
@@ -311,6 +327,15 @@ fn main() -> Result<()> {
             material_incline::run(out, substeps, finite_board)
         }),
         Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
+        Study::SheetSetdown {
+            output,
+            mode,
+            exchanges,
+            native_steps,
+            verify_reset,
+        } => write_new(&output, |out| {
+            sheet_setdown::run(out, mode, exchanges, !native_steps, verify_reset)
+        }),
         Study::SheetJaws {
             output,
             settings,

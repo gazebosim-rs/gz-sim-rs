@@ -274,6 +274,35 @@ pub(super) fn study(out: &Path, settings: Settings, window: Option<(usize, usize
     )
 }
 
+/// Same hard, viscous fingers and elastic folded sheet as the matched landing study.
+pub(super) fn setdown_world(exchanges: usize, finite: bool, public: bool) -> Result<String> {
+    let case = Case {
+        substeps: 1,
+        ..Default::default()
+    };
+    let mut xml = timed_scene(
+        1. / 64.,
+        0.001 / 64.,
+        case,
+        if public { 1 } else { exchanges },
+        true,
+        0.001,
+    )?;
+    if public {
+        xml = xml.replace(
+            "filename=\"gz-sim-deformables-system\"",
+            &format!("filename=\"gz-sim-deformables-system\" rigid_exchanges=\"{exchanges}\""),
+        );
+    }
+    if finite {
+        xml = xml.replace(
+            "<plane point=\"0 0 0.12\" normal=\"0 0 1\"/>",
+            "<box link=\"default::source::body\" coupling=\"one_way\"/>",
+        );
+    }
+    plane_friction(damped_pads(xml, 4.)?, Some(0.7))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -143,6 +143,9 @@ impl GraspRetention {
     }
 }
 
+mod setdown;
+pub use setdown::{SetdownCommand, SupportedSetdown};
+
 #[cfg(test)]
 #[path = "../tests/private/grasp_guard.rs"]
 mod tests;
