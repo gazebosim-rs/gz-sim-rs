@@ -290,7 +290,18 @@ fn sync(
         for i in 0..4 {
             let (mut pose, mut twist) = links.get_mut(lookup(binding.links[i]).unwrap()).unwrap();
             let initial = binding.initial[i];
-            if i == 3 {
+            if i == 3
+                && let Some(flight) = carry.as_ref().and_then(|c| c.free_box_link())
+            {
+                *pose = WorldPose {
+                    translation: flight.position,
+                    rotation: flight.orientation,
+                };
+                *twist = Velocity {
+                    linear: flight.linear,
+                    angular: flight.angular,
+                };
+            } else if i == 3 {
                 *pose = WorldPose {
                     translation: [l.ball[0], initial.translation[1], l.ball[1]],
                     rotation: (DQuat::from_rotation_y(-l.angle)

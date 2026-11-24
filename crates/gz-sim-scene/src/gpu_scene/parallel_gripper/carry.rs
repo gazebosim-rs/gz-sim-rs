@@ -3,8 +3,15 @@
 //! A horizontal slider carrying the vertical gripper, with a finite named receiving shelf.
 use super::*;
 use configuration::{attr, num, plain, reason};
-use gz_physics_gpu::{CarryGripperLane, simulation::install_carry_gripper};
+use gz_physics_gpu::{BoxFlightMaterial, CarryGripperLane, simulation::install_carry_gripper};
 use roxmltree::Node;
+#[derive(Clone, Copy)]
+struct Launch {
+    open_tick: u64,
+    impulse_tick: u64,
+    impulse: [f64; 3],
+    point: [f64; 3],
+}
 #[derive(Clone, Copy)]
 struct Move {
     track: f64,
@@ -40,6 +47,7 @@ pub(super) struct Plan {
     shelf: String,
     moves: BTreeMap<u64, Move>,
     policy: Policy,
+    flight: Option<(BoxFlightMaterial, Launch)>,
 }
 #[derive(Resource)]
 pub(super) struct Binding {
@@ -50,6 +58,7 @@ pub(super) struct Binding {
     moves: BTreeMap<u64, Move>,
     policy: Policy,
     dwell: u64,
+    launch: Option<Launch>,
     receipt: Option<ReleaseReceipt>,
 }
 fn positive_tick(n: Node<'_, '_>, k: &str) -> Result<u64, LoadError> {
@@ -368,7 +377,63 @@ impl Plan {
             &robot.name,
             "invalid shelf load threshold or jaw release coordinates",
         )?;
+        let mut nodes = env.children().filter(|n| n.has_tag_name("box-flight"));
+        let flight = if let Some(node) = nodes.next() {
+            let open_tick = positive_tick(node, "open_tick")?;
+            let impulse_tick = positive_tick(node, "impulse_tick")?;
+            let vec = |name| {
+                config::vector(Some(attr(node, name)?))
+                    .ok_or_else(|| reason("finite three-component release input required"))
+            };
+            let impulse = vec("impulse")?;
+            let point = vec("point")?;
+            let half = row
+                .payload_half
+                .ok_or_else(|| reason("spatial release requires a finite cuboid"))?;
+            let inertia_rotation = glam::DMat3::from_quat(DQuat::from_array(mass_pose.rotation));
+            let local_tensor = inertia_rotation * tensor * inertia_rotation.transpose();
+            require(
+                nodes.next().is_none()
+                    && config::shape(
+                        node,
+                        &["open_tick", "impulse_tick", "impulse", "point"],
+                        false,
+                    )
+                    && impulse_tick > open_tick
+                    && (0..3).all(|i| point[i].abs() <= half[i])
+                    && [
+                        local_tensor.x_axis.y,
+                        local_tensor.x_axis.z,
+                        local_tensor.y_axis.z,
+                    ]
+                    .iter()
+                    .all(|v| v.abs() <= 64. * f64::EPSILON * trace),
+                &object.name,
+                "one open-then-impulse sequence at a cuboid material point with box-axis principal inertia required",
+            )?;
+            Some((
+                BoxFlightMaterial {
+                    inertia: [
+                        local_tensor.x_axis.x,
+                        local_tensor.y_axis.y,
+                        local_tensor.z_axis.z,
+                    ],
+                    half_depth: half[1],
+                    initial_orientation: initial_rotation.to_array(),
+                    transverse_origin: row.poses[3].translation[1],
+                },
+                Launch {
+                    open_tick,
+                    impulse_tick,
+                    impulse,
+                    point,
+                },
+            ))
+        } else {
+            None
+        };
         let plan = Self {
+            flight,
             id: row.id,
             lane,
             track: rail.scoped_name.clone(),
@@ -393,7 +458,10 @@ pub(super) fn install(
     p: Plan,
     links: &BTreeMap<String, u64>,
 ) -> Result<MixedBatchOwner, LoadError> {
-    let batch = CarryGripperBatch::new(adapter, vec![p.lane])?;
+    let mut batch = CarryGripperBatch::new(adapter, vec![p.lane])?;
+    if let Some((material, _)) = p.flight {
+        batch.enable_box_flight(material)?;
+    }
     let owner = batch.owner();
     let track = links[&p.track];
     let e = gz_sim_core::entity_by_id(sim.world(), track).unwrap();
@@ -428,6 +496,7 @@ pub(super) fn install(
         moves: p.moves,
         policy: p.policy,
         dwell: 0,
+        launch: p.flight.map(|(_, launch)| launch),
         receipt: None,
     });
     sim.add_systems(Phase::Reset, |mut b: ResMut<Binding>| {
@@ -506,7 +575,11 @@ pub(super) fn prepare(world: &mut World) {
         target[0] = m.track;
         target[1] = m.lift;
     }
-    if b.receipt.is_none() && tick > b.policy.after {
+    let launch = b.launch;
+    if launch.is_some_and(|l| l.open_tick == tick) {
+        target[2..].copy_from_slice(&b.policy.open);
+    }
+    if b.receipt.is_none() && tick > b.policy.after && launch.is_none_or(|l| tick < l.open_tick) {
         let [width, height] = l.payload_reach();
         let clearance = h.ball[1] - height - l.shelf_center[1] - l.shelf_half[1];
         let force = l.shelf_up / gz_physics_gpu::STEP.as_secs_f64();
@@ -539,5 +612,13 @@ pub(super) fn prepare(world: &mut World) {
             .set_targets(0, target)
     {
         world.resource::<gz_sim_core::StepFault>().report(e);
+    }
+    if let Some(launch) = launch
+        && launch.impulse_tick == tick
+        && let Err(error) = world
+            .resource_mut::<CarryGripperBatch>()
+            .release_box(launch.impulse, launch.point)
+    {
+        world.resource::<gz_sim_core::StepFault>().report(error);
     }
 }

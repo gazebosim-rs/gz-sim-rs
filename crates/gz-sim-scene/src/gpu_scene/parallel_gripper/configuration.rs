@@ -322,7 +322,7 @@ impl Row {
         let mut driven = BTreeSet::new();
         for n in env.children().filter(Node::is_element) {
             match n.tag_name().name() {
-                "track-drive" | "move" | "release" if track.is_some() => continue,
+                "track-drive" | "move" | "release" | "box-flight" if track.is_some() => continue,
                 "drive"
                     if config::shape(n, &["joint", "stiffness", "damping", "target"], false) =>
                 {

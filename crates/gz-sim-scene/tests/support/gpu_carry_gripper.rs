@@ -496,3 +496,253 @@ fn a_carried_cuboid_settles_on_the_finite_named_shelf_before_opening() {
     }
     assert!(open.is_some_and(|t| (1300..1600).contains(&t)));
 }
+
+const FLIGHT: &str = include_str!("../../../../examples/gpu_box_flight.sdf");
+
+#[test]
+fn spatial_launch_requires_ordered_commands_and_a_finite_material_point() {
+    for (from, to, reason) in [
+        (
+            "impulse_tick=\"741\"",
+            "impulse_tick=\"701\"",
+            "open-then-impulse",
+        ),
+        (
+            "point=\"0.007 0.001 0.004\"",
+            "point=\"0.05 0 0\"",
+            "material point",
+        ),
+        (
+            "impulse=\"0.003 0.027 0.045\"",
+            "impulse=\"0 nan 0\"",
+            "three-component",
+        ),
+        ("impulse=\"0.003 0.027 0.045\"", "", "missing gripper"),
+        (
+            "point=\"0.007 0.001 0.004\"",
+            "point=\"0 0 0\" extra=\"1\"",
+            "open-then-impulse",
+        ),
+        (
+            "<ixx>0.00001450666666666667",
+            "<ixz>0.000001</ixz><ixx>0.00001450666666666667",
+            "principal inertia",
+        ),
+        (
+            "        <release after=",
+            "        <box-flight open_tick=\"400\" impulse_tick=\"500\" impulse=\"0 0 0\" point=\"0 0 0\"/>\n        <release after=",
+            "open-then-impulse",
+        ),
+    ] {
+        let input = FLIGHT.replace(from, to);
+        let msg = load(&input, Some("unavailable")).err().unwrap().to_string();
+        assert!(msg.contains(reason), "{msg}");
+    }
+    let launch = FLIGHT.lines().find(|s| s.contains("<box-flight ")).unwrap();
+    let source = CARRY.replace(
+        "        <release after=",
+        &format!("{launch}\n        <release after="),
+    );
+    assert!(
+        load(&source, Some("unavailable"))
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("spatial release requires")
+    );
+}
+
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn released_box_publishes_all_six_axes_and_stops_before_recontact() {
+    use gz_physics_gpu::{BoxFlightMaterial, CarryGripperBatch};
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(FLIGHT, Some(&adapter)).unwrap();
+    let entity = sim
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<Name>()
+                .is_some_and(|n| n.0 == "default::parcel::ball")
+        })
+        .unwrap()
+        .id();
+    let material = BoxFlightMaterial {
+        inertia: [1.; 3],
+        half_depth: 0.012,
+        initial_orientation: [0., 0., 0., 1.],
+        transverse_origin: 0.,
+    };
+    {
+        let mut batch = sim.world_mut().resource_mut::<CarryGripperBatch>();
+        assert!(batch.enable_box_flight(material).is_err());
+        assert!(matches!(
+            batch.release_box([0.; 3], [0.; 3]),
+            Err(GpuError::SpatialContactBoundary)
+        ));
+        assert!(matches!(
+            batch.release_box([f64::NAN; 3], [0.; 3]),
+            Err(GpuError::InvalidBoxRelease)
+        ));
+        assert!(matches!(
+            batch.release_box([0.; 3], [1.; 3]),
+            Err(GpuError::InvalidBoxRelease)
+        ));
+    }
+    sim.step_exact(700).unwrap();
+    let (held, _) = carry::observe(&sim, 12).unwrap();
+    assert!(
+        held.hand.normal_impulse[0] > 0.
+            && held.hand.normal_impulse[1] > 0.
+            && held.hand.ball[1] > 0.11
+    );
+    sim.step_exact(40).unwrap();
+    let batch = sim.world().resource::<CarryGripperBatch>();
+    let allocated = batch.device_info().allocated_buffer_bytes;
+    assert!(allocated > 3000);
+    assert_eq!(batch.device_info().state_bytes, 672);
+    assert!(batch.free_box().is_none());
+    assert_eq!(batch.lanes()[0].hand.normal_impulse, [0.; 3]);
+    sim.step_exact(1).unwrap();
+    let first = sim
+        .world()
+        .resource::<CarryGripperBatch>()
+        .free_box()
+        .unwrap();
+    sim.set_paused(true);
+    assert!(sim.tick().unwrap().paused);
+    assert_eq!(
+        sim.world().resource::<CarryGripperBatch>().free_box(),
+        Some(first)
+    );
+    carry::set_targets(&mut sim, 12, [0.002, 0.10, 0., 0.]).unwrap();
+    assert!(
+        sim.world_mut()
+            .resource_mut::<CarryGripperBatch>()
+            .release_box([0.; 3], [0.; 3])
+            .is_err()
+    );
+    sim.step_exact(104).unwrap();
+    let b = sim.world().resource::<CarryGripperBatch>();
+    assert_eq!(b.device_info().allocated_buffer_bytes, allocated);
+    assert_eq!(b.device_info().state_bytes, 848);
+    let free = b.free_box_link().unwrap();
+    let pose = sim.world().get::<WorldPose>(entity).unwrap();
+    let twist = sim.world().get::<gz_sim_scene::Velocity>(entity).unwrap();
+    assert_eq!(
+        (pose.translation, pose.rotation),
+        (free.position, free.orientation)
+    );
+    assert_eq!((twist.linear, twist.angular), (free.linear, free.angular));
+    assert!(free.position[1] > 0.034 && free.angular.iter().all(|v| v.abs() > 0.1));
+    assert_eq!(b.free_box().unwrap().momentum, first.momentum);
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert!(
+        sim.world()
+            .resource::<CarryGripperBatch>()
+            .free_box()
+            .is_none()
+    );
+    sim.step_exact(741).unwrap();
+    assert_eq!(
+        sim.world().resource::<CarryGripperBatch>().free_box(),
+        Some(first)
+    );
+    sim.step_exact(147).unwrap();
+    let last = sim
+        .world()
+        .resource::<CarryGripperBatch>()
+        .free_box()
+        .unwrap();
+    assert!(sim.step_exact(1).is_err());
+    assert!(matches!(
+        sim.fault().and_then(|e| e.downcast_ref::<GpuError>()),
+        Some(GpuError::SpatialContactBoundary)
+    ));
+    assert_eq!(sim.elapsed().as_millis(), 888);
+    let b = sim.world().resource::<CarryGripperBatch>();
+    assert_eq!(b.tick(), 888);
+    assert_eq!(b.free_box(), Some(last));
+}
+
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn a_premature_box_release_preserves_the_last_loaded_state() {
+    use gz_physics_gpu::CarryGripperBatch;
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let input = FLIGHT.replace("impulse_tick=\"741\"", "impulse_tick=\"702\"");
+    let mut sim = load(&input, Some(&adapter)).unwrap();
+    sim.step_exact(701).unwrap();
+    let held = sim.world().resource::<CarryGripperBatch>().lanes()[0].hand;
+    assert!(sim.step_exact(1).is_err());
+    assert!(matches!(
+        sim.fault().and_then(|e| e.downcast_ref::<GpuError>()),
+        Some(GpuError::SpatialContactBoundary)
+    ));
+    let batch = sim.world().resource::<CarryGripperBatch>();
+    assert!(batch.free_box().is_none() && batch.free_box_link().is_none());
+    assert_eq!(batch.tick(), 701);
+    assert_eq!(batch.lanes()[0].hand.ball, held.ball);
+    assert_eq!(batch.lanes()[0].hand.normal_impulse, held.normal_impulse);
+}
+
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn release_configuration_checks_spatial_inertia_against_the_physical_box() {
+    use gz_physics_gpu::{BoxFlightMaterial, CarryGripperBatch};
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let mut sim = load(BOX_CARRY, Some(&adapter)).unwrap();
+    let mut b = sim.world_mut().resource_mut::<CarryGripperBatch>();
+    assert!(matches!(
+        b.release_box([0.; 3], [0.; 3]),
+        Err(GpuError::InvalidBoxRelease)
+    ));
+    let valid = BoxFlightMaterial {
+        inertia: [0.00001450666666666667, 0.00002602666666666667, 0.0000192],
+        half_depth: 0.012,
+        initial_orientation: [0., 0., 0., 1.],
+        transverse_origin: 0.,
+    };
+    for m in [
+        BoxFlightMaterial {
+            initial_orientation: [0.; 4],
+            ..valid
+        },
+        BoxFlightMaterial {
+            initial_orientation: [
+                std::f64::consts::FRAC_1_SQRT_2,
+                0.,
+                0.,
+                std::f64::consts::FRAC_1_SQRT_2,
+            ],
+            ..valid
+        },
+        BoxFlightMaterial {
+            inertia: [0., 0., 0.],
+            ..valid
+        },
+        BoxFlightMaterial {
+            inertia: [0.1, 0.1, 0.1],
+            ..valid
+        },
+        BoxFlightMaterial {
+            half_depth: 0.001,
+            ..valid
+        },
+        BoxFlightMaterial {
+            transverse_origin: f64::NAN,
+            ..valid
+        },
+    ] {
+        assert!(matches!(
+            b.enable_box_flight(m),
+            Err(GpuError::InvalidBoxRelease)
+        ));
+    }
+    let lane = b.lanes()[0];
+    let mut population = CarryGripperBatch::new(&adapter, vec![lane, lane]).unwrap();
+    assert!(matches!(
+        population.enable_box_flight(valid),
+        Err(GpuError::InvalidBoxRelease)
+    ));
+}

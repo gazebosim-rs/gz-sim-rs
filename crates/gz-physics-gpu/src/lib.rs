@@ -37,7 +37,9 @@ pub use sphere_block::{MAX_BLOCK_TICKS, SpherePlaneBlockBatch, SpherePlaneBlockO
 pub use sphere_plane::SpherePlaneLane;
 mod carry_gripper;
 mod parallel_gripper;
-pub use carry_gripper::{CarryGripperBatch, CarryGripperLane};
+pub use carry_gripper::{
+    BoxFlightMaterial, BoxLinkState, CarryGripperBatch, CarryGripperLane, FreeBoxState,
+};
 mod planar_arm;
 mod planar_object;
 pub use parallel_gripper::{ParallelGripperBatch, ParallelGripperLane};
@@ -165,6 +167,10 @@ pub enum GpuError {
     #[cfg(feature = "native-handoff")]
     #[error("could not create native staging worker threads")]
     NativeStagingUnavailable,
+    #[error("the free cuboid may touch a pad, shelf or ground outside the spatial flight profile")]
+    SpatialContactBoundary,
+    #[error("invalid cuboid mass, impulse, or release boundary")]
+    InvalidBoxRelease,
     #[error("GPU batch needs a nonempty hardware adapter name selector")]
     EmptySelector,
     #[error("GPU batch needs at least one lane")]
@@ -417,6 +423,14 @@ impl<T: Pod + Send + Sync> ResidentBatch<T> {
             &adapter.limits(),
         )?;
         let gpu = DeviceIo::new(adapter, plan, if block.is_some() { 4 } else { 0 })?;
+        Self::on_device(gpu, initial, shader_module, block)
+    }
+    fn on_device(
+        gpu: DeviceIo,
+        initial: Vec<T>,
+        shader_module: fn() -> naga::Module,
+        block: Option<BlockSetup<T>>,
+    ) -> Result<Self, GpuError> {
         let block_control = block.map(|setup| BlockControl {
             last_ticks: 0,
             kernel: setup.kernel,
@@ -492,6 +506,13 @@ impl<T: Pod + Send + Sync> ResidentBatch<T> {
         self.advance(1)
     }
     fn advance(&mut self, ticks: u32) -> Result<StepMetrics, GpuError> {
+        self.advance_checked(ticks, |_| Ok(()))
+    }
+    fn advance_checked(
+        &mut self,
+        ticks: u32,
+        validate: impl FnOnce(&[T]) -> Result<(), GpuError>,
+    ) -> Result<StepMetrics, GpuError> {
         let start = Instant::now();
         let next = self
             .tick
@@ -541,7 +562,7 @@ impl<T: Pod + Send + Sync> ResidentBatch<T> {
                 }) {
                     return Err(GpuError::Nonfinite(i));
                 }
-                Ok(())
+                validate(scratch)
             },
         )?;
         std::mem::swap(&mut self.scratch, &mut self.committed);

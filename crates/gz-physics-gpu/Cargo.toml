@@ -9,6 +9,7 @@ license.workspace = true
 native-handoff = ["dep:rapier3d-f64", "dep:bevy_tasks"]
 
 [dependencies]
+glam.workspace = true
 bevy_tasks = { version = "=0.20.0", default-features = false, features = ["multi_threaded"], optional = true }
 rapier3d-f64 = { workspace = true, optional = true }
 bevy_ecs.workspace = true

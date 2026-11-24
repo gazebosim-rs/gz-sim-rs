@@ -2632,6 +2632,7 @@ dependencies = [
  "bevy_tasks",
  "bincode",
  "bytemuck",
+ "glam 0.33.12",
  "gz-physics-rapier",
  "gz-physics-xpbd",
  "gz-sim-cli",

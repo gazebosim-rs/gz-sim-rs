@@ -46,19 +46,10 @@ impl DeviceIo {
         plan: DevicePlan,
         extra_bytes: u64,
     ) -> Result<Self, GpuError> {
-        let adapter_info = adapter.get_info();
         let limits = adapter.limits();
-        let DevicePlan {
-            required_features,
-            query_count,
-            state_bytes,
-            readback_bytes,
-            workgroups,
-        } = plan;
-        let query_bytes = u64::from(query_count) * 8;
         let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
             label: Some("Gazebo f64 compute"),
-            required_features,
+            required_features: plan.required_features,
             required_limits: limits,
             ..Default::default()
         }))
@@ -72,6 +63,40 @@ impl DeviceIo {
         device.on_uncaptured_error(Arc::new(move |error: wgpu::Error| {
             let _ = errors.set(error.to_string());
         }));
+        Self::buffers(device, queue, failure, plan, extra_bytes)
+    }
+    /// Allocate a second physics layout on this already qualified compute device and queue.
+    pub(super) fn companion<T>(&self, lanes: usize) -> Result<Self, GpuError> {
+        let plan = DevicePlan::new::<T>(
+            lanes,
+            self.device.features(),
+            wgpu::DownlevelFlags::COMPUTE_SHADERS,
+            &self.device.limits(),
+        )?;
+        Self::buffers(
+            self.device.clone(),
+            self.queue.clone(),
+            self.failure.clone(),
+            plan,
+            0,
+        )
+    }
+    fn buffers(
+        device: wgpu::Device,
+        queue: wgpu::Queue,
+        failure: Arc<OnceLock<String>>,
+        plan: DevicePlan,
+        extra_bytes: u64,
+    ) -> Result<Self, GpuError> {
+        let adapter_info = device.adapter_info();
+        let DevicePlan {
+            query_count,
+            state_bytes,
+            readback_bytes,
+            workgroups,
+            ..
+        } = plan;
+        let query_bytes = u64::from(query_count) * 8;
         let state = buffer(
             &device,
             "resident f64 lanes",

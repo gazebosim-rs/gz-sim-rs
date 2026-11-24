@@ -27,7 +27,7 @@ pub(super) fn shape(node: Node<'_, '_>, attrs: &[&str], children: bool) -> bool 
                 || children && c.is_element()
         })
 }
-fn vector(x: Option<&str>) -> Option<[f64; 3]> {
+pub(super) fn vector(x: Option<&str>) -> Option<[f64; 3]> {
     let Some(x) = x else {
         return Some([0.; 3]);
     };

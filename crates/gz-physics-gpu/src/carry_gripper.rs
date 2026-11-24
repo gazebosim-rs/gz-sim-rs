@@ -10,8 +10,12 @@ use crate::{
 use bytemuck::{Pod, Zeroable};
 mod box_manifold;
 mod contact_step;
+mod flight;
+use bevy_ecs::prelude::Resource;
 use box_manifold::Rectangle;
 use contact_step::{Loads, Point, Step};
+use flight::BoxFlight;
+pub use flight::{BoxFlightMaterial, BoxLinkState, FreeBoxState};
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]
 pub struct CarryGripperLane {
@@ -49,7 +53,17 @@ pub struct CarryGripperLane {
 }
 const WIDTH: usize = 84;
 const _: () = assert!(size_of::<CarryGripperLane>() == WIDTH * 8);
-pub type CarryGripperBatch = ResidentBatch<CarryGripperLane>;
+#[derive(Resource)]
+pub struct CarryGripperBatch {
+    planar: ResidentBatch<CarryGripperLane>,
+    flight: Option<BoxFlight>,
+}
+impl std::ops::Deref for CarryGripperBatch {
+    type Target = ResidentBatch<CarryGripperLane>;
+    fn deref(&self) -> &Self::Target {
+        &self.planar
+    }
+}
 impl CarryGripperLane {
     /// Current world-space horizontal and vertical reaches from the geometric center.
     pub fn payload_reach(&self) -> [f64; 2] {
@@ -164,7 +178,7 @@ impl CarryGripperBatch {
             return Err(GpuError::InvalidLane(i));
         }
         let eccentric = lanes.iter().any(|l| l.com_offset != [0.; 2]);
-        Self::new_profile(
+        let planar = ResidentBatch::new_profile(
             adapter,
             lanes,
             CarryGripperLane::valid,
@@ -175,11 +189,16 @@ impl CarryGripperBatch {
                 (false, false) => module::<false, false>,
             },
             None,
-        )
+        )?;
+        Ok(Self {
+            planar,
+            flight: None,
+        })
     }
     /// Absolute track and lift coordinates, followed by finger targets in the initial rail frame.
     pub fn set_targets(&mut self, index: usize, target: [f64; 4]) -> Result<(), GpuError> {
         let l = self
+            .planar
             .committed
             .get_mut(index)
             .ok_or(GpuError::InvalidArmTarget(index))?;
@@ -194,7 +213,7 @@ impl CarryGripperBatch {
             l.hand.target[1],
             l.hand.target[2],
         ] = target;
-        self.upload_needed = true;
+        self.planar.upload_needed = true;
         Ok(())
     }
 }
@@ -260,9 +279,16 @@ fn rotated_offset<T: Scalar>(angle: T, offset: [T; 2], c: &[T]) -> [T; 2] {
     ]
 }
 fn tick<const BOX: bool, const ECCENTRIC: bool, T: Scalar>(
-    mut v: [T; WIDTH],
+    v: [T; WIDTH],
     constants: &[T],
 ) -> [(usize, T); 33] {
+    integrate::<BOX, ECCENTRIC, false, T>(v, constants).0
+}
+fn integrate<const BOX: bool, const ECCENTRIC: bool, const EMPTY: bool, T: Scalar>(
+    mut v: [T; WIDTH],
+    constants: &[T],
+) -> ([(usize, T); 33], [[T; 2]; 3]) {
+    let mut swept = std::array::from_fn(|i| [v[i]; 2]);
     let [dt, z, one, half, ..] = *constants else {
         unreachable!()
     };
@@ -318,6 +344,12 @@ fn tick<const BOX: bool, const ECCENTRIC: bool, T: Scalar>(
         v[53] = v[53] + rail_dv;
         for i in 0..3 {
             let dv = dt * inv[i] * force[i];
+            if EMPTY {
+                let speed = v[3 + i];
+                let reach = dt * (speed.maximum(z - speed) + half * dv.maximum(z - dv));
+                swept[i][0] = swept[i][0].minimum(v[i] - reach);
+                swept[i][1] = swept[i][1].maximum(v[i] + reach);
+            }
             v[i] = v[i] + dt * (v[3 + i] + half * dv);
             v[3 + i] = v[3 + i] + dv;
         }
@@ -345,7 +377,9 @@ fn tick<const BOX: bool, const ECCENTRIC: bool, T: Scalar>(
             zero: z,
             one,
         };
-        let (next, delta) = if BOX {
+        let (next, delta) = if EMPTY {
+            step.solve([], &mut loads)
+        } else if BOX {
             let payload = Rectangle {
                 center: [x, height],
                 half: [v[73], v[74]],
@@ -417,6 +451,12 @@ fn tick<const BOX: bool, const ECCENTRIC: bool, T: Scalar>(
         for (i, j) in [(0, 0), (1, 1), (2, 2), (3, 13), (4, 14), (6, 52)] {
             v[j] = v[j] + delta[i];
         }
+        if EMPTY {
+            for i in 0..3 {
+                swept[i][0] = swept[i][0].minimum(v[i]);
+                swept[i][1] = swept[i][1].maximum(v[i]);
+            }
+        }
         if ECCENTRIC || BOX {
             v[17] = v[17] + delta[5];
         }
@@ -434,41 +474,44 @@ fn tick<const BOX: bool, const ECCENTRIC: bool, T: Scalar>(
         v[15] = v[15] + v[18] * dz;
         v[16] = v[16] - v[18] * dx;
     }
-    [
-        (0, v[0]),
-        (1, v[1]),
-        (2, v[2]),
-        (3, v[3]),
-        (4, v[4]),
-        (5, v[5]),
-        (13, v[13]),
-        (14, v[14]),
-        (15, v[15]),
-        (16, v[16]),
-        (17, v[17]),
-        (18, v[18]),
-        (38, normal[0]),
-        (39, normal[1]),
-        (40, normal[2]),
-        (41, tangent[0]),
-        (42, tangent[1]),
-        (43, tangent[2]),
-        (44, up[0]),
-        (45, up[1]),
-        (52, v[52]),
-        (53, v[53]),
-        (67, normal[3]),
-        (68, tangent[3]),
-        (69, up[3]),
-        (76, points[0][0]),
-        (77, points[0][1]),
-        (78, points[1][0]),
-        (79, points[1][1]),
-        (80, points[2][0]),
-        (81, points[2][1]),
-        (82, points[3][0]),
-        (83, points[3][1]),
-    ]
+    (
+        [
+            (0, v[0]),
+            (1, v[1]),
+            (2, v[2]),
+            (3, v[3]),
+            (4, v[4]),
+            (5, v[5]),
+            (13, v[13]),
+            (14, v[14]),
+            (15, v[15]),
+            (16, v[16]),
+            (17, v[17]),
+            (18, v[18]),
+            (38, normal[0]),
+            (39, normal[1]),
+            (40, normal[2]),
+            (41, tangent[0]),
+            (42, tangent[1]),
+            (43, tangent[2]),
+            (44, up[0]),
+            (45, up[1]),
+            (52, v[52]),
+            (53, v[53]),
+            (67, normal[3]),
+            (68, tangent[3]),
+            (69, up[3]),
+            (76, points[0][0]),
+            (77, points[0][1]),
+            (78, points[1][0]),
+            (79, points[1][1]),
+            (80, points[2][0]),
+            (81, points[2][1]),
+            (82, points[3][0]),
+            (83, points[3][1]),
+        ],
+        swept,
+    )
 }
 
 #[cfg(test)]

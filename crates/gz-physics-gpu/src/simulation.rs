@@ -97,7 +97,7 @@ pub fn install_carry_gripper(
     sim: &mut Simulation,
     batch: super::CarryGripperBatch,
 ) -> Result<(), GpuError> {
-    install_arm(sim, batch)
+    install_checked(sim, batch)
 }
 pub fn install_parallel_gripper(
     sim: &mut Simulation,
@@ -110,10 +110,13 @@ fn install_arm<T: Pod + Send + Sync>(
     sim: &mut Simulation,
     batch: ResidentBatch<T>,
 ) -> Result<(), GpuError> {
+    install_checked(sim, batch)
+}
+fn install_checked<B: ScheduledBatch>(sim: &mut Simulation, batch: B) -> Result<(), GpuError> {
     if sim.step_duration() != STEP
         || !sim.elapsed().is_zero()
         || sim.is_faulted()
-        || batch.tick() != 0
+        || !batch.time().is_zero()
         || sim.world().contains_resource::<BatchTiming>()
     {
         return Err(GpuError::StaleBoundary);
@@ -128,6 +131,17 @@ trait ScheduledBatch: Resource<Mutability = bevy_ecs::component::Mutable> {
     fn restore(&mut self);
 }
 impl<T: Pod + Send + Sync> ScheduledBatch for ResidentBatch<T> {
+    fn time(&self) -> std::time::Duration {
+        self.sim_time()
+    }
+    fn advance_one(&mut self) -> Result<StepMetrics, GpuError> {
+        self.step()
+    }
+    fn restore(&mut self) {
+        self.reset();
+    }
+}
+impl ScheduledBatch for super::CarryGripperBatch {
     fn time(&self) -> std::time::Duration {
         self.sim_time()
     }
