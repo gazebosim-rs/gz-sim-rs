@@ -222,5 +222,5 @@ fn arrest_requires_a_straight_stop_and_enough_static_traction() {
     assert!(straight_slip_stop(v, target, 1., 0.025, 0.02).is_none());
     let free = straight_slip_stop(v, target, 1., 0.06, 0.).unwrap();
     assert!((free.x - (target.x - 0.5 * 0.005 / 6.)).abs() < 1e-15);
-    assert!(straight_slip_stop(-v, -v, 1., 0.06, 0.001).is_none());
+    assert!(straight_slip_stop(-v, v, 1., 0.06, 0.001).is_none());
 }
