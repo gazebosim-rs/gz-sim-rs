@@ -64,7 +64,12 @@ fn table_readings(
         let normal = -DVec3::from_array(load.normal);
         let tangent = -DVec3::from_array(load.tangent);
         observed += normal + tangent;
-        display_loads[load.particle] += normal.z;
+        if load.boundary != 2 {
+            return Err("unexpected plane in table readings".into());
+        }
+        *display_loads
+            .get_mut(load.particle)
+            .ok_or("table contact refers to an unknown sheet particle")? += normal.z;
         nodes.push(json!({"node":load.particle,"normal_ns":normal.to_array(),"tangent_ns":tangent.to_array()}));
     }
     if !observed.is_finite()
@@ -250,6 +255,19 @@ mod tests {
             assert!(table_readings(11, &[reading], expected, &mut [0.]).is_err());
         }
     }
+    #[test]
+    fn a_second_plane_or_unknown_node_cannot_supply_a_table_marker() {
+        for (boundary, particle) in [(3, 0), (2, 1)] {
+            let reading = ParticleBoundaryImpulse {
+                boundary,
+                particle,
+                normal: [0., 0., -1.],
+                tangent: [0.; 3],
+            };
+            assert!(table_readings(1, &[reading], DVec3::Z, &mut [0.]).is_err());
+        }
+    }
+
     #[test]
     fn replay_matches_the_world_with_loaded_moving_jaws_and_checks_duration() -> Result<()> {
         let dir = tempfile::tempdir()?;
