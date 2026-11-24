@@ -101,3 +101,51 @@ impl EarlyFace {
         ])
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn release_window_preserves_original_boundaries_and_step_limits() {
+        let ns = Duration::from_nanos;
+        let window = EarlyFace {
+            step_ns: 25,
+            max_steps: 100,
+            tail: Some((200, 13)),
+        };
+        let prefix = ContactSegment {
+            duration: ns(400),
+            native_steps: 16,
+            iterations: 4.into(),
+        };
+        let rest = ContactSegment {
+            duration: ns(400),
+            native_steps: 4,
+            iterations: 8.into(),
+        };
+        let (s, fallback) = window.after_release([prefix, rest], ns(45)).unwrap();
+        assert_eq!(s[0].duration, ns(75));
+        assert_eq!((s[0].native_steps, s[1].native_steps, fallback), (3, 4, 13));
+        assert_eq!(s[1].iterations, prefix.iterations);
+        assert_eq!(s[2], rest);
+        for bad in [
+            ContactSegment {
+                duration: ns(399),
+                ..prefix
+            },
+            prefix,
+        ] {
+            let arrival = if bad == prefix { ns(375) } else { ns(0) };
+            assert!(window.after_release([bad, rest], arrival).is_none());
+        }
+        assert!(window.after_release([prefix, rest], ns(350)).is_none());
+        assert!(
+            EarlyFace {
+                tail: None,
+                ..window
+            }
+            .after_release([prefix, rest], ns(45))
+            .is_none()
+        );
+    }
+}
