@@ -235,7 +235,7 @@ fn a_loaded_or_just_touching_external_body_defers_even_without_a_drive() {
     }
 }
 #[test]
-fn mounted_parking_rejects_unmodelled_coordinates_and_any_attached_foreign_constraint() {
+fn a_neutral_ball_needs_a_committed_solve_and_foreign_constraints_still_block_parking() {
     let mut b = RapierBackend::new([0.; 3]).unwrap();
     let r = body(&mut b, 0.);
     let t = body(&mut b, 0.3);
@@ -250,7 +250,10 @@ fn mounted_parking_rejects_unmodelled_coordinates_and_any_attached_foreign_const
         },
     )
     .unwrap();
-    refused(&mut b, r, t, "unsupported mounted");
+    refused(&mut b, r, t, "initial committed contact solve");
+    b.step(DT).unwrap();
+    b.switch_articulation(r, Prescribed, DT).unwrap();
+    assert_eq!(b.articulation_tier(r).unwrap(), Prescribed);
     let (mut b, r, t, _) = fixture([0.; 3], [1., 0., 0.], None, None);
     let extra = body(&mut b, 0.6);
     b.add_revolute(t, extra, [0.6, 0., 0.], [0., 0., 1.])

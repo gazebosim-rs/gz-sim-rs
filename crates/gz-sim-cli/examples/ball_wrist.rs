@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Record a free, torque-driven spherical wrist and its carrier's counter-rotation.
 #![allow(deprecated)]
+#[path = "ball_wrist/mounted.rs"]
+mod mounted;
+use clap::Parser;
 use glam::DVec3;
 use gz_sim_core::EntityId;
 use gz_sim_scene::{
@@ -12,10 +15,21 @@ use std::{error::Error, path::Path};
 
 const XML: &str = include_str!("../../../examples/worlds/local_ball_wrist.sdf");
 
+#[derive(Parser)]
+struct Options {
+    /// Fresh gz-web-rs replay directory.
+    archive: std::path::PathBuf,
+    /// Park a hanging wrist and compare its first torque response with continuous physics.
+    #[arg(long)]
+    mounted: bool,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
-    let path = std::env::args_os()
-        .nth(1)
-        .ok_or("supply a new archive directory")?;
+    let options = Options::parse();
+    let path = options.archive;
+    if options.mounted {
+        return mounted::record(&path);
+    }
     let sdf = sdformat::load_str(XML, "wrist.sdf", &sdformat::NoResources)?;
     let world = "default";
     let mut sim = load_world_with_sdf_step(

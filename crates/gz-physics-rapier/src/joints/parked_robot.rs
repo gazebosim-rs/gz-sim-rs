@@ -198,11 +198,14 @@ impl RapierBackend {
             }) * c.frame1;
             let (mut force, mut moment) = (Vector::ZERO, Vector::ZERO);
             let (mut force_scale, mut moment_scale) = (0., 0.);
+            let mut gravity_lever = 0.;
             for (&descendant, &dh) in members.iter().zip(&handles) {
                 if self.robot_member(id, descendant) {
                     let rb = &self.world.bodies[dh];
-                    let weight = self.world.gravity * rb.mass();
-                    let torque = (rb.center_of_mass() - frame.translation).cross(weight);
+                    let weight = self.world.gravity * (rb.mass() * rb.gravity_scale());
+                    let arm = rb.center_of_mass() - frame.translation;
+                    let torque = arm.cross(weight);
+                    gravity_lever += arm.dot(weight);
                     force += weight;
                     moment += torque;
                     force_scale += weight.length();
@@ -226,7 +229,15 @@ impl RapierBackend {
                         )
                     })
                 }
-                JointMotion::Ball => return Err(defer("unsupported mounted parking joint")),
+                // The potential of the complete descendant assembly is minimal
+                // when its center of mass hangs below the spherical pivot.
+                // A center exactly at the pivot or zero gravity is neutral.
+                JointMotion::Ball => {
+                    gravity_lever.is_finite()
+                        && gravity_lever >= 0.
+                        && moment_scale.is_finite()
+                        && moment.length() <= 1e-8 * moment_scale.max(gravity_lever)
+                }
                 _ => {
                     let q = self
                         .world_joint_state(joint_id)
