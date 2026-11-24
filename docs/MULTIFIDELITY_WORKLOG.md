@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Use the measured contact geometry to choose the gripper’s impact solve
+
+When a parcel already touches a jaw face, the new solver brought the impact step from 63–67 ms down to 1.34–1.35 ms at p95. Against continuous 10 ns steps, the left and right impulse errors were 2.01% and 3.18%. The same preset was inaccurate across small gaps, so the policy keeps the original budget for separated, glancing, simultaneous or already-loaded contact. Both recordings passed native playback, all 383 tests passed, and every changed scene and example line and region ran. [Contact limits, cost and both replays](measurements/local-manipulation/serial-touching-solver.md)
+
 ## 2026-11-24 — Hold spindle speed after a jaw strike
 
 The fixed 1 ms actuator clock now supports a native physics rate chosen from the rated screw torque, physical speed stop and the two links’ projected inertias. The 1/256-inertia robot stopped reversing after either jaw was hit or missed, and the worst matched-state position error across those routes fell from 3.65 mm to 0.098 mm. Under ±3 N·m the spindle peaked at +0.80163 and −0.80162 rad/s against a 0.8 rad/s stop. Contact and transverse momentum checks passed. The initial right-jaw impulse still differs by 23.36% from the continuously fine run at this extreme inertia. [Measured controls, cost and two native replays](measurements/local-manipulation/serial-spindle-stop.md)

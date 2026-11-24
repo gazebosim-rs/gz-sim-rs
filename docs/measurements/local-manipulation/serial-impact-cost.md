@@ -14,7 +14,7 @@ The time window spans all 24 public steps, with the strike in the first. Three p
 | Automatic, 1,000 calls | 0.160 ms | 116.91 ms | 118.83 ms | 115.87 ms |
 | Continuous, 500 calls | 58.53 ms | 59.48 ms | 58.97 ms | 1,365.19 ms |
 
-One refined tick accounts for 4.17% of this trajectory, so the largest costs appear beyond the overall 95th percentile. Right-jaw first-step p95 was 59.97 ms at 500 calls and 119.85 ms at 1,000. At 500 calls, the previously measured impulse errors against the 125 ns reference were 2.08% on the left and 3.54% on the right. The 1,000-call policy reached 1.22% and 2.22%. The remaining practical goal is to reduce the cost of the selected interval while retaining that accuracy. [Contact comparison and controls](serial-incoming-impact.md)
+One refined tick accounts for 4.17% of this trajectory, so the largest costs appear beyond the overall 95th percentile. Right-jaw first-step p95 was 59.97 ms at 500 calls and 119.85 ms at 1,000. At 500 calls, the previously measured impulse errors against the 125 ns reference were 2.08% on the left and 3.54% on the right. The 1,000-call policy reached 1.22% and 2.22%. A subsequent measured solver brought the initially touching strikes to 1.34–1.35 ms at p95. Separated approaches still use the larger impact budget. [Conditional solver and finer controls](serial-touching-solver.md) [Contact comparison and controls](serial-incoming-impact.md)
 
 Eleven example tests exercised ordinary, adaptive, uniform and failed solves. The change covered 65/65 executable lines and 138/145 regions. The native browser checked 500 shapes and poses across 25 frames and rewound to zero. [Portable recording](serial-impact-cost.tar.xz)
 

@@ -1,0 +1,628 @@
+{
+  "candidate": "a8a1240",
+  "timing_binary_sha256": "c6d3e9698242bd99bb279f5c22c5af9a5f6fcc5c3cf63c64192611b68c37c217",
+  "stage": "24 one-millisecond public steps with independent loaded six-body state checks outside each timed interval",
+  "cpu": "AMD Ryzen 9 9950X3D, logical CPU 18, shared host",
+  "repetitions_per_configuration": 15,
+  "timed_public_steps": 2880,
+  "timings": {
+    "original-left-0": {
+      "calls": [
+        500,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "impact_p95_ms": 66.556768,
+      "step_p95_ms": 0.188971,
+      "step_p99_ms": 63.119507,
+      "total_median_ms": 64.566112
+    },
+    "selective-left-0": {
+      "calls": [
+        4,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "impact_p95_ms": 1.351324,
+      "step_p95_ms": 0.15775,
+      "step_p99_ms": 1.311794,
+      "total_median_ms": 4.405514
+    },
+    "original-right-0": {
+      "calls": [
+        500,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "impact_p95_ms": 63.258127,
+      "step_p95_ms": 0.180881,
+      "step_p99_ms": 61.434932,
+      "total_median_ms": 63.063486999999995
+    },
+    "selective-right-0": {
+      "calls": [
+        4,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "impact_p95_ms": 1.336804,
+      "step_p95_ms": 0.17664,
+      "step_p99_ms": 1.324875,
+      "total_median_ms": 4.409515
+    },
+    "original-left-350": {
+      "calls": [
+        500,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "impact_p95_ms": 62.622115,
+      "step_p95_ms": 0.183681,
+      "step_p99_ms": 61.868183,
+      "total_median_ms": 63.806639
+    },
+    "selective-left-350": {
+      "calls": [
+        500,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "impact_p95_ms": 61.25338,
+      "step_p95_ms": 0.180631,
+      "step_p99_ms": 60.591399,
+      "total_median_ms": 63.413897999999996
+    },
+    "original-right-350": {
+      "calls": [
+        500,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "impact_p95_ms": 63.753339,
+      "step_p95_ms": 0.187221,
+      "step_p99_ms": 61.375431,
+      "total_median_ms": 63.617017999999995
+    },
+    "selective-right-350": {
+      "calls": [
+        500,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "impact_p95_ms": 77.732734,
+      "step_p95_ms": 0.190881,
+      "step_p99_ms": 61.22391,
+      "total_median_ms": 63.808598999999994
+    }
+  },
+  "touching": {
+    "right": {
+      "8000": {
+        "impulse_N_s": 0.04529081261692293,
+        "reference_impulse_N_s": 0.0475832284904009,
+        "impulse_error_pct": 4.817697214346072,
+        "max_position_mm": 0.4410773507623745,
+        "max_angle_deg": 0.3706531825107916
+      },
+      "40000": {
+        "impulse_N_s": 0.04529081261692293,
+        "reference_impulse_N_s": 0.04740357365802532,
+        "impulse_error_pct": 4.4569657476545625,
+        "max_position_mm": 0.44938492592229745,
+        "max_angle_deg": 0.2756614626787083
+      },
+      "100000": {
+        "impulse_N_s": 0.04529081261692293,
+        "reference_impulse_N_s": 0.04678003395354455,
+        "impulse_error_pct": 3.183455014377512,
+        "max_position_mm": 0.4836074890934292,
+        "max_angle_deg": 0.18514847689617583
+      }
+    },
+    "left": {
+      "8000": {
+        "impulse_N_s": 0.04455725516809027,
+        "reference_impulse_N_s": 0.045561404842957835,
+        "impulse_error_pct": 2.2039480089095065,
+        "max_position_mm": 0.7740805023143537,
+        "max_angle_deg": 0.37149747892826473
+      },
+      "40000": {
+        "impulse_N_s": 0.04455725516809027,
+        "reference_impulse_N_s": 0.04548022778234671,
+        "impulse_error_pct": 2.0293931214977357,
+        "max_position_mm": 0.7906103150947533,
+        "max_angle_deg": 0.43150527755424345
+      },
+      "100000": {
+        "impulse_N_s": 0.04455725516809027,
+        "reference_impulse_N_s": 0.04546993726753138,
+        "impulse_error_pct": 2.0072209338472757,
+        "max_position_mm": 0.7940758661365288,
+        "max_angle_deg": 0.4402445477418534
+      }
+    }
+  },
+  "gaps": {
+    "right-50": {
+      "4x8x16": {
+        "impulse_N_s": 0.04206718719450708,
+        "reference_N_s": 0.04870555707640084,
+        "impulse_error_pct": 13.62959440435233,
+        "max_mm": 2.2143712654314647,
+        "max_deg": 2.90938095338002
+      },
+      "500x4x0": {
+        "impulse_N_s": 0.045858498843733324,
+        "reference_N_s": 0.04870555707640084,
+        "impulse_error_pct": 5.845448453041091,
+        "max_mm": 1.1637321371392217,
+        "max_deg": 1.6564873101012507
+      },
+      "4000x0x0": {
+        "impulse_N_s": 0.04863482418030978,
+        "reference_N_s": 0.04870555707640084,
+        "impulse_error_pct": 0.1452255149861137,
+        "max_mm": 0.1778591055032886,
+        "max_deg": 0.6363174079575334
+      }
+    },
+    "right-350": {
+      "4x8x16": {
+        "impulse_N_s": 0.03790552388727452,
+        "reference_N_s": 0.04355267149947851,
+        "impulse_error_pct": 12.966248493554765,
+        "max_mm": 1.6661495174604486,
+        "max_deg": 2.7725479881991077
+      },
+      "500x4x0": {
+        "impulse_N_s": 0.04182749222959122,
+        "reference_N_s": 0.04355267149947851,
+        "impulse_error_pct": 3.961133061396571,
+        "max_mm": 0.7351779278464045,
+        "max_deg": 1.8201681847403655
+      },
+      "4000x0x0": {
+        "impulse_N_s": 0.04398276247241767,
+        "reference_N_s": 0.04355267149947851,
+        "impulse_error_pct": 0.9875191535479333,
+        "max_mm": 0.07178084695430688,
+        "max_deg": 0.052770628144953584
+      }
+    },
+    "right-1200": {
+      "4x8x16": {
+        "impulse_N_s": 0.025335467142593302,
+        "reference_N_s": 0.026125977153881517,
+        "impulse_error_pct": 3.0257624686423235,
+        "max_mm": 0.47424565061374463,
+        "max_deg": 1.5204626353571855
+      },
+      "500x4x0": {
+        "impulse_N_s": 0.027275601052774108,
+        "reference_N_s": 0.026125977153881517,
+        "impulse_error_pct": 4.400309669266456,
+        "max_mm": 0.5570460041861055,
+        "max_deg": 0.496108027277845
+      },
+      "4000x0x0": {
+        "impulse_N_s": 0.02576755046674551,
+        "reference_N_s": 0.026125977153881517,
+        "impulse_error_pct": 1.3719168665917492,
+        "max_mm": 0.046986267594176394,
+        "max_deg": 0.03585217216403674
+      }
+    },
+    "left-50": {
+      "4x8x16": {
+        "impulse_N_s": 0.04221684183501326,
+        "reference_N_s": 0.0477790150092362,
+        "impulse_error_pct": 11.641456344689649,
+        "max_mm": 1.1998859760742961,
+        "max_deg": 2.8663535787305197
+      },
+      "500x4x0": {
+        "impulse_N_s": 0.04659048057231857,
+        "reference_N_s": 0.0477790150092362,
+        "impulse_error_pct": 2.4875657999393175,
+        "max_mm": 0.19862810844606174,
+        "max_deg": 0.7730866519547399
+      },
+      "4000x0x0": {
+        "impulse_N_s": 0.04961986509335596,
+        "reference_N_s": 0.0477790150092362,
+        "impulse_error_pct": 3.8528422650904393,
+        "max_mm": 0.6067910872088044,
+        "max_deg": 1.8358211726213445
+      }
+    },
+    "left-350": {
+      "4x8x16": {
+        "impulse_N_s": 0.03819021496865789,
+        "reference_N_s": 0.04141123340976135,
+        "impulse_error_pct": 7.778127275832858,
+        "max_mm": 0.894296081862505,
+        "max_deg": 1.2791531556323366
+      },
+      "500x4x0": {
+        "impulse_N_s": 0.04221362381852228,
+        "reference_N_s": 0.04141123340976135,
+        "impulse_error_pct": 1.9376153345188607,
+        "max_mm": 0.2353949151243837,
+        "max_deg": 0.7295502331032648
+      },
+      "4000x0x0": {
+        "impulse_N_s": 0.04289198152450404,
+        "reference_N_s": 0.04141123340976135,
+        "impulse_error_pct": 3.5757160384255915,
+        "max_mm": 0.1981497506422178,
+        "max_deg": 0.14018470525752202
+      }
+    },
+    "left-1200": {
+      "4x8x16": {
+        "impulse_N_s": 0.025502831570177117,
+        "reference_N_s": 0.026816315776797498,
+        "impulse_error_pct": 4.898078533803874,
+        "max_mm": 0.9664197077589219,
+        "max_deg": 1.1092652163231649
+      },
+      "500x4x0": {
+        "impulse_N_s": 0.027136695980750775,
+        "reference_N_s": 0.026816315776797498,
+        "impulse_error_pct": 1.1947211787775913,
+        "max_mm": 0.685077308923349,
+        "max_deg": 0.709034940709124
+      },
+      "4000x0x0": {
+        "impulse_N_s": 0.026702061064008863,
+        "reference_N_s": 0.026816315776797498,
+        "impulse_error_pct": 0.42606416832058347,
+        "max_mm": 0.01633548368250339,
+        "max_deg": 0.025680454596058184
+      }
+    }
+  },
+  "first_tick_higher_resolution": {
+    "right-16-0": {
+      "8000": 0.055063528704961305,
+      "16000": 0.05278719422995461,
+      "32000": 0.05147806026318655,
+      "64000": 0.04746361219902214,
+      "128000": 0.04743556041417173
+    },
+    "right-1.75-50": {
+      "8000": 0.04870555707640084,
+      "16000": 0.047598356268176246,
+      "32000": 0.048405034541099116,
+      "64000": 0.047299643112767104,
+      "128000": 0.04742271782929421
+    },
+    "right-1.75-0": {
+      "8000": 0.0475832284904009,
+      "16000": 0.04747234845939317,
+      "32000": 0.04354292989013931,
+      "64000": 0.04354042078074721,
+      "128000": 0.043538694489994215
+    },
+    "left-16-0": {
+      "8000": 0.04358584685559789,
+      "16000": 0.043676521815602706,
+      "32000": 0.043755571405821085,
+      "64000": 0.043809764338053205,
+      "128000": 0.04483635697020164
+    },
+    "left-1.75-50": {
+      "8000": 0.0477790150092362,
+      "16000": 0.048240668854018745,
+      "32000": 0.04704396002858667,
+      "64000": 0.04725366179115438,
+      "128000": 0.04787146180177924
+    },
+    "left-1.75-0": {
+      "8000": 0.045561404842957835,
+      "16000": 0.04550652938357575,
+      "32000": 0.04548443690128534,
+      "64000": 0.04547334875597404,
+      "128000": 0.045467847256502214
+    }
+  },
+  "pilot_grids": {
+    "temporal_only_profiles": 33,
+    "fixed_constraint_profiles": 130
+  },
+  "visuals": {
+    "browser": {
+      "body_poses_and_shapes_checked": 500,
+      "frames": 25,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10064%2F"
+    },
+    "gap-browser": {
+      "body_poses_and_shapes_checked": 500,
+      "frames": 25,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10065%2F"
+    }
+  },
+  "independent_cli_final_positions": 18,
+  "matched_reference_example_coverage": {
+    "crates/gz-sim-cli/examples/serial_impact_inertia.rs": {
+      "lines": {
+        "hit": 39,
+        "total": 40,
+        "missing": [
+          344
+        ]
+      },
+      "regions": {
+        "hit": 59,
+        "total": 60,
+        "missing": [
+          [
+            344,
+            10,
+            344,
+            11
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/examples/serial_impact_inertia/compare.rs": {
+      "lines": {
+        "hit": 24,
+        "total": 24,
+        "missing": []
+      },
+      "regions": {
+        "hit": 30,
+        "total": 30,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/examples/serial_impact_inertia/timing.rs": {
+      "lines": {
+        "hit": 5,
+        "total": 5,
+        "missing": []
+      },
+      "regions": {
+        "hit": 11,
+        "total": 11,
+        "missing": []
+      }
+    }
+  },
+  "candidate_changed_coverage": {
+    "crates/gz-sim-cli/examples/serial_impact_inertia.rs": {
+      "lines": {
+        "hit": 10,
+        "total": 10,
+        "missing": []
+      },
+      "regions": {
+        "hit": 18,
+        "total": 18,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-cli/examples/serial_impact_inertia/compare.rs": {
+      "lines": {
+        "hit": 1,
+        "total": 1,
+        "missing": []
+      },
+      "regions": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-scene/src/primary_contact.rs": {
+      "lines": {
+        "hit": 23,
+        "total": 23,
+        "missing": []
+      },
+      "regions": {
+        "hit": 39,
+        "total": 39,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-scene/src/primary_contact/geometry.rs": {
+      "lines": {
+        "hit": 18,
+        "total": 18,
+        "missing": []
+      },
+      "regions": {
+        "hit": 34,
+        "total": 34,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-scene/src/primary_contact/sdf.rs": {
+      "lines": {
+        "hit": 29,
+        "total": 29,
+        "missing": []
+      },
+      "regions": {
+        "hit": 77,
+        "total": 77,
+        "missing": []
+      }
+    }
+  }
+}
