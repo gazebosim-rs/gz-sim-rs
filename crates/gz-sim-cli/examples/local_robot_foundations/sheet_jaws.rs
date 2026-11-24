@@ -3,6 +3,8 @@
 //! Keep the sheet and 1 ms robot controller fixed while varying jaw density and pad stiffness.
 #[path = "sheet_jaws/convergence.rs"]
 pub(super) mod convergence;
+#[path = "sheet_jaws/force_view.rs"]
+pub(super) mod force_view;
 use super::*;
 use crate::arm_sheet::{Case, NOMINAL_FLARE, SheetStepFault};
 

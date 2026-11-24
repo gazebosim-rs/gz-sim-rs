@@ -341,6 +341,11 @@ pub(super) fn simulate_with_jaw_damping(
         min_bench_margin_m: f64::INFINITY,
         ..Default::default()
     };
+    let mut force_view = (out.is_some() && m.panel_balance.is_some())
+        .then(crate::sheet_jaws::force_view::ForceView::default);
+    if let Some(view) = &mut force_view {
+        view.sample(STRIDE as f64 * DT);
+    }
     let mut frames = vec![];
     let mut momentum = DVec3::ZERO;
     let mut relative_at_hold_start = [0.; 2];
@@ -439,6 +444,19 @@ pub(super) fn simulate_with_jaw_damping(
             return Err("missing sheet boundary loads".into());
         };
         let js = [left, right, bench].map(|j| DVec3::from(j.linear));
+        if let Some(view) = &mut force_view {
+            let mut bend = [0.; 2];
+            let mut friction = [0.; 2];
+            let rows = gz_sim_scene::deformable::shell_constraint_impulses(&r.sim, "sheet")
+                .ok_or("missing shell force recording")?;
+            for (id, j) in rows.iter().enumerate() {
+                bend[panel(id)] += j.bending.z;
+            }
+            for j in b.last_self_contact_particle_impulses() {
+                friction[panel(j.particle)] += j.tangent[2];
+            }
+            view.add([-js[0].z, -js[1].z], bend, friction);
+        }
         let mut measured = [DVec3::ZERO; 2];
         let mut same_panel_normal = [0.; 2];
         for load in b.last_pad_loads() {
@@ -529,6 +547,9 @@ pub(super) fn simulate_with_jaw_damping(
         }
         if out.is_some() && native_tick.is_multiple_of(STRIDE * exchanges) {
             capture(&mut r, &mut frames)?;
+            if let Some(view) = &mut force_view {
+                view.sample(STRIDE as f64 * DT);
+            }
         }
     }
     let mut controller_period_costs: Vec<u64> = r
@@ -539,6 +560,9 @@ pub(super) fn simulate_with_jaw_damping(
     controller_period_costs.sort_unstable();
     m.step_p95_ns = controller_period_costs[(END * 95).div_ceil(100) - 1];
     if let Some(out) = out {
+        if let Some(view) = force_view {
+            view.save(&r, out, m.weight_n)?;
+        }
         save_archive(
             r,
             frames,
