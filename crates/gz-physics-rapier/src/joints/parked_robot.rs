@@ -104,6 +104,11 @@ impl RapierBackend {
                 JointMotion::Angular | JointMotion::Screw { .. } if !c.authored_weld() => {
                     axis = Rotation::from_rotation_x(j.position) * axis;
                 }
+                JointMotion::Ball => {
+                    let (parent_frame, child_frame) =
+                        c.world_joint_frames(&self.world, &self.bodies);
+                    axis = (parent_frame.inverse() * child_frame) * axis;
+                }
                 JointMotion::Universal(_) => {
                     let [first, second] = j.universal_angles;
                     axis = Rotation::from_rotation_x(first)
@@ -307,3 +312,7 @@ impl RapierBackend {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "../../tests/private/mounted_ball_axis.rs"]
+mod mounted_ball_axis;

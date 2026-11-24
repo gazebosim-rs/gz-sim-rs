@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let options = Options::parse();
     let path = options.archive;
     if options.mounted {
-        return mounted::record(&path);
+        return mounted::record(&path, mounted::HANGING);
     }
     let sdf = sdformat::load_str(XML, "wrist.sdf", &sdformat::NoResources)?;
     let world = "default";

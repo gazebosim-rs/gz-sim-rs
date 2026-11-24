@@ -2,18 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 use gz_physics_multifidelity::{ArticulationTier, BallJointState};
-use std::time::Instant;
-type Sample = ([f64; 3], BallJointState);
 use gz_sim_core::Simulation;
 use gz_sim_scene::{WorldPose, model_fidelity, set_model_fidelity};
 
-const HANGING: &str = include_str!("../../../../examples/worlds/local_hanging_ball_wrist.sdf");
+use std::time::Instant;
+
+type Sample = ([f64; 3], BallJointState);
+
+pub(super) const HANGING: &str =
+    include_str!("../../../../examples/worlds/local_hanging_ball_wrist.sdf");
 const RESUME: usize = 351;
 const END: usize = 1500;
 
-fn load() -> Result<Simulation, Box<dyn Error>> {
+fn load(xml: &str) -> Result<Simulation, Box<dyn Error>> {
     Ok(load_world_with_sdf_step(
-        HANGING,
+        xml,
         "hanging-wrist.sdf",
         "default",
         &sdformat::NoResources,
@@ -117,9 +120,9 @@ fn separation(q: glam::DQuat) -> f64 {
     2.0 * q.xyz().length().atan2(q.w.abs())
 }
 
-pub(super) fn record(path: &Path) -> Result<(), Box<dyn Error>> {
-    let sdf = sdformat::load_str(HANGING, "hanging-wrist.sdf", &sdformat::NoResources)?;
-    let mut switched = load()?;
+pub(super) fn record(path: &Path, xml: &str) -> Result<(), Box<dyn Error>> {
+    let sdf = sdformat::load_str(xml, "hanging-wrist.sdf", &sdformat::NoResources)?;
+    let mut switched = load(xml)?;
     let mut frames = Vec::new();
     let parked = episode(&mut switched, true, |sim| {
         frames.push(gz_sim_cli::primitive_frame(
@@ -130,7 +133,7 @@ pub(super) fn record(path: &Path) -> Result<(), Box<dyn Error>> {
         )?);
         Ok(())
     })?;
-    let control = episode(&mut load()?, false, |_| Ok(()))?;
+    let control = episode(&mut load(xml)?, false, |_| Ok(()))?;
     gz_sim_scene::reset_loaded_world(&mut switched, |_| ())?;
     let reset = episode(&mut switched, true, |_| Ok(()))?;
     if reset.states != parked.states {
@@ -163,3 +166,7 @@ pub(super) fn record(path: &Path) -> Result<(), Box<dyn Error>> {
     gz_sim_cli::export_archive(path, Default::default(), frames)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "mounted_tests.rs"]
+mod tests;
