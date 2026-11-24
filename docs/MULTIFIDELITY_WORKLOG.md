@@ -3,9 +3,13 @@
 
 # Multi-fidelity physics worklog
 
-The Rust/Bevy arm can carry rigid parcels, weigh loose cables and maintain pressure on a folded sheet. The released sheet differed by 0.328 mm between the latest 1,000- and 2,000-exchange runs, leaving its 0.1 mm trajectory target open. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Weighing a cable](measurements/local-manipulation/serial-cable-weigh.md) · [Folded sheet](measurements/local-manipulation/viscous-gripper-pads.md)
+The local Rust/Bevy robot can carry rigid parcels, weigh a loose cable and place a folded sheet once it measures sustained table support. The two finest load-confirmed placements stayed within 0.0076 mm of each other. The earlier timed opening still differs by 0.328 mm, and the first bounce after a receiver drops away varies with step size. [Rigid parcel](measurements/local-manipulation/serial-transfer.md) · [Cable](measurements/local-manipulation/serial-cable-weigh.md) · [Sheet placement](measurements/local-manipulation/sheet-supported-setdown.md) · [Receiver withdrawal](measurements/local-manipulation/sheet-receiver-drop.md)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
+
+## 2026-11-23 — Curved rigid bodies in the CPU journal and viewer
+
+Two tilted parts with equal overall dimensions hit the ground eight milliseconds apart. The measured landing times matched their different flat and rounded ends within one tick. Their true mesh geometry now travels inside the native recording. The 600-step runs matched after reset and across thread counts. [Watch both contacts and inspect the measurements](measurements/local-manipulation/curved-body-replay.md)
 
 ## 2026-11-23 — A sliding material stops without reversing downhill
 
