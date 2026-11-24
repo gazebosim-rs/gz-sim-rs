@@ -363,6 +363,16 @@ impl Chrome {
         sleep(180);
         Ok(())
     }
+    fn zoom_out(&mut self, steps: u64) -> Result<()> {
+        for _ in 0..steps.min(24) {
+            self.call(
+                "Input.dispatchMouseEvent",
+                json!({"type":"mouseWheel","x":748,"y":458,"deltaX":0,"deltaY":200}),
+            )?;
+            self.paints()?;
+        }
+        Ok(())
+    }
     fn focus_visual(&mut self, follow_sheet: bool, perspective: bool) -> Result<()> {
         // In the folded-grasp scene the first material node follows the ten
         // robot and support visuals in the expanded outliner.
@@ -731,6 +741,8 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
         chrome.capture(&output.join("overview.jpg"))?;
         chrome.focus_visual(follow_sheet, chrome.oracle.index["focus_perspective"] == true)?;
     }
+    let zoom_steps = chrome.oracle.index["zoom_out_steps"].as_u64().unwrap_or(0);
+    chrome.zoom_out(zoom_steps)?;
     chrome.capture(&output.join("initial.jpg"))?;
     for name in marks.remove(&0).into_iter().flatten() {
         if name == "initial" {

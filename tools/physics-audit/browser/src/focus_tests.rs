@@ -64,3 +64,40 @@ fn interrupted_camera_inputs_propagate_to_the_recorder() {
         }
     });
 }
+
+#[test]
+fn zoom_rejects_an_unpainted_or_refused_wheel_event() {
+    for interrupted in ["Input.dispatchMouseEvent", "Runtime.evaluate"] {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let client = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let server = listener.accept().unwrap().0;
+        let endpoint = thread::spawn(move || {
+            let mut peer = WebSocket::from_raw_socket(server, Role::Server, None);
+            for method in ["Input.dispatchMouseEvent", "Runtime.evaluate"] {
+                let msg: Value = serde_json::from_slice(&peer.read().unwrap().into_data()).unwrap();
+                assert_eq!(msg["method"], method);
+                if method == interrupted {
+                    let reply = json!({"id":msg["id"],"error":{"message":"camera interrupted"}});
+                    peer.send(Message::Text(reply.to_string().into())).unwrap();
+                    break;
+                }
+                let reply = json!({"id":msg["id"],"result":{}});
+                peer.send(Message::Text(reply.to_string().into())).unwrap();
+            }
+        });
+        let mut chrome = Chrome {
+            socket: WebSocket::from_raw_socket(client, Role::Client, None),
+            session: None,
+            next: 0,
+            oracle: Oracle::default(),
+        };
+        assert!(
+            chrome
+                .zoom_out(1)
+                .unwrap_err()
+                .to_string()
+                .contains("camera interrupted")
+        );
+        endpoint.join().unwrap();
+    }
+}
