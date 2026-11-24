@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+The gripper can rock a block onto two loaded corners on each pad and catch the opposite edge as it returns. The tall block shows how the solver keeps the grip steady as unloaded corners leave the collision prediction range. [Watch both in gz-web-rs](measurements/local-manipulation/pad-rocking-view.md) · [Force, torque and impact measurements](measurements/local-manipulation/pad-rocking.md)
+
 The two-finger gripper accepts a pad stiffness in N/m for each slider. Under a 3 N squeeze, 30,000 N/m pads compressed by 0.100 mm each on three different finger masses. [SDF example](../examples/worlds/local_stiff_pad_grasp.sdf) · [Static qualification](measurements/local-manipulation/pad-stiffness.md) · [Loading and release qualification](measurements/local-manipulation/pad-transient.md) · [Watch the grip and release in gz-web-rs](measurements/local-manipulation/pad-transient-view.md)
 
 The two-finger experiment shows a 200 g parcel holding, slipping as the motors weaken, and falling when the jaws open. A second view shows a sphere rolling along inclined jaws while both travel stops carry its weight. [Grasp and release](measurements/local-manipulation/two-finger-view.md) · [Double-stop loads and groove replay](measurements/local-manipulation/two-finger-load.md)

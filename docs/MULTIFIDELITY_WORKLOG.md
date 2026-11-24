@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Rock a parcel from its faces onto its edges and back
+
+Two fingers kept their grip on a block as it rocked 14.48° and reseated on both faces. A taller block exposed two artificial changes in the grip. The solver transferred stiffness from unloaded corners to the loaded edge and used a stale point of application as the parcel rotated. With both corrected, the left pad’s force changed by less than 0.0005 N at each 100 µs transition, down from 0.337 N outward and 0.254 N on return. The p95 cost over the tall maneuver was 15.32 µs per Bevy step, compared with 15.23 µs before. [Physics, costs and controls](measurements/local-manipulation/pad-rocking.md) · [Measured gz-web-rs replays](measurements/local-manipulation/pad-rocking-view.md)
+
+The returning corner on the compact block struck at about 0.6 m/s. A 1 µs run measured 193.91 N on the left jaw, against 196.00 N from the damping law and incoming motion. A 200 µs run measured 71.36 N, although the two-millisecond force and torque impulses on both jaws stayed within 0.67% of the fine run. The 13 gripper tests passed and changed solver line and region coverage reached 100%. Next, refine the brief returning-edge strike locally and recheck peak force, impulse and step cost with the actuator clock held fixed.
+
 ## 2026-11-24 — Preserve the speed of gripper compression and release
 
 The gripper reached 95% compression in 82.525–82.600 ms across four simulation step sizes, against 82.497 ms predicted. Previously its measured times ranged from 230 to 1,224 ms. A guided four-point pad now follows the same spring-and-damper response as a single contact within 0.017 µm. When the squeeze weakened, the sphere dropped 13.96212 mm against 13.96250 mm predicted. Opening the fingers unloaded both pads within two public steps of the predicted release. Authored-pad p95 step costs were 12.81–13.01 µs. [Numerical comparison, cost and scope](measurements/local-manipulation/pad-transient.md) · [Loading, slipping and release in gz-web-rs](measurements/local-manipulation/pad-transient-view.md)
