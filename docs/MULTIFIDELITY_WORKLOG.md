@@ -2141,3 +2141,7 @@ For 100,000 moving decks and 1,000 payloads, batching the parent-pose reads lowe
 ## 2026-11-23 — Physical damping of a cloth fold
 
 A cloth fold can now dissipate bending vibration at an authored rate. In the controlled test, increasing the damping reduced late tip displacement from 40.99 to 0.14 mm. All 901 states repeated after reset. Seven stiff-gripper trials completed, but at the highest tested rate each jaw briefly lost pressure despite the mean load dividing almost equally. [Measurements and three native replays](measurements/local-manipulation/cloth-bending-damping.md)
+
+## 2026-11-23 — Braking a loaded cable before a rigid jaw hits the barrier
+
+The gripper sensed that the snagged cable was losing supported weight and actively braked the rail. It cleared the 700 mm barrier by 8.05 mm at normal speed and 3.47 mm at twice the speed, then returned the cable to its source. The original stops produced 0.174 and 0.500 N·s of right-jaw impact. The guarded stops produced zero. The clear route and harmless rub matched every command and particle state. Reset reproduced all 148,250 advances. Twenty-one tests passed, and LLVM exercised 395/403 changed production lines and 818/857 regions. [Physical limits, cost and native replays](measurements/local-manipulation/serial-cable-braking.md)

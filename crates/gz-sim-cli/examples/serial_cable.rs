@@ -340,6 +340,12 @@ fn main() -> Result<()> {
     let out = std::env::args_os()
         .nth(1)
         .ok_or("supply fresh output directory")?;
+    if out == "--braking" {
+        let d = std::env::args_os()
+            .nth(2)
+            .ok_or("supply fresh braking output directory")?;
+        return snag::tactile::braking::record(Path::new(&d));
+    }
     if out == "--tactile" {
         let output = std::env::args_os()
             .nth(2)

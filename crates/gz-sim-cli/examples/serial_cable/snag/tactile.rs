@@ -42,6 +42,12 @@ struct Log {
     jaws: JawReadings,
     signal: Signal,
     truth: Sample,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    rail_command_n: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    unloaded_travel_m: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    rigid_pad_bar_impulse_ns: Option<[f64; 2]>,
 }
 fn run(
     sim: &mut Simulation,
@@ -49,9 +55,23 @@ fn run(
     fixture: Fixture,
     out: Option<&Path>,
 ) -> Result<Vec<Log>> {
+    monitored_run(sim, sdf, fixture, out, None)
+}
+fn monitored_run(
+    sim: &mut Simulation,
+    sdf: &sdformat::Sdf,
+    fixture: Fixture,
+    out: Option<&Path>,
+    active_braking: Option<bool>,
+) -> Result<Vec<Log>> {
     let robot = Robot::load(sim, sdf)?;
     let mut route =
         Controller::with_travel_ticks(if fixture == Fixture::Fast { 2000 } else { 4000 });
+    route.active_braking = active_braking.unwrap_or(false);
+    let mut support = braking::SupportLoss::default();
+    let rigid_pair = active_braking
+        .map(|_| braking::PadContact::new(sim, &robot))
+        .transpose()?;
     let mut sensor = Observer::default();
     let mut frames = vec![];
     let mut coords = vec![];
@@ -68,14 +88,26 @@ fn run(
             // Failure of one closing drive. The observer receives no fault bit.
             JointForceCommand::set_batch(sim, [(robot.jaws[0].id, -16.)])?;
         }
+        let rail_command_n = active_braking.map(|_| {
+            sim.world()
+                .get::<JointForceCommand>(robot.rail.entity)
+                .expect("commanded rail")
+                .torque()
+        });
         sim.step_exact(1)
             .map_err(|e| format!("tick {tick}: {e} {:?}", sim.fault()))?;
         let jaws = JawReadings::read(sim, &robot)?;
-        let (feed, signal) = sensor.update(&jaws);
+        let (mut feed, signal) = sensor.update(&jaws);
+        let unloaded_travel_m = active_braking.map(|active| {
+            let distance = support.observe(route.stage, &jaws, &signal);
+            feed.snag |= active && distance >= braking::UNLOAD_TRAVEL_M;
+            distance
+        });
         let stage = route.stage;
         route.apply(tick, jaws.rail_y_m, &feed)?;
         // Independent evaluator reads material truth only after the robot's decision.
         let truth = sample(sim, &robot, prior)?;
+        let rigid_pad_bar_impulse_ns = rigid_pair.as_ref().map(|r| r.read(sim)).transpose()?;
         prior = truth.momentum.into();
         let change = stage != route.stage;
         if change {
@@ -88,15 +120,32 @@ fn run(
                 jaws.force_on_payload_n[2]
             );
         }
+        let first_rigid_contact = rigid_pad_bar_impulse_ns
+            .is_some_and(|j| j.into_iter().any(|n| n > 1e-12))
+            && !keys.contains_key("first-rigid-contact");
+        let first_cable_contact = active_braking.is_some()
+            && truth.bar > 1e-8
+            && !keys.contains_key("first-cable-contact");
         rows.push(Log {
             tick,
             stage,
             jaws,
             signal,
             truth,
+            rail_command_n,
+            unloaded_travel_m,
+            rigid_pad_bar_impulse_ns,
         });
         let done = route.done(tick);
-        if out.is_some() && (tick % 100 == 0 || change || done) {
+        if out.is_some()
+            && (tick % 100 == 0 || change || done || first_rigid_contact || first_cable_contact)
+        {
+            if first_rigid_contact {
+                keys.insert("first-rigid-contact".to_owned(), frames.len());
+            }
+            if first_cable_contact {
+                keys.insert("first-cable-contact".to_owned(), frames.len());
+            }
             if change {
                 keys.insert(format!("event-{tick}-{:?}", route.stage), frames.len());
             }
@@ -140,6 +189,8 @@ fn trial_order() -> [Fixture; 6] {
         Fixture::Lost,
     ]
 }
+#[path = "tactile/braking.rs"]
+pub(crate) mod braking;
 #[path = "tactile/plot.rs"]
 mod plot;
 #[path = "tactile/qualification.rs"]

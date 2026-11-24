@@ -5,6 +5,9 @@ pub(super) const NORMAL_LIFT: f64 = 2.35;
 const LIFT_INCREMENT: f64 = 0.45;
 const SAFE_LIFT: f64 = 2.80;
 const BACKOFF: f64 = 0.10;
+const RAIL_ASSEMBLY_MASS_KG: f64 = 2.46;
+const BRAKE_DECAY_S: f64 = 0.004;
+const BRAKE_LIMIT_N: f64 = 45.;
 pub(super) const FORCE_TRIGGER: f64 = 0.15 * WEIGHT;
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub(super) enum Stage {
@@ -61,6 +64,8 @@ pub(super) struct Controller {
     pub lift: f64,
     stage_start: usize,
     travel_ticks: usize,
+    pub active_braking: bool,
+    stopping_forward: bool,
     motion: RailMotion,
     dwell: usize,
 }
@@ -76,6 +81,8 @@ impl Controller {
             lift: NORMAL_LIFT,
             stage_start: 0,
             travel_ticks,
+            active_braking: false,
+            stopping_forward: false,
             motion: RailMotion {
                 from: 0.,
                 to: 0.,
@@ -85,7 +92,7 @@ impl Controller {
             dwell: 0,
         }
     }
-    pub fn drive(&self, robot: &Robot, sim: &mut Simulation, tick: usize) -> Result<()> {
+    pub fn drive(&mut self, robot: &Robot, sim: &mut Simulation, tick: usize) -> Result<()> {
         if self.stage == Stage::Pickup {
             return robot.drive(sim, tick, false, None, NORMAL_LIFT);
         }
@@ -109,7 +116,15 @@ impl Controller {
             .ok_or("missing rail feedback")?
             .state;
         let (target, speed) = self.motion.target(tick);
-        let force = 100. * (target - rail.position) + 28. * (speed - rail.velocity);
+        let mut force = 100. * (target - rail.position) + 28. * (speed - rail.velocity);
+        // Once a contact or grasp-loss trip has latched, unload forward rail
+        // momentum before following the retreat. This commands the real slider;
+        // the brake never edits the measured velocity or any material state.
+        self.stopping_forward &= rail.velocity > 0.;
+        if self.stopping_forward {
+            let brake = -(RAIL_ASSEMBLY_MASS_KG * rail.velocity / BRAKE_DECAY_S).min(BRAKE_LIMIT_N);
+            force = force.min(brake);
+        }
         let stroke = if matches!(self.stage, Stage::Opening | Stage::Withdrawn) {
             0.
         } else {
@@ -134,6 +149,8 @@ impl Controller {
             load_n: s.load_n,
             spindle_rad: s.spindle_rad,
         });
+        self.stopping_forward =
+            self.active_braking && matches!(stage, Stage::Backoff | Stage::LostGrip);
         self.stage = stage;
         self.stage_start = tick;
         self.dwell = 0;
