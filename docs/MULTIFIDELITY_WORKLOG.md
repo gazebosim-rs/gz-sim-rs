@@ -9,6 +9,11 @@ Each new development phase includes visual output from the measured simulation a
 
 
 
+
+## 2026-11-23 — A torque-limited loaded wrist recovers from a shove
+
+A 20 ms external torque knocked a 3 kg wrist off its commanded turn. Feedback limited its peak error to 3.74° and returned it within 0.022° of the target by two seconds. With the same motor limit and load compensation but no feedback, its twin passed 179° of error and was still spinning. Both runs reproduced after reset. [Native comparison, motor saturation and coverage](measurements/local-manipulation/loaded-wrist-recovery.md)
+
 ## 2026-11-23 — Accelerating a robot wrist carrying an uneven load
 
 The local robot now reports the total downstream mass, its center and the complete rotational inertia about a joint. A 3 kg assembly followed a 55° rotation with a maximum error of 0.71°. Using only the three diagonal inertia terms gave 77.18° of error on the same command. All 1,000 steps repeated after reset and the browser checked all 1,414 displayed poses. [Measurements and native gz-web-rs playback](measurements/local-manipulation/composite-wrist-inertia.md)
