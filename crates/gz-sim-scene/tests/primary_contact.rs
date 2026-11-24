@@ -842,3 +842,103 @@ fn a_translating_parcel_hits_the_finite_face_between_two_disjoint_endpoint_footp
         }
     }
 }
+
+#[test]
+fn the_touching_solver_requires_one_centered_parallel_impact_and_a_valid_native_grid() {
+    let raw = include_str!("../../../examples/worlds/local_sorter_crossing.sdf");
+    let tag = "<touching_solver><native_steps>4</native_steps><solver_iterations>8</solver_iterations><pgs_iterations>16</pgs_iterations></touching_solver>";
+    let xml = raw
+        .replacen("<pair>", &format!("{tag}<pair>"), 1)
+        .replace("-0.02 0 0.079", "0 0 0.039")
+        .replace("2 0 -4</linear_velocity>", "0 0 -4</linear_velocity>");
+    for (world, calls, pairs) in [
+        (xml.clone(), 4, 1),
+        (xml.replace("<pgs_iterations>16</pgs_iterations>", ""), 4, 1),
+        (xml.replace("-0.02 0.11 0.079", "0 0.05 0.039"), 100, 2),
+        (xml.replace("0 0 0.039", "0.006 0 0.039"), 100, 1),
+        (
+            xml.replace("0 0 -4</linear_velocity>", "0.01 0 -4</linear_velocity>"),
+            100,
+            1,
+        ),
+    ] {
+        let mut sim = load(&world);
+        for _ in 0..2 {
+            sim.step_exact(1).unwrap();
+            let r = last_refinement(&sim).unwrap();
+            assert_eq!(
+                (r.interval.native_steps, r.requested_pairs.len()),
+                (calls, pairs)
+            );
+            assert_eq!(r.solver.temporal, if calls == 4 { 8 } else { 4 });
+            sim.reset().unwrap();
+        }
+    }
+    // The second lane is bearing a load when a paused edit places the first parcel at its pad.
+    let mut loaded = load(
+        &xml.replace("0 0 0.039", "0.1 0 0.039")
+            .replace("-0.02 0.11 0.079", "0 0.05 0.039"),
+    );
+    loaded.step_exact(1).unwrap();
+    let red = id(&loaded, "parcel");
+    let mut pose = gz_sim_scene::model_state(&loaded, red).unwrap();
+    pose.translation = [0., 0., 0.039];
+    pose.linear_velocity = [0., 0., -4.];
+    gz_sim_scene::set_model_state(&mut loaded, red, pose).unwrap();
+    assert!(
+        loaded
+            .world()
+            .resource::<PhysicsBackend>()
+            .downcast_ref::<gz_physics_multifidelity::MultiFidelityBackend>()
+            .unwrap()
+            .active_contact_pairs()
+            > 0
+    );
+    loaded.step_exact(1).unwrap();
+    let resumed = last_refinement(&loaded).unwrap();
+    assert_eq!(resumed.requested_pairs.len(), 1);
+    assert_eq!(resumed.interval.native_steps, 100);
+    let try_load = |xml: &str| {
+        load_world_with_sdf_step(
+            xml,
+            "test.sdf",
+            "default",
+            &NoResources,
+            PhysicsEngine::MultiFidelity,
+        )
+    };
+    for bad in [
+        "",
+        "<pgs_iterations>1</pgs_iterations>",
+        "<native_steps>4</native_steps>",
+        "<native_steps>0</native_steps><solver_iterations>4</solver_iterations>",
+        "<native_steps>4</native_steps><solver_iterations>0</solver_iterations>",
+        "<native_steps>bad</native_steps><solver_iterations>4</solver_iterations>",
+        "<native_steps>4</native_steps><solver_iterations>x</solver_iterations>",
+        "<native_steps>4</native_steps><solver_iterations>4</solver_iterations><pgs_iterations>x</pgs_iterations>",
+        "<native_steps>4</native_steps><solver_iterations>4</solver_iterations><pgs_iterations>4</pgs_iterations><pgs_iterations>4</pgs_iterations>",
+        "<native_steps a='b'>4</native_steps>",
+        "<native_steps/>",
+        "<bad/>",
+        "junk",
+    ] {
+        assert!(
+            try_load(&xml.replace(tag, &format!("<touching_solver>{bad}</touching_solver>")))
+                .is_err()
+        );
+    }
+    assert!(try_load(&xml.replace(tag, &format!("{tag}{tag}"))).is_err());
+    assert!(try_load(&xml.replace("<incoming_face>+z</incoming_face>", "")).is_err());
+    assert!(
+        try_load(
+            &xml.lines()
+                .filter(|l| !l.contains("<pair>"))
+                .collect::<String>()
+                .replace(
+                    "<native_steps>100</native_steps>",
+                    &format!("{tag}<native_steps>100</native_steps>")
+                )
+        )
+        .is_err()
+    );
+}

@@ -187,6 +187,12 @@ pub(super) fn predict_oriented(
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum FaceArrival {
+    TouchingParallelFaces,
+    Predicted,
+}
+
 /// Detect closure across the finite authored face from the current rigid twists.
 /// For fixed orientations also test where the incident box first reaches
 /// the face plane. A fast transverse motion can miss both endpoint footprints.
@@ -197,7 +203,7 @@ pub(super) fn incoming_face(
     foot: (BodyState, BoxShape),
     support: (BodyState, BoxShape),
     dt: f64,
-) -> bool {
+) -> Option<FaceArrival> {
     let face_rotation = DQuat::from_rotation_arc(DVec3::Z, face);
     let half = (face_rotation.conjugate() * support.1.half).abs();
     let tolerance = 64.
@@ -229,7 +235,7 @@ pub(super) fn incoming_face(
         *latched = false;
     }
     if *latched || gap.is_some_and(|z| z < -tolerance) {
-        return false;
+        return None;
     }
     let hit = gap.is_some_and(|z| {
         body_at(dt)
@@ -239,7 +245,25 @@ pub(super) fn incoming_face(
         && support.0.angular_velocity == [0.; 3]
         && translating_face_entry(start, half, dt, tolerance));
     *latched = hit;
-    hit
+    hit.then(|| {
+        let normal_in_box = start.rotation.conjugate() * DVec3::Z;
+        let origin = start.com - start.rotation * start.shape.local_com;
+        if gap.is_some_and(|z| z.abs() <= tolerance)
+            && foot.0.angular_velocity == [0.; 3]
+            && support.0.angular_velocity == [0.; 3]
+            && start.velocity.z < 0.
+            && start.velocity.truncate().length() * dt <= tolerance
+            && origin.x.abs() + tolerance < half.x
+            && origin.y.abs() + tolerance < half.y
+            && DVec3::AXES
+                .iter()
+                .any(|axis| normal_in_box.cross(*axis).length() <= 64. * f64::EPSILON)
+        {
+            FaceArrival::TouchingParallelFaces
+        } else {
+            FaceArrival::Predicted
+        }
+    })
 }
 
 /// Project the box half extents onto the receiver normal. Until its lowest
@@ -301,55 +325,28 @@ mod tests {
                 )
             };
             let mut latch = false;
-            assert!(incoming_face(
-                &mut latch,
-                face,
-                foot(0., 1., DVec3::ZERO),
-                pad,
-                DT
-            ));
-            assert!(!incoming_face(
-                &mut latch,
-                face,
-                foot(0., 1., DVec3::ZERO),
-                pad,
-                DT
-            ));
-            assert!(!incoming_face(
-                &mut latch,
-                face,
-                foot(0.002, 1., DVec3::ZERO),
-                pad,
-                DT
-            ));
-            assert!(incoming_face(
-                &mut latch,
-                face,
-                foot(0.0001, 1., DVec3::ZERO),
-                pad,
-                DT
-            ));
-            assert!(!incoming_face(
-                &mut latch,
-                face,
-                foot(0., 1., q * face.any_orthonormal_vector() * 0.3),
-                pad,
-                DT
-            ));
-            assert!(!incoming_face(
-                &mut latch,
-                face,
-                foot(0., -1., DVec3::ZERO),
-                pad,
-                DT
-            ));
-            assert!(!incoming_face(
-                &mut latch,
-                face,
-                foot(-0.08, 1., DVec3::ZERO),
-                pad,
-                DT
-            ));
+            assert!(incoming_face(&mut latch, face, foot(0., 1., DVec3::ZERO), pad, DT).is_some());
+            assert!(incoming_face(&mut latch, face, foot(0., 1., DVec3::ZERO), pad, DT).is_none());
+            assert!(
+                incoming_face(&mut latch, face, foot(0.002, 1., DVec3::ZERO), pad, DT).is_none()
+            );
+            assert!(
+                incoming_face(&mut latch, face, foot(0.0001, 1., DVec3::ZERO), pad, DT).is_some()
+            );
+            assert!(
+                incoming_face(
+                    &mut latch,
+                    face,
+                    foot(0., 1., q * face.any_orthonormal_vector() * 0.3),
+                    pad,
+                    DT
+                )
+                .is_none()
+            );
+            assert!(incoming_face(&mut latch, face, foot(0., -1., DVec3::ZERO), pad, DT).is_none());
+            assert!(
+                incoming_face(&mut latch, face, foot(-0.08, 1., DVec3::ZERO), pad, DT).is_none()
+            );
         }
     }
 

@@ -283,6 +283,7 @@ struct SpeedStop {
 }
 #[derive(Resource)]
 struct Policy {
+    touching_solver: Option<(u32, ContactSolverIterations)>,
     speed_stop: Option<SpeedStop>,
     enabled: bool,
     follows_release: bool,
@@ -416,6 +417,11 @@ pub(crate) fn install(
     native
         .validate_contact_interval(sim.step_duration(), plan.calls, plan.iterations)
         .map_err(|e| invalid(&plan.world, &e.to_string()))?;
+    if let Some((calls, solver)) = plan.touching_solver {
+        native
+            .validate_contact_interval(sim.step_duration(), calls, solver)
+            .map_err(|e| invalid(&plan.world, &e.to_string()))?;
+    }
     let speed_stop = if let Some(name) = &plan.speed_stop_joint {
         #[allow(deprecated)]
         let binding = sim.world().iter_entities().find_map(|e| {
@@ -592,6 +598,7 @@ pub(crate) fn install(
         follows_release: pairs.iter().any(|p| p.follow_release),
         enabled: true,
         pairs,
+        touching_solver: plan.touching_solver,
         calls: plan.calls,
         iterations: plan.iterations,
         last: None,
@@ -679,6 +686,7 @@ fn advance(
                 .clamp(1., f64::from(policy.calls)) as u32
         });
     let mut requests = Vec::new();
+    let mut initial_face = None;
     let mut cold_request = None;
     let mut fresh = Vec::new();
     let mut returning_features = Vec::new();
@@ -781,7 +789,7 @@ fn advance(
                 return;
             };
             if let Some(face) = p.incoming_face {
-                if geometry::incoming_face(
+                if let Some(arrival) = geometry::incoming_face(
                     &mut p.strike_latched,
                     face,
                     (foot, p.foot.shape),
@@ -789,6 +797,9 @@ fn advance(
                     time.dt.as_secs_f64(),
                 ) {
                     requests.push(start + j);
+                    if arrival == geometry::FaceArrival::TouchingParallelFaces {
+                        initial_face = Some(start + j);
+                    }
                 }
                 continue;
             }
@@ -1155,6 +1166,17 @@ fn advance(
         compact_points.push(pair);
     }
     let selected = !requests.is_empty() || !timing_pairs.is_empty();
+    // A simultaneous arrival, an existing native contact or a screw that needs
+    // a faster clock keeps the ordinary authored impact budget.
+    let (impact_calls, impact_solver) = policy
+        .touching_solver
+        .filter(|(calls, _)| {
+            *calls >= floor
+                && requests.len() == 1
+                && requests.first().copied() == initial_face
+                && native.active_contact_pairs() == 0
+        })
+        .unwrap_or((policy.calls, policy.iterations));
     let receipt = if !returning_features.is_empty()
         || !timing_pairs.is_empty()
         || !projections.is_empty()
@@ -1226,7 +1248,7 @@ fn advance(
             rotation_contact_pulses: &pulses,
         };
         let (calls, iterations) = if selected {
-            (policy.calls, policy.iterations)
+            (impact_calls, impact_solver)
         } else {
             (floor, native.ordinary_contact_iterations())
         };
@@ -1315,7 +1337,7 @@ fn advance(
         let (calls, iterations) = if requests.is_empty() {
             (floor, native.ordinary_contact_iterations())
         } else {
-            (policy.calls, policy.iterations)
+            (impact_calls, impact_solver)
         };
         match selected_interval(
             native,
@@ -1595,7 +1617,7 @@ fn advance(
         let solver = if requests.is_empty() {
             native.ordinary_contact_iterations()
         } else {
-            policy.iterations
+            impact_solver
         };
         let requested_pairs = requests
             .into_iter()

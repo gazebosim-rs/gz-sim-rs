@@ -76,6 +76,9 @@ struct Trial {
     /// Fixed-time projected Gauss–Seidel passes per selected solver iteration.
     #[arg(long, requires = "automatic", value_parser = clap::value_parser!(u32).range(1..=32))]
     impact_pgs: Option<u32>,
+    /// Use the qualified four-call solver only for a single pair already touching with parallel faces.
+    #[arg(long, requires = "automatic")]
+    touching_budget: bool,
     /// Also resolve the spindle's rated effort against its physical speed stop on advancing ticks.
     #[arg(long, requires = "automatic")]
     stop_guard: bool,
@@ -154,18 +157,28 @@ fn fixture(trial: &Trial) -> String {
             .impact_pgs
             .map(|n| format!("<pgs_iterations>{n}</pgs_iterations>"))
             .unwrap_or_default();
-        xml=xml.replace("</world>", &format!(r#"
+        let touching = if trial.touching_budget {
+            "<touching_solver><native_steps>4</native_steps><solver_iterations>8</solver_iterations><pgs_iterations>16</pgs_iterations></touching_solver>"
+        } else {
+            ""
+        };
+        let speed_stop = if trial.stop_guard {
+            "<speed_stop_joint>default::gripper::spindle</speed_stop_joint>"
+        } else {
+            ""
+        };
+        let calls = trial.substeps;
+        let iterations = trial.impact_iterations.unwrap_or(4);
+        let plugin = format!(
+            r#"
           <plugin name="gz::sim::systems::PrimaryContactRefinement" filename="gz-sim-primary-contact-refinement-system">
-            <native_steps>{}</native_steps><solver_iterations>{}</solver_iterations>{pgs}
+            {speed_stop}<native_steps>{calls}</native_steps><solver_iterations>{iterations}</solver_iterations>{pgs}
+            {touching}
             <pair><foot>default::parcel::box</foot><support>default::gripper::left</support><incoming_face>-x</incoming_face></pair>
             <pair><foot>default::parcel::box</foot><support>default::gripper::right</support><incoming_face>+x</incoming_face></pair>
-          </plugin></world>"#, trial.substeps, trial.impact_iterations.unwrap_or(4)));
-    }
-    if trial.stop_guard {
-        xml = xml.replace(
-            "<native_steps>",
-            "<speed_stop_joint>default::gripper::spindle</speed_stop_joint><native_steps>",
+          </plugin></world>"#
         );
+        xml = xml.replace("</world>", &plugin);
     }
     for (name, mass, dims) in LINKS {
         let [ix, iy, iz] = tensor(mass, dims, trial.divisor);

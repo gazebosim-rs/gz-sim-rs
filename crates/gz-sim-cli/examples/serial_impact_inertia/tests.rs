@@ -325,3 +325,57 @@ fn matched_spindle_tail_preserves_the_actual_first_contact_solver() -> Result<()
     assert!(comparison.primary.left_ns > 0.);
     Ok(())
 }
+
+#[test]
+fn cold_contact_uses_the_short_solve_only_at_the_qualified_entry() -> Result<()> {
+    for side in [false, true] {
+        let mut trial = Args::try_parse_from([
+            "study",
+            "--automatic",
+            "--divisor",
+            "1.75",
+            "--substeps",
+            "500",
+            "--touching-budget",
+            "--ticks",
+            "3",
+        ])?
+        .trial;
+        trial.right = side;
+        let sharp = run(trial.clone())?;
+        assert_eq!(sharp.samples[0].native_steps, 4);
+        assert!(sharp.samples[1..].iter().all(|s| s.native_steps == 1));
+        let mut manual = trial.clone();
+        manual.touching_budget = false;
+        manual.substeps = 4;
+        manual.impact_iterations = Some(8);
+        manual.impact_pgs = Some(16);
+        let control = run(manual)?;
+        for (a, b) in sharp.samples.iter().zip(control.samples) {
+            assert_eq!(a.bodies, b.bodies);
+            assert_eq!(a.impact.normal_on_parcel_ns, b.impact.normal_on_parcel_ns);
+        }
+        trial.gap_um = 50;
+        let gap = run(trial.clone())?;
+        trial.touching_budget = false;
+        let ordinary = run(trial.clone())?;
+        assert_eq!(gap.samples[0].native_steps, 500);
+        assert_eq!(gap.samples[0].bodies, ordinary.samples[0].bodies);
+        trial.gap_um = 0;
+        trial.touching_budget = true;
+        trial.miss = true;
+        assert!(
+            run(trial.clone())?
+                .samples
+                .iter()
+                .all(|s| s.native_steps == 1)
+        );
+        trial.miss = false;
+        trial.divisor = 16.;
+        trial.stop_guard = true;
+        let limited = run(trial)?;
+        assert_eq!(limited.samples[0].native_steps, 500);
+        assert!(limited.samples[0].speed_stop_floor > 4);
+    }
+    Ok(())
+}

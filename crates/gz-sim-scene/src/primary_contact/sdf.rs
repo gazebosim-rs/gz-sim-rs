@@ -71,6 +71,7 @@ pub(super) struct NamedPair {
 }
 pub(crate) struct Plan {
     pub(super) speed_stop_joint: Option<String>,
+    pub(super) touching_solver: Option<(u32, ContactSolverIterations)>,
     pub(super) world: String,
     pub(super) calls: u32,
     pub(super) iterations: ContactSolverIterations,
@@ -89,6 +90,36 @@ fn field<'a, 'i>(n: roxmltree::Node<'a, 'i>) -> Option<&'a str> {
     }
     text.text().map(str::trim).filter(|s| !s.is_empty())
 }
+/// A separate, explicitly authored budget for a single initially touching face.
+fn touching_solver(node: roxmltree::Node<'_, '_>) -> Option<(u32, ContactSolverIterations)> {
+    let mut calls = None;
+    let mut temporal = None;
+    let mut pgs = None;
+    for child in children(node) {
+        if !child.is_element()
+            || child.namespaces().next().is_some()
+            || child.attributes().len() != 0
+        {
+            return None;
+        }
+        let value = field(child)?;
+        match child.tag_name().name() {
+            "native_steps" if calls.is_none() => calls = Some(value.parse().ok()?),
+            "solver_iterations" if temporal.is_none() => temporal = Some(value.parse().ok()?),
+            "pgs_iterations" if pgs.is_none() => pgs = Some(value.parse().ok()?),
+            _ => return None,
+        }
+    }
+    Some((
+        calls?,
+        ContactSolverIterations {
+            temporal: temporal?,
+            pgs,
+            relaxation: None,
+        },
+    ))
+}
+
 fn find_box<'a>(
     sdf: &sdformat::Sdf,
     world: &'a sdformat::World,
@@ -148,6 +179,7 @@ pub(crate) fn parse(
     {
         return Err(err("invalid plugin attributes"));
     }
+    let mut touching = None;
     let mut speed_stop_joint = None;
     let mut calls = None;
     let mut iters = None;
@@ -160,6 +192,9 @@ pub(crate) fn parse(
             return Err(err("invalid policy child or attributes"));
         }
         match n.tag_name().name() {
+            "touching_solver" if touching.is_none() => {
+                touching = Some(touching_solver(n).ok_or_else(|| err("touching_solver needs native_steps and solver_iterations with optional pgs_iterations"))?);
+            }
             "speed_stop_joint" if speed_stop_joint.is_none() => {
                 speed_stop_joint = Some(
                     field(n)
@@ -830,6 +865,11 @@ pub(crate) fn parse(
             _ => return Err(err("unknown or duplicate policy field")),
         }
     }
+    if touching.is_some()
+        && (pairs.is_empty() || pairs.iter().any(|pair| pair.incoming_face.is_none()))
+    {
+        return Err(err("touching_solver requires incoming_face pairs"));
+    }
     if speed_stop_joint.is_some() && pairs.iter().any(|pair| pair.incoming_face.is_none()) {
         return Err(err(
             "speed_stop_joint can accompany incoming_face pairs or run alone",
@@ -863,6 +903,7 @@ pub(crate) fn parse(
         }
     }
     Ok(Some(Plan {
+        touching_solver: touching,
         speed_stop_joint,
         world: world.name.clone(),
         calls: calls.unwrap_or(8),
