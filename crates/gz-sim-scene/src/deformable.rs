@@ -16,6 +16,8 @@ mod particle_visual;
 mod plane_readout;
 pub use plane_readout::PlaneImpulseOverflow;
 use plane_readout::{PlaneMeter, PlaneReading};
+mod landing_refinement;
+pub use landing_refinement::{FiniteLandingStep, finite_landing_step};
 mod resolution;
 pub use resolution::{MaterialResolutionError, set_material_resolution};
 #[cfg(feature = "distributed-physics")]
@@ -223,6 +225,7 @@ pub(crate) struct Deformables {
     #[cfg(feature = "distributed-physics")]
     remote_material: bool,
     exchanges: u32,
+    landing_refinement: Option<landing_refinement::Policy>,
     // Aligned with the lexical order of current; empty for an unobserved world.
     plane_meters: Vec<Option<PlaneMeter>>,
     pending_pad_impulses: BTreeMap<BodyId, (DVec3, DVec3)>,
@@ -479,6 +482,9 @@ fn reset(info: Res<UpdateInfo>, mut soft: ResMut<Deformables>) {
     soft.pad_wrenches.clear();
     soft.pending_pad_impulses.clear();
     soft.current.clone_from(&soft.initial);
+    if let Some(policy) = &mut soft.landing_refinement {
+        policy.reset();
+    }
     soft.automatic_consumed = false;
     soft.starts.fill(None);
     soft.accelerations.fill(None);
@@ -934,7 +940,16 @@ impl Deformables {
             .unwrap_or(&mut self.current)
             .values_mut()
             .collect::<Vec<_>>();
-        let motions = if self.plane_meters.is_empty() {
+        let motions = if let Some(policy) = &mut self.landing_refinement {
+            policy.solve(
+                bodies[0],
+                dt,
+                &self.active_slots,
+                &self.boundaries,
+                &self.mobility,
+                &self.pad_damping,
+            )?
+        } else if self.plane_meters.is_empty() {
             step_coupled_damped_pads(
                 &mut bodies,
                 dt,
