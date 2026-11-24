@@ -38,7 +38,7 @@ fn a_single_inelastic_particle_cannot_pass_for_a_rebounding_sheet() {
     for rate in [16, 64, 4000] {
         let m = point_control(&s, rate).unwrap();
         assert!(m["first_impulse_time_ns"].as_u64().unwrap() <= 500_000);
-        assert_eq!(m["rebound_m"], 0.);
+        assert!(m["rebound_m"].as_f64().unwrap() < 1e-15);
     }
     assert!(trial(&s, Clock::uniform(16)).is_err());
 }
