@@ -79,6 +79,60 @@ impl NormalReaction {
     }
 }
 
+/// Native persistent point history, including dormant manifold points. Entries
+/// retain collider order, the point feature used for matching, frozen lever arms
+/// and all three directions of the next solver's impulse seeds.
+#[derive(Debug, Clone, Copy)]
+pub struct StoredContactPoint {
+    pub colliders: [(u32, u32); 2],
+    pub subshapes: [u32; 2],
+    pub features: [u32; 2],
+    pub local_anchors: [[f64; 3]; 2],
+    pub solver_arms: [[f64; 3]; 2],
+    pub normal: [f64; 3],
+    pub distance_m: f64,
+    pub normal_ns: f64,
+    pub tangent_basis_ns: [f64; 2],
+    pub tangent_world_ns: [f64; 3],
+    pub twist_nms: f64,
+}
+
+impl RapierBackend {
+    /// Read point storage in native pair, manifold and feature order without
+    /// waking an island, refreshing geometry or clearing solver warm starts.
+    pub fn stored_contact_points(&self) -> Vec<StoredContactPoint> {
+        let mut points = Vec::new();
+        for pair in self.world.narrow_phase.contact_pairs() {
+            let colliders = [
+                pair.collider1.into_raw_parts(),
+                pair.collider2.into_raw_parts(),
+            ];
+            for manifold in pair.solver_manifolds() {
+                for point in &manifold.points {
+                    let data = &point.data;
+                    points.push(StoredContactPoint {
+                        colliders,
+                        subshapes: [manifold.subshape1, manifold.subshape2],
+                        features: [point.fid1.0, point.fid2.0],
+                        local_anchors: [point.local_p1.to_array(), point.local_p2.to_array()],
+                        solver_arms: [data.solver_dp1.to_array(), data.solver_dp2.to_array()],
+                        normal: manifold.data.normal.to_array(),
+                        distance_m: point.dist,
+                        normal_ns: data.warmstart_impulse,
+                        tangent_basis_ns: [
+                            data.warmstart_tangent_impulse.x,
+                            data.warmstart_tangent_impulse.y,
+                        ],
+                        tangent_world_ns: data.warmstart_tangent_world.to_array(),
+                        twist_nms: data.warmstart_twist_impulse,
+                    });
+                }
+            }
+        }
+        points
+    }
+}
+
 /// Stored contact-point seeds for a pair of public bodies, in N·s.
 /// These are initial guesses for a later constraint solve. They may persist on
 /// dormant points and are distinct from the impulses delivered in a given step.

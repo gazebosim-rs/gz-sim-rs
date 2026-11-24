@@ -244,6 +244,7 @@ pub(crate) fn open_persistent(
         },
         WorldRuntimeOptions::default(),
         Some((info, true)),
+        false,
         Some(p),
     )?;
     sim.world_mut()

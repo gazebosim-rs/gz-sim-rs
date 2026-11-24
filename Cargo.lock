@@ -2805,6 +2805,7 @@ name = "gz-sim-cli"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "bevy_tasks",
  "bytes",
  "clap",
  "glam 0.33.12",

@@ -1,0 +1,182 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use super::{Result, Simulation};
+use gz_physics::PhysicsBackend;
+use gz_physics_multifidelity::MultiFidelityBackend;
+use gz_sim_core::EntityId;
+use gz_sim_scene::{BodyHandle, ImuSample, JointSample, Name, UniversalJointSample, WorldPose};
+use serde::Serialize;
+use sha2::{Digest, Sha256};
+
+#[derive(Default)]
+struct Signature(Sha256);
+
+impl Signature {
+    fn item(&mut self, value: impl Serialize) {
+        // Domains are separate; length-framing preserves tuple and record boundaries.
+        let bytes = serde_json::to_vec(&value)
+            .expect("the signature consists only of integer tuples, arrays and names");
+        self.0.update((bytes.len() as u64).to_le_bytes());
+        self.0.update(bytes);
+    }
+    fn finish(self) -> String {
+        format!("{:x}", self.0.finalize())
+    }
+}
+
+#[derive(Serialize)]
+pub(super) struct State {
+    command: usize,
+    epoch: u64,
+    step: u64,
+    time_ns: u128,
+    entities: usize,
+    scene: String,
+    physics: String,
+    contacts: String,
+    inputs: String,
+    imu: String,
+    /// Aggregate physical checks for qualification and fault isolation.
+    pub(crate) held_targets: usize,
+    pub(crate) pending_wrenches: usize,
+    imu_samples: usize,
+    /// Native body IDs in ascending pair order, with summed normal impulse in N·s.
+    pair_reactions_ns: Vec<(u64, u64, f64)>,
+    contact_points: usize,
+    delivered_normal_ns: f64,
+    stored_normal_ns: f64,
+}
+
+pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
+    let world = sim.world();
+    let backend = world.resource::<PhysicsBackend>();
+    let solver = backend
+        .downcast_ref::<MultiFidelityBackend>()
+        .expect("local CPU profile owns a native CPU solver");
+    let mut entities: Vec<_> = world
+        .iter_entities()
+        .filter_map(|e| Some((e.get::<EntityId>()?.get(), e)))
+        .collect();
+    entities.sort_unstable_by_key(|(id, _)| *id);
+    let mut scene = Signature::default();
+    let mut physics = Signature::default();
+    let mut inputs = Signature::default();
+    let mut imu = Signature::default();
+    let mut held_targets = 0;
+    let mut pending_wrenches = 0;
+    let mut imu_samples = 0;
+    for &(id, e) in &entities {
+        let bits = f64::to_bits;
+        let pose = e
+            .get::<WorldPose>()
+            .map(|p| (p.translation.map(bits), p.rotation.map(bits)));
+        scene.item((id, e.get::<Name>().map(|n| &n.0), pose));
+        if let Some(handle) = e.get::<BodyHandle>() {
+            let body = handle.id();
+            let s = backend.state(body).ok_or("native body state is missing")?;
+            physics.item((
+                id,
+                body.raw(),
+                s.position.map(bits),
+                s.orientation.map(bits),
+                s.velocity.map(bits),
+                s.angular_velocity.map(bits),
+            ));
+        }
+        if let Some(j) = e.get::<JointSample>() {
+            physics.item((id, j.state.position.to_bits(), j.state.velocity.to_bits()));
+        }
+        if let Some(j) = e.get::<UniversalJointSample>() {
+            physics.item((id, j.state.position.map(bits), j.state.velocity.map(bits)));
+        }
+        if let Some(target) = gz_sim_scene::held_joint_controller_target(sim, id) {
+            held_targets += 1;
+            inputs.item((id, bits(target)));
+        }
+        if let Some((f, t)) = gz_sim_scene::pending_free_link_wrench(sim, id) {
+            pending_wrenches += 1;
+            inputs.item((id, f.map(bits), t.map(bits)));
+        }
+        if let Some(s) = e.get::<ImuSample>() {
+            imu_samples += 1;
+            let v = s.reading.as_ref().map_err(|error| error.to_string())?;
+            imu.item((
+                id,
+                s.time.as_nanos(),
+                v.orientation.map(bits),
+                v.specific_force.map(bits),
+                v.angular_velocity.map(bits),
+                v.linear_acceleration_covariance.map(bits),
+                v.angular_velocity_covariance.map(bits),
+            ));
+        }
+    }
+    let mut contacts = Signature::default();
+    let mut delivered_normal_ns = 0.;
+    let mut stored_normal_ns = 0.;
+    let mut contact_points = 0;
+    let mut reactions = std::collections::BTreeMap::new();
+    for patch in solver.rigid_contact_patches() {
+        let reaction = reactions
+            .entry((patch.a.raw(), patch.b.raw()))
+            .or_insert(0.);
+        contacts.item((
+            patch.a.raw(),
+            patch.b.raw(),
+            patch.normal_on_a.map(f64::to_bits),
+            patch.points.len(),
+        ));
+        for point in patch.points {
+            *reaction += point.normal_impulse;
+            delivered_normal_ns += point.normal_impulse;
+            contact_points += 1;
+            contacts.item((
+                point.lever_a.map(f64::to_bits),
+                point.lever_b.map(f64::to_bits),
+                point.normal_impulse.to_bits(),
+                point.tangent_impulse_on_a.map(|t| t.map(f64::to_bits)),
+            ));
+        }
+    }
+    // Include dormant point history even when the public solver delivered no impulse.
+    for point in solver.stored_contact_points() {
+        let bits = f64::to_bits;
+        stored_normal_ns += point.normal_ns;
+        contacts.item((
+            point.colliders,
+            point.subshapes,
+            point.features,
+            point.local_anchors.map(|v| v.map(bits)),
+            point.solver_arms.map(|v| v.map(bits)),
+            point.normal.map(bits),
+            bits(point.distance_m),
+            bits(point.normal_ns),
+            point.tangent_basis_ns.map(bits),
+            point.tangent_world_ns.map(bits),
+            bits(point.twist_nms),
+        ));
+    }
+    let clock = sim.committed_update_info()?;
+    Ok(State {
+        command,
+        epoch: clock.epoch,
+        step: clock.iteration,
+        time_ns: clock.sim_time.as_nanos(),
+        entities: entities.len(),
+        scene: scene.finish(),
+        physics: physics.finish(),
+        contacts: contacts.finish(),
+        inputs: inputs.finish(),
+        imu: imu.finish(),
+        held_targets,
+        pending_wrenches,
+        imu_samples,
+        pair_reactions_ns: reactions
+            .into_iter()
+            .map(|((a, b), ns)| (a, b, ns))
+            .collect(),
+        contact_points,
+        delivered_normal_ns,
+        stored_normal_ns,
+    })
+}

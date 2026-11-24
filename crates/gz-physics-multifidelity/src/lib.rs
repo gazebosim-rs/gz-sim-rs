@@ -49,8 +49,9 @@ pub use gz_physics_rapier::{
     RobotSpring, RockingLimitReceipt, SharedFaceReceipt, SharedSupportLoad, SharedSupportRequest,
     SlidingEdgeImpactReceipt, SlidingPointReceipt, SlidingVertexReceipt, SoftRigidInertia,
     SoftSphereInertia, SoleFoot, SoleTransferReceipt, SolidRay, StickingPointReceipt,
-    SupportExpiry, SupportLoss, SupportLossReason, SustainedEdgeReceipt, TwoBearingReceipt,
-    UniversalJointState, WeldedAssemblyState, partition_prediction_distance, predicts_box_contact,
+    StoredContactPoint, SupportExpiry, SupportLoss, SupportLossReason, SustainedEdgeReceipt,
+    TwoBearingReceipt, UniversalJointState, WeldedAssemblyState, partition_prediction_distance,
+    predicts_box_contact,
 };
 pub use gz_physics_rapier::{
     BoxContactActions, BoxContactOutcome, CompactPointTail, ContactIntervalPair,
@@ -1203,6 +1204,11 @@ impl MultiFidelityBackend {
         self.solver
             .recheck_separated_boxes(moving, fixed, dt)
             .map_err(engine_error)
+    }
+
+    /// Native persistent features and the impulse seed at each contact point.
+    pub fn stored_contact_points(&self) -> Vec<StoredContactPoint> {
+        self.solver.stored_contact_points()
     }
 
     /// Effective per-pair warm start, separate from impulses delivered during a step.

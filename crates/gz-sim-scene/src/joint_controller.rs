@@ -295,6 +295,15 @@ fn command_error(error: model::InvalidControllerInput) -> JointControllerCommand
     }
 }
 
+/// Current held SI position or velocity target on a locally owned CPU controller.
+pub fn held_joint_controller_target(sim: &Simulation, id: u64) -> Option<f64> {
+    Some(
+        sim.world()
+            .get::<Controller>(gz_sim_core::entity_by_id(sim.world(), id)?)?
+            .target,
+    )
+}
+
 /// Replace a pending SI target without stepping. Velocity commands saturate at
 /// the configured target speed; positions remain continuous, without wrapping.
 pub fn set_joint_controller_command(

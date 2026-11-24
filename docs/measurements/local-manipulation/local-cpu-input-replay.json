@@ -1,0 +1,105 @@
+{
+  "profile": "local-cpu-v1",
+  "base": "4ac1c335ce86dd79a6b4a9dfbb5ed0b10452b8cc",
+  "binary_sha256": "a10e03e8ddfcdf981907444f96a94bb0fd3cf06fbd5099feec0fd6f8a87dfcbb",
+  "lock_sha256": "13e7e7a87e62212ef2a0472e1ed25be56784dd05809128c6a3de5dd55c13c2eb",
+  "numerics": "native serial Rapier f64/enhanced-determinism",
+  "cpu": [
+    "AuthenticAMD",
+    "26",
+    "68",
+    "0",
+    "AMD Ryzen 9 9950X3D 16-Core Processor",
+    "0xb404035"
+  ],
+  "cpu_flags_sha256": "74c53b8e51b4e9db91c639243e6b633880fdba77cf974e7088ccb032a036d139",
+  "world_sha256": "1dfb21786ec5bd111e85fa73fcb0027f08161ec0f3785948a20cd9f50eb78a93",
+  "journal_sha256": "3e3a0c53854c8d03927cefba2e6308107c922b1f85258579fdc4e78bda4975d4",
+  "seed": "serial-gripper-bench-01",
+  "dt_ns": 1000000,
+  "threads": [
+    1,
+    8
+  ],
+  "physics_observations": 595,
+  "complete_trace_sha256": "05b481f58b155b20d0cdb53682f38ec634ed9867965fafe7de758d96e2ef7176",
+  "advancing_ticks": 580,
+  "matched_reset_steps": 200,
+  "settled_cut": {
+    "time_ns": 180000000,
+    "contact_points": 24,
+    "stored_normal_ns": 0.002912742911289409,
+    "delivered_normal_ns": 0.02330227525374911,
+    "held_targets": 2,
+    "pending_wrenches": 1
+  },
+  "spawn": {
+    "contact_body_pair": [
+      0,
+      9
+    ],
+    "first_loaded_tick": 315,
+    "first_loaded_ns": 0.11922777343697702,
+    "retired_body_last_tick": 380,
+    "settled_support_n": 1.962053146319226
+  },
+  "reset": {
+    "entities": 54,
+    "epoch": 1,
+    "time_ns": 0,
+    "pending_wrenches": 0,
+    "stored_normal_ns": 0.0,
+    "imu_samples": 0
+  },
+  "sham": {
+    "first_pending_input_difference_ns": 180000000,
+    "first_physics_difference_ns": 181000000,
+    "first_contact_difference_ns": 181000000,
+    "first_resumed_normal_ns": 0.0235173963137959,
+    "first_resumed_sham_normal_ns": 0.02330049309810208
+  },
+  "changed_seed": {
+    "mechanical_mismatches": 0,
+    "different_imu_observations": 591
+  },
+  "views": [
+    {
+      "frames": 42,
+      "shapes_and_poses": 860,
+      "rewind_ms": 0.0,
+      "renderer": "WebGPU",
+      "archive_sha256": "f0c04d1ed5eb4474aa54ab2948bcde6b03f1ad68a1dccabd963307fc01513ab9",
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9984%2F"
+    },
+    {
+      "frames": 21,
+      "shapes_and_poses": 420,
+      "rewind_ms": 0.0,
+      "renderer": "WebGPU",
+      "archive_sha256": "9ce077ed496e93f934834274efcfc00f54e55f11ac333416e6230fef5d14a5a7",
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9985%2F"
+    }
+  ],
+  "coverage": {
+    "production": {
+      "lines": [
+        499,
+        506
+      ],
+      "regions": [
+        957,
+        1002
+      ]
+    },
+    "combined": {
+      "lines": [
+        850,
+        858
+      ],
+      "regions": [
+        1719,
+        1766
+      ]
+    }
+  }
+}

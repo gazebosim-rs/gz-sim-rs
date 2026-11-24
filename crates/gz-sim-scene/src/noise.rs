@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use gz_sensors::{GaussianNoise, GaussianParameters, ImuReading, InvalidNoise, NoiseStream};
 use sdformat::{Imu, NoiseKind};
+use sha2::{Digest, Sha256};
 use std::time::Duration;
 
 #[derive(Clone)]
@@ -11,6 +12,7 @@ pub(super) struct ImuNoise {
     stream: NoiseStream,
     seed: [u8; 32],
     identity: u64,
+    channel_keys: Option<Box<[[u8; 32]; 6]>>,
     previous: Option<Duration>,
 }
 
@@ -19,6 +21,7 @@ impl ImuNoise {
         config: &Imu,
         seed: [u8; 32],
         identity: u64,
+        name: Option<&str>,
     ) -> Result<Option<Box<Self>>, InvalidNoise> {
         let configurations = config
             .linear_acceleration
@@ -36,6 +39,17 @@ impl ImuNoise {
             stream: NoiseStream::new(seed, identity),
             seed,
             identity,
+            channel_keys: name.map(|name| {
+                Box::new(std::array::from_fn(|channel| {
+                    Sha256::new()
+                        .chain_update(b"gz-local-imu-v1\0")
+                        .chain_update(seed)
+                        .chain_update([channel as u8])
+                        .chain_update(name.as_bytes())
+                        .finalize()
+                        .into()
+                }))
+            }),
             previous: None,
         };
         for (index, noise) in configurations.enumerate() {
@@ -48,6 +62,10 @@ impl ImuNoise {
                 return Err(InvalidNoise);
             }
             result.covariance[index] = covariance;
+            let mut initial = result
+                .channel_keys
+                .as_ref()
+                .map(|keys| NoiseStream::new(keys[index], 0));
             result.channels[index] = Some(GaussianNoise::new(
                 GaussianParameters {
                     mean: noise.mean,
@@ -58,7 +76,7 @@ impl ImuNoise {
                     dynamic_bias_correlation_time: noise.dynamic_bias_correlation_time,
                     precision: noise.precision,
                 },
-                &mut result.stream,
+                initial.as_mut().unwrap_or(&mut result.stream),
             )?);
         }
         Ok(Some(Box::new(result)))
@@ -68,6 +86,7 @@ impl ImuNoise {
         &mut self,
         reading: &mut ImuReading,
         time: Duration,
+        iteration: u64,
     ) -> Result<(), InvalidNoise> {
         // chrono duration_cast<duration<float>> casts the integer ns count before dividing.
         let dt = self
@@ -76,14 +95,20 @@ impl ImuNoise {
             .map_or(0.0, |previous| {
                 ((time - previous).as_nanos() as f32 / 1e9f32) as f64
             });
-        for (value, noise) in reading
+        for (index, (value, noise)) in reading
             .specific_force
             .iter_mut()
             .chain(&mut reading.angular_velocity)
             .zip(&mut self.channels)
+            .enumerate()
         {
             if let Some(noise) = noise {
-                *value = noise.apply(*value, dt, &mut self.stream)?;
+                // Each advancing iteration starts at draw zero in its own stream.
+                let mut stream = self
+                    .channel_keys
+                    .as_ref()
+                    .map(|keys| NoiseStream::new(keys[index], iteration));
+                *value = noise.apply(*value, dt, stream.as_mut().unwrap_or(&mut self.stream))?;
             }
         }
         reading
@@ -98,9 +123,17 @@ impl ImuNoise {
 
     pub(super) fn reset(&mut self) {
         self.stream = NoiseStream::new(self.seed, self.identity);
-        for noise in self.channels.iter_mut().flatten() {
-            *noise = GaussianNoise::new(noise.parameters(), &mut self.stream)
-                .expect("the same seed and validated parameters reproduce the initial finite bias");
+        for (index, channel) in self.channels.iter_mut().enumerate() {
+            let Some(noise) = channel else { continue };
+            let mut stream = self
+                .channel_keys
+                .as_ref()
+                .map(|keys| NoiseStream::new(keys[index], 0));
+            *noise = GaussianNoise::new(
+                noise.parameters(),
+                stream.as_mut().unwrap_or(&mut self.stream),
+            )
+            .expect("the same seed and validated parameters reproduce the initial finite bias");
         }
         self.previous = None;
     }

@@ -44,6 +44,13 @@ struct PendingInput {
     wrench: Option<Pair>,
 }
 
+/// Queued force and torque for an ordinary free link's next advancing tick.
+pub fn pending_free_link_wrench(sim: &Simulation, id: u64) -> Option<([f64; 3], [f64; 3])> {
+    sim.world()
+        .get::<PendingInput>(entity_by_id(sim.world(), id)?)?
+        .wrench
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum InputError {
     #[error("input contains a nonfinite value or accumulated wrench overflow")]

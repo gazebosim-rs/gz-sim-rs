@@ -95,7 +95,9 @@ pub struct RigidContactObservation {
 mod bounds;
 mod contact_patch;
 pub(crate) use contact_patch::manifold_reaction;
-pub use contact_patch::{ContactWarmstart, NormalReaction, RigidContactPatch, RigidPatchPoint};
+pub use contact_patch::{
+    ContactWarmstart, NormalReaction, RigidContactPatch, RigidPatchPoint, StoredContactPoint,
+};
 mod box_forecast;
 pub use bounds::{PartitionBounds, PartitionBoxBounds};
 pub use box_forecast::predicts_box_contact;

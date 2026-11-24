@@ -30,6 +30,8 @@ gz-fuel-tools.workspace = true
 clap.workspace = true
 bevy_ecs.workspace = true
 gz-physics = { path = "../gz-physics" }
+gz-physics-multifidelity = { path = "../gz-physics-multifidelity" }
+bevy_tasks = { version = "=0.20.0", default-features = false, features = ["multi_threaded"] }
 gz-assets = { path = "../gz-assets" }
 gz-sim-scene = { path = "../gz-sim-scene", default-features = false }
 gz-sim-core = { path = "../gz-sim-core" }
@@ -61,7 +63,6 @@ roxmltree = "=0.20.0"
 parry3d-f64 = { version = "=0.31.1", features = ["enhanced-determinism"] }
 gz-physics-xpbd = { path = "../gz-physics-xpbd" }
 plotters = { version = "=0.3.7", default-features = false, features = ["svg_backend", "line_series"] }
-gz-physics-multifidelity = { path = "../gz-physics-multifidelity" }
 glam.workspace = true
 rustix = { version = "=1.1.5", features = ["process", "event", "time"] }
 # Test observers discover the dynamically allocated loopback transport endpoint.

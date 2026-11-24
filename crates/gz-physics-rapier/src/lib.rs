@@ -124,7 +124,8 @@ pub use joints::{
 };
 pub use partition::{
     ContactWarmstart, NormalReaction, PartitionBounds, PartitionBoxBounds, RigidContactObservation,
-    RigidContactPatch, RigidPatchPoint, partition_prediction_distance, predicts_box_contact,
+    RigidContactPatch, RigidPatchPoint, StoredContactPoint, partition_prediction_distance,
+    predicts_box_contact,
 };
 use std::any::Any;
 

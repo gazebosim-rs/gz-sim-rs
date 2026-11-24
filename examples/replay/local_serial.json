@@ -1,0 +1,24 @@
+{
+  "seed": "serial-gripper-bench-01",
+  "commands": [
+    {"op":"target","joint":"default::gripper::spindle","value":0.0},
+    {"op":"step","count":180},
+    {"op":"wrench","link":"default::parcel::box","force":[0.3,0.05,-0.2],"torque":[0,0,0.001]},
+    {"op":"paused_tick"},
+    {"op":"target","joint":"default::gripper::wrist","value":0.1},
+    {"op":"step","count":20},
+    {"op":"spawn","template":"default::parcel","alias":"second","position":[0.16,0,0.60]},
+    {"op":"step","count":180},
+    {"op":"remove","alias":"second"},
+    {"op":"spawn","template":"default::parcel","alias":"reset_load","position":[0.15,0.1,0.58]},
+    {"op":"wrench","link":"default::parcel::box","force":[0,0,3],"torque":[0,0,0]},
+    {"op":"paused_tick"},
+    {"op":"reset"},
+    {"op":"target","joint":"default::gripper::spindle","value":0.0},
+    {"op":"step","count":180},
+    {"op":"wrench","link":"default::parcel::box","force":[0.3,0.05,-0.2],"torque":[0,0,0.001]},
+    {"op":"paused_tick"},
+    {"op":"target","joint":"default::gripper::wrist","value":0.1},
+    {"op":"step","count":20}
+  ]
+}

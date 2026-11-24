@@ -2157,3 +2157,7 @@ The gripper measured 11, 22 and 33 g cables to within 0.02 g during real pickup.
 ## 2026-11-23 — Keeping pressure on a folded sheet with damped pads
 
 Adding physical damping eliminated all 182 simultaneous pressure losses in the 300 ms hold at 250 exchanges per millisecond. Both jaws carried half the sheet's weight. The finest independent comparison still differed by 0.211 mm during release. The first recorded mismatch above 0.1 mm occurred at 2.700 s. Changed production coverage reached 99.25% of lines and 96.59% of regions. [Full measurements and two pressure replays](measurements/local-manipulation/viscous-gripper-pads.md)
+
+## 2026-11-23 — Replaying the local serial gripper from an input journal
+
+The local CPU profile reproduced 595 observations in two fresh processes with one and eight Bevy compute threads. The gripper repeated 200 advancing steps after reset, including contact warm starts and a noisy IMU. A queued wrench survived a paused tick and changed the next solve. A spawned 200 g parcel settled at 1.96205 N before removal. The checked domain is the pinned Linux x86-64 binary and CPU, inline rigid primitives, native joint controllers and IMUs. The next independent replay domain is a resilient midrun restart or another numerical backend. [Commands, measurements and two gz-web-rs replays](measurements/local-manipulation/local-cpu-input-replay.md)

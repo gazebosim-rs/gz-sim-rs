@@ -39,8 +39,9 @@ pub use apply_link_wrench::{
 };
 pub use joint_controller::{
     JointControllerCommandError, JointControllerConfiguration, JointControllerMode,
-    joint_controller_binding_matches, joint_controller_binding_matches_configuration,
-    set_joint_controller_command, set_joint_position_response_period,
+    held_joint_controller_target, joint_controller_binding_matches,
+    joint_controller_binding_matches_configuration, set_joint_controller_command,
+    set_joint_position_response_period,
 };
 pub use joint_state_publisher::{
     JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
@@ -79,16 +80,18 @@ mod world_systems;
 pub use joint_forces::JointForceConfiguration;
 
 mod joints;
+mod local_replay;
 mod noise;
 pub use joints::{
     BallJointSample, JointDefinition, JointHandle, JointSample, UniversalJointSample,
 };
+pub use local_replay::load_local_replay_world;
 
 mod inputs;
 pub use inputs::{
-    InputError, JointForceCommand, queue_ball_joint_effort, queue_joint_effort,
-    queue_link_force_at_point, queue_link_world_velocity, queue_link_world_wrench,
-    queue_universal_joint_effort, set_joint_force,
+    InputError, JointForceCommand, pending_free_link_wrench, queue_ball_joint_effort,
+    queue_joint_effort, queue_link_force_at_point, queue_link_world_velocity,
+    queue_link_world_wrench, queue_universal_joint_effort, set_joint_force,
 };
 
 mod schedule;
@@ -457,6 +460,7 @@ struct SceneContext<'a> {
     links: BTreeMap<String, u64>,
     visuals: Vec<Entity>,
     cameras: Vec<Entity>,
+    named_imu_streams: bool,
     noise_seed: [u8; 32],
     field_world: [f64; 3],
     wind_world: [f64; 3],
@@ -742,6 +746,7 @@ fn load_world_at_clock(
         options,
         runtime,
         clock,
+        false,
         #[cfg(feature = "distributed-physics")]
         None,
     )
@@ -755,6 +760,7 @@ fn load_world_with_automatic_owner(
     options: WorldLoadOptions<'_>,
     runtime: WorldRuntimeOptions<'_>,
     clock: Option<(UpdateInfo, bool)>,
+    named_imu_streams: bool,
     #[cfg(feature = "distributed-physics")] managed_material: Option<
         deformable::managed_impact::MaterialOwner,
     >,
@@ -851,6 +857,9 @@ fn load_world_with_automatic_owner(
         .position(|world| world.name == world_name)
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     let world = &sdf.worlds[world_index];
+    if named_imu_streams {
+        local_replay::validate(world)?;
+    }
     require(
         engine == PhysicsEngine::GpuBatch
             || !world.plugins.iter().any(|p| {
@@ -1027,6 +1036,7 @@ fn load_world_with_automatic_owner(
         links: BTreeMap::new(),
         visuals: Vec::new(),
         cameras: Vec::new(),
+        named_imu_streams,
         noise_seed,
         field_world: world.magnetic_field,
         wind_world: world.wind_linear_velocity,
@@ -2193,13 +2203,16 @@ fn build_model(
                 .get::<EntityId>(sensor_entity)
                 .expect("spawned scene nodes own public identities")
                 .get();
-            let noise =
-                noise::ImuNoise::new(config, context.noise_seed, identity).map_err(|_| {
-                    LoadError::Unsupported {
-                        entity: name.clone(),
-                        feature: "unrepresentable IMU noise",
-                    }
-                })?;
+            let noise = noise::ImuNoise::new(
+                config,
+                context.noise_seed,
+                identity,
+                context.named_imu_streams.then_some(name.as_str()),
+            )
+            .map_err(|_| LoadError::Unsupported {
+                entity: name.clone(),
+                feature: "unrepresentable IMU noise",
+            })?;
             sim.world_mut().entity_mut(sensor_entity).insert((
                 AttachedPose,
                 ImuPublication {
@@ -2684,7 +2697,7 @@ fn sample_imus(
         });
         if let Ok(reading) = &mut reading
             && let Some(noise) = &mut sensor.noise
-            && let Err(source) = noise.apply(reading, time.sim_time)
+            && let Err(source) = noise.apply(reading, time.sim_time, time.iteration)
         {
             fault.report(SensorNoiseFault { entity, source });
             return;
