@@ -40,3 +40,23 @@ fn search_is_bounded_and_a_high_impact_cannot_authorize_release() {
         assert_eq!(stop.lift_offset_m, -0.004);
     }
 }
+
+#[test]
+fn signed_receiver_impulses_preserve_weight_confirmation_and_downward_load_pauses_release() {
+    let mut support = SupportedSetdown::new(1.).unwrap();
+    let mut zero = SupportedSetdown::new(1.).unwrap();
+    for _ in 0..21 {
+        assert_eq!(
+            zero.advance(0.001),
+            support.advance_vertical_reaction(0.001)
+        );
+    }
+    let expect = zero.advance(0.).unwrap();
+    for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        assert!(support.advance_vertical_reaction(value).is_none());
+    }
+    let negative = support.advance_vertical_reaction(-0.0002).unwrap();
+    assert_eq!(negative, expect);
+    assert!(!negative.advancing_opening);
+    assert!(support.advance(-0.0002).is_none());
+}

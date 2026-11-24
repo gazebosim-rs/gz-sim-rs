@@ -345,7 +345,7 @@ fn remote_owner_and_free_two_way_spheres_cannot_share_the_material_grid() {
     assert!(
         error
             .to_string()
-            .contains("articulated pads and optional fixed supports"),
+            .contains("articulated pads and optional fixed or linearly translating supports"),
         "{error}"
     );
 }

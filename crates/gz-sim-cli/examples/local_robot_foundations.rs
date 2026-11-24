@@ -110,6 +110,24 @@ enum Study {
     },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
+    /// Place the held sheet on a laterally offset finite receiving deck.
+    SheetEdge {
+        output: PathBuf,
+        #[arg(long, default_value_t = 70)]
+        deck_shift_mm: u32,
+        #[arg(long, default_value_t = 16)]
+        exchanges: usize,
+        /// Use one separate Bevy commit per exchange for an independent physical reference.
+        #[arg(long)]
+        separate_native_commits: bool,
+        #[arg(long)]
+        verify_reset: bool,
+    },
+    /// Compare two measured deck-edge runs on their public clock and aligned at jaw unloading.
+    SheetEdgeCompare {
+        recording: PathBuf,
+        reference: PathBuf,
+    },
     /// Compare finite-table impact refinement in the ordinary running gripper.
     SheetImpactClock {
         output: PathBuf,
@@ -345,6 +363,28 @@ fn main() -> Result<()> {
             material_incline::run(out, substeps, finite_board)
         }),
         Study::HingeDamping { output } => write_new(&output, hinge_damping::run),
+        Study::SheetEdge {
+            output,
+            deck_shift_mm,
+            exchanges,
+            separate_native_commits,
+            verify_reset,
+        } => write_new(&output, |out| {
+            sheet_setdown::edge::run(
+                out,
+                deck_shift_mm,
+                exchanges,
+                !separate_native_commits,
+                verify_reset,
+            )
+        }),
+        Study::SheetEdgeCompare {
+            recording,
+            reference,
+        } => {
+            println!("{}", sheet_setdown::edge::compare(&recording, &reference)?);
+            Ok(())
+        }
         Study::SheetImpactClock {
             output,
             mode,

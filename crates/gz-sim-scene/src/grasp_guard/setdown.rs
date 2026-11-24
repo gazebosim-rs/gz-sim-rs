@@ -31,6 +31,19 @@ impl SupportedSetdown {
         })
     }
 
+    /// Use the signed, world-up component of the receiver's impulse on the
+    /// payload over the preceding millisecond. A downward impulse supplies
+    /// zero weight support; non-finite readings leave the command untouched.
+    pub fn advance_vertical_reaction(
+        &mut self,
+        vertical_impulse_ns: f64,
+    ) -> Option<SetdownCommand> {
+        if !vertical_impulse_ns.is_finite() {
+            return None;
+        }
+        self.advance(vertical_impulse_ns.max(0.))
+    }
+
     /// An invalid observation produces no new command and leaves state intact.
     pub fn advance(&mut self, upward_impulse_ns: f64) -> Option<SetdownCommand> {
         let ratio = upward_impulse_ns / (0.001 * self.weight_n);

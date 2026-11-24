@@ -40,7 +40,7 @@ pub(super) fn admit(
                 s,
                 Surface::Plane { .. }
                     | Surface::Rigid {
-                        one_way_box: Some(BoxMotion::Fixed(_)),
+                        one_way_box: Some(BoxMotion::Fixed(_) | BoxMotion::Translating(_)),
                         ..
                     }
                     | Surface::Rigid {
@@ -50,7 +50,7 @@ pub(super) fn admit(
             )
         })
     {
-        return Err("rigid_exchanges requires one local material, articulated pads and optional fixed supports".into());
+        return Err("rigid_exchanges requires one local material, articulated pads and optional fixed or linearly translating supports".into());
     }
     if bodies
         .values()

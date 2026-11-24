@@ -142,7 +142,7 @@ fn episode_native(
         }
         if mode != Mode::Timed && tick > 2550 {
             cmd = guard
-                .advance(last_table_ns)
+                .advance_vertical_reaction(last_table_ns)
                 .ok_or("invalid table impulse")?;
         }
         drive(
@@ -411,6 +411,9 @@ fn world(exchanges: usize, deck: bool, public: bool) -> Result<String> {
     Ok(xml)
 }
 
+#[path = "sheet_setdown/edge.rs"]
+pub(super) mod edge;
+
 #[path = "sheet_setdown/impact_clock.rs"]
 pub(super) mod impact_clock;
 
@@ -435,7 +438,7 @@ pub(super) fn run(
     );
     if deck && public && exchanges > 1 {
         return Err(
-            "prescribed finite bench requires --native-steps for multiple exchanges".into(),
+            "per-exchange flight and peak readings require --native-steps for this finite-bench study".into(),
         );
     }
     let xml = world(exchanges, deck, public)?;
