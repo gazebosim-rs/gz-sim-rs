@@ -1711,7 +1711,9 @@ fn build_model(
         } else {
             sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?
         };
-        let free_mass_offset = context.engine == PhysicsEngine::MultiFidelity
+        // A GPU tool plan validates its free payload inertia before this shared link builder.
+        let free_mass_offset = (context.engine == PhysicsEngine::MultiFidelity
+            || context.gpu_tool_scene)
             && top_level
             && !is_static
             && model.links.len() == 1

@@ -16,6 +16,7 @@ pub(super) trait Scalar:
     fn minimum(self, rhs: Self) -> Self;
     fn maximum(self, rhs: Self) -> Self;
     fn root(self) -> Self;
+    fn floor(self) -> Self;
 }
 pub(super) trait Condition<T>: Copy {
     fn and(self, rhs: Self) -> Self;
@@ -44,6 +45,9 @@ impl Scalar for f64 {
     }
     fn root(self) -> Self {
         self.sqrt()
+    }
+    fn floor(self) -> Self {
+        self.floor()
     }
 }
 impl Condition<f64> for bool {
@@ -79,6 +83,9 @@ impl<'a> Scalar for Value<'a> {
     }
     fn root(self) -> Self {
         self.math(M::Sqrt, None)
+    }
+    fn floor(self) -> Self {
+        self.math(M::Floor, None)
     }
 }
 impl<'a> Condition<Value<'a>> for Value<'a> {

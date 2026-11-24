@@ -31,8 +31,12 @@ pub struct CarryGripperLane {
     pub shelf_normal: f64,
     pub shelf_tangent: f64,
     pub shelf_up: f64,
+    /// Geometry origin to mass center in the X-Z plane at zero spin angle.
+    pub com_offset: [f64; 2],
+    /// Moment about the free body's transverse principal axis through its mass center.
+    pub angular_inertia: f64,
 }
-const WIDTH: usize = 70;
+const WIDTH: usize = 73;
 const _: () = assert!(size_of::<CarryGripperLane>() == WIDTH * 8);
 pub type CarryGripperBatch = ResidentBatch<CarryGripperLane>;
 impl CarryGripperLane {
@@ -54,6 +58,12 @@ impl CarryGripperLane {
             && bytemuck::cast_ref::<_, [f64; WIDTH]>(&self)
                 .iter()
                 .all(|v| v.is_finite())
+            && self.angular_inertia > 0.
+            && self.angular_inertia.recip().is_normal()
+            && self.angular_inertia / h.ball_mass
+                + self.com_offset[0].powi(2)
+                + self.com_offset[1].powi(2)
+                <= h.radius * h.radius
             && self.track_mass > 0.
             && (self.track_mass + h.mass[0]).recip().is_normal()
             && self.track == self.track_origin
@@ -77,14 +87,15 @@ impl CarryGripperLane {
 }
 impl CarryGripperBatch {
     pub fn new(adapter: &str, lanes: Vec<CarryGripperLane>) -> Result<Self, GpuError> {
+        let eccentric = lanes.iter().any(|l| l.com_offset != [0.; 2]);
         Self::new_profile(
             adapter,
             lanes,
             CarryGripperLane::valid,
-            || {
-                kernel::build::<WIDTH, 25>(&[STEP.as_secs_f64() / 4., 0., 1., 0.5], |v, c| {
-                    tick(v, c)
-                })
+            if eccentric {
+                module::<true>
+            } else {
+                module::<false>
             },
             None,
         )
@@ -133,8 +144,46 @@ fn stops<const POSITION: bool, T: Scalar>(
         }
     }
 }
-fn tick<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 25] {
-    let [dt, z, one, half] = *constants else {
+fn constants() -> [f64; 11] {
+    [
+        STEP.as_secs_f64() / 4.,
+        0.,
+        1.,
+        0.5,
+        std::f64::consts::TAU,
+        -1. / 6.,
+        1. / 120.,
+        -1. / 5040.,
+        1. / 362880.,
+        -1. / 39916800.,
+        1. / 6227020800.,
+    ]
+}
+fn module<const ECCENTRIC: bool>() -> naga::Module {
+    kernel::build(&constants(), |v, c| tick::<ECCENTRIC, _>(v, c))
+}
+/// Vulkan's extended sine and cosine operations are single precision. Reduce to
+/// ±π/8, evaluate sine to degree 13, then double the angle three times in f64.
+fn rotated_offset<T: Scalar>(angle: T, offset: [T; 2], c: &[T]) -> [T; 2] {
+    let half = c[3];
+    let a = (angle - c[4] * (angle / c[4] + half).floor()) * half * half * half;
+    let square = a * a;
+    let mut sinc = c[10];
+    for &v in c[5..10].iter().rev() {
+        sinc = v + square * sinc;
+    }
+    let mut s = a * (c[2] + square * sinc);
+    let mut cos = (c[2] - s * s).maximum(c[1]).root();
+    for _ in 0..3 {
+        (s, cos) = ((s + s) * cos, cos * cos - s * s);
+    }
+    [
+        cos * offset[0] - s * offset[1],
+        s * offset[0] + cos * offset[1],
+    ]
+}
+fn tick<const ECCENTRIC: bool, T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 25] {
+    let [dt, z, one, half, ..] = *constants else {
         unreachable!()
     };
     let total = v[6] + v[7] + v[8];
@@ -144,9 +193,26 @@ fn tick<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 25] {
         one / v[8],
         one / v[20],
         one / v[20],
-        (one + one + half) / (v[20] * v[19] * v[19]),
+        one / v[72],
         one / (v[6] + v[54]),
     ];
+    let initial_offset = [v[70], v[71]];
+    let offset = |angle| {
+        if ECCENTRIC {
+            rotated_offset(angle, initial_offset, constants)
+        } else {
+            [z; 2]
+        }
+    };
+    let mut center_offset = offset(v[17]);
+    // Integrate impulses and free motion at the COM. Published pose and twist
+    // remain the geometric link origin, the point used by the collision shape.
+    if ECCENTRIC {
+        v[13] = v[13] + center_offset[0];
+        v[14] = v[14] + center_offset[1];
+        v[15] = v[15] - v[18] * center_offset[1];
+        v[16] = v[16] + v[18] * center_offset[0];
+    }
     let mut normal = [z; 4];
     let mut tangent = [z; 4];
     let mut up = [z; 4];
@@ -176,24 +242,21 @@ fn tick<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 25] {
         v[14] = v[14] + dt * (v[16] - half * dt * v[21]);
         v[16] = v[16] - dt * v[21];
         v[17] = v[17] + dt * v[18];
+        center_offset = offset(v[17]);
+        let x = v[13] - center_offset[0];
+        let height = v[14] - center_offset[1];
         let pads = std::array::from_fn::<_, 2, _>(|i| {
             box_gap(
-                [v[13] - v[1 + i], v[14] - v[0]],
+                [x - v[1 + i], height - v[0]],
                 [v[9 + 2 * i], v[10 + 2 * i]],
                 v[19],
                 z,
                 one,
             )
         });
-        let shelf = box_gap(
-            [v[13] - v[62], v[14] - v[63]],
-            [v[64], v[65]],
-            v[19],
-            z,
-            one,
-        );
+        let shelf = box_gap([x - v[62], height - v[63]], [v[64], v[65]], v[19], z, one);
         let normals = [pads[0].1, pads[1].1, [z, one], shelf.1];
-        let gaps = [pads[0].0, pads[1].0, v[14] - v[19] - v[22], shelf.0];
+        let gaps = [pads[0].0, pads[1].0, height - v[19] - v[22], shelf.0];
         let rows = std::array::from_fn(|i| {
             let [x, h] = normals[i];
             let row = |x: T, h: T, spin: T| {
@@ -207,7 +270,11 @@ fn tick<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 25] {
                     z,
                 ]
             };
-            [row(x, h, z), row(h, z - x, v[19])]
+            let [dx, dz] = center_offset;
+            [
+                row(x, h, dz * x - dx * h),
+                row(h, z - x, v[19] + dx * x + dz * h),
+            ]
         });
         let contacts = Contacts::new(rows, inv, gaps);
         let disp = v[52] - v[55];
@@ -227,11 +294,21 @@ fn tick<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 25] {
         for (i, j) in [(0, 0), (1, 1), (2, 2), (3, 13), (4, 14), (6, 52)] {
             v[j] = v[j] + delta[i];
         }
+        if ECCENTRIC {
+            v[17] = v[17] + delta[5];
+        }
         for i in 0..4 {
             normal[i] = normal[i] + imp[i][0];
             tangent[i] = tangent[i] + imp[i][1];
             up[i] = up[i] + normals[i][1] * imp[i][0] - normals[i][0] * imp[i][1];
         }
+    }
+    if ECCENTRIC {
+        let [dx, dz] = offset(v[17]);
+        v[13] = v[13] - dx;
+        v[14] = v[14] - dz;
+        v[15] = v[15] + v[18] * dz;
+        v[16] = v[16] - v[18] * dx;
     }
     [
         (0, v[0]),
@@ -261,3 +338,7 @@ fn tick<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 25] {
         (69, up[3]),
     ]
 }
+
+#[cfg(test)]
+#[path = "../tests/private/eccentric_gripper.rs"]
+mod tests;

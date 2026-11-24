@@ -44,6 +44,8 @@ pub fn fixture(mass: f64, mu: f64, shelf_x: f64) -> CarryGripperLane {
         shelf_normal: 0.,
         shelf_tangent: 0.,
         shelf_up: 0.,
+        com_offset: [0.; 2],
+        angular_inertia: 0.4 * mass * hand.radius.powi(2),
     }
 }
 /// Each action depends on the last publicly committed receiving surface load.

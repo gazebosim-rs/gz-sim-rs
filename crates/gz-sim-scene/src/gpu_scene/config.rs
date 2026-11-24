@@ -54,6 +54,14 @@ pub(super) fn model_shape(
     world: &sdformat::World,
     m: &sdformat::Model,
 ) -> Result<(String, ShapeData), LoadError> {
+    model_shape_with_inertia(sdf, world, m, false)
+}
+pub(super) fn model_shape_with_inertia(
+    sdf: &sdformat::Sdf,
+    world: &sdformat::World,
+    m: &sdformat::Model,
+    planar_payload: bool,
+) -> Result<(String, ShapeData), LoadError> {
     let name = &m.scoped_name;
     require(
         m.models.is_empty()
@@ -80,12 +88,10 @@ pub(super) fn model_shape(
         "GPU links require one collider and support only IMU and altimeter sensors without velocity decay",
     )?;
     let collision = &l.collisions[0];
+    let inertial = sdf.resolve_pose(&l.inertial.pose, name, link, link)?;
     require(
         identity(sdf.resolve_pose(&collision.pose, name, link, link)?)
-            && centered(
-                sdf.resolve_pose(&l.inertial.pose, name, link, link)?
-                    .translation,
-            ),
+            && (planar_payload || centered(inertial.translation)),
         link,
         "GPU link origin must coincide with the collider and center of mass",
     )?;
@@ -95,19 +101,23 @@ pub(super) fn model_shape(
             let mass = l.inertial.mass;
             let i = 0.4 * mass * radius * radius;
             let expected = [i, i, i, 0., 0., 0.];
-            require(
-                i.is_finite()
-                    && i > 0.
-                    && l.inertial
-                        .inertia
-                        .iter()
-                        .zip(expected)
-                        .all(|(observed, target)| {
-                            (observed - target).abs() <= 64. * f64::EPSILON * i
-                        }),
-                link,
-                "GPU sphere requires centered uniform solid-sphere inertia (2 m r² / 5)",
-            )?;
+            // The carrying gripper checks its attached mass frame and inertia tensor
+            // in world coordinates after resolving the complete robot topology.
+            if !planar_payload {
+                require(
+                    i.is_finite()
+                        && i > 0.
+                        && l.inertial
+                            .inertia
+                            .iter()
+                            .zip(expected)
+                            .all(|(observed, target)| {
+                                (observed - target).abs() <= 64. * f64::EPSILON * i
+                            }),
+                    link,
+                    "GPU sphere requires centered uniform solid-sphere inertia (2 m r² / 5)",
+                )?;
+            }
             ShapeData::Sphere(SolidSphere {
                 position: p.translation,
                 orientation: p.rotation,

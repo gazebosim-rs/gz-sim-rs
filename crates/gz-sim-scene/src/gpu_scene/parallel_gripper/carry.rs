@@ -217,7 +217,35 @@ impl Plan {
             &robot.name,
             "one rail drive required",
         )?;
+        let body = &object.links[0];
+        let mass_pose = sdf.resolve_pose(
+            &body.inertial.pose,
+            &object.scoped_name,
+            &body.scoped_name,
+            &body.scoped_name,
+        )?;
+        let initial_rotation = DQuat::from_array(row.poses[3].rotation);
+        let center = initial_rotation * DVec3::from_array(mass_pose.translation);
+        // Only the world transverse axis must be principal. Other products of
+        // inertia and a rotated inertial frame can still preserve planar motion.
+        let direction =
+            (initial_rotation * DQuat::from_array(mass_pose.rotation)).inverse() * DVec3::Y;
+        let [ix, iy, iz, ixy, ixz, iyz] = body.inertial.inertia;
+        let tensor = glam::DMat3::from_cols_array(&[ix, ixy, ixz, ixy, iy, iyz, ixz, iyz, iz]);
+        let applied = tensor * direction;
+        let angular_inertia = direction.dot(applied);
+        let trace = ix + iy + iz;
+        let radius = row.lane.radius;
+        require(
+            center.y.abs() <= 64. * f64::EPSILON * radius
+                && (applied - direction * angular_inertia).length() <= 64. * f64::EPSILON * trace
+                && trace * 0.5 <= body.inertial.mass * (radius * radius - center.length_squared()),
+            &body.scoped_name,
+            "carried sphere needs an in-plane mass center and a transverse principal axis with mass moments inside its shell",
+        )?;
         let lane = CarryGripperLane {
+            com_offset: [center.x, center.z],
+            angular_inertia,
             hand: row.lane,
             track: pose.translation[0],
             track_speed: 0.,

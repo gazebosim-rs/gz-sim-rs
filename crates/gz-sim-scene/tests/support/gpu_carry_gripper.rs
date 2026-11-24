@@ -259,3 +259,125 @@ fn wrong_destination_and_frictionless_pickup_keep_jaws_closed() {
         assert_eq!(l.hand.target[1], -0.05 + 0.028);
     }
 }
+
+const ECCENTRIC: &str = include_str!("../../../../examples/gpu_eccentric_gripper.sdf");
+#[test]
+fn eccentric_sdf_checks_symmetry_and_physical_mass_properties() {
+    for (from, to) in [
+        ("0.006 0 0 0 0 0", "0.006 0.001 0 0 0 0"),
+        ("0.006 0 0 0 0 0", "0.026 0 0 0 0 0"),
+        ("0 0 0.022 0 0 0", "0 0 0.022 0 0 0.2"),
+        ("0.000015488", "0.0000245"),
+        ("0.000015488</ixx>", "0.000015488</ixx><ixy>0.000001</ixy>"),
+    ] {
+        let changed = ECCENTRIC.replace(from, to);
+        assert_ne!(changed, ECCENTRIC);
+        let e = load(&changed, Some("unavailable"))
+            .err()
+            .unwrap()
+            .to_string();
+        assert!(e.contains("transverse principal axis"), "{to}: {e}");
+    }
+}
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn eccentric_sdf_publishes_geometric_origin_and_measured_pad_loads_across_reset() {
+    let adapter = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    for (mu, held) in [(0.6, true), (0.12, false)] {
+        let source = ECCENTRIC
+            .replace("0.6</mu>", &format!("{mu}</mu>"))
+            .replace("0.6</mu2>", &format!("{mu}</mu2>"));
+        let mut sim = load(&source, Some(&adapter)).unwrap();
+        let mut previous = Vec::new();
+        for epoch in 0..2 {
+            if epoch == 1 {
+                reset_loaded_world(&mut sim, |_| ()).unwrap();
+            }
+            let entity = sim
+                .world()
+                .iter_entities()
+                .find(|e| {
+                    e.get::<Name>()
+                        .is_some_and(|n| n.0 == "default::parcel::ball")
+                })
+                .unwrap()
+                .id();
+            let mut average = [0.; 2];
+            for t in 1..=1000 {
+                sim.step_exact(1).unwrap();
+                let h = carry::observe(&sim, 12).unwrap().0.hand;
+                let pose = sim.world().get::<WorldPose>(entity).unwrap();
+                let velocity = sim.world().get::<gz_sim_scene::Velocity>(entity).unwrap();
+                let (s, c) = (-h.angle * 0.5).sin_cos();
+                assert_eq!(pose.translation, [h.ball[0], 0., h.ball[1]]);
+                assert!(
+                    (pose.rotation[1] - s).abs() < 1e-12 && (pose.rotation[3] - c).abs() < 1e-12
+                );
+                assert_eq!(velocity.linear, [h.velocity[0], 0., h.velocity[1]]);
+                assert_eq!(velocity.angular, [0., -h.spin, 0.]);
+                if t >= 801 {
+                    for (a, imp) in average.iter_mut().zip(h.support_impulse) {
+                        *a += imp / 0.2;
+                    }
+                    if held {
+                        assert_eq!(h.normal_impulse[2], 0.);
+                        assert!(h.ball[1] > 0.117);
+                    } else {
+                        assert!(h.normal_impulse[2] > 0. && (h.ball[1] - h.radius).abs() < 1e-6);
+                    }
+                }
+                let state = (
+                    h.ball,
+                    h.velocity,
+                    h.angle,
+                    h.spin,
+                    h.support_impulse,
+                    h.normal_impulse,
+                );
+                if epoch == 0 {
+                    previous.push(state);
+                } else {
+                    assert_eq!(previous[t - 1], state);
+                }
+            }
+            if held {
+                assert!((average[0] - 0.2855).abs() < 0.003 && (average[1] - 0.4993).abs() < 0.003);
+            } else {
+                assert_eq!(average, [0.; 2]);
+            }
+        }
+    }
+}
+
+#[test]
+#[ignore = "requires named f64 Vulkan hardware"]
+fn carrying_solver_resolves_the_rotated_authored_mass_frame() {
+    let a = std::env::var("GZ_GPU_ADAPTER").unwrap();
+    let rotated = ECCENTRIC
+        .replace("0 0 0.022 0 0 0", "0 0 0.022 0 1.5707963267948966 0")
+        .replace("0.006 0 0 0 0 0", "0 0 0.006 0.37 0 0");
+    let mut plain = load(ECCENTRIC, Some(&a)).unwrap();
+    let mut world = load(&rotated, Some(&a)).unwrap();
+    let (l, _) = carry::observe(&world, 12).unwrap();
+    assert!((l.com_offset[0] - 0.006).abs() < 1e-15 && l.com_offset[1].abs() < 1e-15);
+    assert!((l.angular_inertia - 0.000015488).abs() < 1e-15);
+    for _ in 0..500 {
+        plain.step_exact(1).unwrap();
+        world.step_exact(1).unwrap();
+        let reference = carry::observe(&plain, 12).unwrap().0.hand;
+        let actual = carry::observe(&world, 12).unwrap().0.hand;
+        for (x, y) in actual
+            .ball
+            .into_iter()
+            .chain([actual.angle, actual.spin])
+            .zip(
+                reference
+                    .ball
+                    .into_iter()
+                    .chain([reference.angle, reference.spin]),
+            )
+        {
+            assert!((x - y).abs() < 1e-8);
+        }
+    }
+}

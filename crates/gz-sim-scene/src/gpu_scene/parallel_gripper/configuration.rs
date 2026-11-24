@@ -163,7 +163,7 @@ impl Row {
             &m.name,
             "single ordinary three-slider model and named fixed plane required",
         )?;
-        let (ball_name, data) = config::model_shape(sdf, w, obj)?;
+        let (ball_name, data) = config::model_shape_with_inertia(sdf, w, obj, track.is_some())?;
         let config::ShapeData::Sphere(ball) = data else {
             return Err(reason("free solid sphere required"));
         };

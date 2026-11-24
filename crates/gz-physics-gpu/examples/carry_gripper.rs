@@ -4,6 +4,8 @@
 use gz_physics_gpu::{CarryGripperBatch, CarryGripperLane};
 use serde_json::json;
 use std::{error::Error, fs, path::Path, time::Instant};
+#[path = "support/carry_gripper/eccentric.rs"]
+mod eccentric;
 #[path = "support/carry_gripper/fixture.rs"]
 mod fixture;
 #[path = "support/carry_gripper/native.rs"]
@@ -263,6 +265,11 @@ fn run(adapter: &str, dir: &Path) -> Result<(), Box<dyn Error>> {
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
+    if let [adapter, dir, mode] = args.as_slice()
+        && mode == "eccentric"
+    {
+        return eccentric::run(adapter, Path::new(dir));
+    }
     if let [adapter, dir] = args.as_slice() {
         return run(adapter, Path::new(dir));
     }

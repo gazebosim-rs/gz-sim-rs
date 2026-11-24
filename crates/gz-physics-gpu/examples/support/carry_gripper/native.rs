@@ -9,6 +9,7 @@ pub struct Native {
     shape: ColliderHandle,
     contact: [ColliderHandle; 4],
     n: usize,
+    pub pad_up: [f64; 2],
 }
 impl Native {
     pub fn new(l: &CarryGripperLane, n: usize) -> Self {
@@ -101,7 +102,14 @@ impl Native {
                 .can_sleep(false),
         );
         let shape = world.insert_collider(
-            mat(ColliderBuilder::ball(h.radius).mass(h.ball_mass), 1.),
+            mat(
+                ColliderBuilder::ball(h.radius).mass_properties(MassProperties::new(
+                    Vector::new(l.com_offset[0], 0., l.com_offset[1]),
+                    h.ball_mass,
+                    Vector::splat(l.angular_inertia),
+                )),
+                1.,
+            ),
             Some(ball),
         );
         Self {
@@ -110,6 +118,7 @@ impl Native {
             ball,
             shape,
             contact: [pads[0], pads[1], plane, shelf],
+            pad_up: [0.; 2],
             n,
         }
     }
@@ -117,14 +126,26 @@ impl Native {
         let p = self.bodies.map(|id| self.world.bodies[id].translation());
         let b = &self.world.bodies[self.ball];
         let pos = b.translation();
-        let vel = b.linvel();
+        let vel = b.velocity_at_point(pos);
         (
             [p[0].x, p[1].z - 0.08, p[2].x, p[3].x],
             [pos.x, pos.z],
             [vel.x, vel.z],
         )
     }
+    pub fn pad_velocity(&self) -> [[f64; 2]; 2] {
+        [self.bodies[2], self.bodies[3]].map(|id| {
+            let v = self.world.bodies[id].linvel();
+            [v.x, v.z]
+        })
+    }
+    pub fn payload_rotation(&self) -> [f64; 2] {
+        let b = &self.world.bodies[self.ball];
+        let marker = b.rotation() * Vector::X;
+        [marker.z.atan2(marker.x), -b.angvel().y]
+    }
     pub fn step(&mut self, l: &CarryGripperLane, target: [f64; 4]) -> ([f64; 4], f64) {
+        self.pad_up = [0.; 2];
         let mut n = [0.; 4];
         let mut shelf_up = 0.;
         let h = l.hand;
@@ -154,6 +175,26 @@ impl Native {
             for (i, c) in self.contact.iter().enumerate() {
                 if let Some(pair) = self.world.narrow_phase.contact_pair(*c, self.shape) {
                     n[i] += pair.total_impulse_magnitude();
+                    if i < 2 {
+                        use rapier3d_f64::utils::OrthonormalBasis;
+                        for manifold in pair.solver_manifolds() {
+                            let dir = -manifold.data.normal;
+                            let t1 = dir.orthonormal_vector();
+                            let t2 = dir.cross(t1);
+                            let sign = if pair.collider1 == self.shape {
+                                1.
+                            } else {
+                                -1.
+                            };
+                            for point in &manifold.points {
+                                let d = point.data;
+                                self.pad_up[i] += sign
+                                    * (dir.z * d.impulse
+                                        + t1.z * d.tangent_impulse.x
+                                        + t2.z * d.tangent_impulse.y);
+                            }
+                        }
+                    }
                     if i == 3 {
                         let impulse = pair.total_impulse();
                         shelf_up += if pair.collider2 == self.shape {
