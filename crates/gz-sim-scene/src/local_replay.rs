@@ -50,11 +50,13 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                     )
                 })
                 && model.plugins.iter().all(|p| {
-                    matches!(
-                        p.filename.as_str(),
-                        "gz-sim-joint-position-controller-system"
-                            | "gz-sim-joint-controller-system"
-                    )
+                    crate::articulation::is_plugin(p)
+                        || crate::joint_state_publisher::is_plugin(p)
+                        || matches!(
+                            p.filename.as_str(),
+                            "gz-sim-joint-position-controller-system"
+                                | "gz-sim-joint-controller-system"
+                        )
                 })
                 && model.links.iter().all(|link| {
                     link.plugins.is_empty()

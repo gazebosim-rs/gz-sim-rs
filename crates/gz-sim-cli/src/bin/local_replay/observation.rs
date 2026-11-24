@@ -85,6 +85,14 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
             .get::<WorldPose>()
             .map(|p| (p.translation.map(bits), p.rotation.map(bits)));
         scene.item((id, e.get::<Name>().map(|n| &n.0), pose));
+        if e.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::Model) {
+            use gz_sim_scene::{ArticulationTier, FidelityError, model_fidelity};
+            match model_fidelity(sim, id) {
+                Ok(tier) => physics.item((id, "dynamic", tier == ArticulationTier::Dynamic)),
+                Err(FidelityError::NotSwitchable(_)) => {}
+                Err(error) => return Err(error.into()),
+            }
+        }
         if let Some(handle) = e.get::<BodyHandle>() {
             let body = handle.id();
             let s = backend.state(body).ok_or("native body state is missing")?;
