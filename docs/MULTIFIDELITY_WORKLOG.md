@@ -7,6 +7,11 @@ The local Rust/Bevy robot can carry rigid parcels, weigh a loose cable and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+
+## 2026-11-23 — A push at a material point survives wrist promotion and replay
+
+The CPU journal now records off-center forces on articulated links and model tier changes. A parked wrist struck by a 120 N force resumed with the same angular speed as the continuously dynamic control to within 2 × 10⁻¹⁵ rad/s per axis. On a rotating payload the moment correctly changed with the material point. Each of the four changed crates exceeded 95% for executable lines and regions in the scoped qualification. [Two robot fixtures, native playback and measurements](measurements/local-manipulation/point-load-replay.md)
+
 ## 2026-11-23 — Curved rigid bodies in the CPU journal and viewer
 
 Two tilted parts with equal overall dimensions hit the ground eight milliseconds apart. The measured landing times matched their different flat and rounded ends within one tick. Their true mesh geometry now travels inside the native recording. The 600-step runs matched after reset and across thread counts. [Watch both contacts and inspect the measurements](measurements/local-manipulation/curved-body-replay.md)

@@ -1,0 +1,507 @@
+{
+  "point-load": {
+    "records": 490,
+    "queued": [
+      [
+        {
+          "id": 13,
+          "world_force_n": [
+            40.0,
+            24.0,
+            -16.0
+          ],
+          "world_torque_nm": [
+            0.3999999999999999,
+            3.6,
+            6.4
+          ]
+        }
+      ],
+      [
+        {
+          "id": 13,
+          "world_force_n": [
+            40.0,
+            24.0,
+            -16.0
+          ],
+          "world_torque_nm": [
+            0.3999999999999999,
+            3.6,
+            6.4
+          ]
+        }
+      ],
+      [
+        {
+          "id": 13,
+          "world_force_n": [
+            40.0,
+            24.0,
+            -16.0
+          ],
+          "world_torque_nm": [
+            0.5175547007376691,
+            3.4073767502626566,
+            6.404951877238157
+          ]
+        }
+      ]
+    ],
+    "first_velocity_rad_s": [
+      0.04619153736463671,
+      0.06218345016562657,
+      0.17111822624013237
+    ],
+    "viewer": {
+      "body_poses_and_shapes_checked": 462,
+      "captured_ms": {
+        "end": 320.0,
+        "first": 10.0,
+        "mid": 160.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        10.0,
+        20.0,
+        30.0,
+        40.0,
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0,
+        120.0,
+        130.0,
+        140.0,
+        150.0,
+        160.0,
+        170.0,
+        180.0,
+        190.0,
+        200.0,
+        210.0,
+        220.0,
+        230.0,
+        240.0,
+        250.0,
+        260.0,
+        270.0,
+        280.0,
+        290.0,
+        300.0,
+        310.0,
+        320.0
+      ],
+      "frames": 33,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 33,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10036%2F"
+    }
+  },
+  "point-load-center": {
+    "records": 490,
+    "queued": [
+      [
+        {
+          "id": 13,
+          "world_force_n": [
+            40.0,
+            24.0,
+            -16.0
+          ],
+          "world_torque_nm": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      [
+        {
+          "id": 13,
+          "world_force_n": [
+            40.0,
+            24.0,
+            -16.0
+          ],
+          "world_torque_nm": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      [
+        {
+          "id": 13,
+          "world_force_n": [
+            40.0,
+            24.0,
+            -16.0
+          ],
+          "world_torque_nm": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    ],
+    "first_velocity_rad_s": [
+      0.01562719024271954,
+      -0.0031505957355159857,
+      0.0508751883487529
+    ],
+    "viewer": {
+      "body_poses_and_shapes_checked": 462,
+      "captured_ms": {
+        "end": 320.0,
+        "first": 10.0,
+        "mid": 160.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        10.0,
+        20.0,
+        30.0,
+        40.0,
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0,
+        120.0,
+        130.0,
+        140.0,
+        150.0,
+        160.0,
+        170.0,
+        180.0,
+        190.0,
+        200.0,
+        210.0,
+        220.0,
+        230.0,
+        240.0,
+        250.0,
+        260.0,
+        270.0,
+        280.0,
+        290.0,
+        300.0,
+        310.0,
+        320.0
+      ],
+      "frames": 33,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 33,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10037%2F"
+    }
+  },
+  "parked-load": {
+    "records": 873,
+    "queued": [
+      [
+        {
+          "id": 7,
+          "world_force_n": [
+            0.0,
+            120.0,
+            0.0
+          ],
+          "world_torque_nm": [
+            8.39007310079066e-21,
+            0.0,
+            12.0
+          ]
+        }
+      ],
+      [
+        {
+          "id": 7,
+          "world_force_n": [
+            0.0,
+            120.0,
+            0.0
+          ],
+          "world_torque_nm": [
+            8.39007310079066e-21,
+            0.0,
+            12.0
+          ]
+        }
+      ],
+      [
+        {
+          "id": 7,
+          "world_force_n": [
+            0.0,
+            120.0,
+            0.0
+          ],
+          "world_torque_nm": [
+            8.39007310079066e-21,
+            0.0,
+            12.0
+          ]
+        }
+      ]
+    ],
+    "first_velocity_rad_s": [
+      1.3920867730425437,
+      0.6839311979559773,
+      2.578134257975138
+    ],
+    "viewer": {
+      "body_poses_and_shapes_checked": 225,
+      "captured_ms": {
+        "end": 431.0,
+        "first": 10.0,
+        "mid": 220.0
+      },
+      "coordinate_tolerance": 1e-12,
+      "frame_times_ms": [
+        0.0,
+        10.0,
+        20.0,
+        30.0,
+        40.0,
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0,
+        120.0,
+        130.0,
+        140.0,
+        150.0,
+        160.0,
+        170.0,
+        180.0,
+        190.0,
+        200.0,
+        210.0,
+        220.0,
+        230.0,
+        240.0,
+        250.0,
+        260.0,
+        270.0,
+        280.0,
+        290.0,
+        300.0,
+        310.0,
+        320.0,
+        330.0,
+        340.0,
+        350.0,
+        360.0,
+        370.0,
+        380.0,
+        390.0,
+        400.0,
+        410.0,
+        420.0,
+        430.0,
+        431.0
+      ],
+      "frames": 45,
+      "indicator_positions_checked": 0,
+      "lifecycle_catalogs_checked": 45,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0,
+      "source_trajectories": 1,
+      "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10038%2F"
+    }
+  },
+  "parked-auto": {
+    "records": 871,
+    "queued": [
+      [
+        {
+          "id": 7,
+          "world_force_n": [
+            0.0,
+            120.0,
+            0.0
+          ],
+          "world_torque_nm": [
+            8.39007310079066e-21,
+            0.0,
+            12.0
+          ]
+        }
+      ],
+      [
+        {
+          "id": 7,
+          "world_force_n": [
+            0.0,
+            120.0,
+            0.0
+          ],
+          "world_torque_nm": [
+            8.39007310079066e-21,
+            0.0,
+            12.0
+          ]
+        }
+      ]
+    ],
+    "first_velocity_rad_s": [
+      1.3920867730425437,
+      0.6839311979559773,
+      2.578134257975138
+    ]
+  },
+  "parked-always": {
+    "records": 869,
+    "queued": [
+      [
+        {
+          "id": 7,
+          "world_force_n": [
+            0.0,
+            120.0,
+            0.0
+          ],
+          "world_torque_nm": [
+            3.5942153540116363e-16,
+            0.0,
+            12.0
+          ]
+        }
+      ],
+      [
+        {
+          "id": 7,
+          "world_force_n": [
+            0.0,
+            120.0,
+            0.0
+          ],
+          "world_torque_nm": [
+            3.5942153540116363e-16,
+            0.0,
+            12.0
+          ]
+        }
+      ]
+    ],
+    "first_velocity_rad_s": [
+      1.3920867730425428,
+      0.6839311979559768,
+      2.5781342579751363
+    ]
+  },
+  "changed_coverage": {
+    "crates/gz-physics-multifidelity/src/lib.rs": {
+      "lines": {
+        "hit": 3,
+        "total": 3,
+        "missing": []
+      },
+      "regions": {
+        "hit": 5,
+        "total": 5,
+        "missing": []
+      }
+    },
+    "crates/gz-physics-rapier/src/articulation.rs": {
+      "lines": {
+        "hit": 10,
+        "total": 10,
+        "missing": []
+      },
+      "regions": {
+        "hit": 22,
+        "total": 23,
+        "missing": [
+          [
+            156,
+            59,
+            156,
+            60
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/src/bin/gz-sim-local-replay.rs": {
+      "lines": {
+        "hit": 26,
+        "total": 26,
+        "missing": []
+      },
+      "regions": {
+        "hit": 50,
+        "total": 51,
+        "missing": [
+          [
+            364,
+            65,
+            364,
+            66
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-cli/src/bin/local_replay/observation.rs": {
+      "lines": {
+        "hit": 17,
+        "total": 17,
+        "missing": []
+      },
+      "regions": {
+        "hit": 31,
+        "total": 31,
+        "missing": []
+      }
+    },
+    "crates/gz-sim-scene/src/inputs.rs": {
+      "lines": {
+        "hit": 14,
+        "total": 14,
+        "missing": []
+      },
+      "regions": {
+        "hit": 29,
+        "total": 30,
+        "missing": [
+          [
+            67,
+            74,
+            67,
+            75
+          ]
+        ]
+      }
+    },
+    "crates/gz-sim-scene/src/lib.rs": {
+      "lines": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      },
+      "regions": {
+        "hit": 0,
+        "total": 0,
+        "missing": []
+      }
+    }
+  }
+}
