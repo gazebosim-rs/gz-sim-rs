@@ -148,7 +148,7 @@ pub(super) fn verify(scene: &Value, catalog: &Value, status: &Value, raw: &Value
             .find(|v| v["id"] == source["id"])
             .ok_or("missing visual id")?;
         if v["name"] != source["name"]
-            || v["shape"] != source["shape"]
+            || !same_shape(&v["shape"], &source["shape"])
             || v["color"] != source["color"]
             || !same(&v["translation"], vector::<3>(&source["translation"])?)?
             || !same(&v["rotation"], vector::<4>(&source["rotation"])?)?
@@ -162,4 +162,72 @@ pub(super) fn verify(scene: &Value, catalog: &Value, status: &Value, raw: &Value
         }
     }
     Ok(i)
+}
+
+/// Replay rehosts archived mesh bytes on a new loopback HTTP origin.
+fn same_shape(live: &Value, source: &Value) -> bool {
+    if source["kind"] != "mesh" {
+        return live == source;
+    }
+    fn route(shape: &Value) -> Option<String> {
+        let uri = shape["uri"]
+            .as_str()?
+            .parse::<tungstenite::http::Uri>()
+            .ok()?;
+        let authority = uri.authority()?;
+        (uri.scheme_str() == Some("http")
+            && authority.host() == "127.0.0.1"
+            && !authority.as_str().contains('@')
+            && authority.port_u16().is_some_and(|port| port > 0)
+            && uri.query().is_none()
+            && uri.path().starts_with("/assets/"))
+        .then(|| uri.path().to_owned())
+    }
+    let Some(path) = route(source) else {
+        return false;
+    };
+    if route(live).as_ref() != Some(&path) {
+        return false;
+    }
+    let mut expected = source.clone();
+    expected["uri"] = live["uri"].clone();
+    live == &expected
+}
+
+#[cfg(test)]
+mod mesh_tests {
+    use super::*;
+
+    #[test]
+    fn a_recording_can_rebind_only_the_port_of_a_matching_loopback_asset() {
+        let original =
+            json!({"kind":"mesh","uri":"http://127.0.0.1:12/assets/4/payload.glb","scale":[1,2,3]});
+        let set = |address: &str| {
+            let mut live = original.clone();
+            live["uri"] = json!(address);
+            live
+        };
+        let valid = set("http://127.0.0.1:34/assets/4/payload.glb");
+        assert!(same_shape(&valid, &original));
+        for address in [
+            "http://localhost:34/assets/4/payload.glb",
+            "http://user@127.0.0.1:34/assets/4/payload.glb",
+            "https://127.0.0.1:34/assets/4/payload.glb",
+            "http://127.0.0.1:34/assets/5/payload.glb",
+            "http://127.0.0.1:34/assets/4/payload.glb?q=1",
+            "http://127.0.0.1/assets/4/payload.glb",
+            "not a URI",
+            "/assets/4/payload.glb",
+        ] {
+            assert!(!same_shape(&set(address), &original));
+        }
+        let mut wrong_scale = valid;
+        wrong_scale["scale"] = json!([1, 1, 1]);
+        assert!(!same_shape(&wrong_scale, &original));
+        assert!(same_shape(
+            &json!({"kind":"sphere","radius":4}),
+            &json!({"kind":"sphere","radius":4})
+        ));
+        assert!(!same_shape(&original, &json!({"kind":"mesh"})));
+    }
 }

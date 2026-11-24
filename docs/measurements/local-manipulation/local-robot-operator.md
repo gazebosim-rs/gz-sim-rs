@@ -27,3 +27,24 @@ RUSTC_WRAPPER= cargo run --locked -p gz-sim-cli --bin gz-sim-rs -- \
 RUSTC_WRAPPER= cargo run --locked -p gz-sim-cli --bin gz-sim-convoy-control -- --port 9002 status
 RUSTC_WRAPPER= cargo run --locked -p gz-sim-cli --bin gz-sim-convoy-control -- --port 9002 step 0 0
 ```
+
+## Replay a mesh-marked parcel after the source files are gone
+
+A 0.2 kg parcel falls 60 mm onto the receiving table beside the open gripper. A small gray OBJ marker rides on the parcel. Its collision box, mass and inertia come from the ordinary gripper SDF. The local CLI records the 180 ms drop and exits. The test deletes the source world and OBJ before opening the archive in a fresh CLI process.
+
+The ordinary Bevy simulation measured a peak table impulse of 0.214335478 N·s at 111 ms. Every recorded position and rotation of the marker matched the ordinary run at the corresponding millisecond. The replay served the same 808 GLB bytes after rewind. Chromium independently requested that asset from the replay origin, received all 808 bytes, and checked 98 visual poses and shapes across seven WebGPU frames. The screenshot shows the marker above the red parcel on the green receiving table at 133 ms. [Watch the mesh and parcel in gz-web-rs](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11348%2F)
+
+![Gripper beside the marked parcel on the receiving table](cli-mesh-payload.jpg)
+
+Both staged feature profiles passed, including the terminal 180 ms frame. Before the final-recording fix in `07941dd`, the same test reproduced a capture ending at 165 ms. Playing the complete archive with the original frozen `8c57ff6` CLI binaries added 32 lines and 60 regions to each profile's original CLI report. The browser processes matched their respective ELF build IDs. The before-and-after comparisons used the same owned object lists and preserved every original per-file denominator. The new browser mesh comparison covered all 45 of its instrumented regions. The native replay test covered 149/150 lines and 303/306 regions.
+
+To make a fresh archive and open it through the ordinary local server, use a new capture path and a free port:
+
+```sh
+mkdir -p "$PWD/artifacts/local-mesh-demo"
+GZ_LOCAL_MESH_REPLAY="$PWD/artifacts/local-mesh-demo/capture" RUSTC_WRAPPER= \
+  cargo test --locked -p gz-sim-cli --test native \
+  replay_serves_the_moving_robot_payload_after_source_retirement -- --nocapture
+RUSTC_WRAPPER= cargo run --locked -p gz-sim-cli --bin gz-sim-rs -- \
+  "$PWD/artifacts/local-mesh-demo/capture" --server --replay --web-viewer 9002
+```

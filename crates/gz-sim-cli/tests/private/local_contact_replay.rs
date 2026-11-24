@@ -15,14 +15,12 @@ use tungstenite::{Message, WebSocket};
 const WORLD: &str = include_str!("../../../../examples/multifidelity_finite_primary.sdf");
 const TIMEOUT: Duration = Duration::from_secs(10);
 
-fn record(path: &Path, ticks: u64) {
-    let source = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../examples/multifidelity_finite_primary.sdf");
+fn record(source: &Path, path: &Path, ticks: u64, step_ns: u64) {
     for _ in 0..4 {
         let port = candidate_port();
         let mut network = Network::new();
         let mut cmd = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
-        cmd.arg(&source)
+        cmd.arg(source)
             .args([
                 "--server",
                 "--run",
@@ -49,7 +47,7 @@ fn record(path: &Path, ticks: u64) {
             String::from_utf8_lossy(&result.stderr)
         );
         assert!(result.stdout.starts_with(
-            format!("simulation_ns={} iterations={ticks}\n", ticks * 500_000).as_bytes()
+            format!("simulation_ns={} iterations={ticks}\n", ticks * step_ns).as_bytes()
         ));
         return;
     }
@@ -111,7 +109,9 @@ fn read_tuple(socket: &mut WebSocket<TcpStream>, last: &str) -> [Value; 4] {
 fn recorded_contact_poses_survive_real_cli_replay_and_rewind() {
     let dir = tempfile::tempdir().unwrap();
     let archive = dir.path().join("rocker");
-    record(&archive, 1);
+    let source = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../examples/multifidelity_finite_primary.sdf");
+    record(&source, &archive, 1, 500_000);
     let mut reference = load_world_with_sdf_step(
         WORLD,
         "rocker.sdf",
@@ -191,3 +191,6 @@ fn recorded_contact_poses_survive_real_cli_replay_and_rewind() {
     rustix::process::kill_process(pid, rustix::process::Signal::TERM).unwrap();
     assert!(process.wait(TIMEOUT).status.success());
 }
+
+#[path = "local_mesh_payload.rs"]
+mod mesh_payload;
