@@ -2381,9 +2381,7 @@ fn sync_models(
             for (anchors, poses) in model_chunks {
                 let batch_rows = pose_batch_rows(anchors.len());
                 let (poses, _) = bevy_ecs::change_detection::ContiguousMut::split(poses);
-                for (anchors, poses) in anchors
-                    .chunks(batch_rows)
-                    .zip(poses.chunks_mut(batch_rows))
+                for (anchors, poses) in anchors.chunks(batch_rows).zip(poses.chunks_mut(batch_rows))
                 {
                     scope.spawn(async move {
                         let mut resolve = identities.reader();
