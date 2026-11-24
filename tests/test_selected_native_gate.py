@@ -129,6 +129,8 @@ class SelectedNativeGate(unittest.TestCase):
             self.assertEqual(index['inputs'][path], digest((root / path).read_bytes()))
         self.assertEqual(index['inputs']['scripts/profile_process.py'],
                          digest((root / 'scripts/profile_process.py').read_bytes()))
+        self.assertEqual(index['inputs']['scripts/coverage-test-runner.rs'],
+                         digest((root / 'scripts/coverage-test-runner.rs').read_bytes()))
         self.assertEqual(index['inputs']['scripts/zenoh_runtime_probe.py'],
                          digest((root / 'scripts/zenoh_runtime_probe.py').read_bytes()))
         self.assertIsNone(index['zenoh_reference']['runtime_probe'])
@@ -144,6 +146,12 @@ class SelectedNativeGate(unittest.TestCase):
 
     def test_process_helper_drift_fails_integrated_coverage(self):
         _, _, profiles, execute = self.coverage_fixture(mutate='scripts/profile_process.py')
+        with self.assertRaisesRegex(ValueError, 'verification inputs changed between profiles'):
+            execute()
+        self.assertEqual(profiles, ['headless', 'renderer'])
+
+    def test_runner_source_drift_fails_integrated_coverage(self):
+        _, _, profiles, execute = self.coverage_fixture(mutate='scripts/coverage-test-runner.rs')
         with self.assertRaisesRegex(ValueError, 'verification inputs changed between profiles'):
             execute()
         self.assertEqual(profiles, ['headless', 'renderer'])
@@ -296,6 +304,16 @@ class SelectedNativeGate(unittest.TestCase):
             with self.subTest(alteration=alteration), patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
                 with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
                     verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+
+    def test_current_candidate_requires_the_recorded_runner_source(self):
+        root, candidate, coverage, _, index = self.staged_fixture()
+        source = 'scripts/coverage-test-runner.rs'
+        (candidate / source).write_text('// synthetic runner source identity\n')
+        index['inputs'][source] = '0' * 64
+        (coverage / 'profile-index.json').write_text(json.dumps(index))
+        with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, 'coverage-test-runner input binding'):
+                verify.retain_staged_evidence('a' * 40, candidate, 'passed')
 
     def test_runtime_selector_input_and_complete_selected_bundle_are_required(self):
         for alteration in ('missing_input', 'changed_helper', 'missing_helper', 'dangling_helper',

@@ -2456,6 +2456,10 @@ The same eccentric 80 g cuboid rocked between edges and settled on its broad fac
 
 The eccentric box now turns freely after release and loses spin through signed two-direction friction at its actual shelf contacts. Matched rough-shelf releases arrested at +16.8543° and −16.8543°, within 0.006° of independent 3D Rapier. The frictionless control kept spinning at 3.3333 rad/s. Rotating the unchanged shelf in the original CPU control flipped the earlier 26.3° result. The hard-contact comparison and the GPU preserved the expected symmetry. The second glancing strike at 2.194 s still needs work. All 47 ordinary hardware tests passed, changed production coverage reached 319/321 lines and 756/775 regions, and native playback verified 12,300 displayed poses. [Measured impulses, coverage and gz-web-rs replays](measurements/local-manipulation/gpu-shelf-spatial.md)
 
+## 2026-11-24 — Recovering time for the hosted headless verification
+
+The hosted test command reached its one-hour deadline with 3,453 tests passed. Its longest completed robot suite took over 23 minutes. Running that suite with separate coverage counters per test reduced local elapsed time from 504.68 to 307.60 seconds on the same four cores. All 123 active cases passed, the ignored case stayed dormant, and the merged LLVM profile was byte-identical. The integrated commit still needs a fresh hosted headless and renderer result. [Hosted failure, matched profiles and reproduction](measurements/local-manipulation/hosted-headless-deadline.md)
+
 ## 2026-11-24 — Matched-state check of the second glancing shelf strike
 
 At 2.193 s one GPU corner was already supported and the second was 339 µm above the shelf. Replaying just the next millisecond from that exact state gave native CPU yaw speeds from 1.72 to 4.64 rad/s across seven time resolutions. The continuous GPU gave 1.617 rad/s. The next comparison needs to resolve how the second corner takes load while the first is still touching. [Frozen incoming states, reproducible native controls and gz-web-rs](measurements/local-manipulation/gpu-shelf-glance.md)

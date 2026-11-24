@@ -535,6 +535,14 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
             env["GZ_RENDER_WORKER_PATH"] = prepared_executables["gz-render-worker"]["cargo_artifact"]["executable"]
             env["GZ_RENDER_EXECUTABLES_JSON"] = json.dumps(prepared_executables)
     test_command = [*command, "--message-format=json"]
+    host = next((line[6:] for line in version.splitlines() if line.startswith("host: ")), "")
+    if name == "headless" and "gz-sim-cli" in crates and "-linux-" in host:
+        # Isolate LLVM counters for the long robot example. Cargo supplies every
+        # executable and its arguments; the runner execs other targets unchanged.
+        runner = (directory / "coverage-test-runner").resolve()
+        run(["rustc", "--edition=2024", "-O", str(ROOT / "scripts/coverage-test-runner.rs"),
+             "-o", str(runner)])
+        test_command += ["--config", f"target.{host}.runner=" + json.dumps([str(runner)])]
     if name == "renderer":
         # Preserve adapter identity in evidence, including for successful tests.
         test_command += ["--", "--nocapture"]
@@ -831,6 +839,7 @@ def coverage(changed_file=None):
                                  *[ROOT / name for name in zenoh_peer.bootstrap.INPUTS],
                                  *native_peer_inputs(),
                                  wrapper, ROOT / "scripts/verify.py", ROOT / "scripts/profile_process.py",
+                                 ROOT / "scripts/coverage-test-runner.rs",
                                  ROOT / HEADLESS_WORKER_TEST, ROOT / HEADLESS_WORKER_CASES,
                                  ROOT / "crates/gz-physics-distributed/tests/support/curved_checkpoint.rs",
                                  ROOT / "crates/gz-physics-distributed/tests/support/production_example.rs",
@@ -1031,15 +1040,15 @@ def retain_profile_evidence(candidate, output, hashes, missing):
         contract = json.loads(contract_path.read_text())
         if contract.get("version") == 2 and "zenoh_reference" not in data:
             missing.append("zenoh_reference")
-    process_helper = candidate / "scripts/profile_process.py"
-    if "scripts/profile_process.py" in data.get("inputs", {}) or os.path.lexists(process_helper):
-        if (process_helper.is_symlink() or not process_helper.is_file()
-                or not process_helper.resolve().is_relative_to(candidate.resolve())):
-            missing.append("profile_process source input")
-        else:
-            helper_digest = hashlib.sha256(process_helper.read_bytes()).hexdigest()
-            if data.get("inputs", {}).get("scripts/profile_process.py") != helper_digest:
-                missing.append("profile_process input binding")
+    for source in ("scripts/profile_process.py", "scripts/coverage-test-runner.rs"):
+        helper = candidate / source
+        if source not in data.get("inputs", {}) and not os.path.lexists(helper):
+            continue
+        if (helper.is_symlink() or not helper.is_file()
+                or not helper.resolve().is_relative_to(candidate.resolve())):
+            missing.append(f"{helper.stem} source input")
+        elif data.get("inputs", {}).get(source) != hashlib.sha256(helper.read_bytes()).hexdigest():
+            missing.append(f"{helper.stem} input binding")
     if "zenoh_reference" in data:
         name = "zenoh-native-reference.json"
         source = coverage / run_name / name
