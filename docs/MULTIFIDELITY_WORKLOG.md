@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Measure short impacts in the robot’s support sensor and input replay
+
+A 10 g parcel bounced clear of a pad between controller observations. The sensor now reports the correct 3.58125 N mean force, keeps the release timer clear, and reports zero on the following step. The three-epoch command replay reproduces the sorter and both jaw strikes across one and eight threads, including an ordinary-control comparison after reset. The receiving sensor covered 22/22 changed lines and 46/47 regions. All changed replay lines and regions ran. [Support sensor and rebound](measurements/local-manipulation/receiving-impact.md) · [Replay and paused policy changes](measurements/local-manipulation/refined-input-replay.md)
+
 ## 2026-11-24 — Complete the frozen renderer and physical GPU coverage comparison
 
 The software renderer passed 2,875 tests across 772 harnesses. The RTX 5090 passed 77 device cases and took the GPU crate to 96.67% line and 95.78% region coverage on the same executables. The strict software run still fails the GPU threshold, and CLI, scene and distributed coverage still need work. [Strict and supplemental release measurements](measurements/local-manipulation/local-robot-release.md)
