@@ -23,6 +23,8 @@ With the local gz-web-rs frontend running on 8082, open your recording, put the 
 
 ## Watch the current local robot experiments
 
+A separate passive wrist and sliding finger now share a strike on their first physics step. Both reflected strikes can be compared with the hand calculation through 200 ms. [Corrected wrist, timing and native replays](measurements/local-manipulation/reduced-wrist-slider.md)
+
 The gripper's load-path recordings show how a parcel's first strike moves through the sliding finger into the palm and wrist. Three gauges follow the measured impulses through the first millisecond. [Signed measurements, native recordings and reproduction](measurements/local-manipulation/wrist-impact-loads.md)
 
 The 50 µm jaw-strike recordings show individual hits inside a single 1 ms controller step. A separate 18 s recording follows the same gripper carrying its free 200 g parcel to a shelf. [Jaw impact, full pickup and replay instructions](measurements/local-manipulation/early-jaw.md) · [Watch the carry](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A10090%2F)
