@@ -10,7 +10,7 @@ use super::{
     surface::{first_entry, geometry::vertex_face},
     topology::cell_faces,
 };
-use glam::DVec3;
+use glam::{DQuat, DVec3};
 use std::{
     collections::BTreeMap,
     sync::{Arc, OnceLock},
@@ -43,6 +43,7 @@ impl Row {
 }
 #[derive(Default, Clone)]
 pub(super) struct Faces {
+    rotated_endpoints: Vec<DVec3>,
     edges: OnceLock<Arc<[edges::Edge]>>,
     rows: BTreeMap<(usize, usize, [usize; 3]), Row>,
 }
@@ -87,7 +88,7 @@ impl Faces {
         let mut boxes = surfaces
             .iter()
             .enumerate()
-            .filter_map(|(i, b)| b.one_way_box().map(|(half, q)| (i, b, half, q)))
+            .filter_map(|(i, b)| b.one_way_box(dt.t0).map(|(half, q)| (i, b, half, q)))
             .peekable();
         if boxes.peek().is_none() {
             return Ok(());
@@ -95,20 +96,76 @@ impl Faces {
         let mut queries = 0;
         let mut stationary_bounds = None;
         for (b, boundary, half, q) in boxes {
-            // Cast the material in a frame translating with the box. Store the
+            // Cast the material relative to the box at interval start. Store the
             // end witness back in world space for position and angular reactions.
             let center = boundary.origin + dt.t0 * boundary.velocity;
             let offset = (dt.t1 - dt.t0) * boundary.velocity;
+            let spin = boundary.box_spin();
+            let rotating = spin != DVec3::ZERO;
+            let rotation = DQuat::from_scaled_axis(dt.h * spin);
+            // In the co-rotating frame each material vertex traces a curve.
+            // Bound the chord error via |r′′| ≤ ω²|r| + 2ω|v|, then cast
+            // against the padded skin. Project against the actual endpoint skin.
+            let end_in_start_frame = &mut self.rotated_endpoints;
+            end_in_start_frame.clear();
+            let mut cast_radius = dt.radius;
+            if rotating {
+                // The rotating box stays inside this swept sphere. Distant
+                // sheets need neither a feature cast nor an arc tolerance.
+                let world = stationary_bounds.get_or_insert_with(|| {
+                    Bounds::swept(
+                        p.iter()
+                            .zip(x.iter())
+                            .map(|(p, &end)| (p.position.into(), end)),
+                        dt.radius,
+                    )
+                });
+                let end_center = center + offset;
+                let extent = DVec3::splat(half.length());
+                if (center.min(end_center) - extent).cmpgt(world.hi).any()
+                    || (center.max(end_center) + extent).cmplt(world.lo).any()
+                {
+                    continue;
+                }
+                let angle = dt.h * spin.length();
+                let mut max_error = 0_f64;
+                for (p, &end) in p.iter().zip(x.iter()) {
+                    let a = DVec3::from(p.position) - center;
+                    let b = end - (center + offset);
+                    let error = (angle * angle * a.length().max(b.length())
+                        + 2. * angle * (b - a).length())
+                        / 8.;
+                    max_error = max_error.max(error);
+                    end_in_start_frame.push(center + rotation.conjugate() * b);
+                }
+                if max_error > (0.001 * dt.radius).min(1e-6) {
+                    return Err(XpbdError::UnresolvedSweep);
+                }
+                cast_radius += max_error;
+            }
+            let ends = if rotating {
+                end_in_start_frame.as_slice()
+            } else {
+                &*x
+            };
+            let drift = if rotating { DVec3::ZERO } else { offset };
+            let to_world = |mut row: Row| {
+                if rotating {
+                    row.normal = rotation * row.normal;
+                    row.witness = (center + offset) + rotation * (row.witness - center);
+                }
+                row
+            };
             let bounds = || {
                 Bounds::swept(
                     p.iter()
-                        .zip(x.iter())
-                        .map(|(p, &x)| (p.position.into(), x - offset)),
-                    dt.radius,
+                        .zip(ends.iter())
+                        .map(|(p, &x)| (p.position.into(), x - drift)),
+                    cast_radius,
                 )
             };
             let moving_bounds;
-            let all = if offset == DVec3::ZERO {
+            let all = if !rotating && offset == DVec3::ZERO {
                 stationary_bounds.get_or_insert_with(bounds)
             } else {
                 moving_bounds = bounds();
@@ -136,8 +193,8 @@ impl Faces {
                             continue;
                         }
                         let a = ids.map(|i| DVec3::from(p[i].position));
-                        let z = ids.map(|i| x[i] - offset);
-                        if !Bounds::swept(a.into_iter().zip(z), dt.radius).contains(corner) {
+                        let z = ids.map(|i| ends[i] - drift);
+                        if !Bounds::swept(a.into_iter().zip(z), cast_radius).contains(corner) {
                             continue;
                         }
                         let eps = 1e-9 * dt.radius
@@ -160,7 +217,7 @@ impl Faces {
                                 start,
                                 [corner, z[0], z[1], z[2]],
                                 true,
-                                dt.radius.max(16. * eps),
+                                cast_radius.max(16. * eps),
                                 eps,
                                 &mut queries,
                             )?
@@ -181,27 +238,29 @@ impl Faces {
                             ids,
                             weights,
                             normal: n,
-                            witness: corner + offset,
+                            witness: corner + drift,
                             other_wing: None,
                             lambda: 0.,
                         };
                         if row.mass_inverse(p) > 0. {
-                            self.rows.insert(key, row);
+                            self.rows.insert(key, to_world(row));
                         }
                     }
                 }
             }
-            for ridge in edges::Ridge::all(center, half, q, offset) {
+            for ridge in edges::Ridge::all(center, half, q, drift) {
                 if !ridge.overlaps(all) {
                     continue;
                 }
                 let edges = self.edges.get_or_init(|| edges::topology(p.len(), columns));
                 for &edge in edges.iter() {
                     if let Some((feature, row)) =
-                        ridge.sweep(edge, q.conjugate(), p, x, dt.radius, &mut queries)?
+                        ridge.sweep(edge, q.conjugate(), p, ends, cast_radius, &mut queries)?
                         && row.mass_inverse(p) > 0.
                     {
-                        self.rows.entry((b, feature, row.ids)).or_insert(row);
+                        self.rows
+                            .entry((b, feature, row.ids))
+                            .or_insert_with(|| to_world(row));
                     }
                 }
             }
@@ -230,7 +289,7 @@ impl Faces {
         surfaces: &[PreparedBoundary],
         reactions: &mut [BoundaryImpulse],
         cfg: super::SolverConfig,
-        h: f64,
+        (h, t1): (f64, f64),
     ) -> Result<(), XpbdError> {
         let (mu, radius) = (cfg.friction, cfg.particle_radius);
         for (&(b, _, _), row) in &self.rows {
@@ -242,7 +301,11 @@ impl Faces {
             {
                 continue;
             }
-            let closing = (surfaces[b].velocity - row.blend(|i| p[i].velocity.into()))
+            let surface_velocity = surfaces[b].velocity
+                + surfaces[b]
+                    .box_spin()
+                    .cross(center - radius * n - (surfaces[b].origin + t1 * surfaces[b].velocity));
+            let closing = (surface_velocity - row.blend(|i| p[i].velocity.into()))
                 .dot(n)
                 .max(0.);
             let normal_j = closing / row.mass_inverse(p);
@@ -262,7 +325,7 @@ impl Faces {
                 &ring[..3]
             };
             let skin = Skin::new(patch, row.ids, row.weights, |i| x[i], -radius * n)?;
-            let relative = skin.velocity(p) - surfaces[b].velocity;
+            let relative = skin.velocity(p) - surface_velocity;
             let slip = relative - n * relative.dot(n);
             let mut tangent = DVec3::ZERO;
             if let Some(dir) = slip.try_normalize() {

@@ -653,6 +653,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
             | Boundary::Capsule { .. }
             | Boundary::DynamicCapsule { .. } => true,
             Boundary::StaticCuboid { .. }
+            | Boundary::Turntable { .. }
             | Boundary::TranslatingCuboid { .. }
             | Boundary::Plane { .. } => false,
         }) {

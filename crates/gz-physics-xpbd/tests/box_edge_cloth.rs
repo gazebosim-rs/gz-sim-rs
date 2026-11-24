@@ -201,3 +201,116 @@ fn a_moving_ridge_sweeps_a_material_edge_in_its_own_frame() {
     }
     assert!(loaded > 0);
 }
+
+#[test]
+fn unresolved_rotation_keeps_the_last_committed_particles_and_impulses() {
+    let mut sheet = make(DQuat::IDENTITY, 0., 0.05, DVec3::ZERO, 0.2);
+    let dt = Duration::from_millis(1);
+    sheet.step(dt, &[bench(DQuat::IDENTITY)]).unwrap();
+    let prior = sheet.particles().to_vec();
+    let loads = sheet.last_boundary_impulses().to_vec();
+    for speed in [f64::NAN, 200., 4000.] {
+        let table = Boundary::Turntable {
+            center: [0.; 3],
+            half_extents: [0.025, 0.16, 0.02],
+            orientation: DQuat::IDENTITY.to_array(),
+            velocity: [0.; 3],
+            angular_speed: speed,
+        };
+        assert!(sheet.step(dt, &[table]).is_err());
+        assert_eq!(sheet.particles(), prior);
+        assert_eq!(sheet.last_boundary_impulses(), loads);
+    }
+}
+
+#[test]
+fn rotating_edge_stops_an_oblique_sheet_and_a_distant_swath_is_clear() {
+    let q = DQuat::from_rotation_y(0.31);
+    for (distance, speed) in [(0., 0.6), (3., 500.)] {
+        let mut s = make(q, distance, 0.016, 2. * DVec3::Y - 40. * NORMAL, 0.15);
+        s.set_resolution(8, 12).unwrap();
+        let initial = totals(&s);
+        s.step(
+            Duration::from_millis(1),
+            &[Boundary::Turntable {
+                center: [0.; 3],
+                half_extents: [0.025, 0.16, 0.02],
+                orientation: q.to_array(),
+                velocity: [0.; 3],
+                angular_speed: speed,
+            }],
+        )
+        .unwrap();
+        let j = s.last_boundary_impulses()[0];
+        if distance == 0. {
+            assert!(-DVec3::from(j.linear).dot(q * NORMAL) > 1.);
+        } else {
+            assert_eq!(j.linear, [0.; 3]);
+            assert_eq!(j.angular, [0.; 3]);
+        }
+        let after = totals(&s);
+        assert!((after[0] - initial[0] + DVec3::from(j.linear)).length() < 1e-8);
+        assert!((after[1] - initial[1] + DVec3::from(j.angular)).length() < 1e-8);
+    }
+}
+
+#[test]
+fn finite_turntable_crosses_a_free_particle_between_clear_endpoints_at_the_analytic_time() {
+    let r = 0.003;
+    let x = 0.16_f64;
+    let half_y = 0.005;
+    let dt = Duration::from_millis(10);
+    let speed = 50.;
+    let half_angle = speed * dt.as_secs_f64() / 2.;
+    let origin = DVec3::new(0.3, -0.4, 0.2);
+    let table = Boundary::Turntable {
+        center: origin.into(),
+        half_extents: [0.2, half_y, 0.02],
+        orientation: DQuat::from_rotation_z(-half_angle).to_array(),
+        velocity: [0.; 3],
+        angular_speed: speed,
+    };
+    for friction in [0., 0.15] {
+        let start = origin + DVec3::X * x;
+        let mut body = SoftBody::new(
+            vec![Particle {
+                position: start.into(),
+                velocity: [0.; 3],
+                inverse_mass: 2.,
+            }],
+            vec![],
+            SolverConfig {
+                substeps: 1,
+                iterations: 5,
+                friction,
+                gravity: [0.; 3],
+                particle_radius: r,
+                self_contact: false,
+            },
+        )
+        .unwrap();
+        body.step(dt, &[table]).unwrap();
+        let angle = -((half_y + r) / x).asin();
+        assert!(x * half_angle.sin() > half_y + r);
+        let hit = (angle + half_angle) / speed;
+        let q = DQuat::from_rotation_z(angle);
+        let normal = q * DVec3::Y;
+        let witness = q * DVec3::new(x * angle.cos(), half_y, 0.);
+        let v = (DVec3::Z * speed).cross(witness);
+        let impulse_speed = normal * v.dot(normal);
+        let expected =
+            impulse_speed + (v - impulse_speed).clamp_length_max(friction * v.dot(normal));
+        let p = body.particles()[0];
+        assert!(DVec3::from(p.velocity).distance(expected) < 1e-6);
+        assert!(
+            DVec3::from(p.position).distance(start + (dt.as_secs_f64() - hit) * expected) < 1e-7
+        );
+        let j = body.last_boundary_impulses()[0];
+        let momentum = DVec3::from(p.velocity) / p.inverse_mass;
+        assert!((DVec3::from(j.linear) + momentum).length() < 1e-10);
+        assert!(
+            (DVec3::from(j.angular) + (DVec3::from(p.position) - origin).cross(momentum)).length()
+                < 1e-9
+        );
+    }
+}

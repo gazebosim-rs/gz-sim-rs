@@ -234,3 +234,59 @@ fn translating_corners_and_face_friction_follow_the_box_frame() {
         }
     }
 }
+
+#[test]
+fn rotating_corner_supports_triangle_interior_with_no_particle_above_the_box() {
+    let q = DQuat::from_rotation_x(0.3);
+    let dt = Duration::from_millis(1);
+    let drift = DVec3::new(0.1, 0.04, -0.02);
+    let relative_velocity = DVec3::new(0.4, 0.1, -35.);
+    let mut material = cloth(q, 0.026, relative_velocity + q.conjugate() * drift, 0.25)
+        .with_angular_momentum_conservation();
+    let Boundary::StaticCuboid {
+        center,
+        half_extents,
+        ..
+    } = bench(q, 0., 0.035)
+    else {
+        unreachable!()
+    };
+    let center = DVec3::from(center);
+    let angular_speed = 0.7;
+    let before = momentum(&material);
+    let l0 = angular(&material, center);
+    let mass: f64 = M.iter().sum();
+    let r0s = material
+        .particles()
+        .iter()
+        .map(|p| DVec3::from(p.position) / p.inverse_mass)
+        .sum::<DVec3>()
+        / mass
+        - center;
+    material
+        .step(
+            dt,
+            &[Boundary::Turntable {
+                center: center.into(),
+                half_extents,
+                orientation: q.to_array(),
+                velocity: drift.into(),
+                angular_speed,
+            }],
+        )
+        .unwrap();
+    let j = material.last_boundary_impulses()[0];
+    let g = q * DVec3::NEG_Z * 9.81;
+    assert!(
+        (momentum(&material) - before + DVec3::from(j.linear) - mass * dt.as_secs_f64() * g)
+            .length()
+            < 1e-8
+    );
+    assert!(
+        (angular(&material, center) - l0 + DVec3::from(j.angular)
+            - r0s.cross(mass * dt.as_secs_f64() * g))
+        .length()
+            < 2e-6
+    );
+    assert!((q.conjugate() * DVec3::from(j.linear)).z < -1.);
+}

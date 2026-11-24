@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 mod compliant;
 mod spatial;
+mod turntable;
 use super::oriented::{OrientedShape, Sweep};
 use super::{Boundary, BoundaryImpulse, Particle, XpbdError, correct};
 use glam::{DQuat, DVec3};
 use std::collections::{HashMap, HashSet};
+use turntable::Turntable;
 
 #[derive(Clone, Copy)]
 enum Shape {
@@ -13,13 +15,14 @@ enum Shape {
     Sphere(f64, DVec3),
     Oriented(OrientedShape),
     FixedOrientationBox(DVec3, DQuat),
+    Turntable(Turntable),
     Plane(DVec3),
 }
 
-fn fixed_orientation_box(
+fn box_geometry(
     half_extents: [f64; 3],
     orientation: [f64; 4],
-) -> Result<Shape, XpbdError> {
+) -> Result<(DVec3, DQuat), XpbdError> {
     let half = DVec3::from(half_extents);
     let q = DQuat::from_array(orientation);
     if !half.is_finite()
@@ -30,7 +33,7 @@ fn fixed_orientation_box(
     {
         return Err(XpbdError::InvalidBoundary);
     }
-    Ok(Shape::FixedOrientationBox(half, q.normalize()))
+    Ok((half, q.normalize()))
 }
 
 #[derive(Clone)]
@@ -119,21 +122,41 @@ impl PreparedBoundary {
                 center,
                 half_extents,
                 orientation,
-            } => (
-                center,
-                [0.; 3],
-                fixed_orientation_box(half_extents, orientation)?,
-            ),
+            } => (center, [0.; 3], {
+                let (half, q) = box_geometry(half_extents, orientation)?;
+                Shape::FixedOrientationBox(half, q)
+            }),
             Boundary::TranslatingCuboid {
                 center,
                 half_extents,
                 orientation,
                 velocity,
-            } => (
+            } => (center, velocity, {
+                let (half, q) = box_geometry(half_extents, orientation)?;
+                Shape::FixedOrientationBox(half, q)
+            }),
+            Boundary::Turntable {
                 center,
+                half_extents,
+                orientation,
                 velocity,
-                fixed_orientation_box(half_extents, orientation)?,
-            ),
+                angular_speed,
+            } => {
+                let (half, initial) = box_geometry(half_extents, orientation)?;
+                if !angular_speed.is_finite() {
+                    return Err(XpbdError::InvalidBoundary);
+                }
+                let spin = (initial * DVec3::Z) * angular_speed;
+                (
+                    center,
+                    velocity,
+                    Shape::Turntable(Turntable {
+                        half,
+                        initial,
+                        spin,
+                    }),
+                )
+            }
             Boundary::Plane {
                 point,
                 normal,
@@ -231,6 +254,7 @@ impl PreparedBoundary {
                         }),
                 );
             }
+            Shape::Turntable(table) => return table.projection(a, b, interval),
             Shape::Oriented(geometry) => {
                 let (q0, q1) = self
                     .receiver
@@ -424,7 +448,7 @@ impl PreparedBoundary {
     fn has_planar_surface(&self) -> bool {
         matches!(
             self.shape,
-            Shape::Plane(_) | Shape::FixedOrientationBox(_, _)
+            Shape::Plane(_) | Shape::FixedOrientationBox(_, _) | Shape::Turntable(_)
         )
     }
 
@@ -458,7 +482,17 @@ impl PreparedBoundary {
             .all(|p| (p.dot(normal) - radius).abs() <= tolerance)
     }
 
-    pub(super) fn one_way_box(&self) -> Option<(DVec3, DQuat)> {
+    pub(super) fn box_spin(&self) -> DVec3 {
+        if let Shape::Turntable(table) = self.shape {
+            table.spin
+        } else {
+            DVec3::ZERO
+        }
+    }
+    pub(super) fn one_way_box(&self, t: f64) -> Option<(DVec3, DQuat)> {
+        if let Shape::Turntable(table) = self.shape {
+            return Some((table.half, table.orientation(t)));
+        }
         if let Shape::FixedOrientationBox(half, q) = self.shape {
             Some((half, q))
         } else {
@@ -503,12 +537,15 @@ impl PreparedBoundary {
         matches!(self.shape, Shape::Oriented(_))
     }
 
-    fn surface_velocity(&self, normal: DVec3) -> DVec3 {
+    fn surface_velocity(&self, normal: DVec3, x: DVec3, t: f64) -> DVec3 {
         match self.shape {
             Shape::Capsule(c) => {
                 self.velocity + (c.axis * c.angular_speed).cross(normal * c.radius)
             }
             Shape::Sphere(r, angular) => self.velocity + angular.cross(normal * r),
+            Shape::Turntable(table) => {
+                self.velocity + table.spin.cross(x - (self.origin + t * self.velocity))
+            }
             Shape::FixedOrientationBox(_, _) | Shape::Plane(_) => self.velocity,
             Shape::Oriented(_) => unreachable!("oriented boundaries require a finite receiver"),
         }
@@ -574,16 +611,40 @@ impl Contact {
                 .max(c1.abs())
                 .max_element()
                 .max(time.radius);
-        if !plane.on_friction_face([start - c0, *end - c1], normal, time.radius, tolerance) {
-            return Ok(());
-        }
-        let incoming_relative = incoming - (c1 - c0) / time.h;
+        let (travel, start_velocity) = if let Shape::Turntable(table) = plane.shape {
+            // Carry the foot of the particle with the actual surface arc.
+            // The flat upper/lower faces have a stationary world normal.
+            let a = table.orientation(time.t0).conjugate() * (start - c0);
+            let b = table.orientation(time.t1).conjugate() * (*end - c1);
+            let axis = table.initial * DVec3::Z;
+            let sign = normal.dot(axis).signum();
+            if normal.distance(sign * axis) > 1e-12
+                || [a, b].into_iter().any(|x| {
+                    (x.z - sign * (table.half.z + time.radius)).abs() > tolerance
+                        || x.x.abs() >= table.half.x - tolerance
+                        || x.y.abs() >= table.half.y - tolerance
+                })
+            {
+                return Ok(());
+            }
+            let carried = c1 + table.orientation(time.t1) * a;
+            (
+                carried - start,
+                plane.surface_velocity(normal, start, time.t0),
+            )
+        } else {
+            if !plane.on_friction_face([start - c0, *end - c1], normal, time.radius, tolerance) {
+                return Ok(());
+            }
+            (c1 - c0, (c1 - c0) / time.h)
+        };
+        let incoming_relative = incoming - start_velocity;
         let incoming_tangent = incoming_relative - normal * incoming_relative.dot(normal);
         let initially_still = incoming_tangent.length() * time.h <= tolerance;
         if sliding_friction.is_none() && !initially_still {
             return Ok(());
         }
-        let slip = (*end - start) - (c1 - c0);
+        let slip = (*end - start) - travel;
         let response = time.h * p.inverse_mass;
         let target = self.tangent_impulse - (slip - normal * slip.dot(normal)) / response;
         let normal_impulse = self.correction / response;
@@ -596,7 +657,20 @@ impl Contact {
         if !target.is_finite() || !cap.is_finite() {
             return Err(XpbdError::Numerical);
         }
-        let sticking = initially_still && target.length() <= cap;
+        let sticking = if matches!(plane.shape, Shape::Turntable(_)) {
+            // A small initial slip can stop within this substep. A sustained
+            // orbit also requires sufficient traction for its endpoint velocity,
+            // including the second half of the centripetal impulse.
+            let remaining =
+                DVec3::from(p.velocity) - plane.surface_velocity(normal, start + travel, time.t1);
+            let required = self.tangent_impulse
+                - (remaining - normal * remaining.dot(normal)) / p.inverse_mass;
+            let arrest = sliding_friction.unwrap_or(0.) * normal_impulse * p.inverse_mass;
+            (initially_still || incoming_tangent.length() <= arrest)
+                && target.length().max(required.length()) <= cap
+        } else {
+            initially_still && target.length() <= cap
+        };
         let next = if sticking {
             target
         } else {
@@ -819,7 +893,7 @@ fn project_points<const SPATIAL: bool>(
                 {
                     continue;
                 }
-                if boundary.is_oriented()
+                if (boundary.is_oriented() || matches!(boundary.shape, Shape::Turntable(_)))
                     && contacts
                         .index
                         .get(&(i, j))
@@ -868,6 +942,17 @@ fn project_points<const SPATIAL: bool>(
                         } else {
                             receiver.project_normal(arm, -impulse, time.h);
                         }
+                    }
+                    if let Shape::Turntable(table) = boundary.shape
+                        && let Some(event) = &hit.event
+                    {
+                        let relative =
+                            (*x - start) / time.h - boundary.velocity - table.spin.cross(event.arm);
+                        let tangent = relative - hit.normal * relative.dot(hit.normal);
+                        let delta_v = hit.normal * event.closing
+                            - tangent.clamp_length_max(contacts.friction * event.closing);
+                        dx = time.h * (1. - event.time) * delta_v;
+                        remaining = Some((event.time / p.inverse_mass) * delta_v);
                     }
                     correct(x, p, dx, time.h);
                     // A prior surface may push this point into an originally disjoint bound.
@@ -934,8 +1019,9 @@ pub(super) fn finish_contacts(
     boundaries: &mut [PreparedBoundary],
     reactions: &mut [BoundaryImpulse],
     mu: f64,
-    h: f64,
+    time: Interval,
 ) -> Result<(), XpbdError> {
+    let h = time.h;
     for c in &contacts.items {
         let b = &mut boundaries[c.boundary];
         if b.normal_compliance > 0. {
@@ -954,7 +1040,13 @@ pub(super) fn finish_contacts(
             continue;
         }
         let v = DVec3::from(p.velocity);
-        let relative = v - b.surface_velocity(c.normal);
+        if let Some(remainder) = c.remaining {
+            p.velocity = (v + p.inverse_mass * remainder).to_array();
+            reactions[c.boundary].react(x[c.particle] - b.origin, remainder)?;
+            continue;
+        }
+        let relative =
+            v - b.surface_velocity(c.normal, x[c.particle] - time.radius * c.normal, time.t1);
         let vn = relative.dot(c.normal);
         // Remove residual closing speed. Resolving an initial overlap supplies
         // no restitution: discard separating speed created by its correction.

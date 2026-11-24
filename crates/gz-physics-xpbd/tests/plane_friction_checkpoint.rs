@@ -116,3 +116,45 @@ fn resumed_material_retains_its_trajectory_and_signed_moving_deck_reaction() {
         assert!(continuous.last_boundary_impulses()[0].linear[2] < 0.);
     }
 }
+
+#[test]
+fn loaded_rotating_deck_restarts_from_only_material_construction_state_and_external_twist() {
+    use glam::{DQuat, DVec3};
+    let mut continuous = SoftBody::from_one_way_construction(&bincode::deserialize(SEED).unwrap())
+        .unwrap()
+        .with_static_plane_friction(0.45)
+        .unwrap();
+    let construction = continuous.one_way_construction().unwrap();
+    let id = continuous.one_way_identity().unwrap();
+    let dt = Duration::from_millis(1);
+    let deck = |tick: u32| {
+        let time = f64::from(tick) * 0.001;
+        Boundary::Turntable {
+            center: [0.13 * time, 0., -0.05],
+            half_extents: [0.5, 0.3, 0.05],
+            orientation: DQuat::from_rotation_z(-3.2 * time).to_array(),
+            velocity: [0.13, 0., 0.],
+            angular_speed: -3.2,
+        }
+    };
+    for t in 0..70 {
+        continuous.step(dt, &[deck(t)]).unwrap();
+    }
+    let bytes = bincode::serialize(&continuous.one_way_state().unwrap()).unwrap();
+    let mut resumed = SoftBody::from_one_way_construction(&construction).unwrap();
+    resumed
+        .install_one_way_state(bincode::deserialize(&bytes).unwrap())
+        .unwrap();
+    for t in 70..100 {
+        continuous.step(dt, &[deck(t)]).unwrap();
+        resumed.step(dt, &[deck(t)]).unwrap();
+        let j = continuous.last_boundary_impulses()[0];
+        assert!(j.linear[2] < 0. && DVec3::from(j.linear).is_finite());
+        assert_eq!(resumed.one_way_identity().unwrap(), id);
+        assert_eq!(resumed.particles(), continuous.particles());
+        assert_eq!(
+            resumed.last_boundary_impulses(),
+            continuous.last_boundary_impulses()
+        );
+    }
+}

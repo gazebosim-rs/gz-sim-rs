@@ -84,7 +84,12 @@ fn a_swept_contact_refuses_an_unrepresentable_accumulated_impact() {
             &mut [pad],
             &mut totals,
             0.,
-            0.001
+            Interval {
+                h: 0.001,
+                t0: 0.,
+                t1: 0.001,
+                radius: 0.001
+            }
         ),
         Err(XpbdError::Numerical)
     );
