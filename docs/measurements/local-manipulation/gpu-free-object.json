@@ -1,0 +1,78 @@
+{
+  "adapter": "NVIDIA GeForce RTX 5090",
+  "backend": "Vulkan",
+  "driver": "NVIDIA",
+  "driver_info": "595.99.02",
+  "gpu_dt_us": 250,
+  "rapier_dt_us": 31.25,
+  "rows": [
+    {
+      "final_gpu_xz": [
+        0.9031219592378343,
+        0.07200000000000001
+      ],
+      "final_native_xz": [
+        0.9036847397507803,
+        0.07196963381059182
+      ],
+      "first_gpu_native_ms": [
+        21,
+        21
+      ],
+      "mass_kg": 0.08,
+      "max_object_error_m": 0.0005635991582773534,
+      "max_object_momentum_residual_ns": 1.3012232947977925e-17,
+      "max_tool_error_m": 0.00016523827856249954,
+      "total_gpu_native_ns": [
+        0.1426479856427152,
+        0.14301298976460078
+      ]
+    },
+    {
+      "final_gpu_xz": [
+        0.8479012268566748,
+        0.07200000000000001
+      ],
+      "final_native_xz": [
+        0.848076190301385,
+        0.07197065384340928
+      ],
+      "first_gpu_native_ms": [
+        21,
+        21
+      ],
+      "mass_kg": 0.25,
+      "max_object_error_m": 0.00017740745162343378,
+      "max_object_momentum_residual_ns": 3.122803409505904e-17,
+      "max_tool_error_m": 0.00013874114303715472,
+      "total_gpu_native_ns": [
+        0.38154628787815,
+        0.3821000303353546
+      ]
+    },
+    {
+      "final_gpu_xz": [
+        0.9,
+        0.07200000000000001
+      ],
+      "final_native_xz": [
+        0.9,
+        0.07197635375668868
+      ],
+      "first_gpu_native_ms": [
+        null,
+        null
+      ],
+      "mass_kg": 0.08,
+      "max_object_error_m": 0.000023646243311331583,
+      "max_object_momentum_residual_ns": 0.0,
+      "max_tool_error_m": 0.0001453132687180412,
+      "total_gpu_native_ns": [
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "shader_precision": "f64",
+  "ticks": 400
+}

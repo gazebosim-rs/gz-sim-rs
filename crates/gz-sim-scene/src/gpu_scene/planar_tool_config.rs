@@ -13,6 +13,7 @@ pub(super) struct Arm {
     pub base: [f64; 3],
     pub origin: [f64; 2],
     pub lane: PlanarToolLane,
+    pub object: Option<(String, gz_physics_gpu::FreeSphere)>,
     pub commands: BTreeMap<u64, [f64; 2]>,
     pub controllers: [Option<joint_controller::Parameters>; 2],
 }
@@ -328,6 +329,7 @@ fn load_arm(
         joints: joints.map(Clone::clone),
         joint_poses: poses,
         lane,
+        object: None,
         controllers,
         commands,
     })
@@ -364,7 +366,7 @@ impl Plan {
         for n in root.children().filter(Node::is_element) {
             require(
                 n.has_tag_name("environment")
-                    && config::shape(n, &["id", "profile", "model", "plane"], true)
+                    && config::shape(n, &["id", "profile", "model", "plane", "object"], true)
                     && n.attribute("profile") == Some("planar-tool")
                     && n.attribute("plane")
                         .is_some_and(|name| format!("{}::{name}", w.name) == plane),
@@ -377,7 +379,59 @@ impl Plan {
                 .iter()
                 .find(|m| m.name == model && !m.is_static)
                 .ok_or_else(|| err("unknown tool model"))?;
-            let arm = load_arm(n, sdf, w, m, height, mu)?;
+            let mut arm = load_arm(n, sdf, w, m, height, mu)?;
+            if let Some(name) = n.attribute("object") {
+                let model = w
+                    .models
+                    .iter()
+                    .find(|m| m.name == name)
+                    .ok_or_else(|| err("unknown free sphere"))?;
+                let (link, shape) = config::model_shape(sdf, w, model)?;
+                let config::ShapeData::Sphere(ball) = shape else {
+                    return Err(err("free tool object must be a dynamic solid sphere"));
+                };
+                let member = &model.links[0];
+                let axis_unlimited = arm.joints.iter().all(|j| {
+                    j.axis
+                        .as_ref()
+                        .is_some_and(|a| a.lower == f64::NEG_INFINITY && a.upper == f64::INFINITY)
+                });
+                require(
+                    w.models.len() == 3
+                        && member.sensors.is_empty()
+                        && !member.properties.kinematic
+                        && member.properties.enable_gravity
+                        && (ball.position[1] - arm.base[1]).abs() <= 1e-12
+                        && mu == 0.
+                        && arm.lane.friction == 0.
+                        && law(&member.collisions[0])? == 0.
+                        && law(m
+                            .links
+                            .iter()
+                            .find_map(|l| l.collisions.first())
+                            .expect("validated spherical tool"))?
+                            == 0.
+                        && axis_unlimited
+                        && models.insert(name),
+                    name,
+                    "tool/object requires one coplanar dynamic solid sphere, gravity, frictionless contacts, unlimited hinges and one independent arm",
+                )?;
+                arm.object = Some((
+                    link,
+                    gz_physics_gpu::FreeSphere {
+                        position: [
+                            ball.position[0] - arm.base[0],
+                            ball.position[2] - arm.base[2],
+                        ],
+                        velocity: [0.; 2],
+                        radius: ball.radius,
+                        mass: member.inertial.mass,
+                        normal_impulse: 0.,
+                        tool_impulse: [0.; 2],
+                        floor_impulse: 0.,
+                    },
+                ));
+            }
             if !models.insert(model) || arms.insert(arm.id, arm).is_some() {
                 return Err(err("duplicate tool environment or model"));
             }

@@ -82,6 +82,21 @@ pub fn install_planar_tool(
     sim: &mut Simulation,
     batch: super::PlanarToolBatch,
 ) -> Result<(), GpuError> {
+    install_arm(sim, batch)
+}
+
+/// Install a two-joint arm and its independently translating sphere.
+pub fn install_planar_object(
+    sim: &mut Simulation,
+    batch: super::PlanarObjectBatch,
+) -> Result<(), GpuError> {
+    install_arm(sim, batch)
+}
+
+fn install_arm<T: Pod + Send + Sync>(
+    sim: &mut Simulation,
+    batch: ResidentBatch<T>,
+) -> Result<(), GpuError> {
     if sim.step_duration() != STEP
         || !sim.elapsed().is_zero()
         || sim.is_faulted()

@@ -35,7 +35,7 @@ fn vector(x: Option<&str>) -> Option<[f64; 3]> {
     let p = [v.next()?.ok()?, v.next()?.ok()?, v.next()?.ok()?];
     (v.next().is_none() && p.into_iter().all(f64::is_finite)).then_some(p)
 }
-enum ShapeData {
+pub(super) enum ShapeData {
     Sphere(SolidSphere),
     Plane { normal: [f64; 3], offset: f64 },
 }
@@ -43,91 +43,98 @@ fn shapes(
     sdf: &sdformat::Sdf,
     world: &sdformat::World,
 ) -> Result<BTreeMap<String, ShapeData>, LoadError> {
-    let mut out = BTreeMap::new();
-    for m in &world.models {
-        let name = &m.scoped_name;
-        require(
-            m.models.is_empty()
-                && m.joints.is_empty()
-                && m.links.len() == 1
-                && m.plugins.is_empty()
-                && !m.enable_wind
-                && !m.self_collide,
-            name,
-            "GPU environments require one ordinary link per top-level model",
-        )?;
-        let l = &m.links[0];
-        let link = &l.scoped_name;
-        require(
-            l.collisions.len() == 1
-                && l.sensors
-                    .iter()
-                    .all(|sensor| sensor.imu().is_some() || sensor.altimeter().is_some())
-                && l.lights.is_empty()
-                && l.projectors.is_empty()
-                && l.particle_emitters.is_empty()
-                && l.velocity_decay.is_none(),
-            link,
-            "GPU links require one collider and support only IMU and altimeter sensors without velocity decay",
-        )?;
-        let collision = &l.collisions[0];
-        require(
-            identity(sdf.resolve_pose(&collision.pose, name, link, link)?)
-                && centered(
-                    sdf.resolve_pose(&l.inertial.pose, name, link, link)?
-                        .translation,
-                ),
-            link,
-            "GPU link origin must coincide with the collider and center of mass",
-        )?;
-        let p = sdf.pose_of(link, &world.name)?;
-        let s = match &collision.geometry {
-            Geometry::Sphere { radius } if !m.is_static => {
-                let mass = l.inertial.mass;
-                let i = 0.4 * mass * radius * radius;
-                let expected = [i, i, i, 0., 0., 0.];
-                require(
-                    i.is_finite()
-                        && i > 0.
-                        && l.inertial
-                            .inertia
-                            .iter()
-                            .zip(expected)
-                            .all(|(observed, target)| {
-                                (observed - target).abs() <= 64. * f64::EPSILON * i
-                            }),
-                    link,
-                    "GPU sphere requires centered uniform solid-sphere inertia (2 m r² / 5)",
-                )?;
-                ShapeData::Sphere(SolidSphere {
-                    position: p.translation,
-                    orientation: p.rotation,
-                    radius: *radius,
-                    inverse_mass: 1. / mass,
-                    velocity: [0.; 3],
-                    angular_velocity: [0.; 3],
-                })
+    world
+        .models
+        .iter()
+        .map(|model| model_shape(sdf, world, model))
+        .collect()
+}
+pub(super) fn model_shape(
+    sdf: &sdformat::Sdf,
+    world: &sdformat::World,
+    m: &sdformat::Model,
+) -> Result<(String, ShapeData), LoadError> {
+    let name = &m.scoped_name;
+    require(
+        m.models.is_empty()
+            && m.joints.is_empty()
+            && m.links.len() == 1
+            && m.plugins.is_empty()
+            && !m.enable_wind
+            && !m.self_collide,
+        name,
+        "GPU environments require one ordinary link per top-level model",
+    )?;
+    let l = &m.links[0];
+    let link = &l.scoped_name;
+    require(
+        l.collisions.len() == 1
+            && l.sensors
+                .iter()
+                .all(|sensor| sensor.imu().is_some() || sensor.altimeter().is_some())
+            && l.lights.is_empty()
+            && l.projectors.is_empty()
+            && l.particle_emitters.is_empty()
+            && l.velocity_decay.is_none(),
+        link,
+        "GPU links require one collider and support only IMU and altimeter sensors without velocity decay",
+    )?;
+    let collision = &l.collisions[0];
+    require(
+        identity(sdf.resolve_pose(&collision.pose, name, link, link)?)
+            && centered(
+                sdf.resolve_pose(&l.inertial.pose, name, link, link)?
+                    .translation,
+            ),
+        link,
+        "GPU link origin must coincide with the collider and center of mass",
+    )?;
+    let p = sdf.pose_of(link, &world.name)?;
+    let s = match &collision.geometry {
+        Geometry::Sphere { radius } if !m.is_static => {
+            let mass = l.inertial.mass;
+            let i = 0.4 * mass * radius * radius;
+            let expected = [i, i, i, 0., 0., 0.];
+            require(
+                i.is_finite()
+                    && i > 0.
+                    && l.inertial
+                        .inertia
+                        .iter()
+                        .zip(expected)
+                        .all(|(observed, target)| {
+                            (observed - target).abs() <= 64. * f64::EPSILON * i
+                        }),
+                link,
+                "GPU sphere requires centered uniform solid-sphere inertia (2 m r² / 5)",
+            )?;
+            ShapeData::Sphere(SolidSphere {
+                position: p.translation,
+                orientation: p.rotation,
+                radius: *radius,
+                inverse_mass: 1. / mass,
+                velocity: [0.; 3],
+                angular_velocity: [0.; 3],
+            })
+        }
+        Geometry::Plane { normal, size } if m.is_static => {
+            let local = DVec3::from_array(*normal);
+            require(
+                local.is_finite()
+                    && (local.length_squared() - 1.).abs() < 2e-12
+                    && size.iter().all(|x| *x > 0. && x.is_finite()),
+                link,
+                "finite GPU plane with unit local normal",
+            )?;
+            let n = DQuat::from_array(p.rotation) * local;
+            ShapeData::Plane {
+                normal: n.to_array(),
+                offset: DVec3::from_array(p.translation).dot(n),
             }
-            Geometry::Plane { normal, size } if m.is_static => {
-                let local = DVec3::from_array(*normal);
-                require(
-                    local.is_finite()
-                        && (local.length_squared() - 1.).abs() < 2e-12
-                        && size.iter().all(|x| *x > 0. && x.is_finite()),
-                    link,
-                    "finite GPU plane with unit local normal",
-                )?;
-                let n = DQuat::from_array(p.rotation) * local;
-                ShapeData::Plane {
-                    normal: n.to_array(),
-                    offset: DVec3::from_array(p.translation).dot(n),
-                }
-            }
-            _ => return Err(err(link, "expected a dynamic sphere or a static plane")),
-        };
-        out.insert(link.clone(), s);
-    }
-    Ok(out)
+        }
+        _ => return Err(err(link, "expected a dynamic sphere or a static plane")),
+    };
+    Ok((link.clone(), s))
 }
 pub(crate) struct Plan {
     pub(super) adapter: String,

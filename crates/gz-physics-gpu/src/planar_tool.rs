@@ -47,7 +47,7 @@ impl PlanarToolLane {
     pub fn gap(&self) -> f64 {
         self.arm.points()[1][1] - self.radius - self.ground_z
     }
-    fn valid(self) -> bool {
+    pub(super) fn valid(self) -> bool {
         self.arm.valid()
             && self.radius.is_finite()
             && self.radius > 0.

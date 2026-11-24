@@ -116,10 +116,12 @@ pub(crate) fn physics_owner(world: &bevy_ecs::world::World) -> Option<MixedBatch
         world.get_resource::<MixedBatch>(),
         world.get_resource::<gz_physics_gpu::SpherePairBlockBatch>(),
         world.get_resource::<gz_physics_gpu::PlanarToolBatch>(),
+        world.get_resource::<gz_physics_gpu::PlanarObjectBatch>(),
     ) {
-        (Some(m), None, None) => Some(m.owner()),
-        (None, Some(b), None) => Some(b.owner()),
-        (None, None, Some(b)) => Some(b.owner()),
+        (Some(m), None, None, None) => Some(m.owner()),
+        (None, Some(b), None, None) => Some(b.owner()),
+        (None, None, Some(b), None) => Some(b.owner()),
+        (None, None, None, Some(b)) => Some(b.owner()),
         _ => None,
     }
 }
@@ -129,8 +131,8 @@ pub fn execution_counts(sim: &Simulation) -> Option<(usize, usize)> {
         let cpu = batch.cpu_environments();
         return Some((cpu, batch.environments().len() - cpu));
     }
-    if let Some(b) = planar_tool::checked(sim) {
-        return Some((0, b.lanes().len()));
+    if let Some(n) = planar_tool::count(sim) {
+        return Some((0, n));
     }
     resident::batch(sim).map(|batch| (0, batch.lanes().len()))
 }
@@ -147,7 +149,7 @@ pub fn environment_placement(
     if let Some(batch) = checked_mixed(sim) {
         return batch.execution_placement(id);
     }
-    if planar_tool::checked(sim).is_some() {
+    if planar_tool::count(sim).is_some() {
         return planar_tool::observe(sim, id).map(|_| ExecutionPlacement::Gpu);
     }
     resident_pair_observation(sim, id).map(|_| ExecutionPlacement::Gpu)

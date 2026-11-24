@@ -569,3 +569,6 @@ fn loaded_hinge_must_start_within_its_authored_travel() {
         .to_string();
     assert!(reason.contains("outside travel"), "{reason}");
 }
+
+#[path = "support/gpu_free_object.rs"]
+mod free_object;
