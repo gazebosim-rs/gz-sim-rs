@@ -959,6 +959,24 @@ fn a_refined_impact_replays_its_full_impulse_and_drops_stale_step_receipts() {
     }
     assert!(record(&rows, 3, 2).get("refinement").is_none());
     assert!(record(&rows, 4, 0).get("refinement").is_none());
+    let reset = record(&rows, 6, 0);
+    let disabled = record(&rows, 7, 0);
+    let held = record(&rows, 8, 0);
+    assert_eq!(reset["contact_refinement_enabled"], true);
+    assert_eq!(disabled["contact_refinement_enabled"], false);
+    assert_ne!(reset["inputs"], disabled["inputs"]);
+    shared(reset, disabled, &["physics", "scene", "contacts"]);
+    shared(disabled, held, STATE);
+    let ordinary = record(&rows, 9, 1);
+    assert!(ordinary.get("refinement").is_none());
+    assert_ne!(ordinary["physics"], first["physics"]);
+    assert_eq!(record(&rows, 10, 1)["contact_refinement_enabled"], true);
+    let no_policy = file(
+        dir,
+        "ordinary.sdf",
+        include_str!("../../../examples/worlds/local_robot_serial_transfer.sdf"),
+    );
+    assert!(!run(&no_policy, &journal, &[]).status.success());
     let unsupported = file(
         dir,
         "other.sdf",

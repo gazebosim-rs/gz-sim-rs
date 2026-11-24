@@ -371,6 +371,11 @@ fn selected_interval(
     }
 }
 
+/// Current switch for an authored local primary contact policy.
+pub fn is_enabled(sim: &Simulation) -> Option<bool> {
+    sim.world().get_resource::<Policy>().map(|p| p.enabled)
+}
+
 /// Toggle future selections without advancing physics or changing the current
 /// native contact history. A changed setting clears release and feature-tracking
 /// witnesses. Foot touchdown requires a new measured release, and incoming faces may detect a cold strike. Reset restores the

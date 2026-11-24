@@ -129,6 +129,8 @@ pub(super) struct State {
     pair_reactions_ns: Vec<(u64, u64, f64)>,
     #[serde(skip_serializing_if = "Option::is_none")]
     refinement: Option<RefinedStep>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    contact_refinement_enabled: Option<bool>,
     contact_points: usize,
     delivered_normal_ns: f64,
     stored_normal_ns: f64,
@@ -319,7 +321,12 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
             delivered_normal_ns += pair.normal_impulse;
         }
     }
+    let contact_refinement_enabled = gz_sim_scene::primary_contact::is_enabled(sim);
+    if let Some(enabled) = contact_refinement_enabled {
+        inputs.item(("primary_contact_refinement", enabled));
+    }
     Ok(State {
+        contact_refinement_enabled,
         refinement: refinement.map(RefinedStep::from),
         command,
         epoch: clock.epoch,

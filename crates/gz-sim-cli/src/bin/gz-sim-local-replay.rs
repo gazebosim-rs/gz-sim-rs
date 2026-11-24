@@ -102,6 +102,9 @@ enum Command {
         joint: String,
         torque_nm: [f64; 3],
     },
+    SetContactRefinement {
+        enabled: bool,
+    },
     SetTier {
         model: String,
         tier: ReplayTier,
@@ -420,6 +423,9 @@ fn run(args: Args) -> Result<()> {
             Command::BallTorque { joint, torque_nm } => {
                 let id = entity_id(&sim, joint)?;
                 gz_sim_scene::queue_ball_joint_effort(&mut sim, id, *torque_nm)?;
+            }
+            Command::SetContactRefinement { enabled } => {
+                gz_sim_scene::primary_contact::set_enabled(&mut sim, *enabled)?;
             }
             Command::SetTier { model, tier } => {
                 use gz_sim_scene::ArticulationTier;
