@@ -121,28 +121,34 @@ fn a_seated_drive_shares_the_first_sphere_impulse_with_its_native_stop() {
                     .replace(">0.75 0 0<", &format!(">{} 0 0<", sign * 0.75))
                     .replace(">0.00001<", &format!(">{:.9}<", f64::from(ns) * 1e-9))
                     .replace(">0.6<", &format!(">{restitution}<"));
-                let mut sim = load(&sdf);
-                let (id, _) = slider(&sim);
-                set_joint_force(&mut sim, id, sign * 2.).unwrap();
-                let expected = (1. + restitution) * 0.75 / (1. / 0.2 + 0.12 * 0.12 / inertia);
-                sim.step_exact(66_666 / u64::from(ns)).unwrap();
-                sim.step_exact(1).unwrap();
-                let p = sim
-                    .world()
-                    .resource::<PhysicsBackend>()
-                    .downcast_ref::<MultiFidelityBackend>()
-                    .unwrap();
-                let measured: f64 = p
-                    .rigid_contact_patches()
-                    .iter()
-                    .flat_map(|p| &p.points)
-                    .map(|p| p.normal_impulse)
-                    .sum();
-                assert!(
-                    (measured - expected).abs() < 1e-10,
-                    "{sign} {ns} {restitution}: {measured} vs {expected}"
+                let coated = sdf.replace(
+                    r#"<restitution link="finger">"#,
+                    r#"<normal_stiffness link="finger">30000</normal_stiffness><restitution link="finger">"#,
                 );
-                assert!(slider(&sim).1.state.velocity.abs() < 1e-9);
+                for world in [&sdf, &coated] {
+                    let mut sim = load(world);
+                    let (id, _) = slider(&sim);
+                    set_joint_force(&mut sim, id, sign * 2.).unwrap();
+                    let expected = (1. + restitution) * 0.75 / (1. / 0.2 + 0.12 * 0.12 / inertia);
+                    sim.step_exact(66_666 / u64::from(ns)).unwrap();
+                    sim.step_exact(1).unwrap();
+                    let p = sim
+                        .world()
+                        .resource::<PhysicsBackend>()
+                        .downcast_ref::<MultiFidelityBackend>()
+                        .unwrap();
+                    let measured: f64 = p
+                        .rigid_contact_patches()
+                        .iter()
+                        .flat_map(|p| &p.points)
+                        .map(|p| p.normal_impulse)
+                        .sum();
+                    assert!(
+                        (measured - expected).abs() < 1e-10,
+                        "{sign} {ns} {restitution}: {measured} vs {expected}"
+                    );
+                    assert!(slider(&sim).1.state.velocity.abs() < 1e-9);
+                }
             }
         }
     }
