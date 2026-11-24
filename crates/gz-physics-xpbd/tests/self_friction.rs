@@ -364,7 +364,7 @@ fn one_material_vertex_sliding_on_a_supported_face_matches_coulomb_impulse() {
                 },
             })
             .collect();
-        let mut b = SoftBody::new(
+        let b = SoftBody::new(
             p,
             vec![],
             pair(false, substeps, 0., DQuat::IDENTITY).config(),
@@ -374,6 +374,7 @@ fn one_material_vertex_sliding_on_a_supported_face_matches_coulomb_impulse() {
         .unwrap()
         .with_self_contact_friction(0.1)
         .unwrap();
+        let mut b = b.with_self_contact_loads().unwrap();
         let before = state(&b.particles()[3..]).0;
         b.step(dt, &[]).unwrap();
         let j = state(&b.particles()[3..]).0 - before;
@@ -392,6 +393,16 @@ fn one_material_vertex_sliding_on_a_supported_face_matches_coulomb_impulse() {
                 && j.y.abs() < 1e-11,
             "{j:?}"
         );
+        let loads = b.last_self_contact_particle_impulses();
+        let panel = |pinned: bool| -> DVec3 {
+            loads
+                .iter()
+                .filter(|j| (j.particle < 3) == pinned)
+                .map(|j| DVec3::from(j.normal) + DVec3::from(j.tangent))
+                .sum()
+        };
+        assert!(panel(false).distance(j) < 1e-12);
+        assert!(panel(true).distance(-j) < 1e-12);
         let contacts = b.last_self_contact_impulse();
         assert!((contacts.tangent - 0.1 * expected).abs() < 1e-11 && contacts.friction_work > 0.);
     }
@@ -510,5 +521,53 @@ fn local_refinement_refuses_an_immovable_overlap_without_publishing() {
         assert_eq!(shell.last_self_contact_impulse(), contacts);
         assert!(shell.last_boundary_impulses().is_empty());
         assert_eq!(shell.last_sweep_refinements(), 0);
+    }
+}
+
+#[test]
+fn self_contact_reports_the_actual_impulse_on_each_node_including_skin_torque() {
+    for edge in [false, true] {
+        for mu in [0., 0.4] {
+            let mut control = pair(edge, 4, mu, DQuat::from_rotation_y(0.38));
+            let mut observed = control.clone().with_self_contact_loads().unwrap();
+            let before = observed.particles().to_vec();
+            let dt = Duration::from_millis(4);
+            control.step(dt, &[]).unwrap();
+            observed.step(dt, &[]).unwrap();
+            assert_eq!(control.particles(), observed.particles());
+            assert!(control.last_self_contact_particle_impulses().is_empty());
+            let nodes = observed.last_self_contact_particle_impulses().to_vec();
+            assert!(
+                nodes
+                    .windows(2)
+                    .all(|pair| pair[0].particle < pair[1].particle)
+            );
+            assert!(nodes.iter().any(|j| DVec3::from(j.normal).length() > 0.));
+            assert_eq!(
+                nodes.iter().any(|j| DVec3::from(j.tangent).length() > 0.),
+                mu > 0.
+            );
+            for (i, (initial, final_state)) in before.iter().zip(observed.particles()).enumerate() {
+                let received = (DVec3::from(final_state.velocity) - DVec3::from(initial.velocity))
+                    / initial.inverse_mass;
+                let reported = nodes
+                    .iter()
+                    .find(|j| j.particle == i)
+                    .map_or(DVec3::ZERO, |j| {
+                        DVec3::from(j.normal) + DVec3::from(j.tangent)
+                    });
+                assert!(
+                    reported.distance(received) < 1e-12,
+                    "node {i}: {reported:?}, {received:?}"
+                );
+            }
+            assert_eq!(
+                observed.step(Duration::from_nanos(1), &[]),
+                Err(XpbdError::InvalidStep)
+            );
+            assert_eq!(nodes, observed.last_self_contact_particle_impulses());
+            observed.step(Duration::ZERO, &[]).unwrap();
+            assert!(observed.last_self_contact_particle_impulses().is_empty());
+        }
     }
 }

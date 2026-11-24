@@ -6,13 +6,13 @@ pub(super) mod convergence;
 use super::*;
 use crate::arm_sheet::{Case, NOMINAL_FLARE, SheetStepFault};
 
-fn scene(scale: f64, compliance: f64, case: Case) -> Result<String> {
+fn scene(scale: f64, compliance: f64, case: Case, panel_balance: bool) -> Result<String> {
     if !(scale.is_finite() && scale > 0. && compliance.is_finite() && compliance >= 0.) {
         return Err(
             "expected a positive jaw density scale and a finite nonnegative pad compliance".into(),
         );
     }
-    let mut xml = arm_sheet::scene_with_loads(arm::SCENE, case, NOMINAL_FLARE, false)?;
+    let mut xml = arm_sheet::scene_with_loads(arm::SCENE, case, NOMINAL_FLARE, panel_balance)?;
     let doc = roxmltree::Document::parse(&xml)?;
     let mut edits = Vec::new();
     for node in doc.descendants().filter(|n| {
@@ -60,12 +60,18 @@ fn scene(scale: f64, compliance: f64, case: Case) -> Result<String> {
     Ok(xml)
 }
 
-fn timed_scene(scale: f64, compliance: f64, case: Case, exchanges_per_ms: usize) -> Result<String> {
+fn timed_scene(
+    scale: f64,
+    compliance: f64,
+    case: Case,
+    exchanges_per_ms: usize,
+    panel_balance: bool,
+) -> Result<String> {
     if exchanges_per_ms == 0 || !1_000_000_usize.is_multiple_of(exchanges_per_ms) {
         return Err("exchange count must divide one million nanoseconds exactly".into());
     }
     let native_dt = 0.001 / exchanges_per_ms as f64;
-    Ok(scene(scale, compliance, case)?.replace(
+    Ok(scene(scale, compliance, case, panel_balance)?.replace(
         "<max_step_size>0.001</max_step_size>",
         &format!("<max_step_size>{native_dt}</max_step_size>"),
     ))
@@ -78,12 +84,13 @@ pub(super) fn run(
     substeps: usize,
     tune_damping: bool,
     exchanges_per_ms: usize,
+    panel_balance: bool,
 ) -> Result<()> {
     let case = Case {
         substeps,
         ..Default::default()
     };
-    let xml = timed_scene(scale, compliance, case, exchanges_per_ms)?;
+    let xml = timed_scene(scale, compliance, case, exchanges_per_ms, panel_balance)?;
     // With the same position stiffness, this preserves the continuous-time
     // damping ratio of an unloaded jaw. Both force and speed limits remain active.
     let damping = if tune_damping {
@@ -105,7 +112,7 @@ pub(super) fn run(
     fs::write(out.join("world.sdf"), xml)?;
     write_json(
         &out.join("jaw-contact.json"),
-        &json!({"native_step_ns":1_000_000/exchanges_per_ms,"actuator_period_ns":1_000_000,"jaw_density_scale":scale,"jaw_damping_ns_per_m":damping,"pad_compliance_m_per_n":compliance,"substeps":substeps,"trial":trial}),
+        &json!({"native_step_ns":1_000_000/exchanges_per_ms,"actuator_period_ns":1_000_000,"jaw_density_scale":scale,"jaw_damping_ns_per_m":damping,"pad_compliance_m_per_n":compliance,"panel_balance":panel_balance,"substeps":substeps,"trial":trial}),
     )
 }
 
@@ -116,7 +123,7 @@ mod tests {
     fn density_changes_both_full_tensors_and_only_the_two_pads() -> Result<()> {
         let nominal =
             arm_sheet::scene_with_loads(arm::SCENE, Case::default(), NOMINAL_FLARE, false)?;
-        let light = scene(0.125, 0.0001, Case::default())?;
+        let light = scene(0.125, 0.0001, Case::default(), false)?;
         let parse = |s: &str| sdformat::load_str(s, "test.sdf", &sdformat::NoResources);
         let (a, b) = (parse(&nominal)?, parse(&light)?);
         for (model, other) in a.worlds[0].models.iter().zip(&b.worlds[0].models) {
@@ -135,8 +142,8 @@ mod tests {
             }
         }
         assert_eq!(light.matches("normal_compliance=\"0.0001\"").count(), 2);
-        assert!(scene(0., 0.001, Case::default()).is_err());
-        assert!(scene(1., f64::NAN, Case::default()).is_err());
+        assert!(scene(0., 0.001, Case::default(), false).is_err());
+        assert!(scene(1., f64::NAN, Case::default(), false).is_err());
         Ok(())
     }
     #[test]
@@ -145,18 +152,23 @@ mod tests {
         for (exchanges, soft_steps) in [(1, 4), (4, 1)] {
             let dir = temp.path().join(exchanges.to_string());
             fs::create_dir(&dir)?;
-            run(&dir, 1. / 64., 0.00025, soft_steps, true, exchanges)?;
+            run(&dir, 1. / 64., 0.00025, soft_steps, true, exchanges, false)?;
             let result: Value = serde_json::from_slice(&fs::read(dir.join("jaw-contact.json"))?)?;
             let trial = &result["trial"];
             if exchanges == 1 {
-                assert_eq!(trial["completed"], false);
+                // The refined shell endpoint now completes this coarse run.
+                // Its jaws still miss the sheet and the bench carries its weight.
+                assert_eq!(trial["completed"], true);
+                assert_eq!(trial["meets_grasp_tolerances"], false);
+                assert_eq!(trial["actuator_updates"], 3400);
+                let m = &trial["metrics"];
+                assert_eq!(m["mean_hold_jaw_up_n"], json!([0., 0.]));
                 assert!(
-                    trial["diagnostic"]
-                        .as_str()
-                        .unwrap()
-                        .contains("UnresolvedSurface")
+                    (m["mean_hold_bench_up_n"].as_f64().unwrap() - m["weight_n"].as_f64().unwrap())
+                        .abs()
+                        < 0.001
                 );
-                assert!(!dir.join("replay").exists());
+                assert!(dir.join("replay").is_dir());
             } else {
                 assert_eq!(trial["actuator_updates"], 3400);
                 assert_eq!(trial["meets_grasp_tolerances"], true);
@@ -179,8 +191,8 @@ mod tests {
                 assert!(metrics["max_linear_impulse_residual_ns"].as_f64().unwrap() < 1e-11);
             }
         }
-        assert!(run(temp.path(), 1., 0.001, 1, false, 0).is_err());
-        assert!(run(temp.path(), 1., 0.001, 1, false, 3).is_err());
+        assert!(run(temp.path(), 1., 0.001, 1, false, 0, false).is_err());
+        assert!(run(temp.path(), 1., 0.001, 1, false, 3, false).is_err());
         Ok(())
     }
 }

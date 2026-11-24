@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Tangential impulse between two physical material skins at a common point.
+use super::loads::NodeImpulse;
 use super::{
     Hit, Particle, XpbdError,
     geometry::{edge_edge, vertex_face},
@@ -71,6 +72,7 @@ impl Friction {
         x: &mut [DVec3],
         p: &mut [Particle],
         h: f64,
+        mut loads: Option<&mut super::loads::Loads>,
     ) -> Result<f64, XpbdError> {
         let split = if hit.stencil.vf { 1 } else { 2 };
         let a = Side::new(&hit.stencil.ids[..split], &hit.weights[..split]);
@@ -86,7 +88,13 @@ impl Friction {
             .flatten()
             .any(|&i| p[i].inverse_mass == 0.)
         {
-            return hit.apply(x, p);
+            let impulse = hit.apply(x, p)?;
+            if let Some(loads) = loads {
+                for (&id, weight) in hit.stencil.ids.iter().zip(hit.weights) {
+                    loads.node(id, NodeImpulse::Normal((weight * impulse) * hit.normal))?;
+                }
+            }
+            return Ok(impulse);
         }
         let travel = hit.depth / hit.speed;
         let tau = if travel.is_finite() && travel <= h * (1. + 1e-6) {
@@ -155,6 +163,9 @@ impl Friction {
         }
         for (id, d) in directions {
             let dv = p[id].inverse_mass * j * d;
+            if let Some(loads) = loads.as_deref_mut() {
+                loads.node(id, NodeImpulse::Normal(j * d))?;
+            }
             p[id].velocity = (DVec3::from(p[id].velocity) + dv).to_array();
             x[id] += tau * dv;
         }
@@ -168,6 +179,7 @@ impl Friction {
         x: &[DVec3],
         p: &mut [Particle],
         gap: f64,
+        mut loads: Option<&mut super::loads::Loads>,
     ) -> Result<(f64, f64), XpbdError> {
         if normal_impulse == 0. || self.coefficient == 0. {
             return Ok((0., 0.));
@@ -229,7 +241,11 @@ impl Friction {
         }
         let j = coulomb(k, speed, self.coefficient * normal_impulse)?;
         for (id, [a, b]) in rows {
-            let dv = p[id].inverse_mass * (a * j.x + b * j.y);
+            let impulse = a * j.x + b * j.y;
+            let dv = p[id].inverse_mass * impulse;
+            if let Some(loads) = loads.as_deref_mut() {
+                loads.node(id, NodeImpulse::Tangent(impulse))?;
+            }
             p[id].velocity = (DVec3::from(p[id].velocity) + dv).to_array();
         }
         let work =

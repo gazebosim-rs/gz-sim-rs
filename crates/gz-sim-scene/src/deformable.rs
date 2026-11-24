@@ -181,6 +181,7 @@ pub struct DeformableSample {
     capsule_samples: Vec<gz_physics_xpbd::CapsuleContactSample>,
     pad_loads: Vec<gz_physics_xpbd::ParticlePadImpulse>,
     self_loads: Vec<gz_physics_xpbd::SelfContactLoad>,
+    self_particle_impulses: Vec<gz_physics_xpbd::SelfContactParticleImpulse>,
     applied_forcing: Vec<CapsuleForcing>,
     particles: Vec<Particle>,
     reactions: Vec<BoundaryImpulse>,
@@ -257,6 +258,12 @@ impl DeformableSample {
         &self.capsule_samples
     }
 
+    /// Normal and friction impulses delivered to the actual material nodes.
+    pub fn last_self_contact_particle_impulses(
+        &self,
+    ) -> &[gz_physics_xpbd::SelfContactParticleImpulse] {
+        &self.self_particle_impulses
+    }
     /// Barycentric normal loads on the geometric skins during the last advancing tick.
     pub fn last_self_contact_loads(&self) -> &[gz_physics_xpbd::SelfContactLoad] {
         &self.self_loads
@@ -443,6 +450,7 @@ impl Deformables {
             sample.reactions.clear();
             sample.pad_loads.clear();
             sample.self_loads.clear();
+            sample.self_particle_impulses.clear();
             sample.capsule_loads.clear();
             sample.capsule_friction.clear();
             sample.capsule_samples.clear();
@@ -452,6 +460,9 @@ impl Deformables {
             sample.local_shell_intervals = body.last_local_shell_intervals();
             sample.path_substeps = body.last_path_substeps();
             if !time.is_zero() {
+                sample
+                    .self_particle_impulses
+                    .extend_from_slice(body.last_self_contact_particle_impulses());
                 sample
                     .self_loads
                     .extend_from_slice(body.last_self_contact_loads());

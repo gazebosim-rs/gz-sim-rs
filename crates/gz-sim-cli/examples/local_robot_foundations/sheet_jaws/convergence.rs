@@ -43,6 +43,8 @@ struct Recording {
     jaw_density_scale: f64,
     jaw_damping_ns_per_m: f64,
     pad_compliance_m_per_n: f64,
+    #[serde(default)]
+    panel_balance: bool,
     trial: Trial,
     #[serde(skip)]
     frames: Vec<Frame>,
@@ -85,6 +87,7 @@ pub(crate) fn compare(paths: &[PathBuf]) -> Result<Value> {
             r.jaw_density_scale,
             r.jaw_damping_ns_per_m,
             r.pad_compliance_m_per_n,
+            r.panel_balance,
         );
         if setup.replace(settings).is_some_and(|s| s != settings)
             || r.actuator_period_ns != 1_000_000
@@ -103,6 +106,7 @@ pub(crate) fn compare(paths: &[PathBuf]) -> Result<Value> {
             r.pad_compliance_m_per_n,
             case,
             usize::try_from(rate)?,
+            r.panel_balance,
         )?;
         if fs::read_to_string(path.join("world.sdf"))? != expected {
             return Err(
@@ -185,7 +189,7 @@ mod tests {
             fs::create_dir_all(&dir)?;
             fs::write(
                 dir.join("world.sdf"),
-                timed_scene(1., 0.001, Case::default(), *rate as usize)?,
+                timed_scene(1., 0.001, Case::default(), *rate as usize, false)?,
             )?;
             let step = 1_000_000 / rate;
             write_json(

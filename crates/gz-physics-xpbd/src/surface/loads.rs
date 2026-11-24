@@ -21,10 +21,51 @@ pub struct SelfContactLoad {
     pub particle_impulse_ns: [[f64; 3]; 4],
 }
 
+/// Signed normal and friction impulses applied by shell self-contact to one
+/// material node, including the surrounding triangle's torque contribution.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct SelfContactParticleImpulse {
+    pub particle: usize,
+    /// World-space impulse in N·s.
+    pub normal: [f64; 3],
+    /// World-space impulse in N·s.
+    pub tangent: [f64; 3],
+}
+
 #[derive(Clone, Default)]
 pub(super) struct Loads {
     pending: BTreeMap<([usize; 4], usize), SelfContactLoad>,
     committed: Vec<SelfContactLoad>,
+    nodes: BTreeMap<usize, SelfContactParticleImpulse>,
+    committed_nodes: Vec<SelfContactParticleImpulse>,
+}
+pub(super) enum NodeImpulse {
+    Normal(DVec3),
+    Tangent(DVec3),
+}
+impl Loads {
+    pub(super) fn node(&mut self, id: usize, applied: NodeImpulse) -> Result<(), XpbdError> {
+        let impulse = match applied {
+            NodeImpulse::Normal(v) | NodeImpulse::Tangent(v) => v,
+        };
+        if impulse == DVec3::ZERO {
+            return Ok(());
+        }
+        let node = self.nodes.entry(id).or_insert(SelfContactParticleImpulse {
+            particle: id,
+            ..Default::default()
+        });
+        let vector = match applied {
+            NodeImpulse::Normal(_) => &mut node.normal,
+            NodeImpulse::Tangent(_) => &mut node.tangent,
+        };
+        let total = DVec3::from(*vector) + impulse;
+        if !total.is_finite() {
+            return Err(XpbdError::Numerical);
+        }
+        *vector = total.to_array();
+        Ok(())
+    }
 }
 impl Surface {
     pub(super) fn record_load(&mut self, hit: &Hit, impulse: f64) {
@@ -53,12 +94,15 @@ impl Surface {
     pub(crate) fn begin_loads(&mut self) {
         if let Some(loads) = &mut self.loads {
             loads.pending.clear();
+            loads.nodes.clear();
         }
     }
     pub(crate) fn publish_loads(&mut self) {
         if let Some(loads) = &mut self.loads {
             loads.committed.clear();
             loads.committed.extend(loads.pending.values().copied());
+            loads.committed_nodes.clear();
+            loads.committed_nodes.extend(loads.nodes.values().copied());
         }
     }
 }
@@ -72,6 +116,15 @@ impl SoftBody {
             .ok_or(XpbdError::InvalidConfig)?;
         surface.loads.get_or_insert_with(Default::default);
         Ok(self)
+    }
+
+    /// Nodal impulses from accepted intervals, including reactions on prescribed nodes.
+    /// Uses the same opt-in as the geometric self-contact load observations.
+    pub fn last_self_contact_particle_impulses(&self) -> &[SelfContactParticleImpulse] {
+        self.surface
+            .as_ref()
+            .and_then(|s| s.loads.as_ref())
+            .map_or(&[], |l| l.committed_nodes.as_slice())
     }
 
     pub fn last_self_contact_loads(&self) -> &[SelfContactLoad] {

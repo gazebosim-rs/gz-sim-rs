@@ -41,7 +41,7 @@ pub use pad_samples::PadSample;
 /// Maximum simultaneous finite spherical pads on a triangulated shell.
 pub const MAX_SURFACE_PADS: usize = 4;
 mod surface;
-pub use surface::SelfContactLoad;
+pub use surface::{SelfContactLoad, SelfContactParticleImpulse};
 mod tensor;
 pub use coupled::{
     ReceiverMotion, RigidMobility, SphereMobility, step_coupled, step_coupled_rigid,

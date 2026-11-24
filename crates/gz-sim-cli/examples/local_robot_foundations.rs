@@ -103,6 +103,9 @@ enum Study {
         /// Number of native rigid/material exchanges per 1 ms actuator period.
         #[arg(long, default_value_t = 1)]
         exchanges_per_ms: usize,
+        /// Measure the signed self-contact impulses delivered to each folded panel.
+        #[arg(long)]
+        panel_balance: bool,
         /// Pad compliance in m/N.
         #[arg(long, default_value_t = 0.001)]
         pad_compliance: f64,
@@ -298,6 +301,7 @@ fn main() -> Result<()> {
             tune_damping,
             exchanges_per_ms,
             pad_compliance,
+            panel_balance,
             substeps,
         } => write_new(&output, |out| {
             sheet_jaws::run(
@@ -307,6 +311,7 @@ fn main() -> Result<()> {
                 substeps,
                 tune_damping,
                 exchanges_per_ms,
+                panel_balance,
             )
         }),
         Study::SheetJawConvergence { recordings } => {

@@ -17,7 +17,7 @@ mod friction;
 pub(super) mod geometry;
 mod interval;
 mod loads;
-pub use loads::SelfContactLoad;
+pub use loads::{SelfContactLoad, SelfContactParticleImpulse};
 mod position;
 use super::{Particle, XpbdError};
 use geometry::{Witness, edge_edge, vertex_face};
@@ -115,7 +115,7 @@ pub(super) struct Surface {
     bounds: Vec<Bound>,
     friction: Option<friction::Friction>,
     pub(super) impulse: crate::SelfContactImpulse,
-    loads: Option<loads::Loads>,
+    loads: Option<Box<loads::Loads>>,
     // A smaller interval can relieve projection or swept-distance exhaustion.
     // Topology and broad-phase capacity failures retain their hard limits.
     pub(super) subdivide_on_budget: bool,
@@ -351,8 +351,9 @@ impl Surface {
         h: f64,
     ) -> Result<(), XpbdError> {
         if let Some(friction) = &self.friction {
-            let impulse = friction.normal(hit, x, p, h)?;
-            let (tangent, work) = friction.apply(hit, impulse, x, p, gap)?;
+            let impulse = friction.normal(hit, x, p, h, self.loads.as_deref_mut())?;
+            let (tangent, work) =
+                friction.apply(hit, impulse, x, p, gap, self.loads.as_deref_mut())?;
             self.record_load(hit, impulse);
             self.impulse.normal += impulse;
             self.impulse.tangent += tangent;

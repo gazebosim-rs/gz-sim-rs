@@ -203,7 +203,17 @@ pub(super) struct Metrics {
     pub max_pad_attribution_residual_ns: f64,
     pub sum_sheet_self_contact_ns: f64,
     pub mean_hold_self_contact_n: f64,
+    /// Positive Z is upward. Each entry is indexed by the construction panel.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub panel_balance: Option<PanelBalance>,
 }
+#[derive(Debug, Default, serde::Serialize)]
+pub(super) struct PanelBalance {
+    normal_up_n: [f64; 2],
+    tangent_up_n: [f64; 2],
+    momentum_change_per_second_n: [f64; 2],
+}
+
 impl Metrics {
     pub(super) fn qualify(&self) -> Result<()> {
         let supported: f64 = self.mean_hold_jaw_up_n.iter().sum();
@@ -306,8 +316,17 @@ pub(super) fn simulate_with_jaw_damping(
     let hold_samples = (HOLD.clone().count() * exchanges) as f64;
     let hold_duration = HOLD.clone().count() as f64 * DT;
     let mass = NODE_MASS * case.mass_scale;
+    let panel_balance = roxmltree::Document::parse(xml)?
+        .descendants()
+        .any(|n| {
+            n.has_tag_name("cloth")
+                && n.attribute("name") == Some("sheet")
+                && n.attribute("self_contact_loads") == Some("true")
+        })
+        .then(PanelBalance::default);
     let mut m = Metrics {
         case,
+        panel_balance,
         panel_flare_m: flare,
         energy: EnergyAudit::new(&r.sim, "sheet", jaws, BENCH)?,
         weight_n: COUNT as f64 * mass * 9.81,
@@ -363,6 +382,27 @@ pub(super) fn simulate_with_jaw_damping(
         m.max_material_substeps = m.max_material_substeps.max(accepted);
         m.accepted_material_substeps += accepted;
         let points = b.particles();
+        if let Some(balance) = &mut m.panel_balance {
+            if HOLD.contains(&tick) {
+                for j in b.last_self_contact_particle_impulses() {
+                    let layer = panel(j.particle);
+                    balance.normal_up_n[layer] += j.normal[2] / hold_duration;
+                    balance.tangent_up_n[layer] += j.tangent[2] / hold_duration;
+                }
+            }
+            let (start, end) = (*HOLD.start(), *HOLD.end());
+            if native_tick == (start - 1) * exchanges || native_tick == end * exchanges {
+                let sign = if native_tick == end * exchanges {
+                    1.
+                } else {
+                    -1.
+                };
+                for (id, particle) in points.iter().enumerate() {
+                    balance.momentum_change_per_second_n[panel(id)] +=
+                        sign * mass * particle.velocity[2] / hold_duration;
+                }
+            }
+        }
         let self_load = b.last_self_contact_impulse().normal;
         m.sum_sheet_self_contact_ns += self_load;
         if HOLD.contains(&tick) {
