@@ -198,19 +198,14 @@ impl RapierBackend {
             if c.authored_weld() {
                 continue;
             }
-            let frame = c.parent.map_or(Pose::IDENTITY, |p| {
-                *self.world.bodies[self.bodies[&p].0].position()
-            }) * c.frame1;
+            let frame = self.parent_joint_pose(c);
             let (mut force, mut moment) = (Vector::ZERO, Vector::ZERO);
             let (mut force_scale, mut moment_scale) = (0., 0.);
             let mut gravity_lever = 0.;
             for (&descendant, &dh) in members.iter().zip(&handles) {
                 if self.robot_member(id, descendant) {
-                    let rb = &self.world.bodies[dh];
-                    let weight = self.world.gravity * (rb.mass() * rb.gravity_scale());
-                    let arm = rb.center_of_mass() - frame.translation;
-                    let torque = arm.cross(weight);
-                    gravity_lever += arm.dot(weight);
+                    let (weight, torque, lever) = self.gravity_about(dh, frame.translation);
+                    gravity_lever += lever;
                     force += weight;
                     moment += torque;
                     force_scale += weight.length();

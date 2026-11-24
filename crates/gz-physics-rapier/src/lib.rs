@@ -83,7 +83,8 @@ pub use joints::{
     StickingPointReceipt, SustainedEdgeReceipt, TwoBearingReceipt,
 };
 pub use joints::{
-    BallJointState, RobotJoint, RobotSpring, UniversalJointState, WeldedAssemblyState,
+    BallJointState, JointGravityLoad, RobotJoint, RobotSpring, UniversalJointState,
+    WeldedAssemblyState,
 };
 pub(crate) use joints::{BearingModes, BearingResult};
 #[cfg(feature = "partition-checkpoint")]

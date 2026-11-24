@@ -21,6 +21,8 @@ pub struct JointHandle {
     entity: u64,
     child: u64,
     sample_kind: SampleKind,
+    /// SDF axes relative to the parent, independent of scalar constraint axes.
+    pub(super) gravity_axes: Option<[f64; 4]>,
     child_pose: Option<WorldPose>,
     parent: Option<(u64, BodyId)>,
     model: u64,
@@ -579,6 +581,9 @@ pub(super) fn build(
                     sdformat::JointKind::Ball => SampleKind::Ball,
                     _ => SampleKind::Scalar,
                 },
+                gravity_axes: matches!(backend.engine(), "multifidelity" | "rapier")
+                    .then(|| sdf.pose_of(&name, &parent_name).map(|p| p.rotation))
+                    .transpose()?,
                 child,
                 parent,
                 model: model_id,

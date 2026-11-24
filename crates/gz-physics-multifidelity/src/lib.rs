@@ -42,7 +42,7 @@ pub use gz_physics_rapier::{
     CornerImpactReceipt, DeckEdgeBearingReceipt, EdgeImpactReceipt, FaceBearingReceipt,
     FacePressureReceipt, FiniteEndpointCertificate, FiniteImpactReceipt, FleetIsolationStats,
     FractionalBearingSpan, FractionalPointEvent, FractionalPointReceipt,
-    FrictionlessRecontactReceipt, HeldSupportStatus, InternalPointImpact,
+    FrictionlessRecontactReceipt, HeldSupportStatus, InternalPointImpact, JointGravityLoad,
     MAX_ARTICULATED_CONTACT_SITES, MixedEdgeImpactReceipt, NormalReaction,
     OpeningEdgeImpactReceipt, PartitionBounds, PartitionBoxBounds, PlanarImpactReceipt,
     RigidContactObservation, RigidContactPatch, RigidPatchPoint, RigidSurfaceWitness, RobotJoint,
@@ -1695,6 +1695,11 @@ impl MultiFidelityBackend {
         self.solver
             .add_ball_effort(id, torque)
             .map_err(engine_error)
+    }
+
+    /// Gravity force and moment of the downstream rigid tree in parent joint axes.
+    pub fn joint_gravity_load(&self, id: JointId) -> Result<JointGravityLoad, PhysicsError> {
+        self.solver.joint_gravity_load(id).map_err(engine_error)
     }
 
     /// Three-axis relative rotation and velocity for a spherical joint.

@@ -428,6 +428,44 @@ fn joint_target(sim: &Simulation, id: u64, torque: f64) -> Result<(Entity, Joint
     if !torque.is_finite() {
         return Err(InputError::InvalidValue);
     }
+    loaded_joint(sim, id)
+}
+
+/// Predicted downstream weight and its moment about a loaded joint in its parent
+/// joint frame. The read uses the last committed rigid state, including when paused.
+pub fn joint_gravity_load(
+    sim: &Simulation,
+    id: u64,
+) -> Result<gz_physics_multifidelity::JointGravityLoad, InputError> {
+    let (entity, joint) = loaded_joint(sim, id)?;
+    let authored = sim
+        .world()
+        .get::<crate::JointHandle>(entity)
+        .and_then(|h| h.gravity_axes)
+        .ok_or(InputError::Unsupported(
+            "downstream gravity requires a local rigid robot joint",
+        ))?;
+    let backend = sim.world().resource::<PhysicsBackend>();
+    let mut load = if let Some(local) =
+        backend.downcast_ref::<gz_physics_multifidelity::MultiFidelityBackend>()
+    {
+        local.joint_gravity_load(joint).map_err(input_error)?
+    } else {
+        backend
+            .downcast_ref::<gz_physics_rapier::RapierBackend>()
+            .ok_or(InputError::InvalidPhysics)?
+            .joint_gravity_load(joint)
+            .map_err(input_error)?
+    };
+    let rotate = glam::DQuat::from_array(authored).inverse()
+        * glam::DQuat::from_array(load.parent_frame_rotation);
+    load.force_n = (rotate * glam::DVec3::from_array(load.force_n)).to_array();
+    load.torque_nm = (rotate * glam::DVec3::from_array(load.torque_nm)).to_array();
+    load.parent_frame_rotation = authored;
+    Ok(load)
+}
+
+fn loaded_joint(sim: &Simulation, id: u64) -> Result<(Entity, JointId), InputError> {
     let world = sim.world();
     let entity = entity_by_id(world, id).ok_or(InputError::MissingEntity(id))?;
     if world.get::<EntityKind>(entity) != Some(&EntityKind::Joint) {

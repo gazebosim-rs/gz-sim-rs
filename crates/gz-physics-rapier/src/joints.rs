@@ -24,6 +24,8 @@ pub use exchange_inputs::ExchangeInputs;
 mod coated_ankle;
 pub use coated_ankle::{CoatedAnkle, CoatedAnkleStep, ShankContact};
 mod exact_lock;
+mod gravity;
+pub use gravity::JointGravityLoad;
 mod parked_robot;
 pub(crate) mod parked_speed;
 mod robot;
@@ -207,6 +209,7 @@ struct Joint {
 
 #[derive(Clone)]
 pub(super) struct Joints {
+    gravity_tree: std::sync::OnceLock<gravity::GravityTree>,
     records: BTreeMap<JointId, Joint>,
     efforts: BTreeMap<JointId, f64>,
     angular_efforts: BTreeMap<JointId, Vector>,
@@ -225,6 +228,7 @@ pub(super) struct Joints {
 impl Default for Joints {
     fn default() -> Self {
         Self {
+            gravity_tree: Default::default(),
             records: BTreeMap::new(),
             efforts: BTreeMap::new(),
             angular_efforts: BTreeMap::new(),
@@ -527,6 +531,7 @@ impl Joints {
                 .iter()
                 .filter_map(|(&id, c)| c.wide_universal().then_some(id))
                 .collect(),
+            gravity_tree: Default::default(),
             records,
             universal_springs,
             projected_universal: BTreeMap::new(),
@@ -546,6 +551,7 @@ impl Joints {
     }
     pub(super) fn forget_body(&mut self, id: BodyId, world: &mut PhysicsWorld) -> Vec<BodyId> {
         let mut survivors = Vec::new();
+        self.gravity_tree.take();
         self.records.retain(|_, joint| {
             let endpoints = joint.initial;
             if endpoints.child == id {
@@ -868,6 +874,7 @@ impl RapierBackend {
         if let Some(row) = construction.insert_screw_row(world, parent, child_handle) {
             self.joints.screws.insert(id, row);
         }
+        self.joints.gravity_tree.take();
         self.joints.records.insert(
             id,
             Joint {
@@ -927,6 +934,7 @@ impl RapierBackend {
         let Some(joint) = self.joints.records.remove(&id) else {
             return false;
         };
+        self.joints.gravity_tree.take();
         self.resume_parked_speed_groups();
         self.joints.efforts.remove(&id);
         self.joints.angular_efforts.remove(&id);
