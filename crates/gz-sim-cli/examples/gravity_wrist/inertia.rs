@@ -227,4 +227,40 @@ mod tests {
         assert!(episode(&mut sim, |_, _| Ok(())).is_err());
         Ok(())
     }
+    #[test]
+    fn a_broken_clamp_or_solver_fault_cannot_enter_the_recording() -> Result<()> {
+        for part in ["clamp", "bearing", "fault"] {
+            let mut sim = load_world_with_sdf_step(
+                XML,
+                "gravity_wrist.sdf",
+                "default",
+                &sdformat::NoResources,
+                PhysicsEngine::MultiFidelity,
+            )?;
+            if part == "fault" {
+                sim.world()
+                    .resource::<gz_sim_core::StepFault>()
+                    .report(std::io::Error::other("solver unavailable"));
+            } else {
+                let entity = named(&sim, &format!("default::held::{part}"));
+                let handle = sim
+                    .world()
+                    .get::<gz_sim_scene::JointHandle>(entity)
+                    .unwrap()
+                    .id();
+                assert!(
+                    sim.world_mut()
+                        .resource_mut::<gz_physics::PhysicsBackend>()
+                        .remove_joint(handle)
+                );
+            }
+            assert!(episode(&mut sim, |_, _| Ok(())).is_err());
+        }
+        let dir = tempfile::tempdir()?;
+        let file = dir.path().join("file");
+        fs::write(&file, b"occupied")?;
+        assert!(record(&file.join("recording")).is_err());
+        assert_eq!(fs::read(file)?, b"occupied");
+        Ok(())
+    }
 }
