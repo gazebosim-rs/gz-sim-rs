@@ -33,3 +33,9 @@ The stiff profile’s first return moved from 2.74989 to 2.75182 s as the timest
 ```sh
 RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-scene --example upstream_double_pendulum -- target/double-pendulum-survey
 ```
+
+## Packaged and tested revision
+
+A fresh GitHub checkout of `874572b80a0ed97ebafc7ecd920ba2e239ab9aac` produced the Linux x86-64 preview with SHA-256 `a2ad68a91b296aa5771dc6567f14571c3655f15d88c3057e56da61640a3aebf2`. A clean Ubuntu 24.04 container stepped both pendulums for six seconds, reproduced the packaged visual archive byte for byte and verified all 6,002 physics records across one and eight Bevy threads. The installed rotor also reproduced its 610 records. [Build the package](../../LOCAL_CPU_MVP.md#build-the-installable-preview)
+
+The focused LLVM run covered all 57 changed executable production lines and all 76 mapped regions starting on those lines across the four affected crates. The combined export warned of seven functions with mismatched profiling data. The run included the native-reference samples, negative inertia, reset, checked controls, unsupported rendering, compound links and joint-controller regressions. Formatting and focused strict Clippy passed. The project-wide coverage and release checks remain open. [Hosted source check](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/45533925967) · [Repository release criteria](../../PHYSICS_RELEASE_ROADMAP.md)
