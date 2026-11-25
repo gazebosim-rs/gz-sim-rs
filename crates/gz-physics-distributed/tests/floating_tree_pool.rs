@@ -532,7 +532,7 @@ fn eight_links_exchange_two_way_impulses_with_a_mobile_payload_in_either_authore
 fn frozen_v2_payload_archive_retains_default_locked_stop_behavior() -> Result<()> {
     let exe = Path::new(EXE);
     let archive = include_bytes!(
-        "fixtures/payload-v2-control.gzpayloadtree"
+        "../../../artifacts/multifidelity-payload-tree-workers/payload-v2-control/barrier.gzpayloadtree"
     );
     let a = tempfile::tempdir()?;
     fs::write(a.path().join("barrier.gzpayloadtree"), archive)?;

@@ -426,11 +426,6 @@ impl World {
         }
     }
 }
-pub(super) fn verify_restart(spec: &MultiSphereSpec, cut: &Cut) -> Result<()> {
-    cut.install_worlds(|_, seed| World::load(spec, cut.tick, seed)?.state(spec))?;
-    Ok(())
-}
-
 /// Entry point for a stock physics_worker managed by a multi-sphere coordinator.
 pub fn serve(slot: u8, path: &Path) -> io::Result<()> {
     serve_at(slot, path, None)
@@ -536,7 +531,3 @@ fn serve_at(slot: u8, path: &Path, forward: Option<worker::ForwardedPorts>) -> i
         })
     })
 }
-
-#[cfg(test)]
-#[path = "legacy_pair_tests.rs"]
-mod legacy_pair_tests;

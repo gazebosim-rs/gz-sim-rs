@@ -254,9 +254,12 @@ fn controller_kill_during_pair_formation_warm_transfer_and_merge() -> Result<()>
     // This frozen v1 barrier has a warm sphere-sphere manifold and no hinge
     // contact. It must be possible to recover either side of extracting the
     // whole pair while the next torque is pending.
-    let seed = include_bytes!("../../tests/fixtures/pair-warm-v1-tick-1292.gzmultisphere");
+    let old = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../artifacts/multifidelity-two-sphere-hinge/four/cuts/tick-1292")
+        .join(ARCHIVE);
+    let seed = fs::read(old)?;
     let legacy = tempfile::tempdir()?;
-    fs::write(legacy.path().join(ARCHIVE), seed)?;
+    fs::write(legacy.path().join(ARCHIVE), &seed)?;
     let mut restored = MultiSpherePool::resume(&exe, legacy.path())?;
     assert_eq!(restored.owners(), [1; 3]);
     assert!(
@@ -275,7 +278,7 @@ fn controller_kill_during_pair_formation_warm_transfer_and_merge() -> Result<()>
         "before-rename",
         "after-rename",
     ] {
-        check(&exe, seed, "step", gate)?;
+        check(&exe, &seed, "step", gate)?;
     }
 
     // This oblique impact eventually leaves two freely moving bodies with
@@ -366,53 +369,6 @@ fn controller_kill_during_atomic_effort_and_advance() -> Result<()> {
             assert!(p.pair_image().is_some());
             assert!(p.observation().sphere_reaction.active);
         }
-    }
-    Ok(())
-}
-
-#[test]
-#[ignore = "requires GZ_MULTI_TEST_WORKER pointing to a stock worker"]
-fn cold_inspection_reconstructs_native_samples_and_rejects_checksummed_inconsistency() -> Result<()>
-{
-    let worker = PathBuf::from(std::env::var_os(WORKER).expect("stock worker path"));
-    let dir = tempfile::tempdir()?;
-    let external = gz_sim_scene::distributed_hinge::distributed_multi_sphere_spec(
-        include_str!("../../../../examples/distributed_sphere_pair_island.sdf"),
-        "cold.sdf",
-        "default",
-    )
-    .unwrap();
-    let spec: MultiSphereSpec =
-        serde_json::from_value(serde_json::to_value(external).unwrap()).unwrap();
-    let mut live = MultiSpherePool::create(&worker, dir.path(), 3, spec)?;
-    for t in 0..150 {
-        live.advance_with_effort_at(0, t, spec.hinge.joint_id, -0.01)?;
-    }
-    assert!(live.observation().sphere_reaction.normal_impulse > 0.49);
-    drop(live);
-    let disk = disk::Disk::lock_existing(dir.path())?;
-    let (_, original) = disk.read()?;
-    let read = || fs::read(dir.path().join(ARCHIVE));
-    inspect_restart_cut(read()?.as_slice())?;
-    for field in ["joint sample", "pair reaction", "pair image"] {
-        let mut invalid = original.clone();
-        match field {
-            "joint sample" => invalid.hinge.sample.q += 0.01,
-            "pair reaction" => invalid.pair.as_mut().unwrap().reaction.normal_impulse += 0.01,
-            "pair image" => invalid.pair.as_mut().unwrap().image[0] ^= 1,
-            _ => unreachable!(),
-        }
-        // Publish produces the usual valid outer envelope and SHA for each case.
-        disk.publish(&spec, &invalid)?;
-        let bytes = read()?;
-        assert!(
-            inspect_published_cut(bytes.as_slice()).is_ok(),
-            "{field}: diagnostic metadata"
-        );
-        assert!(
-            inspect_restart_cut(bytes.as_slice()).is_err(),
-            "{field}: cold restore admitted inconsistent native state"
-        );
     }
     Ok(())
 }

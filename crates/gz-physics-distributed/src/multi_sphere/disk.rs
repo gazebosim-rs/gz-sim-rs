@@ -27,18 +27,6 @@ impl Disk {
     pub fn writer_identity(&self) -> io::Result<crate::articulation::ledger::WriterIdentity> {
         self.0.writer_identity()
     }
-    pub fn lock_matching(
-        dir: &Path,
-        original: &crate::articulation::ledger::WriterIdentity,
-    ) -> Result<Self> {
-        let disk = Self::lock_existing(dir)?;
-        if disk.writer_identity()? != *original {
-            return Err(invalid(
-                "checkpoint belongs to a different session or controller marker",
-            ));
-        }
-        Ok(disk)
-    }
     pub fn reclaim_staging(&self) -> io::Result<()> {
         self.0.reclaim_staging()
     }
@@ -60,7 +48,17 @@ impl Disk {
             c.tick,
             None,
         );
-        let (magic, bytes) = encode_payload(spec, c)?;
+        let recipe = timed!(archive_encode_ns, serde_json::to_vec(spec))?;
+        let (magic, bytes) = match &c.pair {
+            Some(pair) => (
+                V2_MAGIC,
+                timed!(archive_encode_ns, worker::encode(&(recipe, c, pair)))?,
+            ),
+            None => (
+                FILE_MAGIC,
+                timed!(archive_encode_ns, worker::encode(&(recipe, c)))?,
+            ),
+        };
         let path = self.0.multi_path();
         let dir = path.parent().unwrap();
         let mut t = tempfile::Builder::new()
@@ -80,62 +78,22 @@ impl Disk {
         timed!(dir_sync_ns, directory.sync_all())
     }
     pub fn read(&self) -> Result<(MultiSphereSpec, Cut)> {
-        let bytes = read_envelope(open_archive(&self.0.multi_path(), false)?)?;
+        let bytes = read_envelope(open_archive(&self.0.multi_path())?)?;
         decode_cut(&bytes)
     }
 
     pub fn read_identified(&self) -> Result<(MultiSphereSpec, Cut, String)> {
-        identified_cut(open_archive(&self.0.multi_path(), true)?)
+        identified_cut(open_archive(&self.0.multi_path())?)
     }
 }
 
-fn encode_payload(spec: &MultiSphereSpec, c: &Cut) -> io::Result<(&'static [u8; 8], Vec<u8>)> {
-    let recipe = timed!(archive_encode_ns, serde_json::to_vec(spec))?;
-    Ok(match &c.pair {
-        Some(pair) => (
-            V2_MAGIC,
-            timed!(archive_encode_ns, worker::encode(&(recipe, c, pair)))?,
-        ),
-        None => (
-            FILE_MAGIC,
-            timed!(archive_encode_ns, worker::encode(&(recipe, c)))?,
-        ),
-    })
-}
-
-/// Compare every supplied byte to the envelope the retained cut would publish.
-/// The comparison never opens the on-disk archive or contacts a worker.
-pub(super) fn matches_publication(
-    spec: &MultiSphereSpec,
-    cut: &Cut,
-    archive: &[u8],
-) -> io::Result<bool> {
-    let (magic, payload) = encode_payload(spec, cut)?;
-    Ok(archive.len() == payload.len() + 40
-        && archive[..8] == magic[..]
-        && archive[40..] == payload
-        && archive[8..40] == Sha256::digest(&payload)[..])
-}
-
-fn open_archive(path: &Path, require_published_entry: bool) -> io::Result<File> {
+fn open_archive(path: &Path) -> io::Result<File> {
     let mut options = File::options();
     options.read(true);
     #[cfg(unix)]
     {
-        use rustix::fs::OFlags;
         use std::os::unix::fs::OpenOptionsExt;
-        let mut flags = OFlags::NONBLOCK;
-        if require_published_entry {
-            flags |= OFlags::NOFOLLOW;
-        }
-        options.custom_flags(flags.bits() as i32);
-    }
-    #[cfg(not(unix))]
-    if require_published_entry && path.symlink_metadata()?.is_symlink() {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "expected a published archive entry",
-        ));
+        options.custom_flags(rustix::fs::OFlags::NONBLOCK.bits() as i32);
     }
     let file = options.open(path)?;
     if !file.metadata()?.is_file() {
@@ -150,7 +108,7 @@ fn open_archive(path: &Path, require_published_entry: bool) -> io::Result<File> 
 /// Inspect a published checkpoint directly without acquiring a lease, touching
 /// the session directory, or invoking a physics worker.
 pub fn inspect_published_path(path: &Path) -> Result<InspectedCut> {
-    inspect_published_cut(open_archive(path, false)?)
+    inspect_published_cut(open_archive(path)?)
 }
 
 /// Read through one open handle. Atomic replacement of the pathname while
@@ -210,19 +168,7 @@ pub struct InspectedCut {
 /// Validate and identify the same bounded archive read for inspection.
 pub fn inspect_published_cut(input: impl Read) -> Result<InspectedCut> {
     let (spec, cut, sha256) = identified_cut(input)?;
-    Ok(inspected(spec, cut, sha256))
-}
-
-/// Verify all resident images and their samples using the same native loader
-/// and receipt checks as a worker reinstall, without spawning any workers.
-pub fn inspect_restart_cut(input: impl Read) -> Result<InspectedCut> {
-    let (spec, cut, sha256) = identified_cut(input)?;
-    native::verify_restart(&spec, &cut)?;
-    Ok(inspected(spec, cut, sha256))
-}
-
-pub(super) fn inspected(spec: MultiSphereSpec, cut: Cut, sha256: String) -> InspectedCut {
-    InspectedCut {
+    Ok(InspectedCut {
         sha256,
         hinge_native_sha256: format!("{:x}", Sha256::digest(&cut.hinge.image)),
         pair_native_sha256: cut
@@ -230,7 +176,7 @@ pub(super) fn inspected(spec: MultiSphereSpec, cut: Cut, sha256: String) -> Insp
             .as_ref()
             .map(|p| format!("{:x}", Sha256::digest(&p.image))),
         cut: published(spec, cut),
-    }
+    })
 }
 
 /// Inspect the atomic receipt without acquiring the writer lease or starting workers.

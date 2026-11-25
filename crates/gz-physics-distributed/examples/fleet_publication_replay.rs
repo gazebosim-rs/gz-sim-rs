@@ -16,12 +16,6 @@ use std::{error::Error, fs, path::PathBuf};
 struct Args {
     #[arg(long, default_value_t=10000, value_parser=clap::value_parser!(u32).range(9..=100000))]
     decks: u32,
-    /// Launch the first payload with a one-tick native wrench at 1.20 s.
-    #[arg(long)]
-    launch: bool,
-    /// Display the origin and first solid hit of a downward beam following deck 0.
-    #[arg(long)]
-    range: bool,
     output: PathBuf,
 }
 
@@ -32,18 +26,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let count = args.decks as usize;
     let columns = count.isqrt() + usize::from(count.isqrt().pow(2) != count);
     let mut sim = fleet::scene(count, true)?;
-    let first_payload = sim
-        .world()
-        .iter_entities()
-        .find_map(|entity| {
-            (entity.get::<Name>()?.0 == "default::payload_0::body")
-                .then(|| entity.get::<gz_sim_core::EntityId>().unwrap().get())
-        })
-        .expect("the fleet authors its first payload");
-    let visible_columns = if args.launch { columns.min(4) } else { 3 };
     let mut selected = Vec::new();
     for row in 0..3 {
-        for col in 0..visible_columns {
+        for col in 0..3 {
             let i = row * columns + col;
             if i >= count {
                 continue;
@@ -66,24 +51,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let mut frames = Vec::new();
     let mut samples = Vec::new();
-    let last_tick = if args.launch { 220 } else { 200 };
-    for tick in 0..=last_tick {
-        if args.launch && tick == 121 {
-            gz_sim_scene::queue_link_world_wrench(
-                &mut sim,
-                first_payload,
-                [510., 0., 185.],
-                [0.; 3],
-            )?;
-        }
+    for tick in 0..=200 {
         if tick > 0 {
             sim.step_exact(1)?;
         }
-        if tick % 4 != 0 && !(args.launch && (120..=180).contains(&tick)) {
+        if tick % 4 != 0 {
             continue;
         }
         let mut view = View::default();
-        let mut beam = None;
         let mut poses = Vec::new();
         for (i, (entity, name, payload)) in selected.iter().enumerate() {
             let pose = sim
@@ -97,30 +72,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if (x - expected).abs() > 1e-9 || (y - (n / columns) as f64 * 1.1).abs() > 1e-9 {
                     return Err("deck left commanded closed-form path".into());
                 }
-            }
-            if args.range && name == "deck_0" {
-                let origin = [x, y, 1.];
-                let distance = sim
-                    .world()
-                    .resource::<gz_physics::PhysicsBackend>()
-                    .cast_ray(origin, [0., 0., -1.], 2., None)?
-                    .ok_or("expected a downward return from the moving deck")?;
-                let hit = [x, y, 1. - distance];
-                view.cuboid(
-                    102,
-                    "range_origin",
-                    [x - 1.1, y - 1.1, 1.],
-                    [0.045; 3],
-                    [0.98, 0.82, 0.18, 1.],
-                );
-                view.cuboid(
-                    104,
-                    "range_hit",
-                    [x - 1.1, y - 1.1, hit[2]],
-                    [0.055; 3],
-                    [0.20, 1., 0.36, 1.],
-                );
-                beam = Some(json!({"origin":origin, "hit":hit, "distance_m":distance}));
             }
             let (size, color) = if *payload {
                 ([0.2; 3], [0.99, 0.56, 0.08, 1.])
@@ -157,11 +108,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .specific_force,
             )
         };
-        let mut sample = json!({"tick":tick,"poses":poses,"imu_specific_force_mps2":imu});
-        if let Some(beam) = beam {
-            sample["range"] = beam;
-        }
-        samples.push(sample);
+        samples.push(json!({"tick":tick,"poses":poses,"imu_specific_force_mps2":imu}));
         frames.push(view.finish_at(frames.len() as u64 + 1, tick * 10_000_000));
     }
     gz_sim_cli::export_archive(&out.join("replay"), Default::default(), frames)?;

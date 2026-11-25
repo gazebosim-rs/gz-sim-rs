@@ -51,8 +51,8 @@ impl FenceReceipt {
         }
     }
 
-    pub(super) fn writer(&self) -> &WriterIdentity {
-        &self.writer
+    pub(super) fn owns_writer(&self, writer: &WriterIdentity) -> bool {
+        self.writer == *writer
     }
 
     pub fn epoch(&self) -> u64 {

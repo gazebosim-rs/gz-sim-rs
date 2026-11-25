@@ -186,7 +186,7 @@ fn run(
 #[test]
 fn ordinary_bevy_contact_and_stop_momentum_controls() -> Result<(), Box<dyn Error>> {
     let file = include_str!(
-        "fixtures/first-light-contact-history.csv"
+        "../../../artifacts/multifidelity-payload-tree-workers/first-counterexample/light-first/history.csv"
     );
     let frozen: Vec<f64> = file
         .lines()

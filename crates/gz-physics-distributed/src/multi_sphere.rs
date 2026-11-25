@@ -20,16 +20,11 @@ macro_rules! timed {
     }};
 }
 pub(crate) use timed;
-mod cold;
-pub use cold::{ColdOrigin, ColdSelection};
 mod disk;
 mod native;
 mod pool;
 mod recovery;
-pub use disk::{
-    InspectedCut, inspect_published_cut, inspect_published_path, inspect_restart_cut,
-    read_published_cut,
-};
+pub use disk::{InspectedCut, inspect_published_cut, inspect_published_path, read_published_cut};
 pub use native::{serve, serve_forwarded, validate_forwarded_slot};
 pub use pool::MultiSpherePool;
 pub use recovery::{FenceReceipt, RecoveryMonitor, RecoveryPhase, RecoveryStatus};
@@ -74,13 +69,6 @@ pub struct PublishedCut {
 }
 
 impl MultiSphereSpec {
-    /// Compare the exact serialized construction recipe used by worker archives,
-    /// including floating-point signs at zero.
-    pub fn same_recipe(&self, other: &Self) -> Result<bool> {
-        Ok(serde_json::to_vec(self).map_err(io::Error::from)?
-            == serde_json::to_vec(other).map_err(io::Error::from)?)
-    }
-
     fn single(&self, i: usize) -> MovingSpec {
         MovingSpec {
             hinge: self.hinge,
@@ -151,59 +139,6 @@ struct Cut {
     pair: Option<PairPart>,
 }
 impl Cut {
-    /// Recreate each occupied native world and compare its install receipt.
-    /// The caller supplies either the real worker transport or a local decoder.
-    fn install_worlds(
-        &self,
-        mut install: impl FnMut(u8, Seed) -> Result<Reply>,
-    ) -> Result<Option<PairPart>> {
-        let Reply::Hinge(h) = install(self.owners[0], Seed::Hinge(Some(self.hinge.image.clone())))?
-        else {
-            return Err(invalid("missing restored hinge"));
-        };
-        if worker::encode(&*h)? != worker::encode(&self.hinge)? {
-            return Err(invalid(
-                "restored multi-sphere hinge differs from its receipt",
-            ));
-        }
-        if pair_owned(self.owners) {
-            let Reply::Pair(part) = install(
-                self.owners[1],
-                Seed::Pair {
-                    spheres: self.spheres,
-                    image: self.pair.as_ref().map(|p| p.image.clone()),
-                },
-            )?
-            else {
-                return Err(invalid("missing sphere pair on install"));
-            };
-            if part.spheres != self.spheres {
-                return Err(invalid(
-                    "restored sphere pair differs from its public state",
-                ));
-            }
-            if let Some(expected) = &self.pair
-                && worker::encode(&*part)? != worker::encode(expected)?
-            {
-                return Err(invalid("restored sphere pair differs from its receipt"));
-            }
-            return Ok(Some(*part));
-        }
-        for i in 0..2 {
-            if !includes(self.hinge.sample.mask, i) {
-                let Reply::Sphere(s) =
-                    install(self.owners[i + 1], Seed::Sphere(i, self.spheres[i]))?
-                else {
-                    return Err(invalid("missing restored loose sphere"));
-                };
-                if s != self.spheres[i] {
-                    return Err(invalid("restored loose sphere differs from its receipt"));
-                }
-            }
-        }
-        Ok(None)
-    }
-
     fn state(&self, joint_id: u64) -> MultiSphereObservation {
         MultiSphereObservation {
             hinge: ArticulationObservation {

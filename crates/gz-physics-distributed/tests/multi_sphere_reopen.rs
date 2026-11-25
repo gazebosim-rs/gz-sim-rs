@@ -520,13 +520,9 @@ fn transport_fence_on_a_nonadvancing_operation_never_issues_a_step_receipt() -> 
     let subject = tempfile::tempdir()?;
     let mut pool = MultiSpherePool::create(worker, subject.path(), 3, spec)?;
     let monitor = pool.subscribe_recovery();
-    let origin = gz_physics_distributed::multi_sphere::ColdOrigin::capture(subject.path())?;
-    let bytes = fs::read(subject.path().join(ARCHIVE))?;
-    pool.verify_live_cut(&origin, &bytes)?;
     let lease = withhold_slot(subject.path(), &pool, pool.owners()[0])?;
     assert!(pool.queue_effort(spec.hinge.joint_id, 0.01).is_err());
     assert_eq!(monitor.snapshot().unwrap().phase, RecoveryPhase::Fenced);
-    assert!(pool.verify_live_cut(&origin, &bytes).is_err());
     assert_eq!(monitor.fence_receipt(), None);
     assert!(pool.advance().is_err());
     assert_eq!(pool.operator_fence_receipt(), None);

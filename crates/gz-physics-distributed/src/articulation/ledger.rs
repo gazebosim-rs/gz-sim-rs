@@ -28,7 +28,6 @@ pub(crate) const SPLIT_GRASP_FILE: &str = "barrier.gzsplitgrasp";
 pub(crate) const GRASP_TREE_FILE: &str = "barrier.gzgrasptree";
 pub(crate) const PAYLOAD_TREE_FILE: &str = "barrier.gzpayloadtree";
 
-const SESSION: &[u8] = b"GZHNG-SESSION-1\n";
 const MAGIC: &[u8; 8] = b"GZHNGP01";
 const MAX_FILE: usize = 16 * 1024;
 const GROUND_MAGIC: &[u8; 8] = b"GZHNGP02";
@@ -59,16 +58,6 @@ pub(crate) struct WriterIdentity {
     marker: Arc<same_file::Handle>,
 }
 
-#[cfg(unix)]
-impl WriterIdentity {
-    pub(crate) fn directory(&self) -> &Path {
-        &self.directory
-    }
-    pub(crate) fn metadata(&self) -> io::Result<fs::Metadata> {
-        self.marker.as_file().metadata()
-    }
-}
-
 pub(crate) struct Ledger {
     directory: PathBuf,
     controller: File,
@@ -90,38 +79,6 @@ impl Ledger {
     /// A guarded operator reopen may only attach to a previously claimed session.
     pub(crate) fn lock_existing(directory: &Path) -> io::Result<Self> {
         Self::acquire(directory, false, true)
-    }
-
-    /// Observe an existing claim without taking ownership or changing staging.
-    pub(crate) fn inspect_marker(directory: &Path) -> io::Result<WriterIdentity> {
-        let directory = directory.canonicalize()?;
-        let mut options = OpenOptions::new();
-        options.read(true);
-        #[cfg(unix)]
-        {
-            use rustix::fs::OFlags;
-            use std::os::unix::fs::OpenOptionsExt;
-            options.custom_flags((OFlags::NONBLOCK | OFlags::NOFOLLOW).bits() as i32);
-        }
-        let file = options.open(directory.join("controller.lock"))?;
-        if !file.metadata()?.is_file() {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "expected a regular controller lock",
-            ));
-        }
-        let mut marker = Vec::new();
-        (&file).take(64).read_to_end(&mut marker)?;
-        if marker != SESSION {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "unknown hinge session lock",
-            ));
-        }
-        Ok(WriterIdentity {
-            directory,
-            marker: Arc::new(same_file::Handle::from_file(file)?),
-        })
     }
 
     fn acquire(directory: &Path, create: bool, require_claimed: bool) -> io::Result<Self> {
@@ -153,6 +110,7 @@ impl Ledger {
         })?;
         // Reserve the staging name before the first publish. An interrupted
         // publisher can then reclaim its own file even before the first cut.
+        const SESSION: &[u8] = b"GZHNG-SESSION-1\n";
         let mut marker = Vec::new();
         (&file).take(64).read_to_end(&mut marker)?;
         let pending = directory.join("barrier.pending.gzhinge");

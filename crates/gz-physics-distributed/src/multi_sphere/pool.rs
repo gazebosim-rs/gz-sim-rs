@@ -185,78 +185,22 @@ impl MultiSpherePool {
         transport: WorkerTransport,
         receipt: &FenceReceipt,
     ) -> Result<Self> {
-        let disk = Disk::lock_matching(dir, receipt.writer())?;
-        Self::open_verified(
-            exe,
-            disk,
-            width,
-            spec,
-            transport,
-            (receipt.epoch(), receipt.tick(), receipt.sha256()),
-        )
-    }
-
-    /// Attach a replacement supervisor only to the operator-selected cold cut.
-    /// The old supervisor's in-memory fence offer is never used for this path.
-    pub fn resume_scene_selected(
-        exe: &Path,
-        dir: &Path,
-        width: Option<u8>,
-        spec: MultiSphereSpec,
-        transport: WorkerTransport,
-        selected: &ColdSelection,
-    ) -> Result<Self> {
-        let disk = Disk::lock_matching(dir, selected.writer())?;
-        selected.check_origin(&disk)?;
-        let inspected = selected.cut();
-        Self::open_verified(
-            exe,
-            disk,
-            width,
-            spec,
-            transport,
-            (
-                inspected.cut.epoch,
-                inspected.cut.observation.hinge.tick,
-                &inspected.sha256,
-            ),
-        )
-    }
-
-    fn open_verified(
-        exe: &Path,
-        disk: Disk,
-        width: Option<u8>,
-        spec: MultiSphereSpec,
-        transport: WorkerTransport,
-        expected: (u64, u64, &str),
-    ) -> Result<Self> {
-        let (saved, cut, digest) = disk.read_identified()?;
-        if (cut.epoch, cut.tick, digest.as_str()) != expected {
+        let disk = Disk::lock_existing(dir)?;
+        if !receipt.owns_writer(&disk.writer_identity()?) {
             return Err(invalid(
-                "multi-sphere archive differs from the selected checkpoint",
+                "operator fence belongs to a different session or controller marker",
+            ));
+        }
+        let (saved, cut, digest) = disk.read_identified()?;
+        if cut.tick != receipt.tick() || cut.epoch != receipt.epoch() || digest != receipt.sha256()
+        {
+            return Err(invalid(
+                "multi-sphere archive differs from the selected fence receipt",
             ));
         }
         Self::validate_saved_scene(width, &spec, &saved, cut.width)?;
         disk.reclaim_staging()?;
         Self::open(exe, disk, cut.width, spec, Some(cut), transport)
-    }
-
-    /// Prove that the package's already-read archive is the exact publication
-    /// of this healthy live writer, including pending inputs and both native graphs.
-    pub fn verify_live_cut(&self, origin: &ColdOrigin, bytes: &[u8]) -> Result<()> {
-        if !self.healthy {
-            return Err(invalid(
-                "cannot capture a live checkpoint from a fenced pool",
-            ));
-        }
-        origin.check_disk(&self.disk)?;
-        if !disk::matches_publication(&self.spec, &self.cut, bytes)? {
-            return Err(invalid(
-                "captured archive differs from the retained live checkpoint",
-            ));
-        }
-        Ok(())
     }
 
     pub fn operator_fence_receipt(&self) -> Option<&FenceReceipt> {
@@ -293,7 +237,10 @@ impl MultiSpherePool {
         saved: &MultiSphereSpec,
         saved_width: u8,
     ) -> Result<()> {
-        if width.is_some_and(|w| w != saved_width) || !saved.same_recipe(spec)? {
+        if width.is_some_and(|w| w != saved_width)
+            || serde_json::to_vec(saved).map_err(io::Error::from)?
+                != serde_json::to_vec(spec).map_err(io::Error::from)?
+        {
             return Err(invalid("multi-sphere session recipe or width differs"));
         }
         Ok(())
@@ -434,7 +381,59 @@ impl MultiSpherePool {
         self.install_worlds(c).map(|_| ())
     }
     fn install_worlds(&mut self, c: &Cut) -> Result<Option<PairPart>> {
-        c.install_worlds(|slot, seed| self.call(slot, c.tick, Command::Install(seed)))
+        let Reply::Hinge(h) = self.call(
+            c.owners[0],
+            c.tick,
+            Command::Install(Seed::Hinge(Some(c.hinge.image.clone()))),
+        )?
+        else {
+            return Err(invalid("missing restored hinge"));
+        };
+        if worker::encode(&*h)? != worker::encode(&c.hinge)? {
+            return Err(invalid(
+                "restored multi-sphere hinge differs from its receipt",
+            ));
+        }
+        if pair_owned(c.owners) {
+            let Reply::Pair(part) = self.call(
+                c.owners[1],
+                c.tick,
+                Command::Install(Seed::Pair {
+                    spheres: c.spheres,
+                    image: c.pair.as_ref().map(|p| p.image.clone()),
+                }),
+            )?
+            else {
+                return Err(invalid("missing sphere pair on install"));
+            };
+            if part.spheres != c.spheres {
+                return Err(invalid(
+                    "restored sphere pair differs from its public state",
+                ));
+            }
+            if let Some(expected) = &c.pair
+                && worker::encode(&*part)? != worker::encode(expected)?
+            {
+                return Err(invalid("restored sphere pair differs from its receipt"));
+            }
+            return Ok(Some(*part));
+        }
+        for i in 0..2 {
+            if !includes(c.hinge.sample.mask, i) {
+                let Reply::Sphere(s) = self.call(
+                    c.owners[i + 1],
+                    c.tick,
+                    Command::Install(Seed::Sphere(i, c.spheres[i])),
+                )?
+                else {
+                    return Err(invalid("missing restored loose sphere"));
+                };
+                if s != c.spheres[i] {
+                    return Err(invalid("restored loose sphere differs from its receipt"));
+                }
+            }
+        }
+        Ok(None)
     }
     fn reassign(
         &mut self,
