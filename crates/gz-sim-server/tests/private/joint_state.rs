@@ -165,14 +165,12 @@ fn server(xml: &str) -> Server {
     server_with_engine(xml, PhysicsEngine::Rapier)
 }
 fn server_with_engine(xml: &str, engine: PhysicsEngine) -> Server {
-    let simulation = load_world_with_sdf_step(
-        xml,
-        "server-m18.sdf",
-        "default",
-        &sdformat::NoResources,
-        engine,
-    )
-    .unwrap();
+    server_in_world(xml, "default", engine)
+}
+fn server_in_world(xml: &str, world: &str, engine: PhysicsEngine) -> Server {
+    let simulation =
+        load_world_with_sdf_step(xml, "server-m18.sdf", world, &sdformat::NoResources, engine)
+            .unwrap();
     let mut config = zenoh::Config::default();
     for (key, value) in [
         ("mode", "\"peer\""),
@@ -184,7 +182,7 @@ fn server_with_engine(xml: &str, engine: PhysicsEngine) -> Server {
     }
     Server::with_zenoh_config(
         simulation,
-        "default",
+        world,
         ServerOptions {
             partition: format!("m18-{}", uuid::Uuid::new_v4()),
             ..Default::default()
@@ -1382,4 +1380,126 @@ fn dual_axis_packets_require_one_finite_second_reading_for_each_matching_joint()
     m.joints[0].kind = JointStateKind::Revolute;
     s.second_axes = vec![second];
     assert!(packet(&m, 7, &s).is_none());
+}
+
+#[test]
+fn ball_joint_wire_axes_only_contain_the_two_measured_positions_and_velocities() {
+    let mut metadata = metadata();
+    let joint = &mut metadata.joints[0];
+    joint.kind = JointStateKind::Ball;
+    joint.name = "caster_wheel".into();
+    joint.axis = [0.; 3];
+    joint.lower = 0.;
+    joint.upper = 0.;
+    joint.damping = 0.;
+    let mut sample = sample();
+    let first = sample.joints[0];
+    let second = JointStateValue {
+        id: first.id,
+        position: 0.37,
+        velocity: -1.83,
+    };
+    assert!(packet(&metadata, 7, &sample).is_none());
+    sample.second_axes.push(second);
+    let message = packet(&metadata, 7, &sample).unwrap();
+    let joint = &message.joint[0];
+    assert_eq!(joint.r#type, Joint::default().r#type);
+    for (axis, expected) in [
+        (joint.axis1.as_ref(), first),
+        (joint.axis2.as_ref(), second),
+    ] {
+        assert_eq!(
+            axis.unwrap(),
+            &Axis {
+                position: expected.position,
+                velocity: expected.velocity,
+                ..Default::default()
+            }
+        );
+    }
+    metadata.joints[0].axis = [1., 0., 0.];
+    assert!(packet(&metadata, 7, &sample).is_none());
+}
+
+#[test]
+fn stock_drive_publishes_two_wheel_encoders_and_two_ball_coordinates_each_tick() {
+    let mut server = server_in_world(
+        include_str!("../../../../examples/worlds/upstream_diff_drive.sdf"),
+        "diff_drive",
+        PhysicsEngine::MultiFidelity,
+    );
+    let stream = &server.joint_states[0];
+    assert_eq!(
+        stream.metadata.topic,
+        "/world/diff_drive/model/vehicle/joint_state"
+    );
+    let sub = server
+        .world_io
+        .session
+        .declare_subscriber(stream.endpoint.clone())
+        .wait()
+        .unwrap();
+    gz_sim_scene::set_diff_drive_command(&mut server.simulation, stream.identity, 0.4, 0.5)
+        .unwrap();
+    server.set_paused(false);
+    for tick in 1..=16 {
+        server.update().unwrap();
+        let msg = receive(&sub);
+        let stream = &server.joint_states[0];
+        assert_eq!(msg.name, "vehicle");
+        assert_eq!(msg.header.unwrap().stamp.unwrap().nsec, tick * 1_000_000);
+        assert_eq!(msg.joint.len(), 3);
+        let mut wheel_children = Vec::new();
+        let mut ball_children = Vec::new();
+        for (joint, (id, entity)) in msg.joint.iter().zip(&stream.joints) {
+            assert_eq!(u64::from(joint.id), *id);
+            assert_eq!(joint.parent, "chassis");
+            let first = joint.axis1.as_ref().unwrap();
+            if joint.name == "caster_wheel" {
+                let sample = server
+                    .simulation
+                    .world()
+                    .get::<JointStateSample>(stream.entity)
+                    .unwrap();
+                let value = sample.joints.iter().find(|v| v.id == *id).unwrap();
+                let second = &sample.second_axes[0];
+                assert_eq!(sample.second_axes.len(), 1);
+                assert_eq!(second.id, *id);
+                for (axis, reading) in [(first, value), (joint.axis2.as_ref().unwrap(), second)] {
+                    assert_eq!(
+                        axis,
+                        &Axis {
+                            position: reading.position,
+                            velocity: reading.velocity,
+                            ..Default::default()
+                        }
+                    );
+                }
+                assert_eq!(joint.r#type, Joint::default().r#type);
+                ball_children.push(joint.child.as_str());
+            } else {
+                assert_eq!(joint.name, format!("{}_joint", joint.child));
+                assert!(joint.axis2.is_none());
+                assert_eq!(first.xyz, Some(vector3([0., 0., 1.])));
+                assert_eq!(
+                    (first.limit_lower, first.limit_upper),
+                    (-1.79769e308, 1.79769e308)
+                );
+                let state = server
+                    .simulation
+                    .world()
+                    .get::<gz_sim_scene::JointSample>(*entity)
+                    .unwrap()
+                    .state;
+                assert_eq!(
+                    (first.position, first.velocity),
+                    (state.position, state.velocity)
+                );
+                wheel_children.push(joint.child.as_str());
+            }
+        }
+        wheel_children.sort();
+        assert_eq!(wheel_children, ["left_wheel", "right_wheel"]);
+        assert_eq!(ball_children, ["caster"]);
+    }
 }

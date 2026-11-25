@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! At most eight original loaded wheel pairs; native motors own the physical response.
 use super::*;
-use gz_physics::{JointId, JointVelocityMotor};
+use gz_physics::{JointId, JointVelocityMotor, PhysicsError};
 mod config;
 mod model;
 
@@ -36,6 +36,8 @@ pub(super) struct Drive {
     speed: [f64; 2],
     linear: [f64; 2],
     angular: [f64; 2],
+    acceleration: [[f64; 2]; 2],
+    prepared_velocity: Option<[f64; 2]>,
     desired: [f64; 2],
     geometry: model::Geometry,
     odometry: Option<model::Odometry>,
@@ -46,8 +48,8 @@ pub(super) struct Plan(config::Parameters);
 pub(super) fn is_plugin(plugin: &sdformat::Plugin) -> bool {
     config::is_plugin(plugin)
 }
-pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
-    config::parse(model).map(|value| value.map(Plan))
+pub(super) fn parse(model: &Model, local: bool) -> Result<Option<Plan>, LoadError> {
+    config::parse_for_engine(model, local).map(|value| value.map(Plan))
 }
 impl Plan {
     pub(super) fn names(&self) -> impl Iterator<Item = &str> {
@@ -62,7 +64,7 @@ impl Plan {
         pose: Transform,
     ) -> Result<(), LoadError> {
         require(
-            engine == Some("rapier") && placement.0 && !placement.1,
+            matches!(engine, Some("rapier" | "multifidelity")) && placement.0 && !placement.1,
             &model.scoped_name,
             "DiffDrive requires a top-level dynamic Rapier model",
         )?;
@@ -91,6 +93,32 @@ impl Plan {
     }
 }
 
+// Local Gazebo velocity commands are constraint targets. The original Rapier-only
+// drive uses its existing acceleration-based motors. Both respect each wheel's effort cap.
+fn validate_motor(
+    backend: &PhysicsBackend,
+    joint: JointId,
+    motor: Option<JointVelocityMotor>,
+) -> Result<(), PhysicsError> {
+    if backend.engine() == "multifidelity" {
+        backend.validate_joint_velocity_servo(joint, motor)
+    } else {
+        backend.validate_joint_velocity_motor(joint, motor)
+    }
+}
+
+fn set_motor(
+    backend: &mut PhysicsBackend,
+    joint: JointId,
+    motor: Option<JointVelocityMotor>,
+) -> Result<(), PhysicsError> {
+    if backend.engine() == "multifidelity" {
+        backend.set_joint_velocity_servo(joint, motor)
+    } else {
+        backend.set_joint_velocity_motor(joint, motor)
+    }
+}
+
 pub(super) fn build(
     sim: &mut Simulation,
     model: &Model,
@@ -115,7 +143,8 @@ pub(super) fn build(
     }
     let joints = [ids[0], ids[1]];
     for (joint, force) in joints.into_iter().zip(parameters.wheel_force) {
-        backend.validate_joint_velocity_motor(
+        validate_motor(
+            backend,
             joint,
             Some(JointVelocityMotor {
                 target_velocity: 0.0,
@@ -178,6 +207,8 @@ pub(super) fn build(
             speed: parameters.wheel_speed,
             linear: parameters.linear,
             angular: parameters.angular,
+            acceleration: parameters.acceleration,
+            prepared_velocity: (backend.engine() == "multifidelity").then_some([0.0; 2]),
             desired: [0.0; 2],
             geometry,
             odometry: Some(odometry),
@@ -236,7 +267,8 @@ pub fn set_diff_drive_command(
         .get_resource::<PhysicsBackend>()
         .ok_or(DiffDriveCommandError::ForeignPhysics)?;
     for ((joint, target), force) in drive.joints.into_iter().zip(targets).zip(drive.force) {
-        backend.validate_joint_velocity_motor(
+        validate_motor(
+            backend,
             joint,
             Some(JointVelocityMotor {
                 target_velocity: target,
@@ -422,6 +454,7 @@ fn binding_matches_configuration(world: &World, id: u64, trusted: &DiffDriveConf
         || drive.speed != blueprint.speed
         || drive.linear != blueprint.linear
         || drive.angular != blueprint.angular
+        || drive.acceleration != blueprint.acceleration
         || drive.geometry != blueprint.geometry
     {
         return false;
@@ -550,6 +583,7 @@ fn active_drives(world: &World) -> Result<Vec<Entity>, DriveFault> {
 }
 
 struct MotorPlan {
+    prepared_velocity: Option<[f64; 2]>,
     entity: Entity,
     joints: [JointId; 2],
     motors: [JointVelocityMotor; 2],
@@ -567,9 +601,19 @@ fn apply(world: &mut World) {
             let drive = world
                 .get::<Drive>(entity)
                 .expect("preflighted original drive");
+            let dt = world.resource::<UpdateInfo>().dt.as_secs_f64();
+            // Gazebo prepares the speed in PostUpdate for the following physics tick.
+            let prepared_velocity = drive.prepared_velocity.map(|velocity| {
+                std::array::from_fn(|i| {
+                    let previous = velocity[i];
+                    let [min, max] = drive.acceleration[i];
+                    drive.desired[i].clamp(previous + min * dt, previous + max * dt)
+                })
+            });
+            let applied = drive.prepared_velocity.unwrap_or(drive.desired);
             let targets = drive
                 .geometry
-                .bounded_targets(drive.desired[0], drive.desired[1], drive.speed)
+                .bounded_targets(applied[0], applied[1], drive.speed)
                 .map_err(|error| DriveFault {
                     entity,
                     message: error.to_string(),
@@ -585,30 +629,32 @@ fn apply(world: &mut World) {
                 },
             ];
             for (joint, motor) in drive.joints.into_iter().zip(motors) {
-                world
-                    .resource::<PhysicsBackend>()
-                    .validate_joint_velocity_motor(joint, Some(motor))
-                    .map_err(|error| DriveFault {
+                validate_motor(world.resource::<PhysicsBackend>(), joint, Some(motor)).map_err(
+                    |error| DriveFault {
                         entity,
                         message: error.to_string(),
-                    })?;
+                    },
+                )?;
             }
             planned.push(MotorPlan {
+                prepared_velocity,
                 entity,
                 joints: drive.joints,
                 motors,
             });
         }
-        let mut backend = world.resource_mut::<PhysicsBackend>();
         for plan in planned {
+            let mut backend = world.resource_mut::<PhysicsBackend>();
             for (joint, motor) in plan.joints.into_iter().zip(plan.motors) {
-                backend
-                    .set_joint_velocity_motor(joint, Some(motor))
-                    .map_err(|error| DriveFault {
-                        entity: plan.entity,
-                        message: error.to_string(),
-                    })?;
+                set_motor(&mut backend, joint, Some(motor)).map_err(|error| DriveFault {
+                    entity: plan.entity,
+                    message: error.to_string(),
+                })?;
             }
+            world
+                .get_mut::<Drive>(plan.entity)
+                .expect("preflighted drive")
+                .prepared_velocity = plan.prepared_velocity;
         }
         Ok(())
     })();
@@ -691,6 +737,7 @@ fn reset(world: &mut World) {
         {
             let mut drive = world.get_mut::<Drive>(*entity).expect("selected drive");
             drive.desired = [0.0; 2];
+            drive.prepared_velocity = drive.prepared_velocity.map(|_| [0.0; 2]);
             drive.schedule.reset();
         }
         world.entity_mut(*entity).remove::<DiffDriveSample>();
@@ -719,9 +766,7 @@ fn reset(world: &mut World) {
                     .reset(angles, Duration::ZERO)
                     .map_err(|error| error.to_string())?;
                 for joint in drive.joints {
-                    world
-                        .resource::<PhysicsBackend>()
-                        .validate_joint_velocity_motor(joint, None)
+                    validate_motor(world.resource::<PhysicsBackend>(), joint, None)
                         .map_err(|error| error.to_string())?;
                 }
                 Ok(())
@@ -734,12 +779,10 @@ fn reset(world: &mut World) {
             let mut backend = world.resource_mut::<PhysicsBackend>();
             for (entity, drive) in &prepared {
                 for joint in drive.joints {
-                    backend
-                        .set_joint_velocity_motor(joint, None)
-                        .map_err(|error| DriveFault {
-                            entity: *entity,
-                            message: error.to_string(),
-                        })?;
+                    set_motor(&mut backend, joint, None).map_err(|error| DriveFault {
+                        entity: *entity,
+                        message: error.to_string(),
+                    })?;
                 }
             }
         }

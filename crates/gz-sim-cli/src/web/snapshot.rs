@@ -109,7 +109,10 @@ impl Scene {
             .any(|v| matches!(v.shape, Shape::Mesh { .. }));
         if scene.kind != "scene"
             || scene.version != if mesh { 2 } else { 1 }
-            || scene.world != "default"
+            || scene.world.is_empty()
+            || scene.world.len() > 256
+            || scene.world.contains("::")
+            || scene.world.chars().any(char::is_control)
             || scene.world_id == 0
             || scene.world_id > u32::MAX as u64
             || scene.nanoseconds >= 1_000_000_000
@@ -125,6 +128,9 @@ impl Scene {
                 || visual.id == scene.world_id
                 || !ids.insert(visual.id)
                 || visual.name.len() > 256
+                || (scene.world != "default"
+                    && visual.name.split_once("::").map(|(world, _)| world)
+                        != Some(scene.world.as_str()))
                 || !visual
                     .color
                     .iter()

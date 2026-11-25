@@ -127,3 +127,53 @@ fn material_admission_preserves_other_surface_semantics() {
         );
     }
 }
+
+#[test]
+fn omitted_sdf_surface_matches_explicit_friction_after_cloning_the_runway() {
+    use gz_sim_scene::{WorldLoadOptions, WorldRuntimeOptions, load_world_with_runtime};
+    let omitted = SDF.replace(
+        "<surface><friction><ode><mu>1</mu><mu2>1</mu2></ode></friction></surface>",
+        "",
+    );
+    assert_ne!(omitted, SDF);
+    let run = |xml: &str, engine| {
+        load_world_with_runtime(
+            xml,
+            "clone.sdf",
+            "default",
+            &NoResources,
+            WorldLoadOptions {
+                engine,
+                step: None,
+                noise_seed: [0; 32],
+                distributed_worker: None,
+            },
+            WorldRuntimeOptions {
+                sdf_default_friction: true,
+                ..Default::default()
+            },
+        )
+    };
+    assert!(run(&omitted, PhysicsEngine::Rapier).is_err());
+    let mut expected = load(SDF);
+    let mut sim = run(&omitted, PhysicsEngine::MultiFidelity).unwrap();
+    let parsed = sdformat::load_str(&omitted, "clone.sdf", &NoResources).unwrap();
+    let template = prepare_model_template(&sim, &parsed, &parsed.worlds[0].models[0]).unwrap();
+    let runway = id(&sim, "default::runway");
+    let pose = *sim
+        .world()
+        .get::<WorldPose>(entity_by_id(sim.world(), runway).unwrap())
+        .unwrap();
+    spawn_model_template(&mut sim, &template, pose).unwrap();
+    remove_model(&mut sim, runway).unwrap();
+    expected.step_exact(100).unwrap();
+    sim.step_exact(100).unwrap();
+    for name in [
+        "default::ice::ball",
+        "default::medium::ball",
+        "default::grip::ball",
+    ] {
+        let dx = read(&sim, name).velocity[0] - read(&expected, name).velocity[0];
+        assert!(dx.abs() < 1e-10, "{name}: {dx}");
+    }
+}

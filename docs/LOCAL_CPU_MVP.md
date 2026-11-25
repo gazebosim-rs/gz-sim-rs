@@ -97,11 +97,20 @@ cargo run --release --locked --no-default-features -p gz-sim-cli --example parke
 
 The latest source and package also include the upstream double-pendulum world. The two rods on each stand have an offset center of mass. Use the stiffer fixed-body contact setting for the qualified energy and angle comparison. [Run command and load range](measurements/local-manipulation/double-pendulum.md) · [Watch in gz-web-rs](measurements/local-manipulation/pendulum-view.md)
 
+## Drive, turn and brake
+
+The upstream vehicle starts at rest, drives straight, turns left and brakes. Run the journal with Gazebo’s SDF friction defaults at the authored 1 ms physics step. The ordinary server also accepts `gz.msgs.Twist` on `/model/vehicle/cmd_vel` when launched with `--world diff_drive --physics-engine multifidelity --sdf-default-friction --server`. [Physics measurements](measurements/local-manipulation/wheeled-robot.md) · [View the route in gz-web-rs](measurements/local-manipulation/drive-view.md)
+
+```sh
+target/cpu-tools/bin/gz-sim-local-replay examples/worlds/upstream_diff_drive.sdf \
+  examples/replay/upstream_diff_drive.json --sdf-default-friction --trace drive.jsonl
+```
+
 ## What this build covers
 
 The CPU solver has physical regression tests for fixed, revolute, prismatic, ball, universal and screw joints. The independently authored model qualifies a free-base revolute joint, sustained effort, loaded inertia, plane contact, friction and reset. The full gripper task qualifies multiple joints, contact impulses and automatic tier changes against an always-dynamic run. The motor was checked against analytical acceleration and a native Gazebo DART run at eight matched times. The gripper's reference uses the same dynamic solver. [Motor measurements and source](measurements/local-manipulation/mvp-independent-robot.md) · [Gripper accuracy, p95 and real-time factor](measurements/local-manipulation/mvp-local-performance.md)
 
-Ordinary SDF support is still selective. On the earlier rotor candidate three unmodified Gazebo test worlds failed at load time. The differential-drive world requests joint-state axes for a ball caster, the double pendulum specifies an offset mass center in an unsupported inertial form, and the position-controller world requests a world plugin outside the admitted set. The double-pendulum world now runs. The other two worlds remain open.
+Ordinary SDF support is still selective. On the earlier rotor candidate three unmodified Gazebo test worlds failed at load time. The differential-drive world requests joint-state axes for a ball caster, the double pendulum specifies an offset mass center in an unsupported inertial form, and the position-controller world requests a world plugin outside the admitted set. The double pendulum and differential-drive worlds now run. The position-controller world remains on the roadmap.
 
 The Linux package is a preview. On candidate `fc80ca5`, all 4,208 ordinary CPU tests passed and every local physics backend exceeded 95% line and region coverage. The full CPU gate still needs coverage in the CLI, scene and distributed crates, and a way to account for optional source files excluded from that build. The software renderer also missed its coverage targets. [Release qualification and next tests](measurements/local-manipulation/mvp-release-coverage.md)
 
@@ -120,7 +129,8 @@ RUSTC_WRAPPER= cargo install --locked --path crates/gz-sim-cli --no-default-feat
 cp -a "$stage/install/bin" "$package/bin"
 cp LICENSE NOTICE "$package/"
 cp docs/LOCAL_CPU_PACKAGE.md "$package/README.md"
-cp examples/worlds/upstream_{joint_force,double_pendulum}.sdf examples/replay/upstream_{joint_force,double_pendulum}.json "$package/share/gz-sim/"
+cp examples/worlds/upstream_{joint_force,double_pendulum,diff_drive}.sdf examples/replay/upstream_{joint_force,double_pendulum,diff_drive}.json "$package/share/gz-sim/"
+tar -xJf docs/measurements/local-manipulation/drive-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/pendulum-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/mvp-robot-replays.tar.xz -C "$stage/recordings"
 (cd "$stage/recordings" && sha256sum --quiet -c SHA256SUMS)

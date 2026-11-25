@@ -28,6 +28,14 @@ impl Signature {
 }
 
 #[derive(Serialize)]
+struct ObservedLink {
+    id: u64,
+    native_body_id: u64,
+    translation_m: [f64; 3],
+    rotation_xyzw: [f64; 4],
+}
+
+#[derive(Serialize)]
 struct Wrist {
     id: u64,
     orientation_xyzw: [f64; 4],
@@ -170,6 +178,8 @@ pub(super) struct State {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     scalar_joints: Vec<Encoder<f64>>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    observed_links: Vec<ObservedLink>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     universal_joints: Vec<Encoder<[f64; 2]>>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     held_joint_forces: Vec<(u64, f64)>,
@@ -192,7 +202,11 @@ pub(super) struct State {
     stored_normal_ns: f64,
 }
 
-pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
+pub(super) fn state(
+    sim: &Simulation,
+    command: usize,
+    observed: &std::collections::BTreeSet<u64>,
+) -> Result<State> {
     let world = sim.world();
     let backend = world.resource::<PhysicsBackend>();
     let solver = backend
@@ -210,6 +224,7 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
     let mut model_tiers = Vec::new();
     let mut wrists = Vec::new();
     let mut scalar_joints = Vec::new();
+    let mut observed_links = Vec::new();
     let mut universal_joints = Vec::new();
     let mut held_joint_forces = Vec::new();
     let mut held_targets = 0;
@@ -235,6 +250,17 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         }
         if let Some(handle) = e.get::<BodyHandle>() {
             let body = handle.id();
+            if observed.contains(&id) {
+                let p = e
+                    .get::<WorldPose>()
+                    .ok_or("observed link has no committed world pose")?;
+                observed_links.push(ObservedLink {
+                    id,
+                    native_body_id: body.raw(),
+                    translation_m: p.translation,
+                    rotation_xyzw: p.rotation,
+                });
+            }
             let s = backend.state(body).ok_or("native body state is missing")?;
             physics.item((
                 id,
@@ -421,6 +447,7 @@ pub(super) fn state(sim: &Simulation, command: usize) -> Result<State> {
         model_tiers,
         wrists,
         scalar_joints,
+        observed_links,
         universal_joints,
         held_targets,
         held_joint_forces,

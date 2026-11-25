@@ -51,6 +51,9 @@ struct Args {
     /// Use a 120 Hz fixed-body contact response (default 60 Hz).
     #[arg(long)]
     stiff_static_contacts: bool,
+    /// Use SDFormat friction for omitted collision surfaces in the local CPU engine.
+    #[arg(long)]
+    sdf_default_friction: bool,
     /// Host compute-pool size; the authoritative local CPU solve is serial.
     #[arg(long, default_value_t=1, value_parser=clap::value_parser!(u8).range(1..=64))]
     threads: u8,
@@ -60,6 +63,9 @@ struct Args {
 #[serde(deny_unknown_fields)]
 struct Journal {
     seed: String,
+    /// Scoped links and scalar joints to identify in the trace. Links include ground-truth poses.
+    #[serde(default)]
+    observe: Vec<String>,
     commands: Vec<Command>,
 }
 
@@ -86,6 +92,11 @@ enum Command {
         count: u64,
     },
     PausedTick,
+    DiffDrive {
+        model: String,
+        linear_m_s: f64,
+        angular_rad_s: f64,
+    },
     Target {
         joint: String,
         value: f64,
@@ -204,6 +215,30 @@ fn entity_id(sim: &Simulation, name: &str) -> Result<u64> {
         .ok_or_else(|| format!("unknown scoped entity {name}").into())
 }
 
+fn observed_entities(sim: &Simulation, names: &[String]) -> Result<BTreeMap<String, u64>> {
+    let mut bindings = BTreeMap::new();
+    for name in names {
+        let entity = sim
+            .world()
+            .iter_entities()
+            .find(|entity| entity.get::<Name>().is_some_and(|n| &n.0 == name))
+            .ok_or_else(|| format!("unknown observed entity: {name}"))?;
+        if !(entity.contains::<gz_sim_scene::BodyHandle>()
+            || entity.contains::<gz_sim_scene::JointSample>())
+        {
+            return Err(format!("expected observed link or scalar joint: {name}").into());
+        }
+        let id = entity
+            .get::<EntityId>()
+            .ok_or("missing stable observed identity")?
+            .get();
+        if bindings.insert(name.clone(), id).is_some() {
+            return Err(format!("duplicate observed entity: {name}").into());
+        }
+    }
+    Ok(bindings)
+}
+
 struct Sink {
     output: Box<dyn Write>,
     expected: Option<io::Lines<BufReader<File>>>,
@@ -316,6 +351,7 @@ fn run(args: Args) -> Result<()> {
         rapier_per_point_friction: args.rapier_per_point_friction,
         rapier_axial_cap_impact: args.rapier_axial_cap_impact,
         stiff_static_contacts: args.stiff_static_contacts,
+        sdf_default_friction: args.sdf_default_friction,
         ..Default::default()
     };
     let mut sim = gz_sim_scene::load_local_replay_world_with_runtime(
@@ -353,8 +389,16 @@ fn run(args: Args) -> Result<()> {
     if args.rapier_axial_cap_impact {
         profile["rapier_axial_cap_impact"] = true.into();
     }
+    if args.sdf_default_friction {
+        profile["sdf_default_friction"] = true.into();
+    }
     if args.stiff_static_contacts {
         profile["static_contact_frequency_hz"] = 120.into();
+    }
+    let bindings = observed_entities(&sim, &journal.observe)?;
+    let observed_ids = bindings.values().copied().collect();
+    if !bindings.is_empty() {
+        profile["observed_entities"] = serde_json::to_value(bindings)?;
     }
     sink.emit(&profile)?;
     let record_every = args.record_every.unwrap_or(10);
@@ -390,7 +434,7 @@ fn run(args: Args) -> Result<()> {
             );
         }
     }
-    sink.emit(&observation::state(&sim, 0)?)?;
+    sink.emit(&observation::state(&sim, 0, &observed_ids)?)?;
     for (index, command) in journal.commands.iter().enumerate() {
         let mut keyframe = false;
         match command {
@@ -434,7 +478,7 @@ fn run(args: Args) -> Result<()> {
                     }
                     sim.step_exact(1)
                         .map_err(|e| gz_sim_cli::with_fault(&sim, e))?;
-                    sink.emit(&observation::state(&sim, index + 1)?)?;
+                    sink.emit(&observation::state(&sim, index + 1, &observed_ids)?)?;
                     if let Some(c) = &mut capture
                         && sim
                             .committed_update_info()?
@@ -448,6 +492,14 @@ fn run(args: Args) -> Result<()> {
             }
             Command::PausedTick => {
                 sim.tick()?;
+            }
+            Command::DiffDrive {
+                model,
+                linear_m_s,
+                angular_rad_s,
+            } => {
+                let id = entity_id(&sim, model)?;
+                gz_sim_scene::set_diff_drive_command(&mut sim, id, *linear_m_s, *angular_rad_s)?;
             }
             Command::Target { joint, value } => {
                 let id = entity_id(&sim, joint)?;
@@ -537,7 +589,7 @@ fn run(args: Args) -> Result<()> {
                 keyframe = true;
             }
         }
-        sink.emit(&observation::state(&sim, index + 1)?)?;
+        sink.emit(&observation::state(&sim, index + 1, &observed_ids)?)?;
         if keyframe && let Some(c) = &mut capture {
             c.sample(&sim, &sdf, &world.name)?;
         }
@@ -603,6 +655,53 @@ mod tests {
                 message
             );
         }
+    }
+
+    #[test]
+    fn trace_bindings_identify_scoped_links_and_wheels_and_reject_ambiguous_requests() {
+        let xml = include_str!("../../../../examples/worlds/upstream_diff_drive.sdf");
+        let mut sim =
+            gz_sim_scene::load_local_replay_world(xml, "drive.sdf", "diff_drive", [0; 32]).unwrap();
+        let wheel = String::from("diff_drive::vehicle::left_wheel_joint");
+        let body = String::from("diff_drive::vehicle::chassis");
+        let names = [wheel.clone(), body.clone()];
+        let bindings = observed_entities(&sim, &names).unwrap();
+        assert_ne!(bindings[&wheel], bindings[&body]);
+        for (names, message) in [
+            (vec![wheel.clone(), wheel], "duplicate observed entity"),
+            (
+                vec![String::from("vehicle::chassis")],
+                "unknown observed entity",
+            ),
+            (
+                vec![String::from("diff_drive::vehicle")],
+                "expected observed link or scalar joint",
+            ),
+        ] {
+            assert!(
+                observed_entities(&sim, &names)
+                    .unwrap_err()
+                    .to_string()
+                    .contains(message)
+            );
+        }
+        let entity = gz_sim_core::entity_by_id(sim.world(), bindings[&body]).unwrap();
+        sim.world_mut().entity_mut(entity).remove::<WorldPose>();
+        let ids = bindings.values().copied().collect();
+        assert!(
+            observation::state(&sim, 0, &ids)
+                .err()
+                .unwrap()
+                .to_string()
+                .contains("observed link has no committed world pose")
+        );
+        sim.world_mut().entity_mut(entity).remove::<EntityId>();
+        assert!(
+            observed_entities(&sim, &[body])
+                .unwrap_err()
+                .to_string()
+                .contains("missing stable observed identity")
+        );
     }
 
     #[test]

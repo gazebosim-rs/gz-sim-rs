@@ -90,6 +90,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                         || crate::articulation::is_plugin(p)
                         || joints::is_scalar_tree_plugin(p)
                         || joint_forces::is_plugin(p)
+                        || diff_drive::is_plugin(p)
                         || crate::joint_state_publisher::is_plugin(p)
                         || matches!(
                             p.filename.as_str(),

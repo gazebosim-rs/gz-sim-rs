@@ -14,6 +14,7 @@ pub(super) struct Parameters {
     pub rate: f64,
     pub linear: [f64; 2],
     pub angular: [f64; 2],
+    pub acceleration: [[f64; 2]; 2],
     pub wheel_speed: [f64; 2],
     pub wheel_force: [f64; 2],
     pub publication: super::DiffDriveConfiguration,
@@ -30,7 +31,7 @@ fn error(model: &Model, feature: &'static str) -> LoadError {
     }
 }
 
-fn fields(plugin: &Plugin) -> Result<BTreeMap<&str, String>, ()> {
+fn fields(plugin: &Plugin, local: bool) -> Result<BTreeMap<&str, String>, ()> {
     let document = roxmltree::Document::parse(&plugin.xml).map_err(|_| ())?;
     let root = document.root_element();
     if root.tag_name().name() != "plugin"
@@ -76,7 +77,17 @@ fn fields(plugin: &Plugin) -> Result<BTreeMap<&str, String>, ()> {
                 | "max_linear_velocity"
                 | "min_angular_velocity"
                 | "max_angular_velocity"
-        ) {
+        ) && !(local
+            && matches!(
+                name,
+                "min_linear_acceleration"
+                    | "max_linear_acceleration"
+                    | "min_angular_acceleration"
+                    | "max_angular_acceleration"
+                    | "min_acceleration"
+                    | "max_acceleration"
+            ))
+        {
             return Err(());
         }
         let value = child
@@ -104,6 +115,23 @@ fn number(fields: &BTreeMap<&str, String>, name: &str, default: f64) -> Result<f
     }
 }
 
+/// General limits apply to both components unless a component sets its own bound.
+fn axis_limits(fields: &BTreeMap<&str, String>, quantity: &str) -> Result<[[f64; 2]; 2], ()> {
+    let min = number(fields, &format!("min_{quantity}"), f64::NEG_INFINITY)?;
+    let max = number(fields, &format!("max_{quantity}"), f64::INFINITY)?;
+    let range = |axis| {
+        let low = number(fields, &format!("min_{axis}_{quantity}"), min)?;
+        let high = number(fields, &format!("max_{axis}_{quantity}"), max)?;
+        // A stopped and reset robot must admit zero.
+        if low <= 0.0 && high >= 0.0 {
+            Ok([low, high])
+        } else {
+            Err(())
+        }
+    };
+    Ok([range("linear")?, range("angular")?])
+}
+
 fn topic(value: &str) -> bool {
     value.starts_with('/')
         && value != "/"
@@ -113,7 +141,10 @@ fn topic(value: &str) -> bool {
             .any(|part| value.contains(part))
 }
 
-pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
+pub(super) fn parse_for_engine(
+    model: &Model,
+    local: bool,
+) -> Result<Option<Parameters>, LoadError> {
     let mut plugins = model.plugins.iter().filter(|plugin| is_plugin(plugin));
     let Some(plugin) = plugins.next() else {
         return Ok(None);
@@ -128,35 +159,40 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
         &model.scoped_name,
         "DiffDrive model domain",
     )?;
-    let fields = fields(plugin).map_err(|()| error(model, "DiffDrive configuration"))?;
+    let fields = fields(plugin, local).map_err(|()| error(model, "DiffDrive configuration"))?;
     let left = fields
         .get("left_joint")
         .ok_or_else(|| error(model, "DiffDrive wheel pair"))?;
     let right = fields
         .get("right_joint")
         .ok_or_else(|| error(model, "DiffDrive wheel pair"))?;
+    let caster = model
+        .joints
+        .iter()
+        .find(|joint| joint.kind == JointKind::Ball);
+    let caster_count = usize::from(local && caster.is_some());
     require(
         !left.is_empty()
             && !right.is_empty()
             && left != right
             && !left.contains("::")
             && !right.contains("::")
-            && model.links.len() == 3
-            && model.joints.len() == 2
+            && model.links.len() == 3 + caster_count
+            && model.joints.len() == 2 + caster_count
             && model
                 .links
                 .iter()
                 .map(|link| &link.name)
                 .collect::<BTreeSet<_>>()
                 .len()
-                == 3
+                == model.links.len()
             && model
                 .joints
                 .iter()
                 .map(|joint| &joint.name)
                 .collect::<BTreeSet<_>>()
                 .len()
-                == 2,
+                == model.joints.len(),
         &model.scoped_name,
         "DiffDrive wheel pair",
     )?;
@@ -165,7 +201,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
     require(
         !parent_name.contains("::")
             && parent.pose.relative_to.is_empty()
-            && parent.pose.transform == Transform::default(),
+            && (local || parent.pose.transform == Transform::default()),
         &model.scoped_name,
         "DiffDrive wheel pair",
     )?;
@@ -193,7 +229,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
                 && joint.pose.transform == Transform::default()
                 && (joint.pose.relative_to.is_empty() || joint.pose.relative_to == joint.child)
                 && child.pose.relative_to.is_empty()
-                && child.pose.transform.rotation == [0.0, 0.0, 0.0, 1.0]
+                && (local || child.pose.transform.rotation == [0.0, 0.0, 0.0, 1.0])
                 && child
                     .pose
                     .transform
@@ -208,23 +244,40 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
             .as_ref()
             .ok_or_else(|| error(model, "DiffDrive wheel pair"))?;
         require(
-            axis.xyz == [0.0, 1.0, 0.0]
-                && axis.expressed_in.is_empty()
+            (if local {
+                let direction = glam::DQuat::from_array(child.pose.transform.rotation)
+                    * glam::DVec3::from_array(axis.xyz);
+                direction.distance(glam::DVec3::Y) <= 1e-4
+            } else {
+                axis.xyz == [0.0, 1.0, 0.0]
+            }) && axis.expressed_in.is_empty()
                 && [axis.effort, axis.velocity]
                     .into_iter()
-                    .all(|value| value.is_finite() && value > 0.0),
+                    .all(|value| (local || value.is_finite()) && value > 0.0),
             &model.scoped_name,
             "DiffDrive wheel limits",
         )?;
         positions[index] = child.pose.transform.translation;
-        wheel_speed[index] = axis.velocity;
-        wheel_force[index] = axis.effort;
+        wheel_speed[index] = axis.velocity.min(f64::MAX);
+        wheel_force[index] = axis.effort.min(f64::MAX);
     }
+    if let Some(caster) = caster {
+        require(
+            caster.parent == parent_name
+                && caster.child != parent_name
+                && !children.contains(&caster.child)
+                && model.links.iter().any(|link| link.name == caster.child),
+            &model.scoped_name,
+            "DiffDrive caster attachment",
+        )?;
+    }
+    // SDF wheel poses are often rounded to micrometres in the source model.
+    let tolerance = if local { 1e-5 } else { 0. };
     require(
-        positions[0][0] == positions[1][0]
-            && positions[0][2] == positions[1][2]
+        (positions[0][0] - positions[1][0]).abs() <= tolerance
+            && (positions[0][2] - positions[1][2]).abs() <= tolerance
             && positions[0][1] > 0.0
-            && positions[0][1] == -positions[1][1],
+            && (positions[0][1] + positions[1][1]).abs() <= tolerance,
         &model.scoped_name,
         "DiffDrive wheel pair",
     )?;
@@ -240,34 +293,10 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
     let rate = number(&fields, "odom_publish_frequency", 50.0)
         .map_err(|()| error(model, "DiffDrive rate"))?;
     require(rate > 0.0, &model.scoped_name, "DiffDrive rate")?;
-    let minimum = number(&fields, "min_velocity", f64::NEG_INFINITY)
-        .map_err(|()| error(model, "DiffDrive velocity limits"))?;
-    let maximum = number(&fields, "max_velocity", f64::INFINITY)
-        .map_err(|()| error(model, "DiffDrive velocity limits"))?;
-    let linear = [
-        number(&fields, "min_linear_velocity", minimum),
-        number(&fields, "max_linear_velocity", maximum),
-    ];
-    let angular = [
-        number(&fields, "min_angular_velocity", minimum),
-        number(&fields, "max_angular_velocity", maximum),
-    ];
-    let linear = [
-        linear[0].map_err(|()| error(model, "DiffDrive velocity limits"))?,
-        linear[1].map_err(|()| error(model, "DiffDrive velocity limits"))?,
-    ];
-    let angular = [
-        angular[0].map_err(|()| error(model, "DiffDrive velocity limits"))?,
-        angular[1].map_err(|()| error(model, "DiffDrive velocity limits"))?,
-    ];
-    // Native allows positive-only limits; M8 deliberately keeps zero/reset command stationary.
-    require(
-        [linear, angular]
-            .into_iter()
-            .all(|range| range[0] <= 0.0 && range[1] >= 0.0),
-        &model.scoped_name,
-        "DiffDrive velocity limits",
-    )?;
+    let [linear, angular] =
+        axis_limits(&fields, "velocity").map_err(|()| error(model, "DiffDrive velocity limits"))?;
+    let acceleration = axis_limits(&fields, "acceleration")
+        .map_err(|()| error(model, "DiffDrive acceleration limits"))?;
     let command = fields
         .get("topic")
         .cloned()
@@ -296,6 +325,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
         rate,
         linear,
         angular,
+        acceleration,
         wheel_speed,
         wheel_force,
         publication: super::DiffDriveConfiguration {
@@ -306,6 +336,11 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
             child_frame_id: frame("child_frame_id", format!("{}/{parent_name}", model.name)),
         },
     }))
+}
+
+#[cfg(test)]
+fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
+    parse_for_engine(model, false)
 }
 
 #[cfg(test)]

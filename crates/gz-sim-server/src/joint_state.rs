@@ -4,7 +4,8 @@
 use super::*;
 use gz_sim_proto::msgs::{Axis, Header, Joint, Model, Pose};
 use gz_sim_scene::{
-    EntityKind, JointStatePublication, JointStateSample, Name, PendingResetRemoval,
+    EntityKind, JointStateJointPublication, JointStateKind, JointStatePublication,
+    JointStateSample, Name, PendingResetRemoval,
 };
 use std::collections::BTreeSet;
 
@@ -35,6 +36,27 @@ fn pose(translation: [f64; 3], rotation: [f64; 4]) -> Option<Pose> {
         ..Default::default()
     })
 }
+fn valid_axis_metadata(joint: &JointStateJointPublication) -> bool {
+    if joint.kind == JointStateKind::Ball {
+        return joint.axis == [0.0; 3]
+            && joint.lower == 0.0
+            && joint.upper == 0.0
+            && joint.damping == 0.0;
+    }
+    // Native unrestricted joints carry -/+ infinity.
+    joint
+        .axis
+        .iter()
+        .map(|value| value * value)
+        .sum::<f64>()
+        .is_finite()
+        && joint.axis.iter().any(|value| *value != 0.0)
+        && joint.lower < f64::INFINITY
+        && joint.upper > f64::NEG_INFINITY
+        && joint.lower <= joint.upper
+        && joint.damping.is_finite()
+        && joint.damping >= 0.0
+}
 fn valid_metadata(metadata: &JointStatePublication) -> bool {
     !metadata.model_name.is_empty()
         && !metadata.topic.is_empty()
@@ -45,17 +67,12 @@ fn valid_metadata(metadata: &JointStatePublication) -> bool {
             .windows(2)
             .all(|pair| pair[0].id < pair[1].id)
         && metadata.joints.iter().all(|joint| {
-            wire_id(joint.id).is_some() && !joint.name.is_empty()
-                && !joint.parent.is_empty() && !joint.child.is_empty()
+            wire_id(joint.id).is_some()
+                && !joint.name.is_empty()
+                && !joint.parent.is_empty()
+                && !joint.child.is_empty()
                 && valid_pose(joint.pose.translation, joint.pose.rotation)
-                && joint.axis.iter().all(|value| value.is_finite())
-                && joint.axis.iter().map(|value| value * value).sum::<f64>().is_finite()
-                && joint.axis.iter().any(|value| *value != 0.0)
-                // Native unrestricted joints carry -/+ infinity, not invented bounds.
-                && !joint.lower.is_nan() && joint.lower != f64::INFINITY
-                && !joint.upper.is_nan() && joint.upper != f64::NEG_INFINITY
-                && joint.lower <= joint.upper
-                && joint.damping.is_finite() && joint.damping >= 0.0
+                && valid_axis_metadata(joint)
         })
         && metadata.joints.iter().enumerate().all(|(index, joint)| {
             metadata.joints[..index]
@@ -79,11 +96,14 @@ fn packet(
             return None;
         }
         let kind = match joint.kind {
-            gz_sim_scene::JointStateKind::Revolute => gz_sim_proto::msgs::joint::Type::Revolute,
-            gz_sim_scene::JointStateKind::Prismatic => gz_sim_proto::msgs::joint::Type::Prismatic,
-            gz_sim_scene::JointStateKind::Screw => gz_sim_proto::msgs::joint::Type::Screw,
-            gz_sim_scene::JointStateKind::Universal => gz_sim_proto::msgs::joint::Type::Universal,
-            gz_sim_scene::JointStateKind::Revolute2 => gz_sim_proto::msgs::joint::Type::Revolute2,
+            // Gazebo's JointStatePublisher leaves Joint.type unset, including for a ball.
+            JointStateKind::Ball | JointStateKind::Revolute => {
+                gz_sim_proto::msgs::joint::Type::Revolute
+            }
+            JointStateKind::Prismatic => gz_sim_proto::msgs::joint::Type::Prismatic,
+            JointStateKind::Screw => gz_sim_proto::msgs::joint::Type::Screw,
+            JointStateKind::Universal => gz_sim_proto::msgs::joint::Type::Universal,
+            JointStateKind::Revolute2 => gz_sim_proto::msgs::joint::Type::Revolute2,
         };
         let axis2 = if joint.kind.has_second_axis() {
             let second = second_axes.next()?;
@@ -108,7 +128,7 @@ fn packet(
             child: joint.child.clone(),
             pose: Some(pose(joint.pose.translation, joint.pose.rotation)?),
             axis1: Some(Axis {
-                xyz: Some(vector3(joint.axis)),
+                xyz: (joint.kind != JointStateKind::Ball).then(|| vector3(joint.axis)),
                 limit_lower: joint.lower,
                 limit_upper: joint.upper,
                 damping: joint.damping,

@@ -260,11 +260,10 @@ pub fn prepare_model_template(
             .get(),
         collider,
         restitution,
-        friction: collision
-            .surface
-            .source
-            .as_ref()
-            .map(|_| collision.surface.friction.ode.mu),
+        friction: super::surface_coefficient(
+            &collision.surface,
+            world.contains_resource::<super::SdfDefaultFriction>(),
+        ),
         collision_pose,
         visual_pose,
         geometry,

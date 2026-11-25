@@ -524,3 +524,123 @@ fn a_dual_axis_wrist_requires_two_fresh_finite_measurements_from_its_own_backend
     sim.world_mut().entity_mut(wrist).remove::<JointHandle>();
     assert!(build(&sdf, &mut sim, model, owner, Some(&backend), &plan).is_err());
 }
+
+#[test]
+fn ball_joint_measurements_use_the_principal_rotation_and_moving_frame_velocity() {
+    use gz_physics_multifidelity::BallJointState;
+    let position = DVec3::new(-0.3, 0.8, 0.5);
+    let rotation = DQuat::from_scaled_axis(position);
+    let velocity = DVec3::new(2., -3., 5.);
+    let state = BallJointState {
+        orientation: rotation.to_array(),
+        angular_velocity: (rotation * velocity).to_array(),
+    };
+    for q in [rotation, -rotation] {
+        let (p, v) = ball_coordinates(BallJointState {
+            orientation: q.to_array(),
+            ..state
+        })
+        .unwrap();
+        assert!(position.distance(p) < 1e-14 && velocity.distance(v) < 1e-14);
+    }
+    for sign in [-1., 1.] {
+        let (coordinate, _) = ball_coordinates(BallJointState {
+            orientation: [0., sign, 0., 0.],
+            ..state
+        })
+        .unwrap();
+        assert_eq!(coordinate, std::f64::consts::PI * DVec3::Y);
+    }
+    let tiny = DVec3::new(2e-12, -1e-13, 3e-14);
+    let state = BallJointState {
+        orientation: DQuat::from_scaled_axis(tiny).to_array(),
+        ..state
+    };
+    assert!(ball_coordinates(state).unwrap().0.distance(tiny) < 1e-26);
+    assert!(
+        ball_coordinates(BallJointState {
+            orientation: [0.; 4],
+            ..state
+        })
+        .is_none()
+    );
+    assert!(
+        ball_coordinates(BallJointState {
+            angular_velocity: [0., 1., f64::NAN],
+            ..state
+        })
+        .is_none()
+    );
+}
+
+#[test]
+fn an_unfiltered_ball_publisher_samples_two_real_coordinates_from_the_live_joint() {
+    let xml = include_str!("../../../../examples/worlds/local_ball_wrist.sdf").replace("</model>",
+        r#"<plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher"/></model>"#);
+    let sdf = sdformat::load_str(&xml, "ball.sdf", &NoResources).unwrap();
+    let model = &sdf.worlds[0].models[0];
+    let plan = parse(model).unwrap().unwrap();
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "ball.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .unwrap();
+    for engine in ["rapier", "gpu-gripper", "gpu-planar"] {
+        assert!(
+            plan.validate(model, &sim, Some(engine), (true, false))
+                .is_err()
+        );
+    }
+    let mut fixed = model.clone();
+    fixed.joints[0].kind = sdformat::JointKind::Fixed;
+    assert!(
+        plan.validate(&fixed, &sim, Some("multifidelity"), (true, false))
+            .is_err()
+    );
+    let (owner, _) = named(&sim, "default::wrist");
+    let (joint, id) = named(&sim, "default::wrist::bearing");
+    queue_ball_joint_effort(&mut sim, id, [2., -3., 5.]).unwrap();
+    sim.step_exact(1).unwrap();
+    let state = *sim.world().get::<BallJointSample>(joint).unwrap();
+    let (p, v) = ball_coordinates(state.state).unwrap();
+    let sample = sim.world().get::<JointStateSample>(owner).unwrap();
+    assert_eq!(
+        sample.joints.as_slice(),
+        [JointStateValue {
+            id,
+            position: p.x,
+            velocity: v.x
+        }]
+    );
+    assert_eq!(
+        sample.second_axes.as_slice(),
+        [JointStateValue {
+            id,
+            position: p.y,
+            velocity: v.y
+        }]
+    );
+    assert!(v.x > 0. && v.y < 0.);
+    let time = *sim.world().resource::<UpdateInfo>();
+    let publisher = sim.world().get::<Publisher>(owner).unwrap().clone();
+    let mut invalid = state;
+    invalid.state.orientation[0] = f64::NAN;
+    sim.world_mut().entity_mut(joint).insert(invalid);
+    assert!(reading(sim.world(), owner, &publisher, time).is_none());
+    sim.world_mut().entity_mut(joint).insert(BallJointSample {
+        epoch: state.epoch + 1,
+        ..state
+    });
+    assert!(reading(sim.world(), owner, &publisher, time).is_none());
+    sim.world_mut()
+        .entity_mut(joint)
+        .remove::<BallJointSample>();
+    assert!(reading(sim.world(), owner, &publisher, time).is_none());
+    assert!(build(&sdf, &mut sim, model, owner, None, &plan).is_err());
+    let backend = sim.world_mut().remove_resource::<PhysicsBackend>().unwrap();
+    sim.world_mut().entity_mut(joint).remove::<JointHandle>();
+    assert!(build(&sdf, &mut sim, model, owner, Some(&backend), &plan).is_err());
+}

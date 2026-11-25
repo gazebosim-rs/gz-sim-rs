@@ -709,6 +709,8 @@ pub struct WorldRuntimeOptions<'a> {
     pub rapier_axial_cap_impact: bool,
     /// Use the 120 Hz fixed-body contact response in local multi-fidelity physics.
     pub stiff_static_contacts: bool,
+    /// Apply the SDFormat friction coefficient when an inline collision omits its surface.
+    pub sdf_default_friction: bool,
     /// Select packed warm handoff payloads on supporting distributed workers.
     pub distributed_packed_handoffs: bool,
     /// Optional explicit adapter for GPU batches.
@@ -774,6 +776,11 @@ fn load_world_with_automatic_owner(
         deformable::managed_impact::MaterialOwner,
     >,
 ) -> Result<Simulation, LoadError> {
+    require(
+        !runtime.sdf_default_friction || options.engine == PhysicsEngine::MultiFidelity,
+        world_name,
+        "SDF default friction requires local multi-fidelity physics",
+    )?;
     require(
         !runtime.stiff_static_contacts || options.engine == PhysicsEngine::MultiFidelity,
         world_name,
@@ -967,6 +974,9 @@ fn load_world_with_automatic_owner(
         Some((info, paused)) => Simulation::from_committed_clock(step, info, paused)?,
         None => Simulation::new(step)?,
     };
+    if runtime.sdf_default_friction {
+        sim.world_mut().insert_resource(SdfDefaultFriction);
+    }
     sim.world_mut().insert_resource(WorldPhysics {
         profiles: world.physics.clone(),
         step_override,
@@ -1400,6 +1410,13 @@ fn retain_visual_geometry(
 
 /// An explicitly authored isotropic ODE friction law. Other friction models
 /// and collision filtering need separate native mappings.
+#[derive(Resource)]
+struct SdfDefaultFriction;
+
+fn surface_coefficient(surface: &sdformat::Surface, use_sdf_default: bool) -> Option<f64> {
+    (surface.source.is_some() || use_sdf_default).then_some(surface.friction.ode.mu)
+}
+
 fn local_isotropic_friction(surface: &sdformat::Surface) -> Option<IsotropicFriction> {
     let law = &surface.friction;
     let ode = &law.ode;
@@ -1544,7 +1561,7 @@ fn build_model(
             (top_level, parent.is_static || model.is_static),
         )?;
     }
-    let drive_plan = diff_drive::parse(model)?;
+    let drive_plan = diff_drive::parse(model, context.engine == PhysicsEngine::MultiFidelity)?;
     let drive_pose = sdf.pose_of(&model.scoped_name, context.world)?;
     if let Some(plan) = &drive_plan {
         plan.validate(
@@ -1650,6 +1667,7 @@ fn build_model(
         topic: model_topic.clone(),
     };
     let observer = context.sole_observers && top_level && damped_sole::observer_model(model);
+    let use_sdf_default = sim.world().contains_resource::<SdfDefaultFriction>();
     for link in &model.links {
         let name = &link.scoped_name;
         require(link.plugins.is_empty(), name, "link plugins")?;
@@ -1689,7 +1707,11 @@ fn build_model(
         let mut local_friction = None;
         for collision in &link.collisions {
             if context.engine == PhysicsEngine::MultiFidelity || context.gpu_tool_scene {
-                let material = local_isotropic_friction(&collision.surface);
+                let material = if use_sdf_default && collision.surface.source.is_none() {
+                    Some(IsotropicFriction::new(collision.surface.friction.ode.mu)?)
+                } else {
+                    local_isotropic_friction(&collision.surface)
+                };
                 if !solids.is_empty() {
                     require(
                         local_friction == material,
@@ -2000,11 +2022,7 @@ fn build_model(
                             rotation,
                             inertia,
                             prescribed.is_some(),
-                            link.collisions[0]
-                                .surface
-                                .source
-                                .as_ref()
-                                .map(|_| link.collisions[0].surface.friction.ode.mu),
+                            surface_coefficient(&link.collisions[0].surface, use_sdf_default),
                         )?
                     };
                     if let Some(path) = prescribed.as_ref().and_then(|p| p.path.as_ref()) {

@@ -1,0 +1,20 @@
+{
+  "seed": "upstream-diff-drive",
+  "observe": [
+    "diff_drive::ground_plane::link",
+    "diff_drive::vehicle::chassis",
+    "diff_drive::vehicle::left_wheel",
+    "diff_drive::vehicle::right_wheel",
+    "diff_drive::vehicle::left_wheel_joint",
+    "diff_drive::vehicle::right_wheel_joint"
+  ],
+  "commands": [
+    {"op":"step","count":500},
+    {"op":"diff_drive","model":"diff_drive::vehicle","linear_m_s":0.5,"angular_rad_s":0.0},
+    {"op":"step","count":2000},
+    {"op":"diff_drive","model":"diff_drive::vehicle","linear_m_s":0.35,"angular_rad_s":0.8},
+    {"op":"step","count":2000},
+    {"op":"diff_drive","model":"diff_drive::vehicle","linear_m_s":0.0,"angular_rad_s":0.0},
+    {"op":"step","count":1000}
+  ]
+}

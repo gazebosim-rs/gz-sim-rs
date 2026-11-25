@@ -1690,3 +1690,59 @@ fn upstream_motor_journal_preserves_reaction_reversal_reset_and_ground_visual() 
         assert!(String::from_utf8_lossy(&out.stderr).contains("local-cpu-v1 admits"));
     }
 }
+
+#[test]
+fn stock_drive_rejects_bad_model_bindings_and_identifies_the_first_stale_trace_row() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let world = file(
+        dir,
+        "drive.sdf",
+        include_str!("../../../examples/worlds/upstream_diff_drive.sdf"),
+    );
+    let drive = |name| json!({"op":"diff_drive","model":name,"linear_m_s":0.5,"angular_rad_s":0.8});
+    let source = json!({"seed":"diagnostic","observe":["diff_drive::vehicle::chassis"],
+        "commands":[drive("diff_drive::vehicle"),{"op":"step","count":2}]});
+    for (name, kind) in [
+        ("diff_drive::missing", "unknown scoped entity"),
+        ("diff_drive::ground_plane", "drive"),
+    ] {
+        let bad = altered(dir, &source, "bad-drive.json", |j| {
+            j["commands"][0] = drive(name)
+        });
+        let output = run(&world, &bad, &[]);
+        assert!(!output.status.success());
+        assert!(
+            String::from_utf8_lossy(&output.stderr)
+                .to_lowercase()
+                .contains(kind)
+        );
+    }
+    let bad = altered(dir, &source, "unknown.json", |j| {
+        j["observe"] = json!(["missing"])
+    });
+    assert!(!run(&world, &bad, &[]).status.success());
+    let journal = file(dir, "drive.json", &source.to_string());
+    let run_trace = run(&world, &journal, &["--sdf-default-friction"]);
+    assert!(run_trace.status.success());
+    let trace = String::from_utf8(run_trace.stdout).unwrap();
+    // Release, command receipt and first physics tick each have their own trace row.
+    for index in [1, 2, 3] {
+        let mut lines: Vec<_> = trace.lines().collect();
+        lines[index] = "{}";
+        let altered = file(dir, "stale.jsonl", &lines.join("\n"));
+        let output = run(
+            &world,
+            &journal,
+            &[
+                "--sdf-default-friction",
+                "--verify",
+                altered.to_str().unwrap(),
+            ],
+        );
+        assert!(!output.status.success());
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains(&format!("trace line {}", index + 1))
+        );
+    }
+}

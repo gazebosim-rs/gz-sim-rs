@@ -13,7 +13,7 @@ pub struct JointStatePublication {
     pub joints: Vec<JointStateJointPublication>,
 }
 
-/// Native joint type reported on the standard state topic.
+/// Physical joint type used to acquire state for the standard topic.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum JointStateKind {
     Revolute,
@@ -21,11 +21,12 @@ pub enum JointStateKind {
     Screw,
     Universal,
     Revolute2,
+    Ball,
 }
 impl JointStateKind {
     /// Whether the native message carries two independent angular measurements.
     pub fn has_second_axis(self) -> bool {
-        matches!(self, Self::Universal | Self::Revolute2)
+        matches!(self, Self::Universal | Self::Revolute2 | Self::Ball)
     }
 }
 
@@ -38,6 +39,7 @@ pub struct JointStateJointPublication {
     pub parent: String,
     pub child: String,
     pub pose: Transform,
+    /// SDF primary axis. Ball joints have no axis metadata and use zeros here and below.
     pub axis: [f64; 3],
     pub lower: f64,
     pub upper: f64,
@@ -242,16 +244,21 @@ impl Plan {
                 .iter()
                 .filter(|j| self.names.contains(&j.name))
                 .all(|j| {
-                    use sdformat::JointKind::{Prismatic, Revolute, Revolute2, Screw, Universal};
+                    use sdformat::JointKind::{
+                        Ball, Prismatic, Revolute, Revolute2, Screw, Universal,
+                    };
                     let supported = match engine {
                         Some("multifidelity") => {
-                            matches!(j.kind, Revolute | Prismatic | Screw | Universal | Revolute2)
+                            matches!(
+                                j.kind,
+                                Revolute | Prismatic | Screw | Universal | Revolute2 | Ball
+                            )
                         }
                         Some("gpu-gripper") => j.kind == Prismatic,
                         _ => j.kind == Revolute,
                     };
                     supported
-                        && j.axis.is_some()
+                        && (j.axis.is_some() == (j.kind != Ball))
                         && j.axis2.is_some() == matches!(j.kind, Universal | Revolute2)
                         && (j.parent == "world"
                             || model.links.iter().any(|link| link.name == j.parent))
@@ -298,9 +305,16 @@ pub(super) fn build(
             sdformat::JointKind::Screw => JointStateKind::Screw,
             sdformat::JointKind::Universal => JointStateKind::Universal,
             sdformat::JointKind::Revolute2 => JointStateKind::Revolute2,
+            sdformat::JointKind::Ball => JointStateKind::Ball,
             _ => JointStateKind::Revolute,
         };
-        let finite = if kind.has_second_axis() {
+        let finite = if kind == JointStateKind::Ball {
+            let state = backend
+                .and_then(|b| b.downcast_ref::<MultiFidelityBackend>())
+                .and_then(|b| b.ball_joint_state(node.get::<JointHandle>()?.id()))
+                .ok_or_else(|| invalid(model, "missing joint-state value"))?;
+            ball_coordinates(state).is_some()
+        } else if kind.has_second_axis() {
             let native = backend
                 .and_then(|b| b.downcast_ref::<MultiFidelityBackend>())
                 .and_then(|b| b.universal_joint_state(node.get::<JointHandle>()?.id()))
@@ -323,7 +337,16 @@ pub(super) fn build(
             state.position.is_finite() && state.velocity.is_finite()
         };
         require(finite, &scoped, "finite joint-state value")?;
-        let axis = joint.axis.as_ref().expect("validated primary axis");
+        let (axis, lower, upper, damping) = if let Some(axis) = &joint.axis {
+            (
+                sdf.resolve_axis(axis, &scoped, &scoped)?,
+                axis.lower,
+                axis.upper,
+                axis.dynamics.damping,
+            )
+        } else {
+            ([0.0; 3], 0.0, 0.0, 0.0)
+        };
         metadata.push(JointStateJointPublication {
             kind,
             id: node.get::<EntityId>().expect("loaded joint identity").get(),
@@ -331,10 +354,10 @@ pub(super) fn build(
             parent: joint.parent.clone(),
             child: joint.child.clone(),
             pose: sdf.joint_pose(&scoped, "")?,
-            axis: sdf.resolve_axis(axis, &scoped, &scoped)?,
-            lower: axis.lower,
-            upper: axis.upper,
-            damping: axis.dynamics.damping,
+            axis,
+            lower,
+            upper,
+            damping,
         });
     }
     metadata.sort_by_key(|entry| entry.id);
@@ -405,6 +428,41 @@ fn finite_pose(pose: WorldPose) -> bool {
         && (DQuat::from_array(pose.rotation).length_squared() - 1.0).abs() < 1e-9
 }
 
+/// Native ball coordinates are the SO(3) logarithm and angular velocity in the
+/// moving joint frame. The publisher writes only components 0 and 1 of each.
+fn ball_coordinates(state: gz_physics_multifidelity::BallJointState) -> Option<(DVec3, DVec3)> {
+    let rotation = DQuat::from_array(state.orientation);
+    let omega = DVec3::from_array(state.angular_velocity);
+    if !rotation.is_finite() || (rotation.length_squared() - 1.0).abs() > 1e-9 || !omega.is_finite()
+    {
+        return None;
+    }
+    // q and -q encode the same pose. Choose the principal rotation, including
+    // a stable sign for a half turn, and retain sub-nanoradian displacements.
+    let rotation = if rotation.w < 0.0
+        || (rotation.w == 0.0
+            && state.orientation[..3]
+                .iter()
+                .find(|&&v| v != 0.0)
+                .is_some_and(|&v| v < 0.0))
+    {
+        -rotation
+    } else {
+        rotation
+    };
+    let imaginary = rotation.xyz();
+    let length = imaginary.length();
+    let factor = if length < f64::EPSILON {
+        2.0
+    } else {
+        2.0 * length.atan2(rotation.w) / length
+    };
+    let velocity = rotation.conjugate() * omega;
+    velocity
+        .is_finite()
+        .then_some((imaginary * factor, velocity))
+}
+
 fn reading(
     world: &World,
     entity: Entity,
@@ -437,7 +495,13 @@ fn reading(
                 velocity,
             })
         };
-        let (stamp, epoch) = if joint.kind.has_second_axis() {
+        let (stamp, epoch) = if joint.kind == JointStateKind::Ball {
+            let sample = world.get::<BallJointSample>(id)?;
+            let (positions, velocities) = ball_coordinates(sample.state)?;
+            values.push(measurement(positions.x, velocities.x)?);
+            second_axes.push(measurement(positions.y, velocities.y)?);
+            (sample.time, sample.epoch)
+        } else if joint.kind.has_second_axis() {
             let sample = world.get::<UniversalJointSample>(id)?;
             values.push(measurement(
                 sample.state.position[0],

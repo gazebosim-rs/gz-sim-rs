@@ -1,0 +1,49 @@
+diff --git a/crates/gz-core/src/primitive/mod.rs b/crates/gz-core/src/primitive/mod.rs
+index 9ee561a..3057171 100644
+--- a/crates/gz-core/src/primitive/mod.rs
++++ b/crates/gz-core/src/primitive/mod.rs
+@@ -324,7 +324,10 @@ impl Scene {
+             1
+         };
+         if self.version != version
+-            || self.world != "default"
++            || self.world.is_empty()
++            || self.world.len() > 256
++            || self.world.contains("::")
++            || self.world.chars().any(char::is_control)
+             || self.world_id == 0
+             || self.world_id > u32::MAX as u64
+             || self.nanoseconds >= 1_000_000_000
+@@ -342,6 +345,9 @@ impl Scene {
+                 || visual.id == self.world_id
+                 || !ids.insert(visual.id)
+                 || visual.name.len() > 256
++                || (self.world != "default"
++                    && visual.name.split_once("::").map(|(world, _)| world)
++                        != Some(self.world.as_str()))
+                 || visual
+                     .translation
+                     .iter()
+diff --git a/crates/gz-core/src/primitive/tests.rs b/crates/gz-core/src/primitive/tests.rs
+index 3ffb99e..78d5571 100644
+--- a/crates/gz-core/src/primitive/tests.rs
++++ b/crates/gz-core/src/primitive/tests.rs
+@@ -61,6 +61,18 @@ fn raw_z_up_full_dimensions_and_checked_ids() {
+     assert_ne!(desc.roots[0].path, desc.roots[1].path);
+ }
+
++#[test]
++fn named_world_accepts_its_own_scoped_visuals() {
++    let mut input = scene_value(1);
++    input["world"] = json!("diff_drive");
++    input["visuals"][0]["name"] = json!("diff_drive::vehicle::chassis::visual");
++    assert!(parse(&input.to_string()).is_ok());
++    for invalid in ["", "a::b", "bad\nworld"] {
++        input["world"] = json!(invalid);
++        assert!(parse(&input.to_string()).is_err());
++    }
++}
++
+ #[test]
+ fn invalid_envelopes_shapes_counts_names_and_numeric_domains_fail_closed() {
+     for invalid in ["", "[]", "null", "{}", "{", "{\"kind\":\"other\"}"] {

@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Stock wheeled robot on the local CPU
+
+The unmodified Gazebo vehicle drove straight, turned left and braked using joint motors and wheel contact. The initial motor response underdrove the wheels. The velocity constraint fixed the encoders, and applying SDFormat’s default friction reduced the braking-distance difference from 44 mm to 0.020 mm. Across 551 samples the chassis stayed within 0.32 mm of native Gazebo. With both wheels lifted they spun without touching the floor. Reset reproduced 5,504 observations and replay matched across one and eight Bevy threads. The next phase is the local support-edge and thin-obstacle course. [Measurements and reproduction](measurements/local-manipulation/wheeled-robot.md) · [Open the gz-web-rs recording](measurements/local-manipulation/drive-view.md)
+
 ## 2026-11-24 — Double pendulum with offset inertia on a loaded base
 
 The unchanged upstream Gazebo world now runs both double pendulums through the standard local CPU command. The default contact response let each 100 kg stand sink up to 1.22 mm and missed the 2% energy target. The optional 120 Hz fixed-body contact response reduced peak sinking to 0.43 mm and energy difference to 1.14% against native DART. The first return time differed by 0.17%, and all nine combinations of lower-link mass and inertia passed the stability checks. Gazebo Web replay verified all 151 frames. A fresh upstream checkout produced the Linux preview, and the Ubuntu 24.04 install reproduced the 6,002-record journal and bundled visual archive. Focused coverage reached 57/57 changed executable production lines and 76/76 mapped regions. The next model in the release roadmap is the stock wheeled robot and its ball caster. [Run the phase and inspect its accuracy](measurements/local-manipulation/double-pendulum.md) · [Watch both pendulums](measurements/local-manipulation/pendulum-view.md)

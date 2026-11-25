@@ -371,6 +371,14 @@ fn contradictory_actions_missing_nullable_fields_and_foreign_success_are_refused
     }
     let foreign = scene(0, 1, 0, true).replace("\"world\":\"default\"", "\"world\":\"foreign\"");
     assert!(Scene::decode(&foreign, |_| false).is_err());
+    let named = foreign.replace("default::box::visual", "foreign::box::visual");
+    assert_eq!(
+        Scene::decode(&named, |_| false).unwrap().world_name(),
+        "foreign"
+    );
+    for bad in ["", "a::b", "bad\\nname"] {
+        assert!(Scene::decode(&named.replace("foreign", bad), |_| false).is_err());
+    }
 }
 
 #[test]

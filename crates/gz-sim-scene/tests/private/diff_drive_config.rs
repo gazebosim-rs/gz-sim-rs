@@ -392,3 +392,50 @@ fn topics_remain_absolute_distinct_and_frames_use_native_empty_value_fallbacks()
     );
     refused(&model, "DiffDrive topics");
 }
+
+#[test]
+fn stock_caster_drive_validates_topology_resolved_axes_and_acceleration_limits() {
+    const STOCK: &str = include_str!("../../../../examples/worlds/upstream_diff_drive.sdf");
+    let model = sdformat::load_str(STOCK, "drive.sdf", &sdformat::NoResources)
+        .unwrap()
+        .worlds
+        .remove(0)
+        .models
+        .pop()
+        .unwrap();
+    let parameters = parse_for_engine(&model, true).unwrap().unwrap();
+    assert_eq!(parameters.acceleration, [[-1., 1.], [-2., 2.]]);
+    assert_eq!(parameters.wheel_force, [f64::MAX; 2]);
+    for (from, to) in [
+        ("<min_linear_acceleration>-1", "<min_linear_acceleration>1"),
+        ("<max_angular_acceleration>2", "<max_angular_acceleration>x"),
+        (
+            "<max_angular_acceleration>2",
+            "<max_angular_acceleration>-2",
+        ),
+    ] {
+        let mut invalid = model.clone();
+        invalid.plugins[0].xml = invalid.plugins[0].xml.replace(from, to);
+        assert!(parse_for_engine(&invalid, true).is_err());
+    }
+    let mut wrong = model.clone();
+    wrong.joints.last_mut().unwrap().child = wrong.joints[0].child.clone();
+    assert!(parse_for_engine(&wrong, true).is_err());
+    let mut wrong = model.clone();
+    wrong.joints[0].axis.as_mut().unwrap().xyz = [1., 0., 0.];
+    assert!(parse_for_engine(&wrong, true).is_err());
+    let mut overrides = model.clone();
+    body(
+        &mut overrides,
+        &format!(
+            "{JOINTS}<min_acceleration>-3</min_acceleration><max_acceleration>4</max_acceleration><max_angular_acceleration>1</max_angular_acceleration>"
+        ),
+    );
+    assert_eq!(
+        parse_for_engine(&overrides, true)
+            .unwrap()
+            .unwrap()
+            .acceleration,
+        [[-3., 4.], [-3., 1.]]
+    );
+}

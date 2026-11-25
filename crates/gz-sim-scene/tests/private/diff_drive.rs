@@ -493,3 +493,39 @@ fn loaded_driver_admission_requires_a_unique_planar_world_owned_rapier_model() {
         })
     ));
 }
+
+#[test]
+fn stock_wheel_limiter_stages_once_per_advancing_tick_and_restarts_from_rest() {
+    const STOCK: &str = include_str!("../../../../examples/worlds/upstream_diff_drive.sdf");
+    let mut sim = load_world_with_sdf_step(
+        STOCK,
+        "stock.sdf",
+        "diff_drive",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .unwrap();
+    let (entity, owner) = drive(&sim);
+    let prepared = |sim: &Simulation| {
+        sim.world()
+            .get::<Drive>(entity)
+            .unwrap()
+            .prepared_velocity
+            .unwrap()
+    };
+    set_diff_drive_command(&mut sim, owner, 0.5, -0.8).unwrap();
+    sim.set_paused(true);
+    sim.tick().unwrap();
+    assert_eq!(prepared(&sim), [0.; 2]);
+    sim.step_exact(1).unwrap();
+    assert_eq!(prepared(&sim), [0.001, -0.002]);
+    sim.step_exact(1).unwrap();
+    assert_eq!(prepared(&sim), [0.002, -0.004]);
+    set_diff_drive_command(&mut sim, owner, 0., 0.).unwrap();
+    sim.step_exact(1).unwrap();
+    assert_eq!(prepared(&sim), [0.001, -0.002]);
+    sim.reset().unwrap();
+    assert_eq!(prepared(&sim), [0.; 2]);
+    sim.step_exact(1).unwrap();
+    assert_eq!(prepared(&sim), [0.; 2]);
+}

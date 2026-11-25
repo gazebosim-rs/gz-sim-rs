@@ -41,3 +41,13 @@ To run the stock double pendulum, use the qualified 120 Hz fixed-body contact se
 The pendulum is Gazebo’s Apache-2.0 `test/worlds/double_pendulum.sdf` at the same revision as the rotor. The bundled recording uses viewer lighting. [Angle, period and energy measurements](https://github.com/gazebosim-rs/gz-sim-rs/blob/review/local-cpu-mvp-20261124/docs/measurements/local-manipulation/double-pendulum.md)
 
 The rotor is Gazebo’s Apache-2.0 `test/worlds/apply_joint_force.sdf` from commit `9e3b78f5de297def8fe47fd189500fb5cd6538ef`. The packaged gripper recording comes from the measured switched run on the simulator review branch. [Source, viewer setup and qualification](https://github.com/gazebosim-rs/gz-sim-rs/blob/review/local-cpu-mvp-20261124/docs/LOCAL_CPU_MVP.md)
+
+Run the stock differential-drive robot through a straight line, a left turn and a stop. Compare the recorded trajectory with an eight-thread replay using the same friction setting.
+
+```sh
+./bin/gz-sim-local-replay share/gz-sim/upstream_diff_drive.sdf share/gz-sim/upstream_diff_drive.json --sdf-default-friction --threads 1 --trace drive.jsonl
+./bin/gz-sim-local-replay share/gz-sim/upstream_diff_drive.sdf share/gz-sim/upstream_diff_drive.json --sdf-default-friction --threads 8 --verify drive.jsonl
+./bin/gz-sim-rs share/gz-sim/drive-view --server --replay --web-viewer 11559
+```
+
+The browser needs support for named worlds. The viewer instructions include the tested source revision, its small compatibility patch and framing controls for the vehicle. [Open the drive replay and reproduce the viewer](https://github.com/gazebosim-rs/gz-sim-rs/blob/review/local-cpu-mvp-20261124/docs/measurements/local-manipulation/drive-view.md)

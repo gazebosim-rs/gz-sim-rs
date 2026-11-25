@@ -1,0 +1,20 @@
+[package]
+name = "drive-native-reference"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[features]
+default = ["native"]
+native = ["dep:pyo3"]
+
+[[bin]]
+name = "drive-native-reference"
+path = "src/main.rs"
+required-features = ["native"]
+
+[dependencies]
+pyo3 = { version = "=0.23.5", features = ["auto-initialize"], optional = true }
+serde_json = "=1.0.149"

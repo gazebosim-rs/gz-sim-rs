@@ -382,9 +382,9 @@ fn validate_axis(
     require(
         (bounded || (axis.lower == f64::NEG_INFINITY && axis.upper == f64::INFINITY))
             && (if driven {
-                axis.effort.is_finite()
+                (allow_stops || axis.effort.is_finite())
                     && axis.effort > 0.0
-                    && axis.velocity.is_finite()
+                    && (allow_stops || axis.velocity.is_finite())
                     && axis.velocity > 0.0
             } else {
                 (axis.effort == f64::INFINITY
