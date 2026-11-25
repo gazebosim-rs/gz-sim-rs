@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 
 #[derive(Clone)]
 pub(super) struct Friction {
-    coefficient: f64,
+    pub(in crate::surface) coefficient: f64,
     patches: BTreeMap<[usize; 3], Vec<usize>>,
 }
 

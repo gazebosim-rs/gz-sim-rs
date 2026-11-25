@@ -67,6 +67,7 @@ pub(super) struct Surface {
     // Topology and broad-phase capacity failures retain their hard limits.
     pub(super) subdivide_on_budget: bool,
     pub(super) retry_plane: bool,
+    pub(super) prioritize_terminal_speed: bool,
 }
 
 fn edge(a: usize, b: usize) -> [usize; 2] {
@@ -74,6 +75,9 @@ fn edge(a: usize, b: usize) -> [usize; 2] {
 }
 
 impl Surface {
+    pub fn fixture_coefficient(&self) -> f64 {
+        self.friction.as_ref().unwrap().coefficient
+    }
     pub fn set_friction(&mut self, coefficient: f64) -> Result<(), XpbdError> {
         if !coefficient.is_finite() || coefficient < 0.0 {
             return Err(XpbdError::InvalidConfig);
@@ -160,6 +164,7 @@ impl Surface {
             loads: None,
             subdivide_on_budget: false,
             retry_plane: false,
+            prioritize_terminal_speed: false,
         };
         let positions = particles
             .iter()
@@ -276,7 +281,11 @@ impl Surface {
                 gap,
                 eps,
                 (&mut candidates, &mut queries),
-                on_plane || self.retry_plane,
+                if on_plane || self.retry_plane {
+                    Search::Supported
+                } else {
+                    Search::Ordinary
+                },
             )?
             else {
                 return Ok(());
@@ -331,8 +340,14 @@ impl Surface {
         let eps = Self::tolerance(x, p, gap)?;
         let (mut candidates, mut queries) = (0, 0);
         for _ in 0..MAX_PROJECTIONS {
-            let Some(mut hit) =
-                self.next_hit(x, p, gap, eps, (&mut candidates, &mut queries), true)?
+            let Some(mut hit) = self.next_hit(
+                x,
+                p,
+                gap,
+                eps,
+                (&mut candidates, &mut queries),
+                Search::TerminalVelocity,
+            )?
             else {
                 return Ok(());
             };
@@ -352,10 +367,43 @@ impl Surface {
         }
         Err(XpbdError::UnresolvedSurface)
     }
+    /// A local velocity solve may continue a clear incoming shell. Starting
+    /// with overlapping material skins would instead require a geometric
+    /// repair of the public input, independent of how small the first slice is.
+    pub(super) fn starts_clear(
+        &mut self,
+        particles: &[Particle],
+        gap: f64,
+    ) -> Result<bool, XpbdError> {
+        let x: Vec<_> = particles.iter().map(|p| DVec3::from(p.position)).collect();
+        let still: Vec<_> = particles
+            .iter()
+            .map(|p| Particle {
+                velocity: [0.; 3],
+                ..*p
+            })
+            .collect();
+        let eps = Self::tolerance(&x, &still, gap)?;
+        Ok(self
+            .next_hit(&x, &still, gap, eps, (&mut 0, &mut 0), Search::Supported)?
+            .is_none())
+    }
+
     pub fn verify(&mut self, x: &[DVec3], p: &[Particle], gap: f64) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
         if self
-            .next_hit(x, p, gap, eps, (&mut 0, &mut 0), self.retry_plane)?
+            .next_hit(
+                x,
+                p,
+                gap,
+                eps,
+                (&mut 0, &mut 0),
+                if self.retry_plane {
+                    Search::Supported
+                } else {
+                    Search::Ordinary
+                },
+            )?
             .is_some()
         {
             return Err(XpbdError::UnresolvedSurface);
@@ -381,12 +429,12 @@ impl Surface {
         gap: f64,
         eps: f64,
         budget: (&mut usize, &mut usize),
-        terminal: bool,
+        search: Search,
     ) -> Result<Option<Hit>, XpbdError> {
         let (candidates, queries) = budget;
         let mode = if self.friction.is_none() {
             SweepMode::Geometric
-        } else if terminal {
+        } else if search != Search::Ordinary {
             SweepMode::SupportedShell
         } else {
             SweepMode::MaterialShell
@@ -417,8 +465,18 @@ impl Surface {
                     })?;
                 if let Some(hit) = hit
                     && earliest.as_ref().is_none_or(|old| {
-                        hit.time
-                            .total_cmp(&old.time)
+                        // Geometry has already been resolved in the terminal
+                        // velocity pass. Resolve its most violated normal first
+                        // when retrying a cluster of near-parallel constraints.
+                        let velocity_order = if self.prioritize_terminal_speed {
+                            if search==Search::TerminalVelocity || (hit.endpoint_velocity && old.endpoint_velocity) {
+                                old.speed.total_cmp(&hit.speed)
+                            }else{
+                                hit.endpoint_velocity.cmp(&old.endpoint_velocity)
+                            }
+                        } else { std::cmp::Ordering::Equal };
+                        velocity_order
+                            .then(hit.time.total_cmp(&old.time))
                             .then(stencil.ids.cmp(&old.stencil.ids))
                             .is_lt()
                     })
@@ -429,6 +487,13 @@ impl Surface {
         }
         Ok(earliest)
     }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Search {
+    Ordinary,
+    Supported,
+    TerminalVelocity,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -445,6 +510,7 @@ struct Stencil {
     vf: bool,
 }
 pub(super) struct Hit {
+    endpoint_velocity: bool,
     stencil: Stencil,
     pub(super) weights: [f64; 4],
     pub(super) normal: DVec3,
@@ -557,6 +623,7 @@ impl Stencil {
                             .sum::<f64>();
                         if penetrated || vn < -128. * f64::EPSILON * scale {
                             return Ok(Some(Hit {
+                endpoint_velocity: !penetrated,
                                 stencil: self,
                                 weights: endpoint.weights,
                                 normal,
@@ -572,6 +639,7 @@ impl Stencil {
         }
         if end_gap < gap - eps || speed < -128. * f64::EPSILON * scale {
             return Ok(Some(Hit {
+                endpoint_velocity: false,
                 stencil: self,
                 weights,
                 normal: n,
@@ -605,6 +673,7 @@ impl Stencil {
                 .map(|(&w, v)| w * v.dot(normal))
                 .sum::<f64>();
             return Ok(Some(Hit {
+                endpoint_velocity: false,
                 stencil: self,
                 weights: terminal.weights,
                 normal,

@@ -5,6 +5,8 @@ use super::{Boundary, BoundaryImpulse, PreparedBoundary, SoftBody, XpbdError};
 use super::{PrincipalRigidMotion, tensor::TensorMotion};
 use glam::{DQuat, DVec3};
 use std::time::Duration;
+mod shell_retry;
+use shell_retry::ShellRetry;
 
 /// World-frame mobility of a free sphere with isotropic inertia about its COM.
 #[derive(Clone, Copy, Debug)]
@@ -516,7 +518,7 @@ fn solve<M: Copy + Into<RigidMobility>>(
                 material.retry_manifold = retry_material;
             }
         }
-        let result = solve_at_resolution(bodies, dt, boundaries, mobility, u128::from(steps));
+        let result = solve_at_resolution(bodies, dt, boundaries, mobility, u128::from(steps), None);
         for body in bodies.iter_mut() {
             if let Some(surface) = &mut body.surface {
                 surface.retry_plane = false;
@@ -542,6 +544,72 @@ fn solve<M: Copy + Into<RigidMobility>>(
             return result;
         }
         if steps >= maximum {
+            if shell_contact
+                && count < maximum
+                && bodies.len() == 1
+                && boundaries
+                    .iter()
+                    .any(|b| matches!(b, Boundary::Plane { .. }))
+                && boundaries.iter().zip(mobility).all(|(b, m)| {
+                    matches!(
+                        (b, m.map(Into::into)),
+                        (Boundary::Plane { .. }, None)
+                            | (
+                                Boundary::Cuboid { .. },
+                                Some(RigidMobility::PrescribedCuboid { .. })
+                            )
+                    )
+                })
+            {
+                // All receivers follow prescribed trajectories. Reuse the
+                // original substep grid and spend its remaining leaf budget
+                // only at an interval that refuses its contact constraints.
+                let body = &mut *bodies[0];
+                if !body
+                    .surface
+                    .as_mut()
+                    .unwrap()
+                    .starts_clear(&body.particles, 2. * body.config.particle_radius)?
+                {
+                    return result;
+                }
+                {
+                    use std::fmt::Write;
+                    use std::sync::atomic::{AtomicUsize,Ordering};
+                    static CUT:AtomicUsize=AtomicUsize::new(0);
+                    let id=CUT.fetch_add(1,Ordering::Relaxed);
+                    let body=&bodies[0];
+                    let surf=body.surface.as_ref().unwrap();
+                    let mut dump=String::new();
+                    writeln!(&mut dump,"config {:?}",body.config).unwrap();
+                    writeln!(&mut dump,"surface_friction {:?}",surf.fixture_coefficient()).unwrap();
+                    writeln!(&mut dump,"momentum {} pad {} material {}",body.momentum_rows.is_some(),body.pads.is_some(),body.capsule_material.is_some()).unwrap();
+                    for p in &body.particles {writeln!(&mut dump,"node {:?} {:?} {}",p.position,p.velocity,p.inverse_mass).unwrap();}
+                    for (c,n) in body.constraints.iter().zip(&body.rest_directions){writeln!(&mut dump,"constraint {} {} {:?} {:?} {:?}",c.a,c.b,c.rest_length,c.compliance,n.to_array()).unwrap();}
+                    for d in &body.bending {writeln!(&mut dump,"dihedral {:?} {:?} {:?}",d.vertices,d.rest_angle,d.compliance).unwrap();}
+                    for f in surf.pad_faces().unwrap() {writeln!(&mut dump,"face {:?}",f).unwrap();}
+                    for (b,m) in boundaries.iter().zip(mobility) {writeln!(&mut dump,"boundary {:?} {:?}",b,m.map(Into::into)).unwrap();}
+                    std::fs::write(std::path::PathBuf::from(std::env::var_os("GZ_MATCHED_OUTPUT").unwrap()).join(format!("start-{id}.txt")),dump).unwrap();
+                }
+                let surface = bodies[0].surface.as_mut().unwrap();
+                surface.retry_plane = true;
+                surface.prioritize_terminal_speed = true;
+                surface.subdivide_on_budget = false;
+                let mut result = solve_at_resolution(bodies,dt,boundaries,mobility,u128::from(count),None);
+                let mut depth=0;
+                if matches!(result,Err(XpbdError::UnresolvedSurface)) || (matches!(result,Err(XpbdError::SurfaceBudget)) && bodies[0].surface.as_ref().unwrap().subdivide_on_budget) {
+                    let base=count.saturating_mul(2).min(maximum);
+                    let mut retry=ShellRetry{remaining_splits: maximum-base,deepest:0};
+                    result=solve_at_resolution(bodies,dt,boundaries,mobility,u128::from(base),Some(&mut retry));
+                    depth=retry.deepest+1;
+                    eprintln!("hybrid adaptive base={base} leaves={} depth={depth} success={}",maximum-retry.remaining_splits,result.is_ok());
+                } else if result.is_ok() {eprintln!("hybrid coarse {count}");}
+                let surface = bodies[0].surface.as_mut().unwrap();
+                surface.retry_plane = false;
+                surface.prioritize_terminal_speed = false;
+                if result.is_ok() { bodies[0].sweep_refinements=depth; }
+                return result;
+            }
             if capsule_sweep && finite_material && !retry_material {
                 // The ordinary coupled sweep exhausted its grid. Reconstruct
                 // from the committed input with the same physical tolerances.
@@ -567,6 +635,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
     boundaries: &[Boundary],
     mobility: &[Option<M>],
     count: u128,
+    mut retry: Option<&mut ShellRetry>,
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
     let ticks = dt.as_nanos();
     if ticks != 0 && ticks < count {
@@ -722,15 +791,26 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
                     limit =
                         super::impact_group::remaining_step(bodies, &prepared[0], ticks - time)?;
                 } else {
-                    substep_interval(
-                        bodies,
-                        &mut prepared,
-                        &mut reactions,
-                        time,
-                        tail,
-                        iterations,
-                        false,
-                    )?;
+                    if let Some(local) = retry.as_deref_mut() {
+                        local.advance(
+                            bodies[0],
+                            &mut prepared,
+                            &mut reactions,
+                            time..time + tail,
+                            iterations,
+                            0,
+                        )?;
+                    } else {
+                        substep_interval(
+                            bodies,
+                            &mut prepared,
+                            &mut reactions,
+                            time,
+                            tail,
+                            iterations,
+                            false,
+                        )?;
+                    }
                     time += tail;
                 }
             }
@@ -742,6 +822,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
             std::mem::swap(&mut body.particles, &mut body.scratch);
         }
         body.reactions = impulses;
+        body.path_substeps = 0;
         body.publish_self_contact();
     }
     Ok(prepared

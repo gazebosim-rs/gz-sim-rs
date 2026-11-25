@@ -134,10 +134,12 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
     let mut rest = landing::Rest::default();
     let mut settled = None;
     let mut captures_by_tick = vec![(0, frame)];
+    let mut costs = Vec::new();
+    let limit = std::env::var("GZ_BENCH_LIMIT").ok().and_then(|s|s.parse().ok()).unwrap_or(REST_LIMIT);
     for k in 1..=if end == End::Rest {
-        REST_LIMIT
+        limit
     } else {
-        HORIZON
+        HORIZON.min(limit)
     } {
         let (phase, force) = pulse(k, f64::from(peak_mn) * 0.001);
         let incoming = if end != End::Escape && actions.escaped.is_some() && landing.is_none() {
@@ -145,9 +147,11 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
         } else {
             None
         };
+        let began=std::time::Instant::now();
         actions.drive(k, &mut grasp, phase, force).map_err(|err| {
             format!("{columns}-point {peak_mn} mN guard={enabled} tick {k} stroke={} lower={:?} open={:?} last={:?}: {err} ({:?})", grasp.stroke, actions.lower, actions.open, grasp.trace.last(), grasp.recording.sim.fault())
         })?;
+        costs.push([k as u64, began.elapsed().as_nanos() as u64]);
         let last = baseline + k;
         actions.observe(
             k,
@@ -208,6 +212,7 @@ fn branch(columns: usize, peak_mn: u32, enabled: bool, out: &Path, end: End) -> 
         frame,
         columns,
     )?;
+    write_json(&dir.join("step-cost-ns.json"), &serde_json::to_value(costs)?)?;
     let observed = grasp.trace.len() - 1 - baseline;
     write_json(
         &dir.join("escape-clearance.json"),
@@ -305,6 +310,9 @@ fn metrics(b: &Branch) -> Value {
 }
 
 fn pair(columns: usize, peak_mn: u32, out: &Path, end: End) -> Result<Value> {
+    if std::env::var_os("GZ_BENCH_CONTROL").is_some() {
+        return branch(columns, peak_mn, false, out, end).map(|b|metrics(&b));
+    }
     let guard = branch(columns, peak_mn, true, out, end)?;
     let control = branch(columns, peak_mn, false, out, end)?;
     compare(columns, peak_mn, &guard, &control)
