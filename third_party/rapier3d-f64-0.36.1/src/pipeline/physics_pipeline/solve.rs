@@ -45,6 +45,7 @@ impl ErasedColorMasks {
 impl PhysicsPipeline {
     pub(super) fn detect_collisions(
         &mut self,
+        gravity: Vector,
         integration_parameters: &IntegrationParameters,
         islands: &mut IslandManager,
         broad_phase: &mut BroadPhaseBvh,
@@ -128,6 +129,7 @@ impl PhysicsPipeline {
             events,
         );
         narrow_phase.compute_contacts(
+            gravity == Vector::ZERO && integration_parameters.dt > 0.0,
             integration_parameters.prediction_distance(),
             integration_parameters.dt,
             integration_parameters.contact_clustering,

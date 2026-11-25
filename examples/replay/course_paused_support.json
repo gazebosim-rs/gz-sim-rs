@@ -1,0 +1,13 @@
+{
+  "seed": "local-course-paused-support",
+  "observe": ["default::rocker::foot", "default::rocker::upper", "default::left::pad", "default::right::pad"],
+  "commands": [
+    {"op":"step","count":2400},
+    {"op":"set_tier","model":"default::rocker","tier":"prescribed"},
+    {"op":"remove_model","model":"default::right"},
+    {"op":"paused_tick"},
+    {"op":"paused_tick"},
+    {"op":"paused_tick"},
+    {"op":"step","count":600}
+  ]
+}

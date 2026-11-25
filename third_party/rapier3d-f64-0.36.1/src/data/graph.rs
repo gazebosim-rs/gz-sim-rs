@@ -120,6 +120,14 @@ pub struct Edge<E> {
 }
 
 impl<E> Edge<E> {
+    /// Does the endpoint identified by its weight have this single incident edge?
+    pub(crate) fn is_only_edge_at<N: PartialEq>(&self, nodes: &[Node<N>], weight: N) -> bool {
+        let side = usize::from(nodes[self.source().index()].weight != weight);
+        self.prev[side] == EdgeIndex::end()
+            && self.next[side] == EdgeIndex::end()
+            && nodes[self.node[side].index()].next[1 - side] == EdgeIndex::end()
+    }
+
     /// Return the source node index.
     pub fn source(&self) -> NodeIndex {
         self.node[0]

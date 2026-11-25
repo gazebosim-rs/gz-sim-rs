@@ -156,6 +156,10 @@ enum Command {
     Remove {
         alias: String,
     },
+    /// Remove a model from the loaded SDF at the current simulation instant.
+    RemoveModel {
+        model: String,
+    },
     Reset,
 }
 
@@ -419,7 +423,12 @@ fn run(args: Args) -> Result<()> {
     }
     let mut aliases = BTreeMap::new();
     let mut templates = BTreeMap::new();
+    let mut original_models = BTreeMap::new();
     for op in &journal.commands {
+        if let Command::RemoveModel { model } = op {
+            // Bind before any edits. A later clone cannot take over a retired name.
+            original_models.insert(model, entity_id(&sim, model)?);
+        }
         if let Command::Spawn { template, .. } = op
             && !templates.contains_key(template)
         {
@@ -571,6 +580,11 @@ fn run(args: Args) -> Result<()> {
                     alias.clone(),
                     gz_sim_scene::spawn_model_template(&mut sim, &templates[template], pose)?,
                 );
+                keyframe = true;
+            }
+            Command::RemoveModel { model } => {
+                gz_sim_scene::remove_model(&mut sim, original_models[model])
+                    .map_err(|e| format!("cannot remove model {model}: {e}"))?;
                 keyframe = true;
             }
             Command::Remove { alias } => {

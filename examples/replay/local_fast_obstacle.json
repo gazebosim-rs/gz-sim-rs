@@ -1,0 +1,17 @@
+{
+  "seed": "fast-obstacle-course",
+  "observe": [
+    "default::hit::tip",
+    "default::graze::tip",
+    "default::clear::tip",
+    "default::hit_guard::rail",
+    "default::graze_guard::rail",
+    "default::clear_guard::rail"
+  ],
+  "commands": [
+    {
+      "op": "step",
+      "count": 200
+    }
+  ]
+}

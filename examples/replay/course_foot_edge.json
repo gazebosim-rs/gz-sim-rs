@@ -1,0 +1,11 @@
+{
+  "seed": "local-course-foot-edge",
+  "observe": ["default::rocker::foot", "default::rocker::upper", "default::ledge::ground"],
+  "commands": [
+    {"op":"step","count":9},
+    {"op":"set_tier","model":"default::rocker","tier":"prescribed"},
+    {"op":"step","count":2277},
+    {"op":"set_tier","model":"default::rocker","tier":"dynamic"},
+    {"op":"step","count":3200}
+  ]
+}

@@ -106,6 +106,9 @@ pub(super) fn read(source: &Path, index: &Value) -> Result<Value> {
             frames[0]["gpu_tool_audit"] = audit;
         }
     }
+    if let Some(trace) = index["aligned_journal_trace"].as_str() {
+        super::journal_visuals::verify(BufReader::new(File::open(source.join(trace))?), &frames)?;
+    }
     Ok(Value::Array(frames))
 }
 fn clock(scene: &Value) -> Result<u64> {

@@ -70,6 +70,7 @@ pub(super) const OUTCOME_CLEARED_IN_GRAPH: u8 = 6;
 pub(super) fn process_pair(
     edge: &mut crate::data::graph::Edge<ContactPair>,
     edge_id: u32,
+    flight_nodes: Option<&[crate::data::graph::Node<crate::geometry::ColliderHandle>]>,
     prediction_distance: Real,
     dt: Real,
     contact_clustering: bool,
@@ -87,7 +88,7 @@ pub(super) fn process_pair(
     #[cfg(not(feature = "parallel"))] transitions: &mut Vec<PairTransition>,
     #[cfg(feature = "parallel")] snd: &std::sync::mpsc::Sender<PairTransition>,
 ) -> u8 {
-    let pair = &mut edge.weight;
+    let pair = &edge.weight;
     let co1 = &colliders[pair.collider1];
     let co2 = &colliders[pair.collider2];
 
@@ -109,10 +110,51 @@ pub(super) fn process_pair(
         return OUTCOME_SKIPPED;
     }
 
+    let rb1 = co1.parent.map(|p| &bodies[p.handle]);
+    let rb2 = co2.parent.map(|p| &bodies[p.handle]);
+    // Recompute witnesses for the same isolated linear sweeps that can use an
+    // impact normal below. A reused plane across a rounded edge can stop a clear ball.
+    #[cfg(not(feature = "dim3"))]
+    let ball_flight: Option<usize> = None;
+    #[cfg(feature = "dim3")]
+    let ball_flight = flight_nodes.and_then(|nodes| {
+        let sides = [(co1, pair.collider1, rb1), (co2, pair.collider2, rb2)];
+        (0..2).find(|&i| {
+            let (co, id, body) = sides[i];
+            let (other, _, other_body) = sides[1 - i];
+            body.is_some_and(|rb| {
+                rb.is_ccd_enabled()
+                    && rb.is_dynamic()
+                    && co.shape.as_ball().is_some()
+                    && other.shape.as_cuboid().is_some()
+                    && other_body.is_none_or(|b| b.is_fixed() && b.soft_body().is_none())
+                    && rb.soft_body().is_none()
+                    && !co.is_deformable_collider()
+                    && !other.is_deformable_collider()
+                    && co.contact_skin() == 0.0
+                    && other.contact_skin() == 0.0
+                    && (co.flags.active_hooks | other.flags.active_hooks).is_empty()
+                    && rb.colliders().len() == 1
+                    && rb.linear_damping() == 0.0
+                    && rb.user_force() == crate::math::Vector::ZERO
+                    && rb.user_torque() == crate::math::AngVector::ZERO
+                    && (rb.angvel() == crate::math::AngVector::ZERO
+                        || co.pos.translation == rb.center_of_mass())
+                    && edge.is_only_edge_at(nodes, id)
+                    && co.parent.is_some_and(|p| {
+                        !impulse_joints.body_may_have_joints(p.handle)
+                            && multibody_joints.rigid_body_link(p.handle).is_none()
+                    })
+            })
+        })
+    });
+    let recycle_contacts = contact_recycle_distance > 0.0 && ball_flight.is_none();
+    let pair = &mut edge.weight;
+
     // Contact recycling: if the relative pose barely moved since the
     // last full update, skip contact determination entirely. Must run before the
     // `has_any_active_contact` walk below (whose result recycling cannot change).
-    if contact_recycle_distance > 0.0 {
+    if recycle_contacts {
         if let Some(state) = pair.rigid().and_then(|r| r.recycle_state.as_ref()) {
             // Anything beyond a position change (shape, groups, type,
             // enabled flag, ...) requires a full update, as do pairs
@@ -187,9 +229,6 @@ pub(super) fn process_pair(
             }
             break 'emit_events;
         }
-
-        let rb1 = co1.parent.map(|co_parent1| &bodies[co_parent1.handle]);
-        let rb2 = co2.parent.map(|co_parent2| &bodies[co_parent2.handle]);
 
         let rb_type1 = rb1.map(|rb| rb.body_type).unwrap_or(RigidBodyType::Fixed);
         let rb_type2 = rb2.map(|rb| rb.body_type).unwrap_or(RigidBodyType::Fixed);
@@ -445,6 +484,16 @@ pub(super) fn process_pair(
             &mut rigid.workspace,
         );
 
+        #[cfg(not(feature = "dim3"))]
+        let swept_witness = false;
+        #[cfg(feature = "dim3")]
+        let swept_witness = ball_flight.is_some_and(|side| {
+            let [manifold] = rigid.manifolds.as_mut_slice() else {
+                return false;
+            };
+            super::swept_ball::update(manifold, [co1, co2], [rb1, rb2], side, dt)
+        });
+
         if let Some(soft) =
             soft.filter(|_| co1.deformable_mesh_ref.is_some() || co2.deformable_mesh_ref.is_some())
         {
@@ -676,17 +725,25 @@ pub(super) fn process_pair(
                     // Freeze the solver's lever arms (world-space, CoM-relative; plain
                     // world for a world-attached side) at this full update. They stay
                     // verbatim while recycled: anchor freezing (see `ContactData::solver_dp1`).
-                    let point = (p1 + sc.anchor2) * 0.5;
+                    // A future edge witness on the box is displaced tangentially from
+                    // the sphere's current radial contact. Acting at their midpoint
+                    // would apply a spurious angular impulse to a frictionless sphere.
+                    let (arm1, arm2) = if swept_witness {
+                        (p1, sc.anchor2)
+                    } else {
+                        let midpoint = (p1 + sc.anchor2) * 0.5;
+                        (midpoint, midpoint)
+                    };
                     let cid = (sc.contact_id[0] & !crate::geometry::contact_pair::NEW_CONTACT_BIT)
                         as usize;
                     let pt_data = &mut manifold_points[cid].data;
                     pt_data.solver_dp1 = match &com_pose1 {
-                        Some(pose) => point - pose.translation,
-                        None => point,
+                        Some(pose) => arm1 - pose.translation,
+                        None => arm1,
                     };
                     pt_data.solver_dp2 = match &com_pose2 {
-                        Some(pose) => point - pose.translation,
-                        None => point,
+                        Some(pose) => arm2 - pose.translation,
+                        None => arm2,
                     };
 
                     sc.anchor1 = match &com_pose1 {
@@ -703,7 +760,7 @@ pub(super) fn process_pair(
 
         // Remember the relative configuration this full update ran at, so
         // subsequent steps can recycle the pair while it stays close to it.
-        if contact_recycle_distance > 0.0 {
+        if recycle_contacts {
             // Computing the local AABBs goes through a dyn Shape call per
             // collider per full update; the extents only change when a
             // shape does, so reuse the previous full update's value.
@@ -734,6 +791,8 @@ pub(super) fn process_pair(
                 max_extent,
                 max_drift,
             });
+        } else {
+            rigid.recycle_state = None;
         }
     }
 

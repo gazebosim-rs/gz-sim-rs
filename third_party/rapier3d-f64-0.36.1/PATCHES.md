@@ -14,3 +14,9 @@ From the repository root, inspect the Rust patch with the following command.
 ```sh
 git diff 67b3830 HEAD -- third_party/rapier3d-f64-0.36.1/src
 ```
+
+An isolated, freely translating CCD sphere can strike a fixed box at a rounded
+configuration-space edge. For a cold, separated contact, the narrow phase checks
+the swept path and uses the box witness and radial sphere normal at first touch.
+Each side retains its own force application point. The qualified scenario,
+controls and timing are in the [fast obstacle measurements](../../docs/measurements/local-manipulation/fast-obstacle-course.md).

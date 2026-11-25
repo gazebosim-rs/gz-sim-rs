@@ -3,7 +3,7 @@
 
 # Physics release roadmap
 
-Start with the local Rust/Bevy simulator. A user can already apply torque to an unchanged Gazebo robot, step and reset it, or replay a gripper lifting a parcel. The next delivery puts those same workflows in a qualified Linux package. Subsequent iterations each add one supported robot or task to that package. The engine, SDF integration, command-line tools and regression scenes live in gz-sim-rs. The browser application lives in gzweb-rs. [Run the preview](LOCAL_CPU_MVP.md) · [Approved physics design](physics_tdd.md) · [Worklog](MULTIFIDELITY_WORKLOG.md)
+Start with the local Rust/Bevy simulator. A user can already apply torque to an unchanged Gazebo robot, step and reset it, or replay a gripper lifting a parcel. The Linux preview packages the simulator, input journals and browser recordings together. Subsequent iterations each add one supported robot or task to that package. The engine, SDF integration, command-line tools and regression scenes live in gz-sim-rs. The browser application lives in gzweb-rs. [Run the preview](LOCAL_CPU_MVP.md) · [Approved physics design](physics_tdd.md) · [Worklog](MULTIFIDELITY_WORKLOG.md)
 
 ## Starting point and first release
 
@@ -26,7 +26,7 @@ The repository-wide gate is still red. On the measured CPU build the CLI needs 2
 | **6. Automatic switching on a working robot** | Use the same arm and command journal in adaptive and always-dynamic modes. Park while settled, wake before support loss, and resume the task. | Compare the first resumed impulse, trajectory, momentum and command count. Repeat after reset and across thread counts. Rerun 10,000 switches and publish paired accuracy, elapsed time and p95/p99 on the same machine. |
 | **7. Balanced articulated robot** | Use the existing 30-axis humanoid to step across an uneven support and recover from a push. | Use the level-floor run as the control. Compare foot reactions, slip, joint-limit excursions and recovery with continuous dynamics. Publish the tested disturbance range and show what happens beyond it. |
 
-Iterations 2 and 3 are runnable on the physics review branch. Both stock pendulums passed their native comparison. The stock wheeled robot tracked native Gazebo within 0.32 mm through the full drive and stopped in the same 0.39 s. The next delivery is the contact and collision course in iteration 4, with separate hit and clear runs and contact measurements across a support edge. Official release qualification remains open. [Double pendulum](measurements/local-manipulation/double-pendulum.md) · [Wheeled robot](measurements/local-manipulation/wheeled-robot.md)
+Iterations 2 through 4 run on the physics review branch. The contact course checks the foot’s first reaction after a support disappears, and distinguishes a 5 mm graze from a 5 mm clear pass on a thin rail. Next is the controlled arm and gripper in iteration 5, starting with the upstream position-controller world. The whole-repository release gate remains open. [Double pendulum](measurements/local-manipulation/double-pendulum.md) · [Wheeled robot](measurements/local-manipulation/wheeled-robot.md) · [Contact course](measurements/local-manipulation/contact-course-view.md)
 
 ## After the local rigid-robot release
 

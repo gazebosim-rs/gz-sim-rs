@@ -51,3 +51,17 @@ Run the stock differential-drive robot through a straight line, a left turn and 
 ```
 
 The browser needs support for named worlds. The viewer instructions include the tested source revision, its small compatibility patch and framing controls for the vehicle. [Open the drive replay and reproduce the viewer](https://github.com/gazebosim-rs/gz-sim-rs/blob/review/local-cpu-mvp-20261124/docs/measurements/local-manipulation/drive-view.md)
+
+## Contact and collision course
+
+Running each journal writes the measured link poses and contact impulses to a fresh file. The first run takes a foot past a finite edge, the second removes the right pad while paused, and the third sends three fast links past thin obstacles.
+
+```sh
+data=share/gz-sim
+./bin/gz-sim-local-replay "$data/multifidelity_rocking_foot.sdf" "$data/course_foot_edge.json" --trace edge.jsonl
+./bin/gz-sim-local-replay "$data/multifidelity_two_support_foot.sdf" "$data/course_paused_support.json" --trace paused.jsonl
+./bin/gz-sim-local-replay "$data/local_fast_obstacle.sdf" "$data/local_fast_obstacle.json" --trace fast.jsonl
+./bin/gz-sim-rs "$data/contact-course-view/paused" --server --replay --web-viewer 11561
+```
+
+Select `edge`, `paused` or `fast` under `share/gz-sim/contact-course-view` to serve that recording. [Watch the course in gz-web-rs](https://github.com/gazebosim-rs/gz-sim-rs/blob/review/local-cpu-mvp-20261124/docs/measurements/local-manipulation/contact-course-view.md)

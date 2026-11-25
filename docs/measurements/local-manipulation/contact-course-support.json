@@ -1,0 +1,291 @@
+{
+  "edge": {
+    "cache_at_edit_or_promotion": {
+      "after": [
+        {
+          "normal_ns": 0.0,
+          "points": 0,
+          "tangent_ns": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "before": [
+        {
+          "normal_ns": 0.00013851884879521143,
+          "points": 4,
+          "tangent_ns": [
+            -0.00006925735630927738,
+            -3.988648240401795e-7,
+            -5.797429047436349e-11
+          ]
+        }
+      ],
+      "expiry": "AnchorOutsideFace"
+    },
+    "demotion_tick": 9,
+    "dt_ns": 25000,
+    "edge_seed_expiry_tick": 2286,
+    "first_pose_difference_over_1um_or_10urad_tick": 58,
+    "first_resumed_impulse": {
+      "dynamic_ns": [
+        0.0004904991208280096
+      ],
+      "switched_ns": [
+        0.0004933815692112334
+      ],
+      "tick": 2287
+    },
+    "first_unequal_pose_tick": 10,
+    "matched_dynamic_wake": {
+      "first_dynamic_impulse_ns": 0.000493381569217801,
+      "incoming_match_foot_upper": {
+        "angular_velocity_rad_s": [
+          0.0,
+          0.0
+        ],
+        "position_m": [
+          0.0,
+          3.858025010609612e-15
+        ],
+        "rotation_rad": [
+          2.617444332559915e-21,
+          2.617444332559915e-21
+        ],
+        "velocity_m_s": [
+          4.591543648131242e-19,
+          3.577969838389359e-19
+        ]
+      },
+      "resumed_peak_angle_error_rad_foot_upper": [
+        3.0334894098020945e-15,
+        3.0334893313531367e-15
+      ],
+      "resumed_peak_center_error_m_foot_upper": [
+        1.1894492917573947e-15,
+        5.062203897115292e-15
+      ]
+    },
+    "paused_updates": 0,
+    "peak_angle_error_rad_foot_upper": [
+      9.336291474715168e-6,
+      9.336291474715168e-6
+    ],
+    "peak_box_penetration_m_switched_dynamic": [
+      0.00001250325369243386,
+      0.000014461492096603415
+    ],
+    "peak_center_error_m_foot_upper": [
+      0.000049468680949698404,
+      0.000050440260940065215
+    ],
+    "step_cost": {
+      "candidate_p95_ns": 12370,
+      "dynamic_p95_ns": 13000,
+      "samples_per_lane": 21944
+    },
+    "steps": 5486,
+    "support_order": [
+      "ledge::ground"
+    ],
+    "toe_crossing_tick": 2286
+  },
+  "paused_removal": {
+    "cache_at_edit_or_promotion": {
+      "after": [
+        {
+          "normal_ns": 0.0012854465345418363,
+          "points": 4,
+          "tangent_ns": [
+            0.0006347287619460231,
+            -0.00009173724301800266,
+            5.00335863274309e-9
+          ]
+        },
+        null
+      ],
+      "before": [
+        {
+          "normal_ns": 0.0012854465345418363,
+          "points": 4,
+          "tangent_ns": [
+            0.0006347287619460231,
+            -0.00009173724301800266,
+            5.00335863274309e-9
+          ]
+        },
+        {
+          "normal_ns": 0.0011670538420619947,
+          "points": 4,
+          "tangent_ns": [
+            -0.000534706988401318,
+            0.0000917365900795245,
+            -5.379900605604885e-9
+          ]
+        }
+      ],
+      "retired_pair_still_in_last_narrow_phase_snapshot": true,
+      "surviving_points": [
+        {
+          "features": [
+            1073741836,
+            3221225487
+          ],
+          "local_anchors": [
+            [
+              -0.18,
+              -0.1,
+              -0.06
+            ],
+            [
+              -0.0566485645009654,
+              -0.09999046576689438,
+              0.05999999999999978
+            ]
+          ],
+          "normal_ns": 0.00023787535270037037,
+          "tangent_basis_ns": [
+            -6.822070950709408e-6,
+            -0.00011874186373610989
+          ],
+          "tangent_world_ns": [
+            0.00011874186373244481,
+            -6.822070950566559e-6,
+            9.328364447376363e-10
+          ],
+          "twist_nms": 0.0
+        },
+        {
+          "features": [
+            1073741832,
+            3221225487
+          ],
+          "local_anchors": [
+            [
+              -0.18,
+              0.1,
+              -0.06
+            ],
+            [
+              -0.05664373473604832,
+              0.10000953417477931,
+              0.05999999999999978
+            ]
+          ],
+          "normal_ns": 0.0002378732920381599,
+          "tangent_basis_ns": [
+            -8.144081585895934e-6,
+            -0.0001186574890236187
+          ],
+          "tangent_world_ns": [
+            0.00011865748901995463,
+            -8.144081585753124e-6,
+            9.325799719934163e-10
+          ],
+          "twist_nms": 0.0
+        },
+        {
+          "features": [
+            2147483890,
+            2147483865
+          ],
+          "local_anchors": [
+            [
+              -0.04835143546073639,
+              -0.1,
+              -0.06
+            ],
+            [
+              0.07499999999999973,
+              -0.09999364492498636,
+              0.05999999999999979
+            ]
+          ],
+          "normal_ns": 0.0004048530946785455,
+          "tangent_basis_ns": [
+            -0.00004415729897444086,
+            -0.0001975516135468923
+          ],
+          "tangent_world_ns": [
+            0.0001975516135407553,
+            -0.00004415729897420166,
+            1.5620139552824307e-9
+          ],
+          "twist_nms": 0.0
+        },
+        {
+          "features": [
+            2147483872,
+            2147483865
+          ],
+          "local_anchors": [
+            [
+              -0.04835626522565489,
+              0.1,
+              -0.06
+            ],
+            [
+              0.07499999999999973,
+              0.10000635513332047,
+              0.059999999999999776
+            ]
+          ],
+          "normal_ns": 0.0004048447951247606,
+          "tangent_basis_ns": [
+            -0.000032613791507722626,
+            -0.00019977779565906004
+          ],
+          "tangent_world_ns": [
+            0.00019977779565286832,
+            -0.0000326137915074813,
+            1.5759282607296062e-9
+          ],
+          "twist_nms": 0.0
+        }
+      ]
+    },
+    "demotion_tick": 2400,
+    "dt_ns": 500000,
+    "edge_seed_expiry_tick": null,
+    "first_pose_difference_over_1um_or_10urad_tick": 2451,
+    "first_resumed_impulse": {
+      "dynamic_ns": [
+        0.009338321375981761,
+        -0.0
+      ],
+      "switched_ns": [
+        0.009360845886958943,
+        -0.0
+      ],
+      "tick": 2401
+    },
+    "first_unequal_pose_tick": 2401,
+    "matched_dynamic_wake": null,
+    "paused_updates": 3,
+    "peak_angle_error_rad_foot_upper": [
+      0.00008252614515272722,
+      0.00008252614515272722
+    ],
+    "peak_box_penetration_m_switched_dynamic": [
+      0.000041698060251048745,
+      0.00004169720645426786
+    ],
+    "peak_center_error_m_foot_upper": [
+      6.423611840139617e-6,
+      0.0000170612693708094
+    ],
+    "step_cost": {
+      "candidate_p95_ns": 14670,
+      "dynamic_p95_ns": 14560,
+      "samples_per_lane": 12000
+    },
+    "steps": 3000,
+    "support_order": [
+      "left::pad",
+      "right::pad"
+    ],
+    "toe_crossing_tick": null
+  }
+}

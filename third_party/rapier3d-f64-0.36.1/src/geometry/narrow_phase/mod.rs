@@ -9,6 +9,8 @@ mod pair_update;
 mod queries;
 pub(crate) mod soft_contacts;
 mod solver_graph;
+#[cfg(feature = "dim3")]
+mod swept_ball;
 #[cfg(test)]
 #[cfg(feature = "f32")]
 #[cfg(feature = "dim3")]

@@ -1746,3 +1746,153 @@ fn stock_drive_rejects_bad_model_bindings_and_identifies_the_first_stale_trace_r
         );
     }
 }
+
+#[test]
+fn authored_support_removal_is_visible_while_paused_and_reset_restores_its_identity() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let xml = include_str!("../../../examples/multifidelity_two_support_foot.sdf");
+    let world = file(dir, "pads.sdf", xml);
+    let right = "default::right::pad";
+    let remove = json!({"op":"remove_model","model":"default::right"});
+    let source = json!({"seed":"retire","observe":[right,"default::left::pad"],
+        "commands":[{"op":"step","count":8},remove,{"op":"paused_tick"},{"op":"reset"},remove]});
+    let journal = file(dir, "course.json", &source.to_string());
+    let archive = dir.join("archive");
+    let rows = success(run(
+        &world,
+        &journal,
+        &["--record", archive.to_str().unwrap(), "--record-every", "8"],
+    ));
+    let pad = rows[0]["observed_entities"][right].as_u64().unwrap();
+    let loaded = record(&rows, 1, 8);
+    let removed = record(&rows, 2, 8);
+    let paused = record(&rows, 3, 8);
+    let reset = record(&rows, 4, 0);
+    let reremoved = record(&rows, 5, 0);
+    assert_eq!(loaded["time_ns"], removed["time_ns"]);
+    assert_eq!(removed["time_ns"], paused["time_ns"]);
+    for (row, present) in [
+        (loaded, true),
+        (removed, false),
+        (paused, false),
+        (reset, true),
+        (reremoved, false),
+    ] {
+        let links = row["observed_links"].as_array().unwrap();
+        assert_eq!(links.len(), 1 + usize::from(present));
+        assert_eq!(links.iter().any(|l| l["id"] == pad), present);
+    }
+    for epoch in 0..=1 {
+        let frames =
+            fs::read_to_string(archive.join(format!("epoch-{epoch}/frames.jsonl"))).unwrap();
+        let scenes: Vec<Value> = frames
+            .lines()
+            .map(|l| serde_json::from_str::<Value>(l).unwrap())
+            .filter_map(|r| {
+                r["scene"]
+                    .as_str()
+                    .map(|s| serde_json::from_str(s).unwrap())
+            })
+            .collect();
+        let mut end = scenes.iter().rev();
+        let after = end.next().unwrap();
+        let before = end.next().unwrap();
+        assert_eq!(after["nanoseconds"], before["nanoseconds"]);
+        let has_pad = |scene: &Value| {
+            scene["visuals"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|v| v["name"].as_str().unwrap().starts_with("default::right::"))
+        };
+        assert!(has_pad(before));
+        assert!(!has_pad(after));
+    }
+    for (ops, reason) in [
+        (json!([remove, remove]), "does not exist"),
+        (json!([{"op":"remove_model","model":right}]), "not a model"),
+        (
+            json!([{"op":"remove_model","model":"unknown"}]),
+            "unknown scoped entity",
+        ),
+    ] {
+        let bad = altered(dir, &source, "rejected.json", |j| j["commands"] = ops);
+        let output = run(&world, &bad, &[]);
+        assert!(!output.status.success());
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains(reason),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+}
+
+#[test]
+fn packaged_support_loss_course_resumes_against_continuous_dynamics() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path();
+    let world = file(
+        dir,
+        "pads.sdf",
+        include_str!("../../../examples/multifidelity_two_support_foot.sdf"),
+    );
+    let journal = include_str!("../../../examples/replay/course_paused_support.json");
+    // Retain only the command boundaries and first resumed tick from the public trace.
+    let captures = |source: &str| -> Vec<Value> {
+        let path = file(dir, "commands.json", source);
+        let output = run(&world, &path, &[]);
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str::<Value>(line).unwrap())
+            .filter(|row| {
+                matches!(row["step"].as_u64(), Some(2400 | 2401)) || row.get("profile").is_some()
+            })
+            .collect()
+    };
+    let switched = captures(journal);
+    let continuous = captures(&journal.replace("\"prescribed\"", "\"dynamic\""));
+    let incoming = record(&switched, 1, 2400);
+    shared(incoming, record(&continuous, 1, 2400), STATE);
+    let native_id = |name: &str| {
+        let id = &switched[0]["observed_entities"][name];
+        incoming["observed_links"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|l| l["id"] == *id)
+            .unwrap()["native_body_id"]
+            .as_u64()
+            .unwrap()
+    };
+    let foot = native_id("default::rocker::foot");
+    let reaction = |row: &Value, pad: u64| {
+        row["pair_reactions_ns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|pair| pair[0] == foot.min(pad) && pair[1] == foot.max(pad))
+            .map(|pair| pair[2].as_f64().unwrap())
+    };
+    let left = native_id("default::left::pad");
+    let right = native_id("default::right::pad");
+    assert!(reaction(incoming, right).unwrap() > 0.);
+    let before = record(&switched, 2, 2400);
+    let paused = record(&switched, 6, 2400);
+    assert_eq!(paused["time_ns"], before["time_ns"]);
+    assert_eq!(paused["model_tiers"][0][1], "prescribed");
+    assert_eq!(reaction(paused, right), None);
+    assert_eq!(reaction(paused, left), reaction(before, left));
+    let resumed = record(&switched, 7, 2401);
+    assert_eq!(resumed["model_tiers"][0][1], "dynamic");
+    assert_eq!(reaction(resumed, right), None);
+    let reference = reaction(record(&continuous, 7, 2401), left).unwrap();
+    assert!(reference > 0.);
+    assert!((reaction(resumed, left).unwrap() - reference).abs() <= 0.05 * reference);
+}

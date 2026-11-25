@@ -25,6 +25,7 @@ use crate::pipeline::{ActiveEvents, EventHandler, PhysicsHooks};
 impl NarrowPhase {
     pub(crate) fn compute_contacts(
         &mut self,
+        unforced_step: bool,
         prediction_distance: Real,
         dt: Real,
         contact_clustering: bool,
@@ -94,6 +95,9 @@ impl NarrowPhase {
             |gid| gid.contact_graph_index,
         );
 
+        // Expose graph adjacency only when this step can contain a free linear flight.
+        let flight_nodes = unforced_step.then_some(self.contact_graph.graph.nodes.as_slice());
+
         // Begin/end-touch transitions detected during the update; applied by the
         // sorted post-loop pass (see `PairTransition`).
         #[cfg(not(feature = "parallel"))]
@@ -103,6 +107,7 @@ impl NarrowPhase {
             pair_update::process_pair(
                 edge,
                 edge_id,
+                flight_nodes,
                 prediction_distance,
                 dt,
                 contact_clustering,
@@ -130,6 +135,7 @@ impl NarrowPhase {
             pair_update::process_pair(
                 edge,
                 edge_id,
+                flight_nodes,
                 prediction_distance,
                 dt,
                 contact_clustering,

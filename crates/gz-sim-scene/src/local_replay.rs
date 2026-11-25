@@ -67,6 +67,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     let admitted = world.plugins.iter().all(|p| {
         world_systems::is_physics_plugin(p)
             || primary_contact::sdf::is_plugin(p)
+            || continuous_collision::is_plugin(p)
             || mounted_guide::is_plugin(p)
     }) && world.joints.is_empty()
         && world.extensions.is_empty()
@@ -120,6 +121,6 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     require(
         admitted,
         &world.name,
-        "local-cpu-v1 admits static ground planes, inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, incoming-face and screw-stop refinement, mounted slider stabilization, native joint controllers, held joint forces and IMUs",
+        "local-cpu-v1 admits static ground planes, inline rigid box, sphere, cylinder and capsule models, restitution, initial twists, continuous collision checks, incoming-face and screw-stop refinement, mounted slider stabilization, native joint controllers, held joint forces and IMUs",
     )
 }

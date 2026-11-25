@@ -445,6 +445,7 @@ impl PhysicsPipeline {
         // The soft meshes' vertex caches, read by the soft contact passes.
         soft_bodies.refresh_vertex_caches();
         self.detect_collisions(
+            gravity,
             integration_parameters,
             islands,
             broad_phase,
@@ -635,6 +636,7 @@ impl PhysicsPipeline {
 
                 soft_bodies.refresh_vertex_caches();
                 self.detect_collisions(
+                    gravity,
                     &integration_parameters,
                     islands,
                     broad_phase,

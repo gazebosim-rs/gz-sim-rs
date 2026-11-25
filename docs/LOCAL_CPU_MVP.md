@@ -106,6 +106,15 @@ target/cpu-tools/bin/gz-sim-local-replay examples/worlds/upstream_diff_drive.sdf
   examples/replay/upstream_diff_drive.json --sdf-default-friction --trace drive.jsonl
 ```
 
+## Run the contact and collision course
+
+Remove a loaded foot support while the clock is paused, then let the robot tip. The installed journal command writes every committed state, including the contact impulse on each remaining support. [Support measurements](measurements/local-manipulation/contact-course-support.md) · [Fast obstacle measurements](measurements/local-manipulation/fast-obstacle-course.md) · [Three course recordings and playback commands](measurements/local-manipulation/contact-course-view.md)
+
+```sh
+target/cpu-tools/bin/gz-sim-local-replay examples/multifidelity_two_support_foot.sdf \
+  examples/replay/course_paused_support.json --trace paused-support.jsonl
+```
+
 ## What this build covers
 
 The CPU solver has physical regression tests for fixed, revolute, prismatic, ball, universal and screw joints. The independently authored model qualifies a free-base revolute joint, sustained effort, loaded inertia, plane contact, friction and reset. The full gripper task qualifies multiple joints, contact impulses and automatic tier changes against an always-dynamic run. The motor was checked against analytical acceleration and a native Gazebo DART run at eight matched times. The gripper's reference uses the same dynamic solver. [Motor measurements and source](measurements/local-manipulation/mvp-independent-robot.md) · [Gripper accuracy, p95 and real-time factor](measurements/local-manipulation/mvp-local-performance.md)
@@ -116,7 +125,7 @@ The Linux package is a preview. On candidate `fc80ca5`, all 4,208 ordinary CPU t
 
 ## Build the installable preview
 
-Run the following commands from a clean source checkout on Linux x86-64 with Bash, GNU tar, xz, the locked Rust toolchain, `protoc` 3.21.12 and its matching protobuf development includes. The build verifies `google/protobuf/any.proto` from those includes. The archive is created in a fresh staging directory and includes a checksum manifest, input journal, measured gripper replay and standalone instructions.
+Run the following commands from a clean source checkout on Linux x86-64 with Bash, GNU tar, xz, the locked Rust toolchain, `protoc` 3.21.12 and its matching protobuf development includes. The build verifies `google/protobuf/any.proto` from those includes. The archive is created in a fresh staging directory and includes a checksum manifest, runnable worlds and input journals, measured robot and contact-course recordings, and standalone instructions.
 
 ```bash
 set -eu
@@ -130,6 +139,9 @@ cp -a "$stage/install/bin" "$package/bin"
 cp LICENSE NOTICE "$package/"
 cp docs/LOCAL_CPU_PACKAGE.md "$package/README.md"
 cp examples/worlds/upstream_{joint_force,double_pendulum,diff_drive}.sdf examples/replay/upstream_{joint_force,double_pendulum,diff_drive}.json "$package/share/gz-sim/"
+cp examples/multifidelity_{rocking_foot,two_support_foot}.sdf examples/worlds/local_fast_obstacle.sdf \
+  examples/replay/{course_foot_edge,course_paused_support,local_fast_obstacle}.json "$package/share/gz-sim/"
+tar -xJf docs/measurements/local-manipulation/contact-course-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/drive-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/pendulum-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/mvp-robot-replays.tar.xz -C "$stage/recordings"

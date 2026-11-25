@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Verify native replay clocks, poses, geometry and impulse indicators in Chromium.
 mod authored;
+mod journal_visuals;
 mod gpu_arm_visuals;
 mod gpu_tool_visuals;
 mod particle_visuals;
@@ -855,7 +856,7 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
         if let Some(names) = chrome.oracle.index["particle_visuals"].as_array() {
             result["independent_particle_positions_checked"] = json!(names.len() * expected.len());
         }
-        if chrome.oracle.index["aligned_visual_links"].is_object() {
+        if chrome.oracle.index["aligned_visual_links"].is_object() || chrome.oracle.index["aligned_journal_trace"].is_string() {
             result["independent_link_poses_checked"] = json!(expected.iter().sum::<usize>());
         }
         if chrome.oracle.index["source_visual_poses"].is_object() {
