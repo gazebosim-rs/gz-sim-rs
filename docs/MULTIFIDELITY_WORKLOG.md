@@ -7,6 +7,12 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Source publication and runnable release iterations
+
+The integrated simulator contains every one of the 3,382 changed or added paths in the original physics checkout. The original source and historical benchmark variants are preserved on a separate simulator branch. The Rust browser controls for worker recovery are published in the viewer repository. The approved design and the CLI coverage supplement are now readable from a clone. [Integrated simulator](https://github.com/gazebosim-rs/gz-sim-rs/tree/review/local-cpu-mvp-20261124) · [Original physics source and comparisons](https://github.com/gazebosim-rs/gz-sim-rs/tree/review/multifidelity-source-20261124) · [Viewer source](https://github.com/gazebosim-rs/gzweb-rs/tree/review/physics-worker-recovery-ui) · [Supplemental CLI measurements](measurements/local-manipulation/mvp-cli-local-supplement.md)
+
+The current release order starts with the installed local simulator, then takes one stock robot or physics task at a time. The first delivery qualifies the rotor and gripper package, including interrupted control, reset and replay. The second brings up the unchanged double pendulum to qualify offset inertia. Each increment includes an installable candidate, a one-command example, a measured reference and a gz-web-rs recording. [Active physics release roadmap](PHYSICS_RELEASE_ROADMAP.md)
+
 ## 2026-11-24 — Local CPU robot MVP candidate
 
 The isolated review branch includes published port commit `dddf1f4`. Source candidate `2e7d155` installs the normal simulator, ordered input replay and local control client with Cargo's local CPU feature selection. An unchanged Gazebo SDF now accepts torque on a revolute joint attached to a moving base. The viewer and recorder preserve its unpainted links and finite ground-plane visual. Through the ordinary transport server, a separate publisher drove the rotor forward, stepped the paused world, reset it, and drove it backward. A separate native Gazebo DART run reached the same 10 rad/s, with a maximum angle difference of 0.215° at eight matched times. Replaying the journal across one and eight Bevy threads matched all 610 records. A second install from a clean Git source export reproduced both recording directories byte for byte after unpacking outside the source tree. [Run the CLI and viewer](LOCAL_CPU_MVP.md) · [Independent robot checks](measurements/local-manipulation/mvp-independent-robot.md)
@@ -278,7 +284,7 @@ The local GPU arm now pushes a free rigid sphere, transfers frictional impulse a
 
 The serial arm clears the barrier with loads up to 1.245 kg at the tested friction. It safely set down all eight diagonally weighted parcels that slipped, with no alarms in eight undisturbed controls. The folded-sheet arm now has measured timestep and individual jaw-force limits on light grippers. Recent qualification covers shelf placement at four physics rates, cable snag recovery, the loaded foot crossing a deck edge, and GPU-arm impact from a matched incoming state. The CPU fleet throughput and the full release coverage gate remain open. [Shelf placement](measurements/local-manipulation/serial-convergence.md) · [Loaded ankle](measurements/local-manipulation/compliant-ankle-edge.md) · [GPU impact](measurements/local-manipulation/native-landing-passes.md) · [Release coverage](measurements/local-manipulation/local-implementation-gate.md)
 
-The [approved technical design](../../physics_tdd.md) defines five acceptance milestones. The table records the evidence for each, and the phases below give the proposed implementation order.
+The [approved technical design](physics_tdd.md) defines five acceptance milestones. The table records the evidence for each, and the phases below give the proposed implementation order.
 
 | TDD milestone | What works today | What is still open |
 |---|---|---|
@@ -295,7 +301,9 @@ The [approved technical design](../../physics_tdd.md) defines five acceptance mi
 
 The local robot can keep the jaws on an 8.4 g sheet at the edge of a finite table, measure separate contacts during a rigid parcel strike, and resolve a cylinder landing on its end. On the GPU, an eccentric parcel's second corner takes load within 0.62 µs of the independent arrival time. The mounted carriage stays stable through a delayed 1.2 mm jaw strike. Current local priorities are smaller gaps and extreme-inertia jaw strikes, later glancing rotation, fleet throughput and the whole-crate release thresholds. [Carriage and jaw](measurements/local-manipulation/mounted-rail.md) [Guarded sheet](measurements/local-manipulation/sheet-deck-margin.md) · [Cylinder impact](measurements/local-manipulation/axial-cap.md) · [Separate jaw contacts](measurements/local-manipulation/jaw-gap-pulses.md) · [Bilateral gripper](measurements/local-manipulation/serial-bilateral.md) · [Touching faces](measurements/local-manipulation/serial-touching-solver.md) · [GPU shelf](measurements/local-manipulation/gpu-glancing-corner.md)
 
-### Proposed phases and completion criteria
+### Earlier implementation order
+
+The [active release roadmap](PHYSICS_RELEASE_ROADMAP.md) supersedes the sequence below. The historical criteria remain available for tracing measurements back to the design.
 
 | Order | What to implement | How we will know it is ready |
 |---|---|---|

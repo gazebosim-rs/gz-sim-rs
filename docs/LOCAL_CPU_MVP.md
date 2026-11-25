@@ -2,6 +2,16 @@
 
 Source candidate `2e7d155` includes published Gazebo port commit `dddf1f4` and runs rigid-body robots in a local Bevy world. The two starting points are an unchanged Gazebo motor on a free base and a screw-driven gripper that lifts a 200 g parcel. Start with the gripper to see a full task, or use the motor to test your own torque commands. The examples below use the locked Rust toolchain and an empty output directory.
 
+## Get the simulator source
+
+From the directory where you keep Gazebo projects, clone the physics review branch. The optional browser viewer builds from its own repository alongside the simulator. The recordings and physics tests live in the simulator checkout.
+
+```sh
+git clone --branch review/local-cpu-mvp-20261124 https://github.com/gazebosim-rs/gz-sim-rs.git
+git clone --branch review/physics-worker-recovery-ui https://github.com/gazebosim-rs/gzweb-rs.git
+cd gz-sim-rs
+```
+
 ## Install the command-line tools
 
 From a clean checkout, build all three tools into a directory you own. This uses the locked dependency graph and the local CPU feature set. The installation was exercised from a separate directory on Linux x86-64. A fresh process verified all 610 motor journal records using eight Bevy threads after recording them with one.

@@ -1,6 +1,6 @@
 # Overnight physics development, November 18–19, 2026
 
-The Rust implementation is in the separate `gz-sim-rs-multifidelity` checkout on `physics/multifidelity`. This session ran from 21:43:56 PST on November 18 through 03:43:56 PST on November 19. The 06:00 PST report is scheduled separately. Changes are local and uncommitted. The other Gazebo port checkout was kept available to its owner. The [engineering worklog](MULTIFIDELITY_WORKLOG.md) and the [original requirements](../../physics_tdd.md) describe the broader project.
+The Rust implementation is in the separate `gz-sim-rs-multifidelity` checkout on `physics/multifidelity`. This session ran from 21:43:56 PST on November 18 through 03:43:56 PST on November 19. The 06:00 PST report is scheduled separately. Changes are local and uncommitted. The other Gazebo port checkout was kept available to its owner. The [engineering worklog](MULTIFIDELITY_WORKLOG.md) and the [original requirements](physics_tdd.md) describe the broader project.
 
 ## Try the four-worker world
 

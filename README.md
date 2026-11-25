@@ -1,6 +1,6 @@
 ## Local CPU robot physics
 
-Build the Rust simulator, drive an upstream Gazebo robot, or watch the gripper pick up a parcel in gz-web-rs. [Run the local CPU physics preview](docs/LOCAL_CPU_MVP.md)
+Build the Rust simulator, drive an upstream Gazebo robot, or watch the gripper pick up a parcel in gz-web-rs. [Run the local CPU physics preview](docs/LOCAL_CPU_MVP.md) · [Physics release roadmap](docs/PHYSICS_RELEASE_ROADMAP.md)
 
 ## Current development: M76 CameraInfo projection offsets
 

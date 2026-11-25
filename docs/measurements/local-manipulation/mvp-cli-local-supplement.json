@@ -1,0 +1,100 @@
+{
+  "candidate": "836bbcd8f6aae6c80568c11c2579fc835c319f75",
+  "profile": "supplemental Linux release, gz-sim-cli --no-default-features, host, CLI sources instrumented; two profiles for same object set",
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "baseline_tests": {
+    "library": 159,
+    "main": 2,
+    "cli": 18,
+    "local_cpu_replay": 24,
+    "upstream_motor_on_a_free_base_responds_to_transport_across_reset": 1
+  },
+  "supplemental_workloads": {
+    "parked_spindle_capped_simulated_seconds": 10,
+    "upstream_joint_force_trace_record_count": 610,
+    "replay_bevy_threads": [
+      1,
+      8
+    ],
+    "gzweb": {
+      "body_poses_and_shapes_checked": 3765,
+      "frames": 251,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    }
+  },
+  "matched_local_measurement": {
+    "matched": {
+      "lines": {
+        "count": 7354,
+        "covered": 6948
+      },
+      "regions": {
+        "count": 12636,
+        "covered": 11885
+      }
+    },
+    "matched-plus": {
+      "lines": {
+        "count": 7354,
+        "covered": 6957
+      },
+      "regions": {
+        "count": 12636,
+        "covered": 11894
+      }
+    },
+    "files_with_gain": {
+      "live.rs": {
+        "lines": 1,
+        "regions": 1
+      },
+      "web.rs": {
+        "lines": 8,
+        "regions": 8
+      }
+    }
+  },
+  "input_sha256": {
+    "objects": {
+      "gz-sim-local-replay": "f564b5785125e4e96f189bc61cf83641493c5ae2e1a0161b330210e4b8c7c325",
+      "gz-sim-rs": "4031ff5f762d120dc2b5cad672504eaa6b44fb1b45f0e8c7a0aea4f0a91914a0",
+      "parked_spindle": "262814407423fe9f25e383105677e5b1877220678581e2eed276322ba239e225"
+    },
+    "native_view_index": "db75e600e2c2232ebc82ba852ddcd1062fd7847c627a94a50bdcbf72d7bc2700",
+    "matched_llvm_export": "718714912493a651d56f60ffd804c9c1b852748e8848af44d7419007849a881d",
+    "matched-plus_llvm_export": "0f5add4697e37e78086282e40e3593fa8e22d1298c8ea0b70cf066578fad629c"
+  },
+  "historical_official": {
+    "candidate": "522a03fa7fd4",
+    "lines": {
+      "covered": 7965,
+      "total": 8470,
+      "needed_for_strictly_above_95": 82
+    },
+    "regions": {
+      "covered": 13673,
+      "total": 14723,
+      "needed_for_strictly_above_95": 314
+    },
+    "file_evidence_at_newly_hit_source_entries": {
+      "live.rs": {
+        "source_line": 235,
+        "count": 3
+      },
+      "web.rs": {
+        "source_lines": [
+          713,
+          719,
+          720
+        ],
+        "count_at_each": 13791
+      }
+    },
+    "official_profile_features": [
+      "gz-sim-cli/rgb-camera",
+      "gz-sim-cli/landing-audit"
+    ],
+    "historical_counts_not_merged": true
+  }
+}
