@@ -147,7 +147,17 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         fs::create_dir(out)?;
     }
     let first = usize::from(args.replay.is_none());
+    let blocks = std::env::var_os("GZ_PUBLICATION_BLOCKS").is_some();
     for tick in first..=last_tick {
+        if blocks && tick > 20 && (tick - 21).is_multiple_of(32) {
+            use std::io::Write;
+            println!("READY {tick}");
+            std::io::stdout().flush()?;
+            let mut token = String::new();
+            if std::io::stdin().read_line(&mut token)? == 0 {
+                return Err("missing timing block token".into());
+            }
+        }
         let start = Instant::now();
         if tick == 0 {
             sim.set_paused(true);
@@ -203,9 +213,16 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
                 black_box(*v);
             }
         }
-        let elapsed = [start.elapsed().as_nanos() as u64, readout.elapsed_ns];
+        let [links, models, attachments] = gz_sim_scene::measured_fleet_stages();
+        let elapsed = [
+            start.elapsed().as_nanos() as u64,
+            readout.elapsed_ns,
+            links,
+            models,
+            attachments,
+        ];
         if tick == 1 {
-            first_step = elapsed;
+            first_step = [elapsed[0], elapsed[1]];
         }
         if tick > 20 {
             times.push(elapsed);
@@ -222,7 +239,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     }
     println!(
         "{}",
-        json!({"decks":args.decks,"step_ns":10_000_000,"warmup":20,"poses":poses.iter(sim.world()).count(),"twists":twists.iter(sim.world()).count(),"calls":sensor.calls,"transitions":sensor.transitions,"sample_columns":["total_ns","four_gates_ns"],"first_advancing_step":first_step,"samples":times})
+        json!({"decks":args.decks,"step_ns":10_000_000,"warmup":20,"poses":poses.iter(sim.world()).count(),"twists":twists.iter(sim.world()).count(),"calls":sensor.calls,"transitions":sensor.transitions,"sample_columns":["total_ns","four_gates_ns","link_states_ns","model_and_local_ns","attached_poses_ns"],"first_advancing_step":first_step,"samples":times})
     );
     Ok(())
 }

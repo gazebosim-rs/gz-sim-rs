@@ -63,6 +63,7 @@ fn publish(
     mut models: Models,
     mut links: Links,
 ) {
+    let _time = PublicStage(1, std::time::Instant::now());
     published.0 = false;
     let count = all_models.count();
     if !parallel_pose_updates(count) || all_locals.count() != 2 * count {

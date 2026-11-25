@@ -2400,6 +2400,20 @@ fn spawn_node(
 
 // These queries have only archetypal filters. Counting their matching tables
 // avoids starting a task pool or dispatching small scenes on worker threads.
+static FLEET_STAGES: [std::sync::atomic::AtomicU64; 3] =
+    [const { std::sync::atomic::AtomicU64::new(0) }; 3];
+struct PublicStage(usize, std::time::Instant);
+impl Drop for PublicStage {
+    fn drop(&mut self) {
+        FLEET_STAGES[self.0].store(
+            self.1.elapsed().as_nanos() as u64,
+            std::sync::atomic::Ordering::Relaxed,
+        );
+    }
+}
+pub fn measured_fleet_stages() -> [u64; 3] {
+    std::array::from_fn(|i| FLEET_STAGES[i].load(std::sync::atomic::Ordering::Relaxed))
+}
 const PARALLEL_POSE_ROWS: usize = 8192;
 
 fn parallel_pose_updates(rows: usize) -> bool {
@@ -2581,6 +2595,7 @@ fn sync_attached_poses(
     parents: Query<(Entity, &WorldPose), Without<AttachedPose>>,
     mut nodes: Query<(&ChildOf, &LocalPose, &mut WorldPose), With<AttachedPose>>,
 ) {
+    let _time = PublicStage(2, std::time::Instant::now());
     let lookup = |id| *parents.get(id).expect("attached poses have link parents").1;
     let compose = |parent: WorldPose, local: &LocalPose| parent.compose(local.0);
     if parallel_pose_updates(nodes.count())
@@ -2603,6 +2618,7 @@ fn sync_bodies(
         &mut Velocity,
     )>,
 ) {
+    let _time = PublicStage(0, std::time::Instant::now());
     let publish = |state: gz_physics::BodyState,
                    center: Option<&LinkCenterOfMass>,
                    pose: &mut WorldPose,
