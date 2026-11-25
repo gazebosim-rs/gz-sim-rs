@@ -64,7 +64,7 @@ pub(super) fn resolve(
     } else {
         iterative(&k, &free, &projected)
     }
-    .ok_or(XpbdError::UnresolvedSurface)?;
+    .ok_or_else(|| { eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface })?;
     let mut result = BTreeMap::new();
     for ((&key, c), total) in rows.into_iter().zip(total) {
         let b = &mut pads[key.0];

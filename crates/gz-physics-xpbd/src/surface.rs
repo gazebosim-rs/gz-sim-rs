@@ -67,6 +67,7 @@ pub(super) struct Surface {
     // Topology and broad-phase capacity failures retain their hard limits.
     pub(super) subdivide_on_budget: bool,
     pub(super) retry_plane: bool,
+    pub(super) retry_velocity: bool,
 }
 
 fn edge(a: usize, b: usize) -> [usize; 2] {
@@ -160,6 +161,7 @@ impl Surface {
             loads: None,
             subdivide_on_budget: false,
             retry_plane: false,
+            retry_velocity: false,
         };
         let positions = particles
             .iter()
@@ -238,7 +240,7 @@ impl Surface {
                 }
                 candidates += 1;
                 if candidates > MAX_CANDIDATES {
-                    return Err(XpbdError::SurfaceBudget);
+                    return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
                 }
                 if a.lo.cmpgt(b.hi).any() || b.lo.cmpgt(a.hi).any() {
                     continue;
@@ -250,7 +252,7 @@ impl Surface {
                     continue;
                 }
                 if geometry::intersect(a.map(|i| x[i]), b.map(|i| x[i])) {
-                    return Err(XpbdError::UnresolvedSurface);
+                    return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
                 }
             }
         }
@@ -283,8 +285,9 @@ impl Surface {
             };
             if count == MAX_PROJECTIONS {
                 self.subdivide_on_budget = true;
-                return Err(XpbdError::SurfaceBudget);
+                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
             }
+            if queries>50000 {eprintln!("project num={count} queries={queries} qtime={} depth={} speed={}",hit.time,hit.depth,hit.speed);}
             self.resolve(&hit, x, p, gap, h)?;
             count += 1;
         }
@@ -344,21 +347,23 @@ impl Surface {
             };
             if hit.speed == 0. || hit.depth > eps || (witness.delta.length() - gap).abs() > 4. * eps
             {
-                return Err(XpbdError::UnresolvedSurface);
+                eprintln!("boundary-shell vf={} ids={:?} time={} depth={:e} vn={:e} sep={:e} eps={eps:e}",hit.stencil.vf,hit.stencil.ids,hit.time,hit.depth,hit.speed,witness.delta.length()-gap);
+                return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
             }
+            if queries>50000 {eprintln!("finish queries={queries} ids={:?} qtime={} depth={} speed={}",hit.stencil.ids,hit.time,hit.depth,hit.speed);}
             hit.depth = 0.;
             self.resolve(&hit, x, p, gap, 0.)?;
             support(x, p)?;
         }
-        Err(XpbdError::UnresolvedSurface)
+        Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface })
     }
     pub fn verify(&mut self, x: &[DVec3], p: &[Particle], gap: f64) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
         if self
-            .next_hit(x, p, gap, eps, (&mut 0, &mut 0), false)?
+            .next_hit(x, p, gap, eps, (&mut 0, &mut 0), self.retry_plane)?
             .is_some()
         {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
         }
         Ok(())
     }
@@ -400,7 +405,7 @@ impl Surface {
                 }
                 *candidates += 1;
                 if *candidates > MAX_CANDIDATES {
-                    return Err(XpbdError::SurfaceBudget);
+                    return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
                 }
                 if b.lo.cmpgt(a.hi).any() || a.lo.cmpgt(b.hi).any() {
                     continue;
@@ -408,17 +413,18 @@ impl Surface {
                 let Some(stencil) = self.candidate(a.feature, b.feature) else {
                     continue;
                 };
+                let initial_queries = *queries;
                 let hit = stencil
                     .sweep(x, p, gap, eps, queries, mode)
                     .inspect_err(|error| {
                         if *error == XpbdError::SurfaceBudget && *queries > MAX_DISTANCE_QUERIES {
+                            eprintln!("exhausted vf={} idx={:?} before={} candidates={} coords={} mode={}",stencil.vf,stencil.ids,initial_queries,*candidates,p.len(),terminal);
                             self.subdivide_on_budget = true;
                         }
                     })?;
                 if let Some(hit) = hit
                     && earliest.as_ref().is_none_or(|old| {
-                        hit.time
-                            .total_cmp(&old.time)
+                        (if terminal && self.retry_velocity {old.speed.total_cmp(&hit.speed)} else {std::cmp::Ordering::Equal}).then(hit.time.total_cmp(&old.time))
                             .then(stencil.ids.cmp(&old.stencil.ids))
                             .is_lt()
                     })
@@ -533,7 +539,7 @@ impl Stencil {
             };
             let distance = endpoint.delta.length();
             let touching = distance <= gap + 4. * eps;
-            let supported = mode == SweepMode::SupportedShell && speed < 0.;
+            let supported = mode == SweepMode::SupportedShell && (speed < 0. || end_gap < gap - eps);
             if distance > eps && endpoint.delta.dot(n) > 0. && (touching || supported) {
                 let penetrated = distance < gap - eps;
                 let lower = inner_gap();
@@ -628,7 +634,7 @@ impl Stencil {
                 return Ok(None);
             }
         }
-        Err(XpbdError::UnresolvedSurface)
+        Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface })
     }
 }
 
@@ -696,7 +702,7 @@ pub(super) fn first_entry_mode(
     for _ in 0..128 {
         *queries += 1;
         if *queries > MAX_DISTANCE_QUERIES {
-            return Err(XpbdError::SurfaceBudget);
+            return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
         }
         let pos = std::array::from_fn(|i| start[i] + path[i] * time);
         let witness = if vf {
@@ -713,7 +719,7 @@ pub(super) fn first_entry_mode(
             return Ok(None);
         }
         if distance <= eps {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
         }
         let n = delta / distance;
         // Every point of either swept convex feature is a convex combination.
@@ -752,14 +758,14 @@ pub(super) fn first_entry_mode(
         let advance = ((distance - gap) / relative).max(plane_time);
         let next = (time + advance).min(1.);
         if next <= time {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
         }
         time = next;
     }
     if vf || material {
         entry_intervals(start, end, vf, time, gap, eps, relative, queries, material)
     } else {
-        Err(XpbdError::UnresolvedSurface)
+        Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface })
     }
 }
 
@@ -800,17 +806,20 @@ fn entry_intervals(
             continue;
         }
         let mut clear = false;
+        let mut normals = [DVec3::ZERO; 2];
         for t in [lo, mid, hi] {
             *queries += 1;
             if *queries > MAX_DISTANCE_QUERIES {
-                return Err(XpbdError::SurfaceBudget);
+                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
             }
             let w = witness(&at(t));
             let d = w.delta.length();
             if !d.is_finite() || d <= eps {
-                return Err(XpbdError::UnresolvedSurface);
+                return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
             }
             let n = w.delta / d;
+            if t == lo {normals[0]=n;}
+            if t == hi {normals[1]=n;}
             let separated = |p: [DVec3; 4]| {
                 p[..split]
                     .iter()
@@ -829,11 +838,21 @@ fn entry_intervals(
                 break;
             }
         }
+        if !clear && material {
+            let [n0,n1] = normals;
+            let threshold = gap*n0.length().max(n1.length());
+            clear = (0..split).all(|i| (split..4).all(|j|{
+                let d0=a[i]-a[j];
+                let d1=b[i]-b[j];
+                let floor=threshold+128.*f64::EPSILON*(threshold+d0.length()+d1.length());
+                d0.dot(n0)>floor && d1.dot(n1)>floor && (d0.dot(n1)+d1.dot(n0))*0.5>floor
+            }));
+        }
         if clear {
             continue;
         }
         if mid <= lo || mid >= hi {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
         }
         // The entire time slab has less spatial motion than the geometric
         // resolution. Accept its left endpoint only within the same error bound.
@@ -861,7 +880,7 @@ impl Hit {
             .map(|i| p[self.stencil.ids[i]].inverse_mass * self.weights[i].powi(2))
             .sum::<f64>();
         if !denom.is_finite() || denom <= 0. {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
         }
         for (i, &id) in self.stencil.ids.iter().enumerate() {
             let gradient = self.normal * (p[id].inverse_mass * self.weights[i] / denom);

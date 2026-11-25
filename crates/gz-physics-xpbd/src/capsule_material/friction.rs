@@ -179,7 +179,7 @@ fn disk(a: f64, b: f64, c: f64, g: DVec2, limit: f64) -> Result<DVec2, XpbdError
     }
     let det = a * c - b * b;
     if !(a > 0. && c > 0. && det > 1e-13 * a * c) {
-        return Err(XpbdError::UnresolvedSurface);
+        return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
     }
     let solve = |l: f64| {
         let det = (a + l) * (c + l) - b * b;
@@ -208,7 +208,7 @@ fn scaled_disk(a: f64, b: f64, c: f64, g: DVec2, limit: f64) -> Result<DVec2, Xp
     let (a, b, c) = (a / m, b / m, c / m);
     let det = a * c - b * b;
     if !(a > 0. && c > 0. && det > 1e-13 * a * c) {
-        return Err(XpbdError::UnresolvedSurface);
+        return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
     }
     let f = g.abs().max_element();
     if f == 0. {
@@ -300,7 +300,7 @@ impl<'a> ContactPoint<'a> {
         let n = c.normal;
         let arm = core
             + (path.linear.gap - dt.radius)
-                * radial.try_normalize().ok_or(XpbdError::UnresolvedSurface)?;
+                * radial.try_normalize().ok_or_else(|| { eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface })?;
         let point = center + arm;
         let mut face = [usize::MAX; 3];
         face[..c.feature.vertices().len()].copy_from_slice(c.feature.vertices());
@@ -562,7 +562,7 @@ impl CapsuleMaterial {
                         };
                         if let Some(history) = &mut self.friction.samples {
                             if history.len() >= 131072 {
-                                return Err(XpbdError::SurfaceBudget);
+                                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
                             }
                             history.push(sample);
                         }

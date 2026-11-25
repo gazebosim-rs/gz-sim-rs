@@ -59,7 +59,7 @@ fn feature(ids: [usize; 3], weights: [f64; 3]) -> [usize; 3] {
 impl Pads {
     pub fn new(faces: Vec<[usize; 3]>) -> Result<Self, XpbdError> {
         if faces.len() > MAX_FACES {
-            return Err(XpbdError::SurfaceBudget);
+            return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
         }
         Ok(Self {
             patches: patches(&faces)?,
@@ -125,7 +125,7 @@ impl Pads {
                             continue;
                         }
                         if d <= eps {
-                            return Err(XpbdError::UnresolvedSurface);
+                            return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
                         }
                         (
                             -w.delta / d,
@@ -150,7 +150,7 @@ impl Pads {
                         {
                             let d = w.delta.length();
                             if d <= eps {
-                                return Err(XpbdError::UnresolvedSurface);
+                                return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
                             }
                             (
                                 -w.delta / d,
@@ -197,7 +197,7 @@ impl Pads {
                 }
             }
             if self.contacts.len() > MAX_CONTACTS {
-                return Err(XpbdError::SurfaceBudget);
+                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
             }
             let Some(first) = selected else {
                 return Ok(());
@@ -235,7 +235,7 @@ impl Pads {
                     let w = vertex_face(&[center, a, b, c]);
                     let d = w.delta.length();
                     if d <= 1e-12 * gap {
-                        return Err(XpbdError::UnresolvedSurface);
+                        return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
                     }
                     let n = -w.delta / d;
                     let weights = [-w.weights[1], -w.weights[2], -w.weights[3]];
@@ -266,7 +266,7 @@ impl Pads {
                     let bb = own(second);
                     let det = aa * bb - cross * cross;
                     if !det.is_finite() || det <= 1e-12 * aa * bb {
-                        return Err(XpbdError::UnresolvedSurface);
+                        return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
                     }
                     worst = violation;
                     response = [
@@ -416,7 +416,7 @@ impl Pads {
             // stale material witness beyond a quarter of the skin thickness.
             let offset = point - q;
             if (offset - n * offset.dot(n)).length() > 0.25 * skin {
-                return Err(XpbdError::UnresolvedSurface);
+                return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
             }
             let patch = Skin::new(
                 &self.patches[&key],
@@ -477,13 +477,13 @@ impl Pads {
                         && x.iter()
                             .any(|q| (*q - origin).dot(n) < dt.radius * (1. - 1e-6))
                     {
-                        return Err(XpbdError::UnresolvedSurface);
+                        return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
                     }
                 }
                 return Ok(());
             }
             self.sweep(x, p, b, reactions, dt, true)?;
         }
-        Err(XpbdError::UnresolvedSurface)
+        Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface })
     }
 }

@@ -160,3 +160,21 @@ fn landing_balance_accounts_for_both_jaws_gravity_and_bench_friction() {
     assert_eq!(impact["incoming_mass_kg_vz_m_s"], json!(masses_before));
     assert_eq!(impact["outgoing_mass_kg_vz_m_s"], json!(masses_after));
 }
+
+#[test]
+fn rest_requires_fifty_consecutive_supported_unloaded_quiet_ticks() {
+    let mut rest = landing::Rest::default();
+    for tick in 1..50 {
+        assert!(!rest.sample(tick, 0.0005, 1., true));
+    }
+    assert!(!rest.sample(50, 0.0011, 1., true));
+    assert!(!rest.sample(51, 0.0005, 0.96, true));
+    assert!(!rest.sample(52, 0.0005, 1., false));
+    for tick in 53..102 {
+        assert!(!rest.sample(tick, 0.001, 1., true));
+    }
+    assert!(rest.sample(102, 0.001, 1., true));
+    let report = rest.report();
+    assert_eq!(report["consecutive_ticks"], 50);
+    assert_eq!(report["observations"][101], json!([102, 0.001, 1.]));
+}

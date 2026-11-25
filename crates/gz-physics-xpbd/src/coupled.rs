@@ -516,7 +516,7 @@ fn solve<M: Copy + Into<RigidMobility>>(
                 material.retry_manifold = retry_material;
             }
         }
-        let result = solve_at_resolution(bodies, dt, boundaries, mobility, u128::from(steps));
+        let result = solve_at_resolution(bodies, dt, boundaries, mobility, u128::from(steps), None);
         for body in bodies.iter_mut() {
             if let Some(surface) = &mut body.surface {
                 surface.retry_plane = false;
@@ -542,6 +542,16 @@ fn solve<M: Copy + Into<RigidMobility>>(
             return result;
         }
         if steps >= maximum {
+            if shell_contact && bodies.len()==1 && boundaries.iter().any(|b| matches!(b,Boundary::Plane{..})) && mobility.iter().all(|m|m.is_none_or(|m|matches!(m.into(),RigidMobility::PrescribedCuboid{..}))) {
+                let mut budget=maximum-count;
+                bodies[0].surface.as_mut().unwrap().retry_plane=true;
+                bodies[0].surface.as_mut().unwrap().retry_velocity=true;
+                let result=solve_at_resolution(bodies,dt,boundaries,mobility,u128::from(count),Some(&mut budget));
+                bodies[0].surface.as_mut().unwrap().retry_plane=false;
+                bodies[0].surface.as_mut().unwrap().retry_velocity=false;
+                eprintln!("targeted split used {} pieces result {:?}",maximum-budget,result.as_ref().err());
+                return result;
+            }
             if capsule_sweep && finite_material && !retry_material {
                 // The ordinary coupled sweep exhausted its grid. Reconstruct
                 // from the committed input with the same physical tolerances.
@@ -567,6 +577,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
     boundaries: &[Boundary],
     mobility: &[Option<M>],
     count: u128,
+    mut local:Option<&mut u32>,
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
     let ticks = dt.as_nanos();
     if ticks != 0 && ticks < count {
@@ -722,6 +733,9 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
                     limit =
                         super::impact_group::remaining_step(bodies, &prepared[0], ticks - time)?;
                 } else {
+                    if let Some(budget)=local.as_deref_mut() {
+                        split_block(&mut *bodies[0],&mut prepared,&mut reactions,time,tail,iterations,budget)?;
+                    } else {
                     substep_interval(
                         bodies,
                         &mut prepared,
@@ -731,6 +745,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
                         iterations,
                         false,
                     )?;
+                    }
                     time += tail;
                 }
             }
@@ -753,6 +768,16 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
                 .map(Receiver::motion)
         })
         .collect())
+}
+
+fn split_block(body:&mut SoftBody, boundaries:&mut [PreparedBoundary], reactions:&mut [Vec<BoundaryImpulse>], time:u128,width:u128,iterations:u32,budget:&mut u32)->Result<(),XpbdError>{
+ let before=body.clone(); let previous=boundaries.to_vec();let initial=reactions.to_vec();
+ let error=match substep_interval(&mut [body],boundaries,reactions,time,width,iterations,false) {Ok(())=>return Ok(()),Err(e)=>e};
+ if !matches!(error,XpbdError::UnresolvedSurface|XpbdError::SurfaceBudget)||width<=1||*budget==0{return Err(error);}
+ let n=width.div_ceil(2);
+ *budget-=1;*body=before;boundaries.clone_from_slice(&previous);reactions.clone_from_slice(&initial);
+ split_block(body,boundaries,reactions,time,n,iterations,budget)?;
+ split_block(body,boundaries,reactions,time+n,width-n,iterations,budget)
 }
 
 fn substep_interval(

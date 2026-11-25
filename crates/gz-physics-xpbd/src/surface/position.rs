@@ -61,7 +61,7 @@ pub(super) fn correct(
             // both sum; torque always lies in their span. Verify the residual.
             let candidate = torque / sum;
             if (inertia * candidate - torque).length() > 1e-10 * torque.length() {
-                return Err(XpbdError::UnresolvedSurface);
+                return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
             }
             candidate
         }
@@ -74,7 +74,7 @@ pub(super) fn correct(
         max_motion = max_motion.max(g.length());
     }
     if !response.is_finite() || response <= 0. || max_motion > 8. * response {
-        return Err(XpbdError::UnresolvedSurface);
+        return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
     }
     for (i, _, _, g) in rows {
         x[i] += g * (hit.depth / response);

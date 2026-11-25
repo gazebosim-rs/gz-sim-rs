@@ -24,7 +24,7 @@ pub(super) fn patches(faces: &[[usize; 3]]) -> Result<BTreeMap<[usize; 3], Vec<u
             let ring = map.entry(key).or_default();
             ring.extend([a, b, c]);
             if ring.len() > MAX_RING {
-                return Err(XpbdError::SurfaceBudget);
+                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
             }
         }
     }
@@ -69,7 +69,7 @@ impl<'a> Skin<'a> {
         let scale = inertia.x_axis.x.max(inertia.y_axis.y).max(inertia.z_axis.z);
         let scaled = inertia / scale;
         if !scale.is_finite() || scale <= 0. || scaled.determinant() < 1e-12 {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
         }
         Ok(Self {
             ids,

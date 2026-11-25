@@ -155,7 +155,7 @@ impl CapsuleMaterial {
         if let Some(columns) = grid {
             let cells = (particles / columns - 1) * (columns - 1);
             if cells > MAX_STENCILS / 4 {
-                return Err(XpbdError::SurfaceBudget);
+                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
             }
             for row in 1..particles / columns {
                 for col in 1..columns {
@@ -170,12 +170,12 @@ impl CapsuleMaterial {
             }
         } else {
             if particles > MAX_STENCILS + 1 {
-                return Err(XpbdError::SurfaceBudget);
+                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
             }
             edges.extend((1..particles).map(|i| [i - 1, i]));
         }
         if edges.len() + 2 * faces.len() > MAX_STENCILS {
-            return Err(XpbdError::SurfaceBudget);
+            return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
         }
         let mut stencils = edges.into_iter().map(Stencil::Edge).collect::<Vec<_>>();
         for &ids in &faces {
@@ -306,7 +306,7 @@ impl CapsuleMaterial {
                             && let Stencil::FaceCap(ids, -1) = stencil
                             && geometry::pierces(ids.map(|i| p[i].position.into()), g.center, g.arm)
                         {
-                            return Err(XpbdError::UnresolvedSurface);
+                            return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
                         }
                         let candidates =
                             tr.candidates(*stencil, x, p, &mut self.queries)
@@ -335,7 +335,7 @@ impl CapsuleMaterial {
                                         .dot(c.normal)
                                         < -c.tolerance / dt.h
                                 {
-                                    return Err(XpbdError::UnresolvedSurface);
+                                    return Err({ eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface });
                                 }
                                 continue;
                             }
@@ -369,13 +369,13 @@ impl CapsuleMaterial {
             }
             self.checked_initial = true;
             if self.contacts.len() > MAX_ROWS {
-                return Err(XpbdError::SurfaceBudget);
+                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
             }
             if group.is_empty() {
                 return Ok(());
             }
             if group.len() > MAX_ROWS {
-                return Err(XpbdError::SurfaceBudget);
+                return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
             }
             // A nearly unloaded opposing jaw can be out of the earliest CCD
             // group but become active under its correction. Include its signed
@@ -412,7 +412,7 @@ impl CapsuleMaterial {
                     }
                 }
                 if group.len() > MAX_ROWS {
-                    return Err(XpbdError::SurfaceBudget);
+                    return Err({eprintln!("capacity {}:{}",file!(),line!());XpbdError::SurfaceBudget});
                 }
             }
             let rows = group
@@ -612,7 +612,7 @@ fn solve_normals(
     } else {
         crate::pad::normal::iterative(&k, &free, seed)
     }
-    .ok_or(XpbdError::UnresolvedSurface)
+    .ok_or_else(|| { eprintln!("refusal {}:{}", file!(), line!()); XpbdError::UnresolvedSurface })
 }
 
 #[cfg(test)]

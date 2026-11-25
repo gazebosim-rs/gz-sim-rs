@@ -74,6 +74,9 @@ enum Study {
         /// After escape, measure the first actual bench impulse and record its committed state.
         #[arg(long, conflicts_with = "follow_dropped", requires = "columns")]
         first_landing: bool,
+        /// Follow the escaped sheet until every particle settles under its measured weight.
+        #[arg(long, conflicts_with_all = ["follow_dropped", "first_landing"], requires = "columns")]
+        until_rest: bool,
     },
     /// Pull a force-controlled folded sheet sideways and compare its slip with an unloaded hold.
     FoldPull { output: PathBuf },
@@ -241,9 +244,12 @@ fn main() -> Result<()> {
             load_mn,
             follow_dropped,
             first_landing,
+            until_rest,
         } => write_new(&output, |out| {
             use fold_pull::recovery::End;
-            let end = if first_landing {
+            let end = if until_rest {
+                End::Rest
+            } else if first_landing {
                 End::FirstLanding
             } else if follow_dropped {
                 End::Horizon
