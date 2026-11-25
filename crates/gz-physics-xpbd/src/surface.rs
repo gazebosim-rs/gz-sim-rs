@@ -309,7 +309,7 @@ impl Surface {
                     continue;
                 }
                 if geometry::intersect(a.map(|i| x[i]), b.map(|i| x[i])) {
-                    return Err(XpbdError::UnresolvedSurface);
+                    return Err(crate::observed_refusal());
                 }
             }
         }
@@ -420,13 +420,13 @@ impl Surface {
             };
             if hit.speed == 0. || hit.depth > eps || (witness.delta.length() - gap).abs() > 4. * eps
             {
-                return Err(XpbdError::UnresolvedSurface);
+                return Err(crate::observed_refusal());
             }
             hit.depth = 0.;
             self.resolve(&hit, x, p, gap, 0.)?;
             support(x, p)?;
         }
-        Err(XpbdError::UnresolvedSurface)
+        Err(crate::observed_refusal())
     }
     /// A local velocity solve may continue a clear incoming shell. Starting
     /// with overlapping material skins would instead require a geometric
@@ -455,7 +455,7 @@ impl Surface {
         if self.certified_clear(x, p, gap, eps) {
             return Ok(());
         }
-        if self
+        if let Some(hit) = self
             .next_hit(
                 x,
                 p,
@@ -468,9 +468,13 @@ impl Surface {
                     Search::Ordinary
                 },
             )?
-            .is_some()
+
         {
-            return Err(XpbdError::UnresolvedSurface);
+            if crate::CUT_ACTIVE.load(std::sync::atomic::Ordering::Relaxed) {
+                  let ids=hit.stencil.ids;
+                  eprintln!("TERMINAL ids={ids:?} vf={} start={:?} end={:?} velocities={:?} gap={gap:?} eps={eps:?} time={:?} depth={:?} speed={:?} weights={:?} normal={:?} endpoint={} retry={}",hit.stencil.vf,ids.map(|i|p[i].position),ids.map(|i|x[i].to_array()),ids.map(|i|p[i].velocity),hit.time,hit.depth,hit.speed,hit.weights,hit.normal,hit.endpoint_velocity,self.retry_plane);
+            }
+            return Err(crate::observed_refusal());
         }
         Ok(())
     }
@@ -622,7 +626,12 @@ impl Stencil {
             eps,
             queries,
             mode,
-        )
+        ).inspect_err(|_| {
+            if crate::CUT_ACTIVE.load(std::sync::atomic::Ordering::Relaxed) {
+                eprintln!("STENCIL ids={:?} vf={} gap={gap:?} eps={eps:?} mode={} start={:?} end={:?} velocities={:?}",
+                    self.ids,self.vf,mode as usize,self.ids.map(|i|p[i].position),self.ids.map(|i|x[i].to_array()),self.ids.map(|i|p[i].velocity));
+            }
+        })
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -741,7 +750,7 @@ impl Stencil {
             return if certified {
                 Ok(None)
             } else {
-                Err(XpbdError::UnresolvedSurface)
+                Err(crate::observed_refusal())
             };
         }
         // During sliding the closest material point can move away from the
@@ -787,7 +796,7 @@ impl Stencil {
                 return Ok(None);
             }
         }
-        Err(XpbdError::UnresolvedSurface)
+        Err(crate::observed_refusal())
     }
 }
 
@@ -877,7 +886,7 @@ pub(super) fn first_entry_mode(
             return Ok(None);
         }
         if distance <= eps {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         let n = delta / distance;
         // Every point of either swept convex feature is a convex combination.
@@ -916,14 +925,14 @@ pub(super) fn first_entry_mode(
         let advance = ((distance - gap) / relative).max(plane_time);
         let next = (time + advance).min(1.);
         if next <= time {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         time = next;
     }
     if vf || material {
         entry_intervals(start, end, vf, time, gap, eps, relative, queries, material)
     } else {
-        Err(XpbdError::UnresolvedSurface)
+        Err(crate::observed_refusal())
     }
 }
 
@@ -973,7 +982,7 @@ fn entry_intervals(
             let w = witness(&at(t));
             let d = w.delta.length();
             if !d.is_finite() || d <= eps {
-                return Err(XpbdError::UnresolvedSurface);
+                return Err(crate::observed_refusal());
             }
             let n = w.delta / d;
             if t == lo {
@@ -1004,7 +1013,7 @@ fn entry_intervals(
             continue;
         }
         if mid <= lo || mid >= hi {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         // The entire time slab has less spatial motion than the geometric
         // resolution. Accept its left endpoint only within the same error bound.
@@ -1057,7 +1066,7 @@ impl Hit {
             .map(|i| p[self.stencil.ids[i]].inverse_mass * self.weights[i].powi(2))
             .sum::<f64>();
         if !denom.is_finite() || denom <= 0. {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         for (i, &id) in self.stencil.ids.iter().enumerate() {
             let gradient = self.normal * (p[id].inverse_mass * self.weights[i] / denom);

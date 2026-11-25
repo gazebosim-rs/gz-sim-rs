@@ -74,6 +74,9 @@ fn measure(
     let (mut window_costs, mut baseline_costs) = (Vec::new(), Vec::new());
     let rows = episode_native(r, mode, &mut None, |r, _, elapsed| {
         let time = r.sim.committed_update_info()?.sim_time.as_nanos() as u64;
+        if time == 3_345_183_000 {
+            gz_physics_xpbd::CUT_ACTIVE.store(true,std::sync::atomic::Ordering::Relaxed);
+        }
         let cloth = arm_sheet::cloth(&r.sim)?;
         let [l, right, table] = cloth.last_boundary_impulses() else {
             return Err("missing gripper contacts".into());
@@ -136,6 +139,15 @@ fn measure(
             window_costs.push(cost);
         } else {
             baseline_costs.push(cost);
+        }
+        // Passive diagnostic: retain physically committed data if a later solver step faults.
+        if elapsed.is_some_and(|t| t == 500_000 || t == 1_500_000 || t == 80_500_000)
+            || time.is_multiple_of(25 * MS) && time >= 3_000 * MS
+        {
+            eprintln!("MEASURE {}", json!({"time_ns":time,"since_stop_ns":elapsed,
+                "events":events,"previous_commit_table_impulse_ns":table,
+                "relative_vertical_com_speed_m_s":vz,"held":held,
+                "window_cost_ns":window_costs.iter().sum::<u64>()}));
         }
         if draw && (time.is_multiple_of(25 * MS) || in_window && time.is_multiple_of(MS)) {
             arm_sheet::capture(r, &mut captures)?;

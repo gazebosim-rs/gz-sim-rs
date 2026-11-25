@@ -306,7 +306,7 @@ impl CapsuleMaterial {
                             && let Stencil::FaceCap(ids, -1) = stencil
                             && geometry::pierces(ids.map(|i| p[i].position.into()), g.center, g.arm)
                         {
-                            return Err(XpbdError::UnresolvedSurface);
+                            return Err(crate::observed_refusal());
                         }
                         let candidates =
                             tr.candidates(*stencil, x, p, &mut self.queries)
@@ -335,7 +335,7 @@ impl CapsuleMaterial {
                                         .dot(c.normal)
                                         < -c.tolerance / dt.h
                                 {
-                                    return Err(XpbdError::UnresolvedSurface);
+                                    return Err(crate::observed_refusal());
                                 }
                                 continue;
                             }

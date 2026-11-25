@@ -179,7 +179,7 @@ fn disk(a: f64, b: f64, c: f64, g: DVec2, limit: f64) -> Result<DVec2, XpbdError
     }
     let det = a * c - b * b;
     if !(a > 0. && c > 0. && det > 1e-13 * a * c) {
-        return Err(XpbdError::UnresolvedSurface);
+        return Err(crate::observed_refusal());
     }
     let solve = |l: f64| {
         let det = (a + l) * (c + l) - b * b;
@@ -208,7 +208,7 @@ fn scaled_disk(a: f64, b: f64, c: f64, g: DVec2, limit: f64) -> Result<DVec2, Xp
     let (a, b, c) = (a / m, b / m, c / m);
     let det = a * c - b * b;
     if !(a > 0. && c > 0. && det > 1e-13 * a * c) {
-        return Err(XpbdError::UnresolvedSurface);
+        return Err(crate::observed_refusal());
     }
     let f = g.abs().max_element();
     if f == 0. {

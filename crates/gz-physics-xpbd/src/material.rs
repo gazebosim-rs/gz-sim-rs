@@ -69,7 +69,7 @@ impl<'a> Skin<'a> {
         let scale = inertia.x_axis.x.max(inertia.y_axis.y).max(inertia.z_axis.z);
         let scaled = inertia / scale;
         if !scale.is_finite() || scale <= 0. || scaled.determinant() < 1e-12 {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         Ok(Self {
             ids,

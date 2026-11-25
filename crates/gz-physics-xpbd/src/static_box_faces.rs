@@ -204,7 +204,7 @@ impl Faces {
                         let (signed, n) = if at_start.delta.length() <= eps {
                             let Some(mut n) = (a[1] - a[0]).cross(a[2] - a[0]).try_normalize()
                             else {
-                                return Err(XpbdError::UnresolvedSurface);
+                                return Err(crate::observed_refusal());
                             };
                             if (corner - center).dot(n) < 0. {
                                 n = -n;

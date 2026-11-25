@@ -940,6 +940,10 @@ impl Deformables {
             .unwrap_or(&mut self.current)
             .values_mut()
             .collect::<Vec<_>>();
+        if gz_physics_xpbd::CUT_ACTIVE.load(std::sync::atomic::Ordering::Relaxed) {
+            for b in &bodies { b.dump_committed_cut(); }
+            eprintln!("BOUNDARIES {:?} MOBILITIES {:?} PAD_DAMPING {:?}",self.boundaries,self.mobility,self.pad_damping);
+        }
         let motions = if let Some(policy) = &mut self.landing_refinement {
             policy.solve(
                 bodies[0],

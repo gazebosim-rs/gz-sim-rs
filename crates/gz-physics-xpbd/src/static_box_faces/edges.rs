@@ -139,7 +139,7 @@ impl Ridge {
                 // Coincident parallel edges have no geometric normal. For
                 // zero skin, oppose only their incident transverse velocity.
                 if radius > eps {
-                    return Err(XpbdError::UnresolvedSurface);
+                    return Err(crate::observed_refusal());
                 }
                 let axis = direction.normalize();
                 let v = (z[2] - a[2]).lerp(z[3] - a[3], -initial.weights[3]);

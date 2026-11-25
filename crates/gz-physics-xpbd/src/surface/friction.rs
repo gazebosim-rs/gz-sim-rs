@@ -128,7 +128,7 @@ impl Friction {
             k += p[id].inverse_mass * d.length_squared();
         }
         if !k.is_finite() || k <= 0. {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         let response = hit
             .stencil
@@ -140,13 +140,13 @@ impl Friction {
             })
             .sum::<f64>();
         if !response.is_finite() || response <= 0. {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         let j = hit.speed / response;
         let quadratic = 0.5 * j * j * k;
         let roundoff = 128. * f64::EPSILON * (local_energy + j * v.abs() + quadratic);
         if !local_energy.is_finite() {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         if j * v + quadratic > roundoff {
             // A grazing feature may turn as its geometric overlap is removed.
@@ -159,7 +159,7 @@ impl Friction {
                 }
                 return Ok(0.);
             }
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         for (id, d) in directions {
             let dv = p[id].inverse_mass * j * d;
@@ -195,7 +195,7 @@ impl Friction {
         // Complete friction on the current skin. A detached event needs a
         // shorter interval to resolve its tangential impulse at the impact.
         if (distance - gap).abs() > 0.02 * gap {
-            return Err(XpbdError::UnresolvedSurface);
+            return Err(crate::observed_refusal());
         }
         let n = witness.delta / distance;
         let split = if hit.stencil.vf { 1 } else { 2 };
@@ -266,7 +266,7 @@ fn coulomb([aa, ab, bb]: [f64; 3], speed: f64, cap: f64) -> Result<DVec2, XpbdEr
     }
     let (aa, ab, bb) = (aa / scale, ab / scale, bb / scale);
     if aa * bb - ab * ab <= 1e-12 {
-        return Err(XpbdError::UnresolvedSurface);
+        return Err(crate::observed_refusal());
     }
     let rhs = speed / scale;
     if !rhs.is_finite() {
@@ -339,7 +339,7 @@ mod tests {
         ));
         assert!(matches!(
             coulomb([1., 1., 1.], 1., 0.2),
-            Err(XpbdError::UnresolvedSurface)
+            Err(crate::observed_refusal())
         ));
     }
 }

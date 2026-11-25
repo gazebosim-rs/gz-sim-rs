@@ -1003,3 +1003,18 @@ impl Distance {
 #[cfg(test)]
 #[path = "../tests/private/stiff_pad_endpoint.rs"]
 mod stiff_pad_endpoint;
+
+pub static CUT_ACTIVE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+#[track_caller]
+fn observed_refusal()->XpbdError {
+    if CUT_ACTIVE.load(std::sync::atomic::Ordering::Relaxed) {
+        eprintln!("REFUSAL {}",std::panic::Location::caller());
+    }
+    XpbdError::UnresolvedSurface
+}
+impl SoftBody {
+ pub fn dump_committed_cut(&self) {
+     eprintln!("MATERIAL particles={:?} config={:?} constraints={:?} bending={:?} damping={:?} last_j={:?}",self.particles,self.config,self.constraints,self.bending,self.bending_damping,self.reactions);
+     eprintln!("REST dir={:?} shell={:?}",self.rest_directions,self.surface.as_ref().map(|s|s.pad_faces()));
+ }
+}
