@@ -524,20 +524,19 @@ struct Contact {
     projected_impulse: f64,
     remaining: Option<DVec3>,
     tangent_impulse: DVec3,
-    sticking_on_plane: bool,
     initial_overlap: f64,
 }
 
 impl Contact {
-    /// Solve sustained tangential displacement against the static or sliding cone.
+    /// Correct drift within the static friction cone during the normal solve.
     /// A newly arriving point keeps the tangential travel preceding its impact.
-    fn project_plane_friction(
+    fn stick_on_plane(
         &mut self,
         end: &mut DVec3,
         (p, incoming): (&mut Particle, DVec3),
         plane: &PreparedBoundary,
         time: Interval,
-        [static_friction, sliding_friction]: [f64; 2],
+        friction: f64,
         reaction: &mut BoundaryImpulse,
     ) -> Result<(), XpbdError> {
         let start = DVec3::from(p.position);
@@ -557,20 +556,20 @@ impl Contact {
         }
         let incoming_relative = incoming - (c1 - c0) / time.h;
         let incoming_tangent = incoming_relative - normal * incoming_relative.dot(normal);
+        if incoming_tangent.length() * time.h > tolerance {
+            return Ok(());
+        }
         let slip = (*end - start) - (c1 - c0);
         let response = time.h * p.inverse_mass;
         let target = self.tangent_impulse - (slip - normal * slip.dot(normal)) / response;
-        let normal_impulse = self.correction / response;
-        let cap = static_friction * normal_impulse;
+        let cap = (friction * self.correction / time.h) / p.inverse_mass;
         if !target.is_finite() || !cap.is_finite() {
             return Err(XpbdError::Numerical);
         }
-        self.sticking_on_plane =
-            incoming_tangent.length() * time.h <= tolerance && target.length() <= cap;
-        let next = if self.sticking_on_plane {
+        let next = if target.length() <= cap {
             target
         } else {
-            target.clamp_length_max(sliding_friction * normal_impulse)
+            DVec3::ZERO
         };
         let delta = next - self.tangent_impulse;
         self.tangent_impulse = next;
@@ -691,7 +690,6 @@ impl Contacts {
                 projected_impulse: 0.,
                 remaining,
                 tangent_impulse: DVec3::ZERO,
-                sticking_on_plane: false,
                 initial_overlap: hit.initial_overlap,
             });
             self.items.len() - 1
@@ -857,12 +855,12 @@ fn project_points<const SPATIAL: bool>(
                     && let Some(&incoming) = contacts.incoming_on_plane.get(i)
                     && let Some(&row) = contacts.index.get(&(i, j))
                 {
-                    contacts.items[row].project_plane_friction(
+                    contacts.items[row].stick_on_plane(
                         x,
                         (p, incoming),
                         boundary,
                         time,
-                        [coefficient, contacts.friction],
+                        coefficient,
                         &mut reactions[j],
                     )?;
                     if skip != 0 && !block.contains(*x) {
@@ -926,7 +924,7 @@ pub(super) fn finish_contacts(
         };
         let tangent = relative - c.normal * vn;
         let slip = tangent.length();
-        let coefficient = if c.sticking_on_plane {
+        let coefficient = if c.tangent_impulse != DVec3::ZERO {
             contacts.static_plane_friction.unwrap_or(mu)
         } else {
             mu

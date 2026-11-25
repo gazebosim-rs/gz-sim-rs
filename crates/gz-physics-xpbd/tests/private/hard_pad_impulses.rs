@@ -63,7 +63,6 @@ fn a_swept_contact_refuses_an_unrepresentable_accumulated_impact() {
         projected_impulse: 0.,
         remaining: Some(f64::MAX * DVec3::X),
         tangent_impulse: DVec3::ZERO,
-        sticking_on_plane: false,
         initial_overlap: 0.,
     });
     let p = Particle {

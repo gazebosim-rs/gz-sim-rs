@@ -202,7 +202,8 @@ mod tests {
             let distance = r["distance_m"][1].as_f64().unwrap();
             let reference = r["sliding_analytic_distance_m"].as_f64().unwrap();
             let speed = r["sliding_analytic_speed_m_s"].as_f64().unwrap();
-            let euler_error = 0.5 * speed * 0.01 / f64::from(n);
+            let kinetic = 0.1 * 9.81 / 1.0625_f64.sqrt();
+            let euler_error = (0.5 * speed + 0.8 * kinetic) * 0.01 / f64::from(n);
             assert!((distance - reference - euler_error).abs() < 1e-9);
         }
         Ok(())
@@ -215,7 +216,8 @@ mod tests {
             run(&output, n, true)?;
             let report: Value = serde_json::from_slice(&fs::read(output.join("incline.json"))?)?;
             let expected = report["sliding_analytic_distance_m"].as_f64().unwrap()
-                + report["sliding_analytic_speed_m_s"].as_f64().unwrap() * 0.005 / f64::from(n);
+                + (report["sliding_analytic_speed_m_s"].as_f64().unwrap() * 0.005
+                    + 0.008 * 0.1 * 9.81 / 1.0625_f64.sqrt()) / f64::from(n);
             assert!((report["distance_m"][1].as_f64().unwrap() - expected).abs() < 1e-9);
             assert_eq!(report["reset_states"], 121);
             assert!(report["departure"]["unsupported_ticks"].as_u64().unwrap() >= 6);
