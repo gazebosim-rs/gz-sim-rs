@@ -23,7 +23,7 @@ target/cpu-tools/bin/gz-sim-rs examples/worlds/upstream_joint_force.sdf \
   --physics-engine multifidelity --iterations 250
 ```
 
-The locally packaged Linux preview, `gz-sim-local-cpu-preview.tar.xz`, includes these binaries, the unmodified source world, its command journal, the gripper recording, licenses and a checksum manifest. Its SHA-256 is `2983b9af0ad1164cf118f0c8b2deca79e0ed5dc65228292ef8d898423e0b7dee`. The review branch includes the source and portable recordings.
+The locally packaged Linux preview, `gz-sim-local-cpu-preview.tar.xz`, includes these binaries, the unmodified source world, its command journal, the gripper recording, licenses and a checksum manifest. The archive built from `2e7d155` has SHA-256 `2983b9af0ad1164cf118f0c8b2deca79e0ed5dc65228292ef8d898423e0b7dee`. The review branch includes the source and portable recordings.
 
 ## Watch the recordings
 
@@ -101,7 +101,7 @@ The Linux package is a preview. On candidate `fc80ca5`, all 4,208 ordinary CPU t
 
 ## Build the installable preview
 
-Run the following commands from a clean source checkout on Linux x86-64 with Bash, GNU tar, xz and the locked Rust toolchain. The archive is created in a fresh staging directory and includes a checksum manifest, input journal, measured gripper replay and standalone instructions.
+Run the following commands from a clean source checkout on Linux x86-64 with Bash, GNU tar, xz, the locked Rust toolchain, `protoc` 3.21.12 and its matching protobuf development includes. The build verifies `google/protobuf/any.proto` from those includes. The archive is created in a fresh staging directory and includes a checksum manifest, input journal, measured gripper replay and standalone instructions.
 
 ```bash
 set -eu

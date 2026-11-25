@@ -23,7 +23,7 @@ To operate the rotor, start the server and leave it running. In a second termina
 ./bin/gz-sim-control --port 9003 step 0 0
 ```
 
-If the connection drops before a reply, reconnect with `status`. For this paused, single-operator, 1 ms world, epoch 0 at 0 ms means the first step is still available. Epoch 0 at 1 ms means it already happened. With other operators, the clock tells you the current state and cannot identify who advanced it. A reset changes the epoch. Inspect the robot before choosing a new command.
+If the connection drops before a reply, reconnect with `status`. A status at epoch 0 and 0 ms is the last observed state. An earlier request may still be in flight. If you want one step from that state, retry exactly `step 0 0`. The server refuses that same request once the clock advances. If it refuses, check status again. In this paused, single-operator, 1 ms world, epoch 0 at 1 ms confirms the interval happened. With other operators, the clock tells you the current state and cannot identify who advanced it. A reset changes the epoch. Inspect the robot before choosing a new command.
 
 To watch the 200 g gripper lift, serve the packaged recording and open it in a running gz-web-rs frontend. Press Play and use Reset to rewind. [Open the recording on port 9002](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9002%2F)
 
