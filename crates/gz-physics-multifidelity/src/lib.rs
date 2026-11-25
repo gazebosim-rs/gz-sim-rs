@@ -1553,6 +1553,11 @@ impl MultiFidelityBackend {
             .map_err(engine_error)
     }
 
+    /// Use the local solver's 120 Hz fixed-body contact response.
+    pub fn use_stiff_static_contacts(&mut self) {
+        self.solver.use_stiff_static_contacts();
+    }
+
     /// Set the world-space linear tolerance for native geometry, including swept impacts.
     pub fn set_contact_linear_slop(&mut self, meters: f64) -> Result<(), PhysicsError> {
         self.solver

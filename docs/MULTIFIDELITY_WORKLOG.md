@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Double pendulum with offset inertia on a loaded base
+
+The unchanged upstream Gazebo world now runs both double pendulums through the standard local CPU command. The default contact response let each 100 kg stand sink up to 1.22 mm and missed the 2% energy target. The optional 120 Hz fixed-body contact response reduced peak sinking to 0.43 mm and energy difference to 1.14% against native DART. The first return time differed by 0.17%, and all nine combinations of lower-link mass and inertia passed the stability checks. Gazebo Web replay verified all 151 frames. The next model in the release roadmap is the stock wheeled robot and its ball caster. [Run the phase and inspect its accuracy](measurements/local-manipulation/double-pendulum.md) · [Watch both pendulums](measurements/local-manipulation/pendulum-view.md)
+
 ## 2026-11-24 — Installed local robot survives a lost step reply
 
 The stock rotor stayed at 0 ms when its checked step was lost and held at exactly 1 ms when only the reply was lost. The controller now explains the uncertain outcome and gives the reconnect command. Reset restored every visual and repeating the two steps reproduced the original poses. The updated Linux preview passed 12 consecutive host trials, a clean Ubuntu 24.04.5 container run, the one/eight-thread journal and WebGPU playback of the bundled gripper. Changed executable control code reached 100% line and 97.06% region coverage in the targeted run. Next, close the integrated coverage gaps with the contact/reset and control workloads and qualify the exact release build. [Test, archive checksum and gripper recording](measurements/local-manipulation/installed-robot-control.md) · [Physics roadmap](PHYSICS_RELEASE_ROADMAP.md)

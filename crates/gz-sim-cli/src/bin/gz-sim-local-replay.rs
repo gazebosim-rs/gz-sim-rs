@@ -36,6 +36,9 @@ struct Args {
     /// Write ordinary gz-web recordings into separate epoch directories.
     #[arg(long)]
     record: Option<PathBuf>,
+    /// Use the viewer's lighting in the recording and omit authored SDF lights.
+    #[arg(long, requires = "record")]
+    viewer_lighting: bool,
     /// Save every Nth advancing step (default 10). Lifecycle and final frames are always saved.
     #[arg(long, requires = "record", value_parser = clap::value_parser!(u64).range(1..))]
     record_every: Option<u64>,
@@ -45,6 +48,9 @@ struct Args {
     /// Resolve qualified axial cylinder impacts with a centered normal reaction.
     #[arg(long)]
     rapier_axial_cap_impact: bool,
+    /// Use a 120 Hz fixed-body contact response (default 60 Hz).
+    #[arg(long)]
+    stiff_static_contacts: bool,
     /// Host compute-pool size; the authoritative local CPU solve is serial.
     #[arg(long, default_value_t=1, value_parser=clap::value_parser!(u8).range(1..=64))]
     threads: u8,
@@ -309,6 +315,7 @@ fn run(args: Args) -> Result<()> {
     let runtime = gz_sim_scene::WorldRuntimeOptions {
         rapier_per_point_friction: args.rapier_per_point_friction,
         rapier_axial_cap_impact: args.rapier_axial_cap_impact,
+        stiff_static_contacts: args.stiff_static_contacts,
         ..Default::default()
     };
     let mut sim = gz_sim_scene::load_local_replay_world_with_runtime(
@@ -346,12 +353,16 @@ fn run(args: Args) -> Result<()> {
     if args.rapier_axial_cap_impact {
         profile["rapier_axial_cap_impact"] = true.into();
     }
+    if args.stiff_static_contacts {
+        profile["static_contact_frequency_hz"] = 120.into();
+    }
     sink.emit(&profile)?;
     let record_every = args.record_every.unwrap_or(10);
     let mut capture = if let Some(path) = args.record {
         Some(Capture {
             path,
-            visuals: gz_sim_cli::ArchiveVisuals::new(&sim)?,
+            visuals: gz_sim_cli::ArchiveVisuals::new(&sim)?
+                .with_viewer_lighting(args.viewer_lighting),
             frames: Vec::new(),
             last_time: None,
         })
@@ -592,6 +603,43 @@ mod tests {
                 message
             );
         }
+    }
+
+    #[test]
+    fn viewer_lighting_omits_only_the_authored_light() {
+        let xml = include_str!("../../../../examples/worlds/upstream_double_pendulum.sdf");
+        let sdf = sdformat::load_str(xml, "pendulum.sdf", &sdformat::NoResources).unwrap();
+        let mut sim =
+            gz_sim_scene::load_local_replay_world(xml, "pendulum.sdf", "default", [0; 32]).unwrap();
+        let archive = gz_sim_cli::ArchiveVisuals::new(&sim).unwrap();
+        assert!(
+            archive
+                .frame(&sim, &sdf, "default", 1)
+                .unwrap_err()
+                .to_string()
+                .contains("does not lower SDF lights")
+        );
+        let archive = archive.with_viewer_lighting(true);
+        let (scene, _) = archive.frame(&sim, &sdf, "default", 1).unwrap();
+        let scene: serde_json::Value = serde_json::from_str(&scene).unwrap();
+        assert_eq!(scene["visuals"].as_array().unwrap().len(), 15);
+
+        let mut properties = sim
+            .world_mut()
+            .query::<&mut gz_sim_scene::VisualProperties>();
+        properties
+            .iter_mut(sim.world_mut())
+            .next()
+            .unwrap()
+            .0
+            .transparency = 0.5;
+        assert!(
+            archive
+                .frame(&sim, &sdf, "default", 2)
+                .unwrap_err()
+                .to_string()
+                .contains("opaque diffuse primitives")
+        );
     }
 
     #[test]

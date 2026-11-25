@@ -44,6 +44,9 @@ struct Args {
     /// Resolve cold isolated cylinder-cap impacts against fixed finite box faces in local Rapier.
     #[arg(long, conflicts_with = "replay")]
     rapier_axial_cap_impact: bool,
+    /// Use a 120 Hz fixed-body contact response in local multi-fidelity physics (default 60 Hz).
+    #[arg(long, conflicts_with_all = ["replay", "hinge_session", "returned_robot_session", "resume_pool_checkpoint", "save_pool_checkpoint", "live_pool_checkpoint"])]
+    stiff_static_contacts: bool,
     /// Number of local authoritative processes in the distributed engine.
     #[arg(long,conflicts_with="replay",value_parser=clap::value_parser!(u8).range(2..=8))]
     physics_workers: Option<u8>,
@@ -255,6 +258,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         let runtime = gz_sim_scene::WorldRuntimeOptions {
             rapier_per_point_friction: args.rapier_per_point_friction,
             rapier_axial_cap_impact: args.rapier_axial_cap_impact,
+            stiff_static_contacts: args.stiff_static_contacts,
             distributed_packed_handoffs: args.packed_handoffs,
             gpu_adapter: args.gpu_adapter.as_deref(),
             distributed_contact_placement: args.contact_placement,

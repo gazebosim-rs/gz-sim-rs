@@ -677,11 +677,23 @@ pub(super) fn replay(path: &std::path::Path, port: u16, stop: &AtomicBool) -> io
 
 /// Immutable visual resources for an offline recording. Building this table opens no listener.
 #[derive(Default)]
-pub struct ArchiveVisuals(Option<assets::Assets>);
+pub struct ArchiveVisuals {
+    assets: Option<assets::Assets>,
+    viewer_lighting: bool,
+}
 
 impl ArchiveVisuals {
     pub fn new(simulation: &Simulation) -> io::Result<Self> {
-        assets::Assets::offline(simulation).map(Self)
+        Ok(Self {
+            assets: assets::Assets::offline(simulation)?,
+            viewer_lighting: false,
+        })
+    }
+
+    /// Opt an offline recording into the viewer's lighting instead of exporting SDF lights.
+    pub fn with_viewer_lighting(mut self, enabled: bool) -> Self {
+        self.viewer_lighting = enabled;
+        self
     }
 
     /// Capture the actual scene and lifecycle catalog against the archive resource table.
@@ -692,7 +704,13 @@ impl ArchiveVisuals {
         world: &str,
         sequence: u64,
     ) -> io::Result<(String, String)> {
-        let scene = snapshot::extract_with_assets(simulation, world, sequence, self.0.as_ref())?;
+        let scene = snapshot::extract_with_lighting(
+            simulation,
+            world,
+            sequence,
+            self.assets.as_ref(),
+            self.viewer_lighting,
+        )?;
         let lifecycle = lifecycle::Lifecycle::new(simulation, sdf, world, &scene)?;
         Ok((
             snapshot::encode(&scene)?,
@@ -702,7 +720,7 @@ impl ArchiveVisuals {
 
     /// Each epoch's manifest owns its asset declarations. Byte buffers share immutable storage.
     pub fn files(&self) -> std::collections::BTreeMap<String, bytes::Bytes> {
-        self.0
+        self.assets
             .as_ref()
             .map(|a| a.snapshot().files().clone())
             .unwrap_or_default()

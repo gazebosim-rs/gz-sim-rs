@@ -707,6 +707,8 @@ pub struct WorldRuntimeOptions<'a> {
     pub rapier_per_point_friction: bool,
     /// Resolve cold, fully supported free cylinder cap impacts with a centered native row.
     pub rapier_axial_cap_impact: bool,
+    /// Use the 120 Hz fixed-body contact response in local multi-fidelity physics.
+    pub stiff_static_contacts: bool,
     /// Select packed warm handoff payloads on supporting distributed workers.
     pub distributed_packed_handoffs: bool,
     /// Optional explicit adapter for GPU batches.
@@ -772,6 +774,11 @@ fn load_world_with_automatic_owner(
         deformable::managed_impact::MaterialOwner,
     >,
 ) -> Result<Simulation, LoadError> {
+    require(
+        !runtime.stiff_static_contacts || options.engine == PhysicsEngine::MultiFidelity,
+        world_name,
+        "stiff static contacts require local multi-fidelity physics",
+    )?;
     require(
         !runtime.rapier_axial_cap_impact
             || matches!(
@@ -1039,14 +1046,17 @@ fn load_world_with_automatic_owner(
             Some(backend.into())
         }
         PhysicsEngine::Tpe | PhysicsEngine::GpuBatch => None,
-        PhysicsEngine::MultiFidelity => Some(
-            if runtime.rapier_per_point_friction {
+        PhysicsEngine::MultiFidelity => {
+            let mut local = if runtime.rapier_per_point_friction {
                 MultiFidelityBackend::new_per_point_coulomb(world.gravity)?
             } else {
                 MultiFidelityBackend::new(world.gravity)?
+            };
+            if runtime.stiff_static_contacts {
+                local.use_stiff_static_contacts();
             }
-            .into(),
-        ),
+            Some(local.into())
+        }
     };
     if runtime.rapier_axial_cap_impact
         && let Some(native) = backend.as_mut()
@@ -1581,6 +1591,16 @@ fn build_model(
             coated_tree,
         )?
     };
+    let construction = match &reduced_plan {
+        Some(plan) => joints::JointConstruction::Reduced(plan),
+        None if controller_plan.is_some() => joints::JointConstruction::Controller,
+        None => joints::JointConstruction::Impulse,
+    };
+    // Impulse hinges use link-frame anchors. Rapier applies the inertia at its
+    // resolved center, including when several colliders share the link.
+    let impulse_joint_model = context.engine == PhysicsEngine::MultiFidelity
+        && !model.joints.is_empty()
+        && matches!(construction, joints::JointConstruction::Impulse);
     let force_configurations = joint_forces::parse(model)?;
     if reduced_plan.as_ref().is_some_and(|p| p.scalar_robot) {
         require(
@@ -1765,12 +1785,11 @@ fn build_model(
             sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?
         };
         // A GPU tool plan validates its free payload inertia before this shared link builder.
-        let free_mass_offset = (context.engine == PhysicsEngine::MultiFidelity
+        let primitive_mass_offset = (context.engine == PhysicsEngine::MultiFidelity
             || context.gpu_tool_scene)
             && top_level
             && !is_static
-            && model.links.len() == 1
-            && model.joints.is_empty()
+            && ((model.links.len() == 1 && model.joints.is_empty()) || impulse_joint_model)
             && model.models.is_empty()
             && prescribed.is_none()
             && plane.is_none()
@@ -1778,7 +1797,7 @@ fn build_model(
         require(
             centered(inertial_pose.translation)
                 || gpu_arm
-                || ((reduced_plan.is_some() || free_mass_offset)
+                || ((reduced_plan.is_some() || primitive_mass_offset)
                     && inertial_pose.translation.into_iter().all(f64::is_finite)),
             name,
             "offset center of mass",
@@ -2334,11 +2353,6 @@ fn build_model(
         }
     }
     if let Some(backend) = backend {
-        let construction = match &reduced_plan {
-            Some(plan) => joints::JointConstruction::Reduced(plan),
-            None if controller_plan.is_some() => joints::JointConstruction::Controller,
-            None => joints::JointConstruction::Impulse,
-        };
         joints::build(
             sdf,
             model,

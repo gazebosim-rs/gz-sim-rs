@@ -431,6 +431,16 @@ pub(super) fn extract_with_assets(
     sequence: u64,
     assets: Option<&super::assets::Assets>,
 ) -> io::Result<Scene> {
+    extract_with_lighting(sim, world_name, sequence, assets, false)
+}
+
+pub(super) fn extract_with_lighting(
+    sim: &Simulation,
+    world_name: &str,
+    sequence: u64,
+    assets: Option<&super::assets::Assets>,
+    viewer_lighting: bool,
+) -> io::Result<Scene> {
     if sim.is_faulted() || world_name.len() > 256 {
         return Err(invalid("gzweb snapshot needs a healthy named world"));
     }
@@ -450,7 +460,7 @@ pub(super) fn extract_with_assets(
                     .get(),
             );
         }
-        if matches!(kind, Some(EntityKind::Light | EntityKind::LightVisual)) {
+        if !viewer_lighting && matches!(kind, Some(EntityKind::Light | EntityKind::LightVisual)) {
             return Err(invalid("gzweb MVP does not lower SDF lights"));
         }
         if kind != Some(&EntityKind::Visual) {

@@ -1,0 +1,6 @@
+{
+  "seed": "upstream-double-pendulum",
+  "commands": [
+    { "op": "step", "count": 6000 }
+  ]
+}

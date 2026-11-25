@@ -26,6 +26,8 @@ The repository-wide gate is still red. On the measured CPU build the CLI needs 2
 | **6. Automatic switching on a working robot** | Use the same arm and command journal in adaptive and always-dynamic modes. Park while settled, wake before support loss, and resume the task. | Compare the first resumed impulse, trajectory, momentum and command count. Repeat after reset and across thread counts. Rerun 10,000 switches and publish paired accuracy, elapsed time and p95/p99 on the same machine. |
 | **7. Balanced articulated robot** | Use the existing 30-axis humanoid to step across an uneven support and recover from a push. | Use the level-floor run as the control. Compare foot reactions, slip, joint-limit excursions and recovery with continuous dynamics. Publish the tested disturbance range and show what happens beyond it. |
 
+Iteration 2 is runnable on the physics review branch. Both stock pendulums passed the native angle, period and energy checks with the 120 Hz fixed-body contact setting. The next robot is the stock differential-drive model, starting with its caster joint and joint-state publisher. Official release qualification remains open. [Double-pendulum results](measurements/local-manipulation/double-pendulum.md)
+
 ## After the local rigid-robot release
 
 | Iteration | Runnable deliverable | Acceptance |

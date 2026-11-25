@@ -80,6 +80,14 @@ impl RapierBackend {
         )
     }
 
+    /// Use a 120 Hz contact spring against fixed bodies and retain the solver’s damping ratio.
+    pub fn use_stiff_static_contacts(&mut self) {
+        self.world
+            .integration_parameters
+            .static_contact_softness
+            .natural_frequency = 120.;
+    }
+
     /// Set Rapier's global geometric slop in world meters. It bounds the inset
     /// used by the convex TOI sweep. Other contact uses share this tolerance.
     pub fn set_contact_linear_slop(&mut self, meters: f64) -> Result<(), PhysicsError> {

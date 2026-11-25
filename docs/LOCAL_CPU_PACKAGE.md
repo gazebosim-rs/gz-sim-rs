@@ -31,4 +31,13 @@ To watch the 200 g gripper lift, serve the packaged recording and open it in a r
 ./bin/gz-sim-rs share/gz-sim/gripper-replay --server --replay --web-viewer 9002
 ```
 
+To run the stock double pendulum, use the qualified 120 Hz fixed-body contact setting. To watch it in gz-web-rs, run the second command and open the same port-9002 viewer link above. Stop any other replay server on that port first.
+
+```sh
+./bin/gz-sim-rs share/gz-sim/upstream_double_pendulum.sdf --physics-engine multifidelity --stiff-static-contacts --iterations 6000
+./bin/gz-sim-rs share/gz-sim/pendulum-view --server --replay --web-viewer 9002
+```
+
+The pendulum is Gazebo’s Apache-2.0 `test/worlds/double_pendulum.sdf` at the same revision as the rotor. The bundled recording uses viewer lighting. [Angle, period and energy measurements](https://github.com/gazebosim-rs/gz-sim-rs/blob/review/local-cpu-mvp-20261124/docs/measurements/local-manipulation/double-pendulum.md)
+
 The rotor is Gazebo’s Apache-2.0 `test/worlds/apply_joint_force.sdf` from commit `9e3b78f5de297def8fe47fd189500fb5cd6538ef`. The packaged gripper recording comes from the measured switched run on the simulator review branch. [Source, viewer setup and qualification](https://github.com/gazebosim-rs/gz-sim-rs/blob/review/local-cpu-mvp-20261124/docs/LOCAL_CPU_MVP.md)
