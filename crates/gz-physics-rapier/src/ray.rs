@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Read-only solid casts against current collision poses.
 use super::*;
+use rapier3d_f64::parry::bounding_volume::BoundingVolume;
 use rapier3d_f64::parry::partitioning::{Bvh, BvhBuildStrategy};
 
 /// Closest solid hit on a finite world-space ray, using the solver's f64
@@ -230,7 +231,7 @@ fn finite_cylinder_hit(
 /// holds its start pose. Body edits, new entities, removals and reset invalidate it.
 pub(super) struct TranslationIndex {
     tree: Bvh,
-    handles: Vec<RigidBodyHandle>,
+    entries: Vec<(BodyId, RigidBodyHandle)>,
     velocity: Vector,
 }
 
@@ -241,9 +242,10 @@ impl TranslationIndex {
             return None;
         }
         let mut velocity = None;
-        let mut handles = Vec::with_capacity(backend.bodies.len());
+        let mut entries = Vec::with_capacity(backend.bodies.len());
         let mut leaves = Vec::with_capacity(backend.bodies.len());
-        for (handle, body) in world.bodies.iter() {
+        for (&id, &(handle, ..)) in &backend.bodies {
+            let body = &world.bodies[handle];
             let [collider] = body.colliders() else {
                 return None;
             };
@@ -258,17 +260,77 @@ impl TranslationIndex {
                 return None;
             }
             leaves.push((
-                handles.len(),
+                entries.len(),
                 collider.shape().compute_aabb(body.position()),
             ));
-            handles.push(handle);
+            entries.push((id, handle));
         }
         Some(Self {
             tree: Bvh::from_iter(BvhBuildStrategy::Binned, leaves),
-            handles,
+            entries,
             velocity: velocity?,
         })
     }
+}
+
+impl RapierBackend {
+    fn translating_index(&self) -> Option<(&TranslationIndex, Vector)> {
+        let FleetClock::Translating(time) = self.fleet_clock else {
+            return None;
+        };
+        if self.curves.authored()
+            || !(fleet_isolation::MIN_DECKS..u32::MAX as usize).contains(&self.bodies.len())
+        {
+            return None;
+        }
+        let index = self
+            .translation_rays
+            .get_or_init(|| TranslationIndex::build(self))
+            .as_ref()?;
+        Some((index, index.velocity * time.as_secs_f64()))
+    }
+}
+
+pub(super) fn overlaps(
+    backend: &RapierBackend,
+    min: [f64; 3],
+    max: [f64; 3],
+) -> Result<Vec<BodyId>, PhysicsError> {
+    let min = Vector::from(min);
+    let max = Vector::from(max);
+    if !min.is_finite() || !max.is_finite() || !min.cmple(max).all() {
+        return Err(PhysicsError::InvalidValue);
+    }
+    let query = Aabb::new(min, max);
+    let mut hits = Vec::new();
+    for (&id, &(handle, ..)) in &backend.bodies {
+        if body_overlaps(backend, handle, &query)? {
+            hits.push(id);
+        }
+    }
+    Ok(hits)
+}
+
+fn body_overlaps(
+    backend: &RapierBackend,
+    handle: RigidBodyHandle,
+    query: &Aabb,
+) -> Result<bool, PhysicsError> {
+    let body = &backend.world.bodies[handle];
+    let parent = Pose::from_parts(backend.current_translation(handle, body), *body.rotation());
+    if !parent.translation.is_finite() || !parent.rotation.is_finite() {
+        return Err(PhysicsError::InvalidValue);
+    }
+    Ok(body.colliders().iter().any(|h| {
+        let collider = &backend.world.colliders[*h];
+        let local = collider
+            .position_wrt_parent()
+            .expect("owned collider has a body");
+        collider
+            .shape()
+            .compute_aabb(&(parent * local))
+            .intersects(query)
+    }))
 }
 
 pub(super) fn cast(
@@ -314,17 +376,11 @@ pub(super) fn cast(
         && let Some(result) = fleet.visit_ray_bodies(&beam, &backend.world, &mut visit)
     {
         result?;
-    } else if let FleetClock::Translating(time) = backend.fleet_clock
-        && !backend.curves.authored()
-        && backend.bodies.len() >= fleet_isolation::MIN_DECKS
-        && backend.bodies.len() < u32::MAX as usize
-        && let Some(index) = backend
-            .translation_rays
-            .get_or_init(|| TranslationIndex::build(backend))
-        && let Some(bounds) = beam.moving_bounds(index.velocity * time.as_secs_f64())
+    } else if let Some((index, offset)) = backend.translating_index()
+        && let Some(bounds) = beam.moving_bounds(offset)
     {
         for i in index.tree.intersect_aabb(&bounds) {
-            visit(index.handles[i as usize])?;
+            visit(index.entries[i as usize].1)?;
         }
     } else {
         for (_, collider) in backend.world.colliders.iter() {

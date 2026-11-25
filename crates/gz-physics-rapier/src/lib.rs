@@ -890,6 +890,14 @@ impl DynamicBackend for RapierBackend {
         self.read_body_states(visit);
     }
 
+    fn bodies_overlapping_aabb(
+        &self,
+        min: [f64; 3],
+        max: [f64; 3],
+    ) -> Result<Vec<BodyId>, PhysicsError> {
+        ray::overlaps(self, min, max)
+    }
+
     fn cast_ray(
         &self,
         origin: [f64; 3],

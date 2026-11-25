@@ -283,6 +283,20 @@ pub trait DynamicBackend: Send + Sync + 'static {
         })
     }
 
+    /// IDs whose collision shapes' world-axis-aligned bounds intersect the closed box,
+    /// sorted and unique. This is a discrete geometry observation with no contact impulses.
+    /// A zero-width interval is valid. Standalone scenery has no body ID.
+    fn bodies_overlapping_aabb(
+        &self,
+        _min: [f64; 3],
+        _max: [f64; 3],
+    ) -> Result<Vec<BodyId>, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "body AABB overlap",
+        })
+    }
+
     fn remove(&mut self, id: BodyId) -> bool;
 
     /// Preflights an atomic world-space pose and velocity replacement.
