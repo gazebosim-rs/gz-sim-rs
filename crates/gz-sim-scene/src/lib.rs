@@ -2603,18 +2603,24 @@ fn sync_bodies(
         &mut Velocity,
     )>,
 ) {
+    // The storage and change ticks stay native Bevy components.
     let publish = |state: gz_physics::BodyState,
                    center: Option<&LinkCenterOfMass>,
                    pose: &mut WorldPose,
                    velocity: &mut Velocity| {
         pose.translation = state.position;
         pose.rotation = state.orientation;
-        velocity.linear = center.map_or(state.velocity, |center| {
+        let linear = center.map_or(state.velocity, |center| {
             (DVec3::from_array(state.velocity)
                 - center.velocity_shift(state.orientation, state.angular_velocity))
             .to_array()
         });
-        velocity.angular = state.angular_velocity;
+        if velocity.linear.map(f64::to_bits) != linear.map(f64::to_bits)
+            || velocity.angular.map(f64::to_bits) != state.angular_velocity.map(f64::to_bits)
+        {
+            velocity.linear = linear;
+            velocity.angular = state.angular_velocity;
+        }
     };
     if parallel_pose_updates(bodies.count())
         && let Ok(tables) = bodies.contiguous_iter_mut()
