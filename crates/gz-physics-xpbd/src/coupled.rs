@@ -457,7 +457,15 @@ pub fn step_coupled_rigid(
     boundaries: &[Boundary],
     mobility: &[Option<RigidMobility>],
 ) -> Result<Vec<Option<ReceiverMotion>>, XpbdError> {
-    solve(bodies, dt, boundaries, mobility)
+    let result = solve(bodies, dt, boundaries, mobility);
+    if result.is_err() && bodies.len()==1 {
+        let b=&bodies[0];
+        let mut text=format!("config {:?}\n",b.config);
+        for p in &b.particles {text+=&format!("node {:?}\n",p);}
+        for (b,m) in boundaries.iter().zip(mobility) {text+=&format!("boundary {:?}\nmobility {:?}\n",b,m);}
+        std::fs::write(std::env::var_os("CUT_FILE").unwrap(),text).unwrap();
+    }
+    result
 }
 fn solve<M: Copy + Into<RigidMobility>>(
     bodies: &mut [&mut SoftBody],
