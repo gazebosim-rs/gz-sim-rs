@@ -98,3 +98,36 @@ The CPU solver has physical regression tests for fixed, revolute, prismatic, bal
 Ordinary SDF support is still selective. On this candidate three unmodified Gazebo test worlds failed at load time. The differential-drive world requests joint-state axes for a ball caster, the double pendulum specifies an offset mass center in an unsupported inertial form, and the position-controller world requests a world plugin outside the admitted set. The loader reports the first unsupported feature in each file.
 
 The Linux package is a preview. On candidate `fc80ca5`, all 4,208 ordinary CPU tests passed and every local physics backend exceeded 95% line and region coverage. The full CPU gate still needs coverage in the CLI, scene and distributed crates, and a way to account for optional source files excluded from that build. The software renderer also missed its coverage targets. [Release qualification and next tests](measurements/local-manipulation/mvp-release-coverage.md)
+
+## Build the installable preview
+
+Run the following commands from a clean source checkout on Linux x86-64 with Bash, GNU tar, xz and the locked Rust toolchain. The archive is created in a fresh staging directory and includes a checksum manifest, input journal, measured gripper replay and standalone instructions.
+
+```bash
+set -eu
+mkdir -p target
+stage=$(mktemp -d "$PWD/target/local-physics-preview.XXXXXXXX")
+package="$stage/package"
+mkdir -p "$package/share/gz-sim" "$stage/recordings"
+RUSTC_WRAPPER= cargo install --locked --path crates/gz-sim-cli --no-default-features \
+  --bin gz-sim-rs --bin gz-sim-control --bin gz-sim-local-replay --root "$stage/install"
+cp -a "$stage/install/bin" "$package/bin"
+cp LICENSE NOTICE "$package/"
+cp docs/LOCAL_CPU_PACKAGE.md "$package/README.md"
+cp examples/worlds/upstream_joint_force.sdf examples/replay/upstream_joint_force.json "$package/share/gz-sim/"
+tar -xJf docs/measurements/local-manipulation/mvp-robot-replays.tar.xz -C "$stage/recordings"
+(cd "$stage/recordings" && sha256sum --quiet -c SHA256SUMS)
+cp -a "$stage/recordings/switched" "$package/share/gz-sim/gripper-replay"
+git rev-parse HEAD > "$package/BUILD-INFO"
+rustc -vV >> "$package/BUILD-INFO"
+(cd "$package" && find . -type f ! -name SHA256SUMS -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS)
+tar -cJf "$stage/gz-sim-local-cpu-preview.tar.xz" -C "$package" .
+sha256sum "$stage/gz-sim-local-cpu-preview.tar.xz"
+```
+
+After extracting, run the commands in the package README. To repeat the lost-request and lost-reply checks against those exact binaries, point the regression test at the extracted directory.
+
+```sh
+GZ_TEST_LOCAL_CPU_INSTALL=/absolute/path/to/extracted/package RUSTC_WRAPPER= \
+  cargo test --release --locked --no-default-features -p gz-sim-cli --test native installed_rotor_reconciles
+```

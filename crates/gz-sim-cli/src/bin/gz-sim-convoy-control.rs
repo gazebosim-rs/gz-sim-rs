@@ -53,6 +53,22 @@ fn frame(ws: &mut WebSocket<TcpStream>, deadline: Instant) -> Result<Value> {
         }
     }
 }
+fn send_and_receive(
+    ws: &mut WebSocket<TcpStream>,
+    request: &Value,
+    deadline: Instant,
+) -> Result<Value> {
+    ws.send(Message::Text(request.to_string().into()))?;
+    loop {
+        let message = frame(ws, deadline)?;
+        if matches!(message["kind"].as_str(), Some("operator_reply" | "ack"))
+            && message["request_id"] == 1
+        {
+            return Ok(message);
+        }
+    }
+}
+
 pub(crate) fn main() -> Result<()> {
     let a = Args::parse();
     let addr = SocketAddrV4::new(Ipv4Addr::LOCALHOST, a.port);
@@ -103,15 +119,16 @@ pub(crate) fn main() -> Result<()> {
         Command::Pause => json!({"version":1,"kind":"control","request_id":1,"action":"pause"}),
         Command::Reset => json!({"version":1,"kind":"control","request_id":1,"action":"reset"}),
     };
-    ws.send(Message::Text(request.to_string().into()))?;
-    loop {
-        let m = frame(&mut ws, until)?;
-        if matches!(m["kind"].as_str(), Some("operator_reply" | "ack")) && m["request_id"] == 1 {
-            println!("{m}");
-            if m["accepted"] == true || m["ok"] == true {
-                return Ok(());
-            }
-            return Err("operator command refused".into());
-        }
+    let reply = send_and_receive(&mut ws, &request, until).map_err(|error| {
+        format!(
+            "Command outcome unknown. Reconnect with gz-sim-control --port {} status before issuing another command. ({error})",
+            a.port
+        )
+    })?;
+    println!("{reply}");
+    if reply["accepted"] == true || reply["ok"] == true {
+        Ok(())
+    } else {
+        Err("operator command refused".into())
     }
 }

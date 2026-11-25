@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::{Network, Process, candidate_port, listen_line};
+
+#[path = "local_robot_operator/interrupted_step.rs"]
+mod interrupted_step;
 use gz_sim_scene::{EntityKind, Name, PhysicsEngine, WorldPose, load_world_with_sdf_step};
 use serde_json::{Value, json};
 use std::{
@@ -14,10 +17,14 @@ const SDF: &str = "examples/worlds/local_robot_serial_transfer.sdf";
 const TIMEOUT: Duration = Duration::from_secs(15);
 
 fn start(path: &Path) -> (Network, Process, u16) {
+    start_server(path, Path::new(env!("CARGO_BIN_EXE_gz-sim-rs")))
+}
+
+fn start_server(path: &Path, executable: &Path) -> (Network, Process, u16) {
     for _ in 0..4 {
         let port = candidate_port();
         let mut network = Network::new();
-        let mut cmd = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
+        let mut cmd = Command::new(executable);
         cmd.arg(path).args([
             "--server",
             "--physics-engine",
@@ -43,15 +50,23 @@ fn start(path: &Path) -> (Network, Process, u16) {
     panic!("ephemeral viewer ports remained occupied");
 }
 
-fn operator(port: u16, arguments: &[&str], passed: bool) -> Value {
-    let child = Command::new(env!("CARGO_BIN_EXE_gz-sim-control"))
+fn run_operator(executable: &Path, port: u16, arguments: &[&str]) -> std::process::Output {
+    let child = Command::new(executable)
         .args(["--port", &port.to_string()])
         .args(arguments)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    let out = Process(Some(child)).wait(TIMEOUT);
+    Process(Some(child)).wait(TIMEOUT)
+}
+
+fn operator(port: u16, arguments: &[&str], passed: bool) -> Value {
+    let out = run_operator(
+        Path::new(env!("CARGO_BIN_EXE_gz-sim-control")),
+        port,
+        arguments,
+    );
     assert_eq!(
         out.status.success(),
         passed,
