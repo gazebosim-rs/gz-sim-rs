@@ -561,9 +561,6 @@ fn solve<M: Copy + Into<RigidMobility>>(
                     )
                 })
             {
-                // All receivers follow prescribed trajectories. Reuse the
-                // original substep grid and spend its remaining leaf budget
-                // only at an interval that refuses its contact constraints.
                 let body = &mut *bodies[0];
                 if !body
                     .surface
@@ -573,28 +570,7 @@ fn solve<M: Copy + Into<RigidMobility>>(
                 {
                     return result;
                 }
-                let mut retry = ShellRetry {
-                    remaining_splits: maximum - count,
-                    deepest: 0,
-                };
-                let surface = bodies[0].surface.as_mut().unwrap();
-                surface.retry_plane = true;
-                surface.prioritize_terminal_speed = true;
-                let result = solve_at_resolution(
-                    bodies,
-                    dt,
-                    boundaries,
-                    mobility,
-                    u128::from(count),
-                    Some(&mut retry),
-                );
-                let surface = bodies[0].surface.as_mut().unwrap();
-                surface.retry_plane = false;
-                surface.prioritize_terminal_speed = false;
-                if result.is_ok() {
-                    bodies[0].sweep_refinements = retry.deepest;
-                }
-                return result;
+                return shell_retry::solve(bodies, dt, boundaries, mobility, count, maximum);
             }
             if capsule_sweep && finite_material && !retry_material {
                 // The ordinary coupled sweep exhausted its grid. Reconstruct

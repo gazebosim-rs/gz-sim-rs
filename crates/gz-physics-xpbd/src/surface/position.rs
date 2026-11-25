@@ -89,6 +89,7 @@ mod tests {
     #[test]
     fn immobile_seed_can_clear_but_a_pure_angular_velocity_space_mode_cannot() {
         let hit = Hit {
+            endpoint_velocity: false,
             stencil: Stencil {
                 ids: [0, 1, 2, 3],
                 vf: true,

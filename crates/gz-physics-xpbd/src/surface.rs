@@ -22,7 +22,7 @@ mod position;
 use super::{Particle, XpbdError};
 use geometry::{Witness, edge_edge, vertex_face};
 use glam::DVec3;
-use std::collections::BTreeSet;
+use std::{cell::LazyCell, collections::BTreeSet, sync::Arc};
 
 const MAX_VERTICES: usize = 4096;
 const MAX_TRIANGLES: usize = 8192;
@@ -54,10 +54,63 @@ struct Bound {
     hi: DVec3,
 }
 
+impl Bound {
+    /// Remove the combined padding to recover a lower bound on the distance
+    /// between the two swept convex hulls. The caller includes its floating
+    /// point allowance and maximum relative translation in the cutoff.
+    fn clears_motion(&self, other: &Self, padding: f64, cutoff_squared: f64) -> bool {
+        let separation =
+            ((self.lo - other.hi).max(other.lo - self.hi) + DVec3::splat(padding)).max(DVec3::ZERO);
+        let squared = separation.length_squared();
+        squared.is_finite() && squared > cutoff_squared
+    }
+}
+
+#[derive(Clone)]
+enum OneRing {
+    Masks(Arc<[u64]>),
+    Edges(Arc<BTreeSet<[usize; 2]>>),
+}
+
+impl OneRing {
+    fn new(vertices: usize, edges: BTreeSet<[usize; 2]>) -> Self {
+        if vertices > u64::BITS as usize {
+            return Self::Edges(Arc::new(edges));
+        }
+        let mut masks: Vec<_> = (0..vertices).map(|i| 1u64 << i).collect();
+        for [a, b] in edges {
+            masks[a] |= 1u64 << b;
+            masks[b] |= 1u64 << a;
+        }
+        Self::Masks(masks.into())
+    }
+
+    fn excludes(&self, ids: [usize; 4], vf: bool) -> bool {
+        match self {
+            Self::Masks(masks) => {
+                let [a, b, c, d] = ids;
+                if vf {
+                    masks[a] & ((1u64 << b) | (1u64 << c) | (1u64 << d)) != 0
+                } else {
+                    (masks[a] | masks[b]) & ((1u64 << c) | (1u64 << d)) != 0
+                }
+            }
+            Self::Edges(edges) => {
+                let split = if vf { 1 } else { 2 };
+                ids[..split].iter().any(|a| {
+                    ids[split..]
+                        .iter()
+                        .any(|b| a == b || edges.contains(&edge(*a, *b)))
+                })
+            }
+        }
+    }
+}
+
 #[derive(Clone)]
 pub(super) struct Surface {
     features: Vec<Feature>,
-    connected: BTreeSet<[usize; 2]>,
+    one_ring: OneRing,
     loose: Vec<bool>,
     bounds: Vec<Bound>,
     friction: Option<friction::Friction>,
@@ -67,7 +120,7 @@ pub(super) struct Surface {
     // Topology and broad-phase capacity failures retain their hard limits.
     pub(super) subdivide_on_budget: bool,
     pub(super) retry_plane: bool,
-    pub(super) prioritize_terminal_speed: bool,
+    pub(super) row_order: RowOrder,
 }
 
 fn edge(a: usize, b: usize) -> [usize; 2] {
@@ -153,7 +206,7 @@ impl Surface {
             .collect();
         let mut surface = Self {
             features,
-            connected,
+            one_ring: OneRing::new(particles.len(), connected),
             loose,
             bounds: Vec::new(),
             friction: None,
@@ -161,7 +214,7 @@ impl Surface {
             loads: None,
             subdivide_on_budget: false,
             retry_plane: false,
-            prioritize_terminal_speed: false,
+            row_order: RowOrder::Time,
         };
         let positions = particles
             .iter()
@@ -180,15 +233,7 @@ impl Surface {
             }
             _ => return None,
         };
-        let split = if vf { 1 } else { 2 };
-        if ids[..split].iter().any(|a| {
-            ids[split..]
-                .iter()
-                .any(|b| a == b || self.connected.contains(&edge(*a, *b)))
-        }) {
-            return None;
-        }
-        Some(Stencil { ids, vf })
+        (!self.one_ring.excludes(ids, vf)).then_some(Stencil { ids, vf })
     }
 
     fn bounds(&mut self, p: Option<&[Particle]>, x: &[DVec3], margin: f64) -> usize {
@@ -437,6 +482,16 @@ impl Surface {
             SweepMode::MaterialShell
         };
         let axis = self.bounds(Some(p), x, (gap + eps) * 0.5);
+        // The distance between unpadded swept boxes bounds the distance at
+        // time zero. If it clears the gap plus every possible relative
+        // displacement, the ordinary sweep would answer on its first query.
+        let movement = p
+            .iter()
+            .zip(x)
+            .map(|(p, x)| (DVec3::from(p.position) - *x).length_squared())
+            .fold(0., f64::max)
+            .sqrt();
+        let clearance_squared = (gap + 4. * eps + 2. * movement).powi(2);
         let mut earliest: Option<Hit> = None;
         for (i, a) in self.bounds.iter().enumerate() {
             for b in &self.bounds[i + 1..] {
@@ -453,6 +508,16 @@ impl Surface {
                 let Some(stencil) = self.candidate(a.feature, b.feature) else {
                     continue;
                 };
+                if a.clears_motion(b, gap + eps, clearance_squared) {
+                    // A certified miss still consumes that first distance query.
+                    // This preserves the subdivision schedule at the work limit.
+                    *queries += 1;
+                    if *queries > MAX_DISTANCE_QUERIES {
+                        self.subdivide_on_budget = true;
+                        return Err(XpbdError::SurfaceBudget);
+                    }
+                    continue;
+                }
                 let hit = stencil
                     .sweep(x, p, gap, eps, queries, mode)
                     .inspect_err(|error| {
@@ -461,22 +526,9 @@ impl Surface {
                         }
                     })?;
                 if let Some(hit) = hit
-                    && earliest.as_ref().is_none_or(|old| {
-                        // Geometry has already been resolved in the terminal
-                        // velocity pass. Resolve its most violated normal first
-                        // when retrying a cluster of near-parallel constraints.
-                        let velocity_order = if self.prioritize_terminal_speed
-                            && search == Search::TerminalVelocity
-                        {
-                            old.speed.total_cmp(&hit.speed)
-                        } else {
-                            std::cmp::Ordering::Equal
-                        };
-                        velocity_order
-                            .then(hit.time.total_cmp(&old.time))
-                            .then(stencil.ids.cmp(&old.stencil.ids))
-                            .is_lt()
-                    })
+                    && earliest
+                        .as_ref()
+                        .is_none_or(|old| hit.precedes(old, search, self.row_order))
                 {
                     earliest = Some(hit);
                 }
@@ -484,6 +536,13 @@ impl Surface {
         }
         Ok(earliest)
     }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum RowOrder {
+    Time,
+    TerminalSpeed,
+    CertifiedSpeed,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -507,6 +566,8 @@ struct Stencil {
     vf: bool,
 }
 pub(super) struct Hit {
+    // The complete sweep cleared the inner gap and only its final velocity closes.
+    endpoint_velocity: bool,
     stencil: Stencil,
     pub(super) weights: [f64; 4],
     pub(super) normal: DVec3,
@@ -563,8 +624,12 @@ impl Stencil {
         let speed = (0..4)
             .map(|i| velocities[i].dot(n) * weights[i])
             .sum::<f64>();
-        let scale = velocities.iter().map(|v| v.length()).fold(1., f64::max);
-        let inner_gap = || {
+        let scale = velocities
+            .iter()
+            .map(|v| v.length_squared())
+            .fold(1., f64::max)
+            .sqrt();
+        let inner_gap = LazyCell::new(|| {
             let initial = if self.vf {
                 vertex_face(&start)
             } else {
@@ -573,16 +638,16 @@ impl Stencil {
             // An initial overlap may resolve monotonically. Prove the curve
             // never penetrates beyond its already admitted starting depth.
             gap.min(initial.delta.length()) - 4. * eps
-        };
-        let clear_material = || {
-            let lower = inner_gap();
+        });
+        let clear_material = LazyCell::new(|| {
+            let lower = *inner_gap;
             lower > 0.
                 && if self.vf {
                     interval::clear_triangle(start, end, lower, true)
                 } else {
                     interval::clear_edges(start, end, lower)
                 }
-        };
+        });
         // A touching feature may roll across its neighbour during a substep.
         // A certified non-penetrating trajectory uses the current closest
         // material normal for its velocity condition, instead of an obsolete
@@ -599,9 +664,9 @@ impl Stencil {
                 mode == SweepMode::SupportedShell && (speed < 0. || end_gap < gap - eps);
             if distance > eps && endpoint.delta.dot(n) > 0. && (touching || supported) {
                 let penetrated = distance < gap - eps;
-                let lower = inner_gap();
+                let lower = *inner_gap;
                 let use_endpoint = penetrated
-                    || clear_material()
+                    || *clear_material
                     || (supported
                         && lower > 0.
                         && first_entry_mode(start, end, self.vf, lower, eps, queries, true)?
@@ -619,6 +684,7 @@ impl Stencil {
                             .sum::<f64>();
                         if penetrated || vn < -128. * f64::EPSILON * scale {
                             return Ok(Some(Hit {
+                                endpoint_velocity: !penetrated,
                                 stencil: self,
                                 weights: endpoint.weights,
                                 normal,
@@ -634,6 +700,7 @@ impl Stencil {
         }
         if end_gap < gap - eps || speed < -128. * f64::EPSILON * scale {
             return Ok(Some(Hit {
+                endpoint_velocity: false,
                 stencil: self,
                 weights,
                 normal: n,
@@ -667,6 +734,7 @@ impl Stencil {
                 .map(|(&w, v)| w * v.dot(normal))
                 .sum::<f64>();
             return Ok(Some(Hit {
+                endpoint_velocity: false,
                 stencil: self,
                 weights: terminal.weights,
                 normal,
@@ -675,7 +743,7 @@ impl Stencil {
                 speed: (-speed).max(0.),
             }));
         }
-        if certified || clear_material() {
+        if certified || *clear_material {
             return Ok(None);
         }
         // Nearly parallel finite edges may graze at the very end of this
@@ -684,7 +752,7 @@ impl Stencil {
         // bounded continuous search. A capsule carries a separate trajectory
         // envelope and retains its existing coupled subdivision on refusal.
         if matches!(mode, SweepMode::MaterialShell | SweepMode::SupportedShell) {
-            let lower = inner_gap();
+            let lower = *inner_gap;
             if lower > 0.
                 && first_entry_mode(start, end, self.vf, lower, eps, queries, true)?.is_none()
             {
@@ -753,8 +821,13 @@ pub(super) fn first_entry_mode(
     let split = if vf { 1 } else { 2 };
     let relative = path[..split]
         .iter()
-        .flat_map(|a| path[split..].iter().map(move |b| (*a - *b).length()))
-        .fold(0., f64::max);
+        .flat_map(|a| {
+            path[split..]
+                .iter()
+                .map(move |b| (*a - *b).length_squared())
+        })
+        .fold(0., f64::max)
+        .sqrt();
     let mut time = 0.;
     for _ in 0..128 {
         *queries += 1;
@@ -926,6 +999,31 @@ fn entry_intervals(
 }
 
 impl Hit {
+    fn precedes(&self, other: &Self, search: Search, order: RowOrder) -> bool {
+        // A geometric event retains its time ordering. Once the swept path is
+        // clear, the largest closing velocity is the tightest unilateral row.
+        let priority = match search {
+            Search::TerminalVelocity if order != RowOrder::Time => {
+                other.speed.total_cmp(&self.speed)
+            }
+            Search::Supported if order == RowOrder::CertifiedSpeed => self
+                .endpoint_velocity
+                .cmp(&other.endpoint_velocity)
+                .then_with(|| {
+                    if self.endpoint_velocity && other.endpoint_velocity {
+                        other.speed.total_cmp(&self.speed)
+                    } else {
+                        std::cmp::Ordering::Equal
+                    }
+                }),
+            _ => std::cmp::Ordering::Equal,
+        };
+        priority
+            .then_with(|| self.time.total_cmp(&other.time))
+            .then_with(|| self.stencil.ids.cmp(&other.stencil.ids))
+            .is_lt()
+    }
+
     fn apply(&self, x: &mut [DVec3], p: &mut [Particle]) -> Result<f64, XpbdError> {
         let denom = (0..4)
             .map(|i| p[self.stencil.ids[i]].inverse_mass * self.weights[i].powi(2))
