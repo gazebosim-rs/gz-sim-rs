@@ -147,7 +147,17 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         fs::create_dir(out)?;
     }
     let first = usize::from(args.replay.is_none());
+    let blocks = std::env::var_os("GZ_PUBLICATION_BLOCKS").is_some();
     for tick in first..=last_tick {
+        if blocks && tick > 20 && (tick - 21).is_multiple_of(32) {
+            use std::io::Write;
+            println!("READY {tick}");
+            std::io::stdout().flush()?;
+            let mut token = String::new();
+            if std::io::stdin().read_line(&mut token)? == 0 {
+                return Err("missing timing block token".into());
+            }
+        }
         let start = Instant::now();
         if tick == 0 {
             sim.set_paused(true);

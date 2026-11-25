@@ -115,7 +115,16 @@ fn publish(
                     let link = &link_poses[i];
                     *model = link.compose(anchors[i].link_to_model);
                     *model_local = local_from_world(root, model);
-                    *link_local = local_from_world(*model, link);
+                    let relative = local_from_world(*model, link);
+                    // Link-local transforms on rigid decks often stay bit-for-bit fixed.
+                    // The table split already marked the public component changed.
+                    if link_local.0.translation.map(f64::to_bits)
+                        != relative.0.translation.map(f64::to_bits)
+                        || link_local.0.rotation.map(f64::to_bits)
+                            != relative.0.rotation.map(f64::to_bits)
+                    {
+                        *link_local = relative;
+                    }
                 }
                 true
             });
