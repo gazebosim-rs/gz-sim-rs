@@ -374,10 +374,14 @@ impl Chrome {
         }
         Ok(())
     }
-    fn focus_visual(&mut self, follow_sheet: bool, perspective: bool) -> Result<()> {
+    fn focus_visual(&mut self, follow_sheet: bool, perspective: bool, row: u64) -> Result<()> {
         // In the folded-grasp scene the first material node follows the ten
         // robot and support visuals in the expanded outliner.
-        self.click_at(196, if follow_sheet { 460 } else { 200 })?;
+        if row > 23 {
+            return Err("visual row is below the visible outliner".into());
+        }
+        let y = if follow_sheet { 460 } else { 200 + 28 * row as u32 };
+        self.click_at(196, y)?;
         self.call(
             "Input.dispatchMouseEvent",
             json!({"type":"mouseMoved","x":743,"y":470}),
@@ -738,9 +742,16 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
         sleep(400);
     }
     let follow_sheet = chrome.oracle.index["follow_folded_sheet"] == true;
-    if authored && (chrome.oracle.index["focus_first_visual"] == true || follow_sheet) {
+    let visual_row = chrome.oracle.index["focus_visual_row"].as_u64();
+    if authored
+        && (chrome.oracle.index["focus_first_visual"] == true || visual_row.is_some() || follow_sheet)
+    {
         chrome.capture(&output.join("overview.jpg"))?;
-        chrome.focus_visual(follow_sheet, chrome.oracle.index["focus_perspective"] == true)?;
+        chrome.focus_visual(
+            follow_sheet,
+            chrome.oracle.index["focus_perspective"] == true,
+            visual_row.unwrap_or(0),
+        )?;
     }
     let zoom_steps = chrome.oracle.index["zoom_out_steps"].as_u64().unwrap_or(0);
     chrome.zoom_out(zoom_steps)?;

@@ -31,6 +31,9 @@ fn interrupted_camera_inputs_propagate_to_the_recorder() {
                         let msg: Value =
                             serde_json::from_slice(&peer.read().unwrap().into_data()).unwrap();
                         let params = &msg["params"];
+                        if params["type"] == "mousePressed" {
+                            assert_eq!(params["y"], if follow_sheet { 460 } else { 256 });
+                        }
                         let reject = msg["method"] == method
                             && params["type"].as_str().unwrap_or("") == event
                             && params["key"].as_str().unwrap_or("") == key
@@ -52,9 +55,10 @@ fn interrupted_camera_inputs_propagate_to_the_recorder() {
                     next: 0,
                     oracle: Oracle::default(),
                 };
+                assert!(chrome.focus_visual(false, false, 24).is_err());
                 assert!(
                     chrome
-                        .focus_visual(follow_sheet, true)
+                        .focus_visual(follow_sheet, true, 2)
                         .unwrap_err()
                         .to_string()
                         .contains("input refused")

@@ -6,6 +6,11 @@ pub(super) fn is_physics_plugin(plugin: &sdformat::Plugin) -> bool {
     plugin.name == "gz::sim::systems::Physics" && plugin.filename == "gz-sim-physics-system"
 }
 
+pub(super) fn is_scene_broadcaster(plugin: &sdformat::Plugin) -> bool {
+    plugin.name == "gz::sim::systems::SceneBroadcaster"
+        && plugin.filename == "gz-sim-scene-broadcaster-system"
+}
+
 pub(super) fn content<'a, 'input>(
     node: roxmltree::Node<'a, 'input>,
 ) -> impl Iterator<Item = roxmltree::Node<'a, 'input>> {
@@ -70,7 +75,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
         mut magnetometer,
         mut air_speed,
         mut logical_camera,
-    ) = (false, false, false, false, false, false, false);
+        mut broadcaster,
+    ) = (false, false, false, false, false, false, false, false);
     crate::grasp_fleet_sdf::models(world)?;
     for plugin in &world.plugins {
         if crate::grasp_fleet_sdf::is_plugin(plugin)
@@ -110,6 +116,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             && plugin.filename == "gz-sim-magnetometer-system";
         require(
             is_physics
+                || is_scene_broadcaster(plugin)
                 || is_sensors
                 || is_altimeter
                 || is_air_pressure
@@ -121,6 +128,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
         )?;
         let (seen, feature) = if is_physics {
             (&mut physics, "duplicate Physics configuration")
+        } else if is_scene_broadcaster(plugin) {
+            (&mut broadcaster, "duplicate SceneBroadcaster configuration")
         } else if is_sensors {
             (&mut sensors, "duplicate Sensors configuration")
         } else if is_altimeter {
@@ -140,6 +149,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             entity: world.name.clone(),
             feature: if is_physics {
                 "Physics system configuration"
+            } else if is_scene_broadcaster(plugin) {
+                "SceneBroadcaster system configuration"
             } else if is_sensors {
                 "Sensors system configuration"
             } else if is_altimeter {

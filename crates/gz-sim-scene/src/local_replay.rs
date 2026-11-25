@@ -66,6 +66,7 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     };
     let admitted = world.plugins.iter().all(|p| {
         world_systems::is_physics_plugin(p)
+            || world_systems::is_scene_broadcaster(p)
             || primary_contact::sdf::is_plugin(p)
             || continuous_collision::is_plugin(p)
             || mounted_guide::is_plugin(p)

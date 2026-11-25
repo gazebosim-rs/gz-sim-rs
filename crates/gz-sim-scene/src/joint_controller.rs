@@ -5,6 +5,7 @@ use super::*;
 use std::collections::{BTreeMap, BTreeSet};
 mod config;
 mod model;
+mod pid;
 #[cfg(feature = "gpu-batch")]
 pub(crate) use config::Parameters;
 #[cfg(feature = "gpu-batch")]
@@ -59,8 +60,9 @@ pub(super) struct Controller {
     target: f64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub(super) enum Actuation {
+    ForcePid(pid::ForcePid),
     Reduced,
     Screw,
     Universal(usize),
@@ -82,6 +84,7 @@ impl Actuation {
     fn clear(self) -> MotorRequest {
         match self {
             Self::Universal(axis) => MotorRequest::Universal(axis, None),
+            Self::ForcePid(_) => MotorRequest::Effort(0., [0.; 2]),
             _ => MotorRequest::Clear,
         }
     }
@@ -89,6 +92,7 @@ impl Actuation {
 
 #[derive(Clone, Copy)]
 enum MotorRequest {
+    Effort(f64, [f64; 2]),
     Universal(usize, Option<gz_physics::JointVelocityMotor>),
     Clear,
     Position(gz_physics::JointPositionServo),
@@ -106,6 +110,7 @@ impl MotorRequest {
                 .downcast_ref::<MultiFidelityBackend>()
                 .ok_or(PhysicsError::InvalidJoint)?
                 .validate_universal_motor(joint, axis, motor),
+            Self::Effort(effort, _) => backend.validate_joint_effort(joint, effort),
             Self::Clear => backend.validate_joint_position_servo(joint, None, dt),
             Self::Position(servo) => backend.validate_joint_position_servo(joint, Some(servo), dt),
             Self::Velocity(motor) => backend.validate_joint_velocity_servo(joint, Some(motor)),
@@ -122,6 +127,7 @@ impl MotorRequest {
                 .downcast_mut::<MultiFidelityBackend>()
                 .ok_or(PhysicsError::InvalidJoint)?
                 .set_universal_motor(joint, axis, motor),
+            Self::Effort(effort, _) => backend.add_joint_effort(joint, effort),
             Self::Clear => backend.set_joint_position_servo(joint, None, dt),
             Self::Position(servo) => backend.set_joint_position_servo(joint, Some(servo), dt),
             Self::Velocity(motor) => backend.set_joint_velocity_servo(joint, Some(motor)),
@@ -138,6 +144,10 @@ impl Actuation {
         max_force: f64,
         dt: Duration,
     ) -> Result<MotorRequest, model::InvalidControllerInput> {
+        if let Self::ForcePid(pid) = self {
+            let (effort, history) = pid.update(target, coordinate, dt, max_force)?;
+            return Ok(MotorRequest::Effort(effort, history));
+        }
         let velocity = model::target_velocity(mode, target, coordinate, max_velocity, dt)?;
         let motor = gz_physics::JointVelocityMotor {
             target_velocity: velocity,
@@ -165,6 +175,9 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
     config::parse(model).map(|parameters| parameters.map(Plan))
 }
 impl Plan {
+    pub(super) fn force_driven(&self) -> bool {
+        matches!(self.0[0].actuation, Actuation::ForcePid(_))
+    }
     pub(super) fn names(&self) -> impl Iterator<Item = &str> {
         self.0.iter().map(|parameters| parameters.joint.as_str())
     }
@@ -684,6 +697,16 @@ fn apply(world: &mut World) {
                     message: error.to_string(),
                 })?;
         }
+        for (entity, _, motor) in prepared.into_iter().flatten() {
+            if let MotorRequest::Effort(_, history) = motor
+                && let Actuation::ForcePid(pid) = &mut world
+                    .get_mut::<Controller>(entity)
+                    .expect("prepared controller")
+                    .actuation
+            {
+                pid.history = history;
+            }
+        }
         Ok(())
     })();
     if let Err(error) = result {
@@ -740,6 +763,9 @@ fn reset(world: &mut World) {
         let mut query = world.query::<&mut Controller>();
         for mut controller in query.iter_mut(world) {
             controller.target = controller.initial_target;
+            if let Actuation::ForcePid(pid) = &mut controller.actuation {
+                pid.history = [0.; 2];
+            }
         }
         Ok(())
     })();

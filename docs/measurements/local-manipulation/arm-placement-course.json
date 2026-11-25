@@ -1,0 +1,637 @@
+{
+  "physics_step_s": 0.001,
+  "duration_s": 18,
+  "rail_target_m": 0.46,
+  "shelf_center_xy_m": [
+    0,
+    0.46
+  ],
+  "cases": [
+    {
+      "name": "nominal",
+      "parcel_kg": 0.2,
+      "grip_friction": 0.85,
+      "measured": {
+        "obstacle": {
+          "parts": {
+            "default::gripper::carriage": {
+              "minimum_gap_m": 0.37799995609189985,
+              "nearest_tick": 5943,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::left": {
+              "minimum_gap_m": 0.02631979822186547,
+              "nearest_tick": 5767,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::nut": {
+              "minimum_gap_m": 0.21110378951379646,
+              "nearest_tick": 289,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::palm": {
+              "minimum_gap_m": 0.17164011107254387,
+              "nearest_tick": 658,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::right": {
+              "minimum_gap_m": 0.026318602437445777,
+              "nearest_tick": 5444,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::parcel::box": {
+              "minimum_gap_m": 0.018748691446980652,
+              "nearest_tick": 5790,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "first_sweep_hit": null,
+          "first_obstacle_reaction_tick": null,
+          "abort_tick": null,
+          "abort_on_measured_contact": false,
+          "post_abort_ticks": 0,
+          "both_pads_supporting_after_abort_ticks": 0,
+          "peak_carriage_travel_m": 0.4630674959798969
+        },
+        "payload": {
+          "weight_n": 1.9620000000000002,
+          "min_pad_normal_n": [
+            6.86470999969564,
+            6.998319287865422
+          ],
+          "mean_pad_normal_n": [
+            7.026506191074901,
+            7.024789547429162
+          ],
+          "first_missing_bilateral_grip_ms": null,
+          "tray_loaded_traverse_ticks": 0,
+          "shelf_loaded_traverse_ticks": 0
+        },
+        "lift_mm": 126.07045106947423,
+        "lateral_payload_at_arrival_mm": 462.43610482383735,
+        "lateral_carriage_at_arrival_mm": 462.3844461920979,
+        "parcel_carried_on_both_pads_ticks": 4001,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 0.450427448194046,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.01317862491567734,
+        "pickup_ready_ticks": 0,
+        "release_tick": 14074,
+        "dwell_ms_at_release": 30,
+        "shelf_mean_at_release_n": 1.8443231172744985,
+        "shelf_relative_speed_at_release_m_s": 7.61544169831865e-07,
+        "final_shelf_load_n": 1.9620000000000135,
+        "final_tray_load_n": 0.0,
+        "final_pad_load_n": 0.0,
+        "final_parcel_position_m": [
+          1.4114845435224374e-05,
+          0.4601583701051514,
+          0.6149442797296604
+        ],
+        "final_palm_position_m": [
+          -5.392863662643688e-06,
+          0.46001273723384106,
+          0.8223228043010385
+        ]
+      }
+    },
+    {
+      "name": "placed",
+      "parcel_kg": 1,
+      "grip_friction": 0.85,
+      "measured": {
+        "obstacle": {
+          "parts": {
+            "default::gripper::carriage": {
+              "minimum_gap_m": 0.37799993410336,
+              "nearest_tick": 5943,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::left": {
+              "minimum_gap_m": 0.026318674831039758,
+              "nearest_tick": 5772,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::nut": {
+              "minimum_gap_m": 0.21109181778630012,
+              "nearest_tick": 302,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::palm": {
+              "minimum_gap_m": 0.17151575323936633,
+              "nearest_tick": 650,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::right": {
+              "minimum_gap_m": 0.026315993595113732,
+              "nearest_tick": 5445,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::parcel::box": {
+              "minimum_gap_m": 0.01884359460535386,
+              "nearest_tick": 5793,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "first_sweep_hit": null,
+          "first_obstacle_reaction_tick": null,
+          "abort_tick": null,
+          "abort_on_measured_contact": false,
+          "post_abort_ticks": 0,
+          "both_pads_supporting_after_abort_ticks": 0,
+          "peak_carriage_travel_m": 0.4642103324239529
+        },
+        "payload": {
+          "weight_n": 9.81,
+          "min_pad_normal_n": [
+            7.00220023150117,
+            7.13056644386289
+          ],
+          "mean_pad_normal_n": [
+            7.221617206653241,
+            7.2511096751248205
+          ],
+          "first_missing_bilateral_grip_ms": null,
+          "tray_loaded_traverse_ticks": 0,
+          "shelf_loaded_traverse_ticks": 0
+        },
+        "lift_mm": 125.9738222237009,
+        "lateral_payload_at_arrival_mm": 463.31807272711643,
+        "lateral_carriage_at_arrival_mm": 463.2465773632981,
+        "parcel_carried_on_both_pads_ticks": 4001,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 1.2668961191167698,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.012670973462136637,
+        "pickup_ready_ticks": 0,
+        "release_tick": 9195,
+        "dwell_ms_at_release": 30,
+        "shelf_mean_at_release_n": 9.221777193263886,
+        "shelf_relative_speed_at_release_m_s": -7.355585924758947e-06,
+        "final_shelf_load_n": 9.809999999999938,
+        "final_tray_load_n": 0.0,
+        "final_pad_load_n": 0.0,
+        "final_parcel_position_m": [
+          6.441156529473195e-05,
+          0.4598881076736171,
+          0.6149442764945886
+        ],
+        "final_palm_position_m": [
+          -5.411311210941472e-06,
+          0.4600120957320231,
+          0.8223228068809932
+        ]
+      }
+    },
+    {
+      "name": "limit",
+      "parcel_kg": 1.245,
+      "grip_friction": 0.85,
+      "measured": {
+        "obstacle": {
+          "separated_box_rechecks": 1,
+          "parts": {
+            "default::gripper::carriage": {
+              "minimum_gap_m": 0.3779999272814453,
+              "nearest_tick": 5943,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::left": {
+              "minimum_gap_m": 0.02631402926241344,
+              "nearest_tick": 5773,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::nut": {
+              "minimum_gap_m": 0.21107865144988255,
+              "nearest_tick": 299,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::palm": {
+              "minimum_gap_m": 0.17147893786915436,
+              "nearest_tick": 650,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::right": {
+              "minimum_gap_m": 0.026310941533591724,
+              "nearest_tick": 5446,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::parcel::box": {
+              "minimum_gap_m": 0.006647266758653839,
+              "nearest_tick": 5524,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "first_sweep_hit": null,
+          "first_obstacle_reaction_tick": null,
+          "abort_tick": null,
+          "abort_on_measured_contact": false,
+          "post_abort_ticks": 0,
+          "both_pads_supporting_after_abort_ticks": 0,
+          "peak_carriage_travel_m": 0.4645777006586561
+        },
+        "payload": {
+          "weight_n": 12.213450000000002,
+          "min_pad_normal_n": [
+            6.99077445794707,
+            7.146089119277698
+          ],
+          "mean_pad_normal_n": [
+            7.220488863183007,
+            7.291977430136919
+          ],
+          "first_missing_bilateral_grip_ms": null,
+          "tray_loaded_traverse_ticks": 0,
+          "shelf_loaded_traverse_ticks": 0
+        },
+        "lift_mm": 114.04417194637983,
+        "lateral_payload_at_arrival_mm": 463.6568094914912,
+        "lateral_carriage_at_arrival_mm": 463.52511452849933,
+        "parcel_carried_on_both_pads_ticks": 4001,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 1.6401162649272794,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.015509186047202306,
+        "pickup_ready_ticks": 0,
+        "release_tick": 8892,
+        "dwell_ms_at_release": 30,
+        "shelf_mean_at_release_n": 11.482953166168144,
+        "shelf_relative_speed_at_release_m_s": -9.653821833731856e-06,
+        "final_shelf_load_n": 12.213449999999964,
+        "final_tray_load_n": 0.0,
+        "final_pad_load_n": 0.0,
+        "final_parcel_position_m": [
+          0.00012631767090827875,
+          0.45993283560329973,
+          0.6149442458162802
+        ],
+        "final_palm_position_m": [
+          -5.395259600506313e-06,
+          0.4600112318372557,
+          0.8223228095426891
+        ]
+      }
+    },
+    {
+      "name": "blocked",
+      "parcel_kg": 1.2475,
+      "grip_friction": 0.85,
+      "measured": {
+        "obstacle": {
+          "parts": {
+            "default::gripper::carriage": {
+              "minimum_gap_m": 0.41749019597957904,
+              "nearest_tick": 4405,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::left": {
+              "minimum_gap_m": 0.1845,
+              "nearest_tick": 0,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::nut": {
+              "minimum_gap_m": 0.21107859326569411,
+              "nearest_tick": 299,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::palm": {
+              "minimum_gap_m": 0.17147854964787432,
+              "nearest_tick": 650,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::right": {
+              "minimum_gap_m": 0.1692840959025859,
+              "nearest_tick": 1205,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::parcel::box": {
+              "minimum_gap_m": 0.18345353721485366,
+              "nearest_tick": 843,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "first_sweep_hit": {
+            "tick": 3700,
+            "part": "default::parcel::box",
+            "travel_m": 0.1988820545931591
+          },
+          "first_obstacle_reaction_tick": null,
+          "abort_tick": 3700,
+          "abort_on_measured_contact": false,
+          "post_abort_ticks": 14301,
+          "both_pads_supporting_after_abort_ticks": 14301,
+          "peak_carriage_travel_m": 0.0007597428942601093
+        },
+        "payload": {
+          "weight_n": 12.237975,
+          "min_pad_normal_n": [
+            6.970467996912268,
+            7.227370852135669
+          ],
+          "mean_pad_normal_n": [
+            7.2081484303788494,
+            7.272044421935458
+          ],
+          "first_missing_bilateral_grip_ms": null,
+          "tray_loaded_traverse_ticks": 0,
+          "shelf_loaded_traverse_ticks": 0
+        },
+        "lift_mm": 105.86017661741786,
+        "lateral_payload_at_arrival_mm": 0.04325207369194872,
+        "lateral_carriage_at_arrival_mm": 0.024314358632031994,
+        "parcel_carried_on_both_pads_ticks": 4001,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 2.6178462989828404,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.0,
+        "pickup_ready_ticks": 0,
+        "release_tick": null,
+        "dwell_ms_at_release": null,
+        "shelf_mean_at_release_n": null,
+        "shelf_relative_speed_at_release_m_s": null,
+        "final_shelf_load_n": 0.0,
+        "final_tray_load_n": 0.0,
+        "final_pad_load_n": 14.486651443009304,
+        "final_parcel_position_m": [
+          7.479722843461693e-05,
+          4.612070599716092e-05,
+          0.6389668503723472
+        ],
+        "final_palm_position_m": [
+          -1.9288262788874597e-05,
+          2.427713833368721e-05,
+          0.8223216346348114
+        ]
+      }
+    },
+    {
+      "name": "rejected",
+      "parcel_kg": 0.2,
+      "grip_friction": 0.0,
+      "measured": {
+        "obstacle": {
+          "parts": {
+            "default::gripper::carriage": {
+              "minimum_gap_m": 0.41714546751236437,
+              "nearest_tick": 1328,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::left": {
+              "minimum_gap_m": 0.1845,
+              "nearest_tick": 0,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::nut": {
+              "minimum_gap_m": 0.2110663684372607,
+              "nearest_tick": 282,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::palm": {
+              "minimum_gap_m": 0.17166835164707478,
+              "nearest_tick": 653,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::gripper::right": {
+              "minimum_gap_m": 0.17081515919890022,
+              "nearest_tick": 1106,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "default::parcel::box": {
+              "minimum_gap_m": 0.17696032093902173,
+              "nearest_tick": 1154,
+              "peak_normal_force_n": 0.0,
+              "normal_impulse_ns": 0.0,
+              "peak_force_vector_n": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "first_sweep_hit": null,
+          "first_obstacle_reaction_tick": null,
+          "abort_tick": 3700,
+          "abort_on_measured_contact": false,
+          "unsecured_dispatch_tick": 3700,
+          "post_abort_ticks": 14301,
+          "both_pads_supporting_after_abort_ticks": 0,
+          "peak_carriage_travel_m": 0.0015733573988240483
+        },
+        "payload": {
+          "weight_n": 1.9620000000000002,
+          "min_pad_normal_n": [
+            0.0,
+            0.0
+          ],
+          "mean_pad_normal_n": [
+            0.0,
+            0.0
+          ],
+          "first_missing_bilateral_grip_ms": 3700,
+          "tray_loaded_traverse_ticks": 4001,
+          "shelf_loaded_traverse_ticks": 0
+        },
+        "lift_mm": -0.05547930825999803,
+        "lateral_payload_at_arrival_mm": -284.9956581197521,
+        "lateral_carriage_at_arrival_mm": 0.009045997595082723,
+        "parcel_carried_on_both_pads_ticks": 0,
+        "traverse_ticks": 4001,
+        "max_parcel_motion_in_palm_frame_during_traverse_mm": 21.556682327749904,
+        "shelf_unloaded_ticks_after_release": 0,
+        "max_drop_after_release_mm": 0.0,
+        "pickup_ready_ticks": 0,
+        "release_tick": null,
+        "dwell_ms_at_release": null,
+        "shelf_mean_at_release_n": null,
+        "shelf_relative_speed_at_release_m_s": null,
+        "final_shelf_load_n": 0.0,
+        "final_tray_load_n": 1.9619998975015707,
+        "final_pad_load_n": 0.0,
+        "final_parcel_position_m": [
+          -0.2744441322997276,
+          -0.2849956581197521,
+          0.53494452069174
+        ],
+        "final_palm_position_m": [
+          -5.2581367375336836e-06,
+          9.152033295053155e-06,
+          0.8223228454632007
+        ]
+      }
+    }
+  ]
+}

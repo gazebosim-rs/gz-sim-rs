@@ -203,6 +203,8 @@ fn incompletely_observed_obstacle_routes_never_issue_the_next_rail_command() -> 
                 trial,
                 output: output.clone(),
                 world: None,
+                parcel_kg: None,
+                grip_friction: None,
                 travel_ms: 4000,
                 control_ms: 1,
                 pull: None,

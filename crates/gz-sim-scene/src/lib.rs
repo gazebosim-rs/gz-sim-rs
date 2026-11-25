@@ -1610,7 +1610,12 @@ fn build_model(
     };
     let construction = match &reduced_plan {
         Some(plan) => joints::JointConstruction::Reduced(plan),
-        None if controller_plan.is_some() => joints::JointConstruction::Controller,
+        None if controller_plan
+            .as_ref()
+            .is_some_and(|plan| !plan.force_driven()) =>
+        {
+            joints::JointConstruction::Controller
+        }
         None => joints::JointConstruction::Impulse,
     };
     // Impulse hinges use link-frame anchors. Rapier applies the inertia at its

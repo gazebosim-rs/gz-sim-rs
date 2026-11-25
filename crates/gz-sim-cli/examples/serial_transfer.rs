@@ -85,6 +85,12 @@ struct Args {
     /// Load a self-contained serial-transfer workcell with the same named parts.
     #[arg(long)]
     world: Option<PathBuf>,
+    /// Parcel mass in kg. Scales the authored inertia tensor at fixed geometry.
+    #[arg(long)]
+    parcel_kg: Option<f64>,
+    /// ODE sliding friction on the parcel and both finger pads.
+    #[arg(long)]
+    grip_friction: Option<f64>,
     /// Time for the 460 mm quintic command in the monitored carry trials.
     #[arg(long, default_value_t = 4000, value_parser=clap::value_parser!(u64).range(1..=4000))]
     travel_ms: u64,
@@ -442,9 +448,10 @@ fn drive(
     Ok(out)
 }
 fn record(args: Args, xml: &str) -> Result<Outcome> {
-    let sdf = sdformat::load_str(xml, "serial_transfer.sdf", &sdformat::NoResources)?;
+    let xml = payload::configure(xml, args.parcel_kg, args.grip_friction)?;
+    let sdf = sdformat::load_str(&xml, "serial_transfer.sdf", &sdformat::NoResources)?;
     let mut sim = load_world_with_sdf_step(
-        xml,
+        &xml,
         "serial_transfer.sdf",
         "default",
         &sdformat::NoResources,
@@ -466,7 +473,7 @@ fn record(args: Args, xml: &str) -> Result<Outcome> {
         args.trial,
         passage,
         weight,
-        args.world.is_some(),
+        args.world.is_some() || args.parcel_kg.is_some() || args.grip_friction.is_some(),
         |s| {
             frames.push(gz_sim_cli::primitive_frame(
                 s,
@@ -744,6 +751,8 @@ mod tests {
             trial: Trial::Transfer,
             output: path.clone(),
             world: None,
+            parcel_kg: None,
+            grip_friction: None,
             travel_ms: 4000,
             control_ms: 1,
             pull: None,

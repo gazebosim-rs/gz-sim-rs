@@ -1,0 +1,13 @@
+{
+  "seed": "upstream-joint-position",
+  "observe": ["default::ground_plane::link", "default::joint_position_controller_test::base_link", "default::joint_position_controller_test::rotor", "default::joint_position_controller_test::j1"],
+  "commands": [
+    {"op":"step","count":50},
+    {"op":"target","joint":"default::joint_position_controller_test::j1","value":1.0},
+    {"op":"step","count":400},
+    {"op":"target","joint":"default::joint_position_controller_test::j1","value":-0.5},
+    {"op":"step","count":400},
+    {"op":"target","joint":"default::joint_position_controller_test::j1","value":0.25},
+    {"op":"step","count":400}
+  ]
+}

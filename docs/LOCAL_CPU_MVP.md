@@ -115,11 +115,24 @@ target/cpu-tools/bin/gz-sim-local-replay examples/multifidelity_two_support_foot
   examples/replay/course_paused_support.json --trace paused-support.jsonl
 ```
 
+## Run the controlled arm
+
+Run the unchanged Gazebo position-controller world through three angle commands, then use the contact-driven arm to lift and place a 1 kg parcel. The third command repeats the task with frictionless fingers. The arm writes the measured outcome to stdout and a gz-web-rs replay to the named directory. [Arm measurements](measurements/local-manipulation/arm-placement-course.md) · [Watch the three recordings](measurements/local-manipulation/controlled-arm-view.md)
+
+```bash
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli --bin gz-sim-local-replay -- \
+  examples/worlds/upstream_joint_position.sdf examples/replay/upstream_joint_position.json --trace stock-position.jsonl
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli --example serial_transfer -- \
+  clear-obstacle placed --parcel-kg 1 --grip-friction 0.85 > placed.json
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli --example serial_transfer -- \
+  clear-obstacle rejected --parcel-kg 0.2 --grip-friction 0 > rejected.json
+```
+
 ## What this build covers
 
 The CPU solver has physical regression tests for fixed, revolute, prismatic, ball, universal and screw joints. The independently authored model qualifies a free-base revolute joint, sustained effort, loaded inertia, plane contact, friction and reset. The full gripper task qualifies multiple joints, contact impulses and automatic tier changes against an always-dynamic run. The motor was checked against analytical acceleration and a native Gazebo DART run at eight matched times. The gripper's reference uses the same dynamic solver. [Motor measurements and source](measurements/local-manipulation/mvp-independent-robot.md) · [Gripper accuracy, p95 and real-time factor](measurements/local-manipulation/mvp-local-performance.md)
 
-Ordinary SDF support is still selective. On the earlier rotor candidate three unmodified Gazebo test worlds failed at load time. The differential-drive world requests joint-state axes for a ball caster, the double pendulum specifies an offset mass center in an unsupported inertial form, and the position-controller world requests a world plugin outside the admitted set. The double pendulum and differential-drive worlds now run. The position-controller world remains on the roadmap.
+Ordinary SDF support is still selective. On the earlier rotor candidate three unmodified Gazebo test worlds failed at load time. The differential-drive world requests joint-state axes for a ball caster, the double pendulum specifies an offset mass center in an unsupported inertial form, and the position-controller world requests a world plugin outside the admitted set. All three now run. The position-controller qualification covers the stock free-base hinge and the three measured angle commands. [Native Gazebo comparison](measurements/local-manipulation/upstream-joint-position.md)
 
 The Linux package is a preview. On candidate `fc80ca5`, all 4,208 ordinary CPU tests passed and every local physics backend exceeded 95% line and region coverage. The full CPU gate still needs coverage in the CLI, scene and distributed crates, and a way to account for optional source files excluded from that build. The software renderer also missed its coverage targets. [Release qualification and next tests](measurements/local-manipulation/mvp-release-coverage.md)
 
@@ -134,13 +147,17 @@ stage=$(mktemp -d "$PWD/target/local-physics-preview.XXXXXXXX")
 package="$stage/package"
 mkdir -p "$package/share/gz-sim" "$stage/recordings"
 RUSTC_WRAPPER= cargo install --locked --path crates/gz-sim-cli --no-default-features \
-  --bin gz-sim-rs --bin gz-sim-control --bin gz-sim-local-replay --root "$stage/install"
+  --bin gz-sim-rs --bin gz-sim-control --bin gz-sim-local-replay --example serial_transfer --root "$stage/install"
+RUSTC_WRAPPER= cargo install --locked --path crates/gz-sim-scene --no-default-features \
+  --example loaded_joint_chain --root "$stage/install"
 cp -a "$stage/install/bin" "$package/bin"
 cp LICENSE NOTICE "$package/"
 cp docs/LOCAL_CPU_PACKAGE.md "$package/README.md"
-cp examples/worlds/upstream_{joint_force,double_pendulum,diff_drive}.sdf examples/replay/upstream_{joint_force,double_pendulum,diff_drive}.json "$package/share/gz-sim/"
+cp examples/worlds/upstream_{joint_force,double_pendulum,diff_drive,joint_position}.sdf examples/replay/upstream_{joint_force,double_pendulum,diff_drive,joint_position}.json "$package/share/gz-sim/"
 cp examples/multifidelity_{rocking_foot,two_support_foot}.sdf examples/worlds/local_fast_obstacle.sdf \
   examples/replay/{course_foot_edge,course_paused_support,local_fast_obstacle}.json "$package/share/gz-sim/"
+cp examples/worlds/{local_robot_serial_obstacle,loaded_joint_chain}.sdf "$package/share/gz-sim/"
+tar -xJf docs/measurements/local-manipulation/controlled-arm-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/contact-course-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/drive-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/pendulum-view.tar.xz -C "$package/share/gz-sim"

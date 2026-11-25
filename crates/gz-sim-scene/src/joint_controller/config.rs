@@ -33,7 +33,11 @@ fn error(model: &Model, feature: &'static str) -> LoadError {
     }
 }
 
-fn fields(plugin: &Plugin, mode: JointControllerMode) -> Result<BTreeMap<&str, String>, ()> {
+fn fields(
+    plugin: &Plugin,
+    mode: JointControllerMode,
+    force_pid: bool,
+) -> Result<BTreeMap<&str, String>, ()> {
     let document = roxmltree::Document::parse(&plugin.xml).map_err(|_| ())?;
     let root = document.root_element();
     if root.tag_name().name() != "plugin"
@@ -63,6 +67,11 @@ fn fields(plugin: &Plugin, mode: JointControllerMode) -> Result<BTreeMap<&str, S
         }
         let name = child.tag_name().name();
         let allowed = matches!(name, "joint_name" | "topic")
+            || force_pid
+                && matches!(
+                    name,
+                    "p_gain" | "i_gain" | "d_gain" | "i_max" | "i_min" | "cmd_min" | "cmd_offset"
+                )
             || match mode {
                 JointControllerMode::Velocity => {
                     matches!(name, "use_force_commands" | "initial_velocity")
@@ -221,7 +230,13 @@ pub(super) fn parse_fields(
             JointKind::Universal | JointKind::Revolute2 | JointKind::Screw
         )
     });
-    if robot {
+    // The unanchored stock rotor uses one force controller on its scalar hinge.
+    let single_hinge = !validated_planar_chain
+        && second.is_none()
+        && model.joints.len() == 1
+        && model.joints[0].kind == JointKind::Revolute
+        && first.name == "gz::sim::systems::JointPositionController";
+    if robot || single_hinge {
         require(
             model.raw_namespace.is_none(),
             &model.scoped_name,
@@ -239,8 +254,8 @@ pub(super) fn parse_fields(
         } else {
             JointControllerMode::Position
         };
-        let fields =
-            fields(plugin, mode).map_err(|()| error(model, "joint controller configuration"))?;
+        let fields = fields(plugin, mode, single_hinge)
+            .map_err(|()| error(model, "joint controller configuration"))?;
         let name = fields
             .get("joint_name")
             .ok_or_else(|| error(model, "joint controller joint name"))?;
@@ -258,7 +273,7 @@ pub(super) fn parse_fields(
             .get("joint_index")
             .map_or(Ok(0), |v| v.parse::<usize>())
             .map_err(|_| error(model, "joint controller mode"))?;
-        let actuation = match (&joint.kind, index) {
+        let mut actuation = match (&joint.kind, index) {
             (JointKind::Screw, 0) => Actuation::Screw,
             (JointKind::Universal | JointKind::Revolute2, 0 | 1) => Actuation::Universal(index),
             (JointKind::Revolute, 0) if !robot => Actuation::Reduced,
@@ -271,13 +286,44 @@ pub(super) fn parse_fields(
         })
         .as_ref()
         .ok_or_else(|| error(model, "joint controller frames"))?;
-        require(
-            [axis.effort, axis.velocity]
-                .into_iter()
-                .all(|value| value.is_finite() && value > 0.0),
-            &model.scoped_name,
-            "joint controller limits",
-        )?;
+        if single_hinge {
+            require(
+                index == 0
+                    && fields
+                        .get("use_velocity_commands")
+                        .is_none_or(|v| matches!(v.as_str(), "false" | "0")),
+                &model.scoped_name,
+                "force position-controller mode",
+            )?;
+            require(
+                axis.velocity == f64::INFINITY && axis.effort > 0.,
+                &model.scoped_name,
+                "force position-controller axis limits",
+            )?;
+            let get = |key, default| {
+                number(&fields, key, Some(default))
+                    .map_err(|()| error(model, "force position-controller parameters"))
+            };
+            actuation = Actuation::ForcePid(super::pid::ForcePid {
+                gains: [
+                    get("p_gain", 1.)?,
+                    get("i_gain", 0.1)?,
+                    get("d_gain", 0.01)?,
+                ],
+                integral_limits: [get("i_min", -1.)?, get("i_max", 1.)?],
+                output_limits: [get("cmd_min", -1000.)?, get("cmd_max", 1000.)?],
+                offset: get("cmd_offset", 0.)?,
+                history: [0.; 2],
+            });
+        } else {
+            require(
+                [axis.effort, axis.velocity]
+                    .into_iter()
+                    .all(|value| value.is_finite() && value > 0.0),
+                &model.scoped_name,
+                "joint controller limits",
+            )?;
+        }
         let (initial_target, max_velocity, suffix) = match mode {
             JointControllerMode::Velocity => {
                 require(
@@ -296,6 +342,12 @@ pub(super) fn parse_fields(
                 )?;
                 (initial, axis.velocity, "cmd_vel")
             }
+            JointControllerMode::Position if single_hinge => (
+                number(&fields, "initial_position", Some(0.))
+                    .map_err(|()| error(model, "initial joint controller target"))?,
+                axis.velocity,
+                "0/cmd_pos",
+            ),
             JointControllerMode::Position => {
                 require(
                     fields

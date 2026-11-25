@@ -65,3 +65,18 @@ data=share/gz-sim
 ```
 
 Select `edge`, `paused` or `fast` under `share/gz-sim/contact-course-view` to serve that recording. [Watch the course in gz-web-rs](https://github.com/gazebosim-rs/gz-sim-rs/blob/review/local-cpu-mvp-20261124/docs/measurements/local-manipulation/contact-course-view.md)
+
+## Controlled arm, gripper and joint checks
+
+Run the Gazebo position-controller world through three angle targets. Run the gripper with a 1 kg parcel and repeat with a slippery 200 g parcel. Use fresh recording directories. Each gripper run writes a JSON outcome and records the motion for gz-web-rs.
+
+```sh
+data=share/gz-sim
+./bin/gz-sim-local-replay "$data/upstream_joint_position.sdf" "$data/upstream_joint_position.json" --trace position.jsonl
+./bin/serial_transfer clear-obstacle placed --parcel-kg 1 --grip-friction 0.85 > placed.json
+./bin/serial_transfer clear-obstacle rejected --parcel-kg 0.2 --grip-friction 0 > rejected.json
+./bin/loaded_joint_chain > joint-checks.json
+./bin/gz-sim-rs "$data/controlled-arm-view/placed" --server --replay --web-viewer 11563
+```
+
+The joint check reports anchor drift and motion with a half-kilogram tool on a chain containing all six joint types. Each gripper recording can also be served directly by passing its output directory to the replay server. [Open the placement in gz-web-rs](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11563%2F)
