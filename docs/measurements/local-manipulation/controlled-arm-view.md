@@ -57,3 +57,9 @@ RUSTC_WRAPPER= cargo run --release --locked --manifest-path tools/physics-audit/
 ```
 
 The portable archive has SHA-256 `240bf7577cce13041547952dd9ee3f6f31b221154f2a3da80ad9fa6da5eca88d`.
+
+## Installed preview and coverage
+
+A clean checkout of published source `656e29383603bcdee50ad3cf3532d522a0f6d8cb` produced the Linux x86-64 archive with SHA-256 `2afde90ad13ea1c68bccf4df983ff3db9b3353b8a8595474b0290388ae76e2a3`. An unprivileged, network-disabled Ubuntu 24.04 installation verified its manifest, ran both gripper commands, and reproduced both packaged frame streams and both measurement reports byte for byte. The packaged rotor reproduced all 1,255 journal records across one and eight threads and its visual recording matched the archive. Comparing its installed trajectory with native Gazebo reproduced the published error values exactly. The six-joint measurements and earlier fast-obstacle replay also matched their published results. [Build the preview](../../LOCAL_CPU_MVP.md#build-the-installable-preview) · [Hosted checks for the source](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/45556491748)
+
+The focused LLVM checks compared executable code with the previous review revision, `66906d3`. The scene library covered all 116 changed executable lines and all 202 changed regions. The installed gripper command covered 81/81 lines and 221/222 regions. The installed six-joint check covered 127/133 lines (95.5%) and 256/266 regions (96.2%). LLVM reported eight functions with mismatched profile data in the combined scene export. The whole-repository release gate remains open. [Controller checks](upstream-joint-position.md) · [Gripper checks](arm-placement-course.md) · [Joint checks](loaded-joint-chain.md) · [Release criteria](../../PHYSICS_RELEASE_ROADMAP.md)

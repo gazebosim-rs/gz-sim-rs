@@ -127,6 +127,23 @@ fn pid_and_broadcaster_configuration_reject_unknown_content_and_invalid_values()
             "{body}"
         );
     }
+    for field in [
+        "p_gain", "i_gain", "d_gain", "i_min", "i_max", "cmd_min", "cmd_max",
+    ] {
+        let mut source = WORLD.to_owned();
+        let start = source.find(&format!("<{field}>")).unwrap() + field.len() + 2;
+        let end = source.find(&format!("</{field}>")).unwrap();
+        source.replace_range(start..end, "NaN");
+        let error = load_local_replay_world(&source, "bad", "default", [0; 32])
+            .err()
+            .unwrap();
+        assert!(
+            error
+                .to_string()
+                .contains("force position-controller parameters"),
+            "{field}: {error}"
+        );
+    }
     let plugin = "<plugin filename='gz-sim-scene-broadcaster-system' name='gz::sim::systems::SceneBroadcaster'/>";
     for source in [
         WORLD.replace("</world>", &format!("{plugin}</world>")),
