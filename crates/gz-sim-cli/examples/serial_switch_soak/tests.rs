@@ -15,24 +15,43 @@ fn each_true_handoff_preserves_the_local_clock_and_loaded_receiver() -> Result<(
 fn inverted_and_off_vertical_pendulums_cannot_park_but_a_nearly_hanging_wrist_can() -> Result<()> {
     // A standalone universal provides a real native joint and free hanging COM, without
     // an unrelated motor or limit explaining the rejection.
-    for (x, z, spring, expected) in [
-        (1e-7, -0.1, "", true),
-        (0., 0.1, "", false),
-        (1e-7, 0.1, "", false),
-        (0.001, -0.1, "", false),
+    let damper = "<dynamics><damping>0.2</damping></dynamics>";
+    let weak =
+        "<dynamics><spring_stiffness>0.02</spring_stiffness><damping>0.2</damping></dynamics>";
+    let stiff = "<dynamics><spring_stiffness>2</spring_stiffness><damping>0.2</damping></dynamics>";
+    let loaded_stop = "<limit><lower>-0.4</lower><upper>0</upper></limit><dynamics><spring_reference>0.04</spring_reference><spring_stiffness>0.02</spring_stiffness><damping>0.2</damping></dynamics>";
+    let hard_lock = "<limit><lower>0</lower><upper>0</upper></limit>";
+    let one_sided = "<limit><lower>-0.4</lower><upper>0</upper></limit>";
+    for (x, z, spring, second, expected) in [
+        (1e-7, -0.1, "", "", true),
+        (0., 0.1, "", "", false),
+        (1e-7, 0.1, "", "", false),
+        (0.001, -0.1, "", "", false),
         (
             0.,
             -0.1,
             "<dynamics><spring_reference>0.005</spring_reference><spring_stiffness>2</spring_stiffness></dynamics>",
+            "",
             false,
         ),
+        (0., 0.1, damper, damper, false),
+        (1e-7, 0.1, damper, damper, false),
+        (0., 0.1, weak, weak, false),
+        (1e-7, 0.1, weak, weak, false),
+        (0., 0.1, stiff, weak, false),
+        (0., 0.1, stiff, stiff, true),
+        (0., -0.1, weak, weak, true),
+        (0., -0.1, damper, damper, true),
+        (0., 0.1, loaded_stop, loaded_stop, true),
+        (0., 0.1, hard_lock, hard_lock, true),
+        (0., 0.1, one_sided, one_sided, false),
     ] {
         let xml=format!("<sdf version='1.12'><world name='default'><gravity>0 0 -9.81</gravity>
             <model name='arm'><link name='mass'><inertial><pose>{x} 0 {z} 0 0 0</pose><mass>1</mass>
             <inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial>
             <collision name='body'><geometry><sphere><radius>0.02</radius></sphere></geometry></collision></link>
             <joint name='bearing' type='universal'><parent>world</parent><child>mass</child>
-            <axis><xyz>1 0 0</xyz>{spring}</axis><axis2><xyz>0 1 0</xyz></axis2></joint>
+            <axis><xyz>1 0 0</xyz>{spring}</axis><axis2><xyz>0 1 0</xyz>{second}</axis2></joint>
             <plugin filename='gz-sim-switchable-articulation-system' name='gz::sim::systems::SwitchableArticulation'/>
             </model></world></sdf>");
         let mut sim = load_local_replay_world(&xml, "pendulum.sdf", "default", [0; 32])?;
@@ -41,12 +60,12 @@ fn inverted_and_off_vertical_pendulums_cannot_park_but_a_nearly_hanging_wrist_ca
         assert_eq!(
             validate_model_demotion(&sim, model).is_ok(),
             expected,
-            "{x} {z}"
+            "{x} {z} {spring} {second}"
         );
         assert_eq!(
             set_model_fidelity(&mut sim, model, Tier::Prescribed).is_ok(),
             expected,
-            "{x} {z}"
+            "{x} {z} {spring} {second}"
         );
         assert_eq!(
             model_fidelity(&sim, model)?,

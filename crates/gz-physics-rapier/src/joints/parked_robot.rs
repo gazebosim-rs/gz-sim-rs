@@ -21,14 +21,21 @@ fn supported_coordinate(
     spring: Option<RobotSpring>,
     gravity_effort: f64,
     gravity_scale: f64,
+    unstable_gravity_stiffness: Option<f64>,
 ) -> bool {
     let elastic = spring.map_or(0., |s| s.stiffness * (s.reference - position));
     let load = gravity_effort + elastic;
-    load.is_finite()
-        && gravity_scale.is_finite()
-        && (load.abs() <= 1e-8 * gravity_scale + 1e-8 * elastic.abs()
-            || limits
-                .is_some_and(|[lo, hi]| (position - if load < 0. { lo } else { hi }).abs() <= 2e-5))
+    if !load.is_finite() || !gravity_scale.is_finite() {
+        return false;
+    }
+    if load.abs() <= 1e-8 * (gravity_scale + elastic.abs()) {
+        // At a gravity maximum, damping cannot restore a balanced free axis.
+        return unstable_gravity_stiffness.is_none_or(|required| {
+            spring.is_some_and(|s| s.stiffness > required)
+                || limits.is_some_and(|[lo, hi]| lo == hi && (position - lo).abs() <= 2e-5)
+        });
+    }
+    limits.is_some_and(|[lo, hi]| (position - if load < 0. { lo } else { hi }).abs() <= 2e-5)
 }
 
 /// A hanging universal is a stable gravity minimum in both free coordinates when its
@@ -247,29 +254,29 @@ impl RapierBackend {
                         })
                         .sum();
                     let axes_normal = axis.cross(second);
-                    // At the inverted gravity maximum a zero instantaneous moment
-                    // is not evidence of rest. Keep a free transverse axis dynamic.
-                    let inverted_free = gravity_lever < 0.
-                        && moment.length() <= -2e-5 * gravity_lever
-                        && force.dot(axes_normal).abs() >= 0.9 * force.length()
-                        && (0..2).any(|i| springs.and_then(|rows| rows[i]).is_none());
-                    !inverted_free
-                        && (hanging_wrist_at_rest(
-                            force,
-                            moment,
-                            gravity_lever,
-                            axes_normal,
-                            twice_spring_energy,
-                        ) || [axis, second].into_iter().enumerate().all(|(i, a)| {
-                            let law = springs.and_then(|rows| rows[i].map(|(law, _)| law));
-                            supported_coordinate(
-                                q[i],
-                                settings.range(i),
-                                law,
-                                moment.dot(a),
-                                moment_scale,
-                            )
-                        }))
+                    let torque = moment.length();
+                    // For the orthogonal universal axes, |r| mg bounds the
+                    // negative gravitational curvature. The rotating second axis
+                    // adds a mixed derivative bounded by the current moment.
+                    let gravity_stiffness = (gravity_lever < 0. && torque <= -2e-5 * gravity_lever)
+                        .then(|| gravity_lever.hypot(torque) + torque);
+                    hanging_wrist_at_rest(
+                        force,
+                        moment,
+                        gravity_lever,
+                        axes_normal,
+                        twice_spring_energy,
+                    ) || [axis, second].into_iter().enumerate().all(|(i, a)| {
+                        let spring = springs.and_then(|rows| rows[i].map(|(law, _)| law));
+                        supported_coordinate(
+                            q[i],
+                            settings.range(i),
+                            spring,
+                            moment.dot(a),
+                            moment_scale,
+                            gravity_stiffness,
+                        )
+                    })
                 }
                 // The potential of the complete descendant assembly is minimal
                 // when its center of mass hangs below the spherical pivot.
@@ -294,7 +301,7 @@ impl RapierBackend {
                         ),
                         _ => (moment, moment_scale),
                     };
-                    supported_coordinate(q, c.limits, c.spring, load.dot(axis), scale)
+                    supported_coordinate(q, c.limits, c.spring, load.dot(axis), scale, None)
                 }
             };
             if !stable {
@@ -448,17 +455,40 @@ mod hanging_wrist_tests {
     fn retiring_a_prediction_refuses_event_pairs_penetration_and_incomplete_cuts_atomically() {
         let mut w = PhysicsWorld::default();
         w.gravity = Vector::ZERO;
-        let actors = [0., 0.1005, -0.09, 2.].map(|x| {
+        let actors = [0., 0.1005, -0.09, 2., 3., 3.1005].map(|x| {
             let h = w.insert_body(RigidBodyBuilder::dynamic().translation(Vector::X * x));
             let c = w.insert_collider(ColliderBuilder::ball(0.05), Some(h));
             (h, c)
         });
-        let [(robot, a), (_, b), (_, c), (_, d)] = actors;
+        let [
+            (robot, a),
+            (neighbor, b),
+            (contacting, c),
+            (unrelated, d),
+            (isolated, e),
+            (_, f),
+        ] = actors;
         w.step();
         let invalid = ColliderHandle::invalid();
+        // These colliders exist publicly before the next advancing detection pass.
+        let stale = w.insert_collider(ColliderBuilder::ball(0.01), Some(unrelated));
+        w.remove_collider(stale).unwrap();
+        let unparented = w.insert_collider(ColliderBuilder::ball(0.01), None);
+        let fresh_left = w.insert_collider(ColliderBuilder::ball(0.01), Some(robot));
+        let fresh_right = w.insert_collider(ColliderBuilder::ball(0.01), Some(neighbor));
+        let new_body = w.insert_body(RigidBodyBuilder::dynamic());
+        let unregistered = w.insert_collider(ColliderBuilder::ball(0.01), Some(new_body));
         for pairs in [
             vec![],
             vec![(invalid, b)],
+            vec![(a, invalid)],
+            vec![(stale, b)],
+            vec![(a, stale)],
+            vec![(unparented, b)],
+            vec![(a, unparented)],
+            vec![(fresh_left, b)],
+            vec![(a, fresh_right)],
+            vec![(unregistered, b)],
             vec![(b, a)],
             vec![(a, d)],
             vec![(a, c)],
@@ -487,6 +517,24 @@ mod hanging_wrist_tests {
             );
             assert!(w.islands.active_bodies().any(|h| h == robot));
         }
+        // Both nodes already have live contact edges to a, but do not touch one another.
+        assert!(w.narrow_phase.contact_pair(c, b).is_none());
+        assert!(!w.islands.can_sleep_with_separated_predictions(
+            &w.bodies,
+            &[contacting],
+            &w.colliders,
+            &w.narrow_phase,
+            &[(c, b)]
+        ));
+        // The separate isolated pair has a positive gap with zero load. Two
+        // observations of its edge still identify a single valid cut.
+        assert!(w.islands.can_sleep_with_separated_predictions(
+            &w.bodies,
+            &[isolated],
+            &w.colliders,
+            &w.narrow_phase,
+            &[(e, f), (e, f)]
+        ));
         w.colliders[b].set_active_events(ActiveEvents::COLLISION_EVENTS);
         assert!(!w.islands.can_sleep_with_separated_predictions(
             &w.bodies,
