@@ -57,6 +57,7 @@ pub(super) struct Controller {
     max_velocity: f64,
     max_force: f64,
     initial_target: f64,
+    enabled: bool,
     target: f64,
 }
 
@@ -287,6 +288,7 @@ pub(super) fn build(
                 max_velocity: parameters.max_velocity,
                 max_force: parameters.max_force,
                 initial_target: parameters.initial_target,
+                enabled: true,
                 target: parameters.initial_target,
             },
         ));
@@ -376,6 +378,56 @@ pub fn set_joint_controller_command(
         .get_mut::<Controller>(entity)
         .expect("preflighted controller")
         .target = desired;
+    Ok(())
+}
+
+/// Engage or disengage the selected local screw and universal position drives together.
+/// Disengagement clears the native motor at this boundary and retains the target.
+/// An engaged drive reapplies its target on the next advancing step. Resume the
+/// dynamic tier first. Both reset operations restore the authored enabled state.
+pub fn set_joint_position_drives_enabled(
+    sim: &mut Simulation,
+    ids: &[u64],
+    enabled: bool,
+) -> Result<(), JointControllerCommandError> {
+    let world = sim.world();
+    validate_loaded_controllers(world).map_err(|_| JointControllerCommandError::InvalidPhysics)?;
+    let dt = sim.step_duration();
+    let mut updates = Vec::new();
+    for &id in ids {
+        let entity = gz_sim_core::entity_by_id(world, id)
+            .ok_or(JointControllerCommandError::MissingController(id))?;
+        let controller = world
+            .get::<Controller>(entity)
+            .ok_or(JointControllerCommandError::MissingController(id))?;
+        if controller.publication.mode != JointControllerMode::Position
+            || !matches!(
+                controller.actuation,
+                Actuation::Screw | Actuation::Universal(_)
+            )
+        {
+            return Err(JointControllerCommandError::InvalidCommand);
+        }
+        if controller.enabled != enabled {
+            let clear = controller.actuation.clear();
+            // Both clearing and installing a native motor require dynamic ownership.
+            clear.validate(world.resource::<PhysicsBackend>(), controller.joint, dt)?;
+            updates.push((entity, controller.joint, clear));
+        }
+    }
+    for (entity, joint, clear) in updates {
+        if !enabled {
+            clear.set(
+                &mut sim.world_mut().resource_mut::<PhysicsBackend>(),
+                joint,
+                dt,
+            )?;
+        }
+        sim.world_mut()
+            .get_mut::<Controller>(entity)
+            .expect("validated controller")
+            .enabled = enabled;
+    }
     Ok(())
 }
 
@@ -658,6 +710,9 @@ fn apply(world: &mut World) {
                 {
                     return Err(fail("invalid controller ownership".into()));
                 }
+                if !controller.enabled {
+                    continue;
+                }
                 let coordinate = controller
                     .actuation
                     .coordinate(world.resource::<PhysicsBackend>(), controller.joint)
@@ -762,6 +817,7 @@ fn reset(world: &mut World) {
         }
         let mut query = world.query::<&mut Controller>();
         for mut controller in query.iter_mut(world) {
+            controller.enabled = true;
             controller.target = controller.initial_target;
             if let Actuation::ForcePid(pid) = &mut controller.actuation {
                 pid.history = [0.; 2];

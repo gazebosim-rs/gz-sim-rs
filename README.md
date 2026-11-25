@@ -1,6 +1,6 @@
 ## Local CPU robot physics
 
-Build the Rust simulator, drive an upstream Gazebo robot, or watch the gripper pick up a parcel in gz-web-rs. [Run the local CPU physics preview](docs/LOCAL_CPU_MVP.md) · [Run the stock double pendulum](docs/measurements/local-manipulation/double-pendulum.md) · [Physics release roadmap](docs/PHYSICS_RELEASE_ROADMAP.md)
+Build the Rust simulator, drive an upstream Gazebo robot, or watch a gripper place a parcel, park and wake for its next move in gz-web-rs. [Run the local CPU physics preview](docs/LOCAL_CPU_MVP.md) · [Run the stock double pendulum](docs/measurements/local-manipulation/double-pendulum.md) · [Watch the adaptive parcel arm](docs/measurements/local-manipulation/adaptive-arm-view.md) · [Physics release roadmap](docs/PHYSICS_RELEASE_ROADMAP.md)
 
 ## Current development: M76 CameraInfo projection offsets
 

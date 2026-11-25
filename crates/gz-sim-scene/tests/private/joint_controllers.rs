@@ -841,3 +841,44 @@ fn shared_joint_admission_refuses_an_axis_removed_after_controller_configuration
         "admission must leave the original parsed graph intact"
     );
 }
+
+#[test]
+fn repeated_standby_requests_preserve_drive_targets_and_reject_a_stale_joint() {
+    let arm = include_str!("../../../../examples/worlds/local_robot_serial_obstacle.sdf");
+    let mut sim = load_world_with_sdf_step(
+        arm,
+        "parcel.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .unwrap();
+    let joints = controllers(&sim);
+    let ids: Vec<_> = joints.iter().map(|(_, id)| *id).collect();
+    assert_eq!(ids.len(), 2);
+    let targets = |s: &Simulation| {
+        ids.iter()
+            .map(|&id| held_joint_controller_target(s, id))
+            .collect::<Vec<_>>()
+    };
+    let before = targets(&sim);
+    for enabled in [true, false, false, true, true] {
+        set_joint_position_drives_enabled(&mut sim, &ids, enabled).unwrap();
+        for (entity, _) in &joints {
+            assert_eq!(
+                sim.world().get::<Controller>(*entity).unwrap().enabled,
+                enabled
+            );
+        }
+        assert_eq!(targets(&sim), before);
+        assert_eq!(sim.elapsed(), Duration::ZERO);
+    }
+    sim.world_mut()
+        .entity_mut(joints[1].0)
+        .remove::<JointHandle>();
+    assert!(matches!(
+        set_joint_position_drives_enabled(&mut sim, &ids, false),
+        Err(JointControllerCommandError::InvalidPhysics)
+    ));
+    assert!(sim.world().get::<Controller>(joints[0].0).unwrap().enabled);
+}

@@ -29,6 +29,38 @@ impl NarrowPhase {
         &self.contact_graph
     }
 
+    /// Edge of an existing rigid prediction with positive separation and no impulse.
+    pub(crate) fn unloaded_prediction_edge(
+        &self,
+        a: ColliderHandle,
+        b: ColliderHandle,
+    ) -> Option<u32> {
+        let a = self.graph_indices.get(a.0)?.contact_graph_index;
+        let b = self.graph_indices.get(b.0)?.contact_graph_index;
+        let index = self.contact_graph.graph.find_edge(a, b)?.index();
+        let pair = &self.contact_graph.graph.edges[index].weight;
+        (pair.rigid().is_some()
+            && pair.has_any_active_contact()
+            && pair.total_impulse_magnitude() == 0.
+            && pair
+                .solver_manifolds()
+                .iter()
+                .flat_map(|m| &m.data.solver_contacts)
+                .all(|p| p.dist > 0.))
+        .then_some(index as u32)
+    }
+
+    /// Called between steps only after the group owner has validated every edge.
+    pub(crate) fn clear_unloaded_prediction(&mut self, edge: u32) {
+        let pair = &mut self.contact_graph.graph.edges[edge as usize].weight;
+        super::clear_pair_solver_color(&mut self.body_solver_color_masks, pair);
+        pair.clear();
+        if let Some(hint) = self.pair_solver_hints.get_mut(edge as usize) {
+            *hint = 0;
+        }
+        self.solver_graph_valid = false;
+    }
+
     /// The intersection graph containing all intersection pairs and their intersection information.
     pub fn intersection_graph(&self) -> &InteractionGraph<ColliderHandle, IntersectionPair> {
         &self.intersection_graph

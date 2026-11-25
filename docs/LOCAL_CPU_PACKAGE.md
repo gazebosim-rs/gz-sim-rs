@@ -80,3 +80,17 @@ data=share/gz-sim
 ```
 
 The joint check reports anchor drift and motion with a half-kilogram tool on a chain containing all six joint types. Each gripper recording can also be served directly by passing its output directory to the replay server. [Open the placement in gz-web-rs](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11563%2F)
+
+## Automatic tier switching after placement
+
+These two commands run the same 1 kg pick-and-place task. After delivery the empty pickup tray is removed and the arm returns to the cleared station. Once the unloaded arm settles, the adaptive run can park it until the next command. Each recording directory and output file should be fresh.
+
+```sh
+./bin/serial_transfer clear-obstacle dynamic --fidelity dynamic --parcel-kg 1 --grip-friction 0.85 \
+  --threads 1 --handoff-trace dynamic.jsonl --timings dynamic-cost.json > dynamic-outcome.json
+./bin/serial_transfer clear-obstacle adaptive --fidelity adaptive --parcel-kg 1 --grip-friction 0.85 \
+  --threads 1 --handoff-reference dynamic.jsonl --timings adaptive-cost.json > adaptive-outcome.json
+./bin/gz-sim-rs share/gz-sim/adaptive-arm-view/adaptive --server --replay --web-viewer 11566
+```
+
+To test loss of support, repeat both commands with `--remove-receiver-during-standby` and separate output paths for the recordings, logs and reference trace. This removes the shelf supporting the delivered parcel while the simulation clock is paused. To repeat the handoff stress test, run `./bin/serial_switch_soak soak.json --threads 1`. [Watch the adaptive run in gz-web-rs](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11566%2F)

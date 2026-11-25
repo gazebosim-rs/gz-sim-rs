@@ -31,6 +31,27 @@ fn supported_coordinate(
                 .is_some_and(|[lo, hi]| (position - if load < 0. { lo } else { hi }).abs() <= 2e-5))
 }
 
+/// A hanging universal is a stable gravity minimum in both free coordinates when its
+/// axes span the horizontal plane. Bound its available angular displacement by the
+/// gravitational and spring potential above their simultaneous minima. This also
+/// accepts tiny residual oscillations in the native solver's settled pose.
+fn hanging_wrist_at_rest(
+    weight: Vector,
+    moment: Vector,
+    downward_lever: f64,
+    axes_normal: Vector,
+    twice_spring_energy: f64,
+) -> bool {
+    const MAX_REST_ANGLE: f64 = 2e-5; // radians, the mounted stop tolerance
+    if downward_lever <= 0. || weight.dot(axes_normal).abs() < 0.9 * weight.length() {
+        return false;
+    }
+    // With a center below its pivot, |moment| / lever is tan(tilt). Its square
+    // bounds twice the gravitational potential excess divided by the downward lever.
+    (moment.length() / downward_lever).powi(2) + twice_spring_energy / downward_lever
+        <= MAX_REST_ANGLE.powi(2)
+}
+
 impl RapierBackend {
     fn robot_parent_joint(&self, link: BodyId) -> Option<(JointId, &Joint)> {
         self.joints
@@ -218,16 +239,37 @@ impl RapierBackend {
                     let q = joint.universal_angles;
                     let second = self.mounted_axis(c, Rotation::from_rotation_x(q[0]) * Vector::Y);
                     let springs = self.joints.universal_springs.get(&joint_id);
-                    [axis, second].into_iter().enumerate().all(|(i, a)| {
-                        let law = springs.and_then(|rows| rows[i].map(|(law, _)| law));
-                        supported_coordinate(
-                            q[i],
-                            settings.range(i),
-                            law,
-                            moment.dot(a),
-                            moment_scale,
-                        )
-                    })
+                    let twice_spring_energy = (0..2)
+                        .map(|i| {
+                            springs.and_then(|rows| rows[i]).map_or(0., |(law, _)| {
+                                law.stiffness * (law.reference - q[i]).powi(2)
+                            })
+                        })
+                        .sum();
+                    let axes_normal = axis.cross(second);
+                    // At the inverted gravity maximum a zero instantaneous moment
+                    // is not evidence of rest. Keep a free transverse axis dynamic.
+                    let inverted_free = gravity_lever < 0.
+                        && moment.length() <= -2e-5 * gravity_lever
+                        && force.dot(axes_normal).abs() >= 0.9 * force.length()
+                        && (0..2).any(|i| springs.and_then(|rows| rows[i]).is_none());
+                    !inverted_free
+                        && (hanging_wrist_at_rest(
+                            force,
+                            moment,
+                            gravity_lever,
+                            axes_normal,
+                            twice_spring_energy,
+                        ) || [axis, second].into_iter().enumerate().all(|(i, a)| {
+                            let law = springs.and_then(|rows| rows[i].map(|(law, _)| law));
+                            supported_coordinate(
+                                q[i],
+                                settings.range(i),
+                                law,
+                                moment.dot(a),
+                                moment_scale,
+                            )
+                        }))
                 }
                 // The potential of the complete descendant assembly is minimal
                 // when its center of mass hangs below the spherical pivot.
@@ -277,6 +319,9 @@ impl RapierBackend {
                 "mounted parking needs an initial committed contact solve",
             ));
         }
+        if !self.can_sleep_mounted_group(&handles) {
+            return Err(defer("mounted robot does not own a complete native island"));
+        }
         Ok(handles)
     }
     pub(crate) fn switch_mounted_robot(
@@ -290,9 +335,6 @@ impl RapierBackend {
             ArticulationTier::Prescribed => {
                 let handles = self.validate_mounted_park(root, dt)?;
                 self.park_speed_references(root, &handles)?;
-                for &h in &handles {
-                    self.world.bodies[h].sleep();
-                }
                 self.parked_robots.insert(root, handles);
             }
             ArticulationTier::Dynamic => {
@@ -311,3 +353,258 @@ impl RapierBackend {
 #[cfg(test)]
 #[path = "../../tests/private/mounted_ball_axis.rs"]
 mod mounted_ball_axis;
+
+#[cfg(test)]
+mod hanging_wrist_tests {
+    use super::*;
+    #[test]
+    fn a_free_neighbor_across_a_small_gap_keeps_its_mass_and_delivers_the_same_first_impact() {
+        let run = |park: bool| {
+            let dt = Duration::from_millis(1);
+            let mut b = RapierBackend::new([0.; 3]).unwrap();
+            let mut ball = |x| {
+                b.spawn(BodySpec {
+                    shape: Shape::Sphere { radius: 0.05 },
+                    position: [x, 0., 0.],
+                    velocity: [0.; 3],
+                    mass: Some(1.),
+                })
+                .unwrap()
+            };
+            let root = ball(0.);
+            let tip = ball(0.3);
+            let parcel = ball(0.4005);
+            b.add_robot_joint(
+                None,
+                root,
+                [0.; 3],
+                RobotJoint::Revolute {
+                    axis: [0., 0., 1.],
+                    limits: None,
+                },
+            )
+            .unwrap();
+            b.add_robot_joint(
+                Some(root),
+                tip,
+                [0.3, 0., 0.],
+                RobotJoint::Prismatic {
+                    axis: [1., 0., 0.],
+                    limits: None,
+                },
+            )
+            .unwrap();
+            b.step(dt).unwrap();
+            let handles = [b.bodies[&root].0, b.bodies[&tip].0];
+            let foreign = b.bodies[&parcel].0;
+            assert!(
+                !b.world
+                    .islands
+                    .can_sleep_connected_group(&b.world.bodies, &handles),
+                "the native predictive edge must actually connect the actors"
+            );
+            if park {
+                b.switch_articulation(root, ArticulationTier::Prescribed, dt)
+                    .unwrap();
+                assert_eq!(b.parked_speed[&root].separated.len(), 1);
+                assert!(b.world.islands.active_bodies().any(|h| h == foreign));
+            }
+            for _ in 0..5 {
+                b.step(dt).unwrap();
+            }
+            if park {
+                assert_eq!(b.mounted_tier(root), ArticulationTier::Prescribed);
+            }
+            assert_eq!(b.state(parcel).unwrap().velocity, [0.; 3]);
+            b.apply_impulse(parcel, [-1., 0., 0.], [0.; 3]).unwrap();
+            for tick in 1..20 {
+                b.step(dt).unwrap();
+                assert_eq!(b.mounted_tier(root), ArticulationTier::Dynamic);
+                if let Some(c) = b.rigid_contact_observations().iter().find(|c| {
+                    ([c.a, c.b] == [parcel, tip] || [c.b, c.a] == [parcel, tip])
+                        && c.normal_impulse > 0.
+                }) {
+                    return (
+                        tick,
+                        c.normal_impulse,
+                        b.state(tip).unwrap(),
+                        b.state(parcel).unwrap(),
+                    );
+                }
+            }
+            panic!("missing first impact");
+        };
+        let control = run(false);
+        let switched = run(true);
+        assert_eq!(control.0, switched.0);
+        assert!(
+            (control.1 - switched.1).abs() < 1e-10,
+            "{control:?} {switched:?}"
+        );
+        assert_eq!((control.2, control.3), (switched.2, switched.3));
+    }
+
+    #[test]
+    fn retiring_a_prediction_refuses_event_pairs_penetration_and_incomplete_cuts_atomically() {
+        let mut w = PhysicsWorld::default();
+        w.gravity = Vector::ZERO;
+        let actors = [0., 0.1005, -0.09, 2.].map(|x| {
+            let h = w.insert_body(RigidBodyBuilder::dynamic().translation(Vector::X * x));
+            let c = w.insert_collider(ColliderBuilder::ball(0.05), Some(h));
+            (h, c)
+        });
+        let [(robot, a), (_, b), (_, c), (_, d)] = actors;
+        w.step();
+        let invalid = ColliderHandle::invalid();
+        for pairs in [
+            vec![],
+            vec![(invalid, b)],
+            vec![(b, a)],
+            vec![(a, d)],
+            vec![(a, c)],
+            vec![(a, b)],
+            vec![(a, b), (a, c)],
+        ] {
+            assert!(!w.islands.can_sleep_with_separated_predictions(
+                &w.bodies,
+                &[robot],
+                &w.colliders,
+                &w.narrow_phase,
+                &pairs
+            ));
+            assert!(!w.islands.sleep_with_separated_predictions(
+                &mut w.bodies,
+                &[robot],
+                &w.colliders,
+                &mut w.narrow_phase,
+                &pairs
+            ));
+            assert!(
+                w.narrow_phase
+                    .contact_pair(a, b)
+                    .unwrap()
+                    .has_any_active_contact()
+            );
+            assert!(w.islands.active_bodies().any(|h| h == robot));
+        }
+        w.colliders[b].set_active_events(ActiveEvents::COLLISION_EVENTS);
+        assert!(!w.islands.can_sleep_with_separated_predictions(
+            &w.bodies,
+            &[robot],
+            &w.colliders,
+            &w.narrow_phase,
+            &[(a, b)]
+        ));
+    }
+
+    #[test]
+    fn a_removed_bridge_can_split_at_handoff_but_a_live_contact_or_joint_cannot() {
+        let mut w = PhysicsWorld::default();
+        w.gravity = Vector::ZERO;
+        // Contacts connect a to its satellite at the left, and d to its
+        // satellite at the right. Two rotor assemblies share one removable bridge.
+        let centers = [0., 0.08, -0.5, 1.0, 1.08, 1.5, 2.];
+        let bodies = centers.map(|x| {
+            let h = w.insert_body(RigidBodyBuilder::dynamic().translation(Vector::X * x));
+            w.insert_collider(ColliderBuilder::ball(0.05), Some(h));
+            h
+        });
+        let [a, b, c, d, e, f, bridge] = bodies;
+        for (parent, child) in [(0, 2), (3, 5), (2, 6), (6, 5)] {
+            w.insert_impulse_joint(
+                bodies[parent],
+                bodies[child],
+                FixedJointBuilder::new()
+                    .local_anchor1(Vector::X * (centers[child] - centers[parent])),
+            );
+        }
+        w.step();
+        let island = w.islands.persistent_island_of(&w.bodies, a).unwrap();
+        assert!(
+            bodies
+                .iter()
+                .all(|h| w.islands.persistent_island_of(&w.bodies, *h) == Some(island))
+        );
+        w.remove_body(bridge).unwrap();
+        assert_eq!(w.islands.persistent_island_of(&w.bodies, d), Some(island));
+        // The current graph still requires b (live contact) and c (live joint).
+        for incomplete in [vec![a, c], vec![a, b]] {
+            assert!(!w.islands.can_sleep_connected_group(&w.bodies, &incomplete));
+            assert!(!w.islands.sleep_connected_group(
+                &mut w.bodies,
+                &mut w.narrow_phase,
+                &incomplete
+            ));
+            assert_eq!(w.islands.persistent_island_of(&w.bodies, d), Some(island));
+            assert!(!w.bodies[a].is_sleeping());
+        }
+        assert!(w.islands.can_sleep_connected_group(&w.bodies, &[a, b, c]));
+        assert!(
+            w.islands
+                .sleep_connected_group(&mut w.bodies, &mut w.narrow_phase, &[a, b, c])
+        );
+        assert_ne!(
+            w.islands.persistent_island_of(&w.bodies, a),
+            w.islands.persistent_island_of(&w.bodies, d)
+        );
+        assert!([d, e, f].iter().all(|h| !w.bodies[*h].is_sleeping()));
+        assert!([a, b, c].iter().all(|h| w.bodies[*h].is_sleeping()));
+        w.islands.wake_up(&mut w.bodies, b, true);
+        assert!([a, b, c].iter().all(|h| !w.bodies[*h].is_sleeping()));
+    }
+
+    #[test]
+    fn sleeping_a_complete_group_updates_solver_membership_and_wakes_the_whole_graph() {
+        let mut w = PhysicsWorld::default();
+        let a = w.insert_body(RigidBodyBuilder::dynamic().additional_mass(1.));
+        let b = w.insert_body(RigidBodyBuilder::dynamic().additional_mass(1.));
+        let c = w.insert_body(RigidBodyBuilder::dynamic().additional_mass(1.));
+        w.insert_impulse_joint(a, b, FixedJointBuilder::new());
+        w.step();
+        assert!(
+            !w.islands
+                .can_sleep_connected_group(&w.bodies, &[RigidBodyHandle::invalid()])
+        );
+        assert!(
+            !w.islands
+                .sleep_connected_group(&mut w.bodies, &mut w.narrow_phase, &[a])
+        );
+        assert!(w.islands.active_bodies().any(|v| v == a));
+        assert!(
+            w.islands
+                .sleep_connected_group(&mut w.bodies, &mut w.narrow_phase, &[a, b])
+        );
+        assert!(
+            w.islands
+                .sleep_connected_group(&mut w.bodies, &mut w.narrow_phase, &[b, a])
+        );
+        assert_eq!(w.islands.active_bodies().collect::<Vec<_>>(), vec![c]);
+        w.step();
+        assert_eq!(w.bodies[a].linvel(), Vector::ZERO);
+        assert_eq!(w.bodies[b].linvel(), Vector::ZERO);
+        w.islands.wake_up(&mut w.bodies, b, true);
+        assert!(w.islands.active_bodies().any(|v| v == a));
+        assert!(!w.bodies[a].is_sleeping());
+        w.step();
+        assert!(w.bodies[a].linvel().y < 0.);
+    }
+
+    #[test]
+    fn only_a_near_vertical_stably_suspended_wrist_with_small_stored_energy_can_park() {
+        let admits = |tilt_moment, lever, normal, spring| {
+            hanging_wrist_at_rest(
+                -10. * Vector::Z,
+                tilt_moment * Vector::X,
+                lever,
+                normal,
+                spring,
+            )
+        };
+        assert!(admits(1e-5, 1., Vector::Z, 1e-10));
+        assert!(!admits(3e-5, 1., Vector::Z, 0.));
+        assert!(!admits(0., -1., Vector::Z, 0.));
+        assert!(!admits(0., 0., Vector::Z, 0.));
+        assert!(!admits(0., 1., Vector::X, 0.));
+        assert!(!admits(0., 1., Vector::Z, 1e-8));
+    }
+}

@@ -6,6 +6,8 @@ use super::*;
 pub(crate) struct ParkedSpeed {
     pub(super) joints: Vec<JointId>,
     elapsed_s: f64,
+    pub(crate) separated: Vec<(ColliderHandle, ColliderHandle)>,
+    hooks: Vec<(ColliderHandle, ActiveHooks)>,
     neighbors: Vec<(ColliderHandle, ColliderHandle, Pose)>,
     references: Vec<(RigidBodyHandle, Option<(MultibodyJointHandle, f64)>)>,
 }
@@ -16,6 +18,71 @@ fn quiet(body: &RigidBody) -> bool {
 }
 
 impl RapierBackend {
+    pub(super) fn can_sleep_mounted_group(&self, members: &[RigidBodyHandle]) -> bool {
+        let mut handles = members.to_vec();
+        for (id, caps) in &self.joints.speed_caps {
+            if members.contains(&self.bodies[&self.joints.records[id].initial.child].0) {
+                handles.extend(
+                    caps.iter()
+                        .flatten()
+                        .flat_map(speed::AxisCap::references)
+                        .map(|(h, _)| h),
+                );
+            }
+        }
+        self.world
+            .islands
+            .can_sleep_connected_group(&self.world.bodies, &handles)
+            || self.world.islands.can_sleep_with_separated_predictions(
+                &self.world.bodies,
+                &handles,
+                &self.world.colliders,
+                &self.world.narrow_phase,
+                &self.separated_predictions(members),
+            )
+    }
+
+    // Existing predictions may span several millimeters even at zero speed.
+    fn separated_predictions(
+        &self,
+        members: &[RigidBodyHandle],
+    ) -> Vec<(ColliderHandle, ColliderHandle)> {
+        if self.foreign_body_moving(members) {
+            return vec![];
+        }
+        let mut pairs = Vec::new();
+        self.visit_external_pairs(members, |a, b, other| {
+            let c = &self.world.colliders[a];
+            let d = &self.world.colliders[b];
+            let pair = self.world.narrow_phase.contact_pair(a, b).unwrap();
+            if !other.is_fixed() && pair.has_any_active_contact() {
+                let sphere = d.shape().compute_local_bounding_sphere();
+                let robot_pose = *self.world.bodies[c.parent().unwrap()].position()
+                    * *c.position_wrt_parent().unwrap();
+                let neighbor_pose = *other.position() * *d.position_wrt_parent().unwrap();
+                let extent = neighbor_pose
+                    .translation
+                    .distance(other.position().translation)
+                    + sphere.center.length()
+                    + sphere.radius;
+                // Guard the full permitted translation and rotation of the other body.
+                let clearance = c.contact_skin() + d.contact_skin() + 1e-6 + 1e-5 * extent;
+                if rapier3d_f64::parry::query::distance(
+                    &robot_pose,
+                    c.shape(),
+                    &neighbor_pose,
+                    d.shape(),
+                )
+                .is_ok_and(|result| result.distance.is_finite() && result.distance > clearance)
+                {
+                    pairs.push((a, b));
+                }
+            }
+            false
+        });
+        pairs
+    }
+
     pub(super) fn park_speed_references(
         &mut self,
         root: BodyId,
@@ -24,6 +91,8 @@ impl RapierBackend {
         let mut group = ParkedSpeed {
             neighbors: vec![],
             elapsed_s: 0.,
+            separated: vec![],
+            hooks: vec![],
             joints: vec![],
             references: vec![],
         };
@@ -45,15 +114,6 @@ impl RapierBackend {
                 group.joints.push(*id);
             }
         }
-        if group.references.is_empty() {
-            return Ok(());
-        }
-        self.visit_external_pairs(members, |a, b, body| {
-            if quiet(body) {
-                group.neighbors.push((a, b, *body.position()));
-            }
-            false
-        });
         for &(h, drive) in &group.references {
             if let Some((drive, _)) = drive {
                 let (tree, _) = self.world.multibody_joints.get(drive).unwrap();
@@ -71,18 +131,62 @@ impl RapierBackend {
             }
             debug_assert!(self.world.bodies[h].colliders().is_empty());
         }
-        for &(h, drive) in &group.references {
+        let mut handles = members.to_vec();
+        handles.extend(group.references.iter().map(|(handle, _)| *handle));
+        if !self.world.islands.sleep_connected_group(
+            &mut self.world.bodies,
+            &mut self.world.narrow_phase,
+            &handles,
+        ) {
+            let pairs = self.separated_predictions(members);
+            let world = &mut self.world;
+            if !world.islands.sleep_with_separated_predictions(
+                &mut world.bodies,
+                &handles,
+                &world.colliders,
+                &mut world.narrow_phase,
+                &pairs,
+            ) {
+                return Err(PhysicsError::TransitionDeferred {
+                    reason: "mounted robot does not own a complete native island",
+                });
+            }
+            for &(a, _) in &pairs {
+                if !group.hooks.iter().any(|(h, _)| *h == a) {
+                    let c = &mut world.colliders[a];
+                    group.hooks.push((a, c.active_hooks()));
+                    c.set_active_hooks(c.active_hooks() | ActiveHooks::FILTER_CONTACT_PAIRS);
+                }
+            }
+            group.separated = pairs;
+        }
+        if !group.references.is_empty() || !group.separated.is_empty() {
+            self.visit_external_pairs(members, |a, b, body| {
+                if quiet(body) {
+                    group.neighbors.push((a, b, *body.position()));
+                }
+                false
+            });
+        }
+        if group.references.is_empty() && group.separated.is_empty() {
+            return Ok(());
+        }
+        for &(_, drive) in &group.references {
             if let Some((drive, _)) = drive {
                 let (tree, _) = self.world.multibody_joints.get_mut(drive).unwrap();
                 tree.generalized_velocity_mut().fill(0.);
             }
-            self.world.bodies[h].sleep();
         }
         self.parked_speed.insert(root, group);
         Ok(())
     }
     pub(super) fn resume_speed_references(&mut self, root: BodyId) {
         if let Some(group) = self.parked_speed.remove(&root) {
+            for (h, hooks) in group.hooks {
+                let c = &mut self.world.colliders[h];
+                c.set_active_hooks(hooks);
+                crate::articulation_support::refresh_contact_rows(c);
+            }
             for (h, drive) in group.references {
                 if let Some((drive, spin)) = drive {
                     let (tree, idx) = self.world.multibody_joints.get_mut(drive).unwrap();

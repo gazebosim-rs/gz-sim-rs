@@ -128,6 +128,20 @@ RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli 
   clear-obstacle rejected --parcel-kg 0.2 --grip-friction 0 > rejected.json
 ```
 
+## Compare automatic switching with continuous dynamics
+
+Use the same placement world, controller and 1 ms clock in both lanes. The dynamic run writes a reference trajectory and the adaptive run checks its handoff against it. Add `--remove-receiver-during-standby` to both commands to remove the shelf before the next solve, using fresh output paths. [Measurements and timings](measurements/local-manipulation/adaptive-arm-switching.md) · [gz-web-rs recordings](measurements/local-manipulation/adaptive-arm-view.md)
+
+```bash
+RUSTC_WRAPPER= cargo build --release --locked --no-default-features -p gz-sim-cli --example serial_transfer --example serial_switch_soak
+arm=target/release/examples/serial_transfer
+"$arm" clear-obstacle dynamic --parcel-kg 1 --grip-friction 0.85 --fidelity dynamic --threads 1 \
+  --handoff-trace dynamic.jsonl --timings dynamic-cost.json > dynamic-result.json
+"$arm" clear-obstacle adaptive --parcel-kg 1 --grip-friction 0.85 --fidelity adaptive --threads 1 \
+  --handoff-reference dynamic.jsonl --timings adaptive-cost.json > adaptive-result.json
+target/release/examples/serial_switch_soak soak.json --threads 1
+```
+
 ## What this build covers
 
 The CPU solver has physical regression tests for fixed, revolute, prismatic, ball, universal and screw joints. The independently authored model qualifies a free-base revolute joint, sustained effort, loaded inertia, plane contact, friction and reset. The full gripper task qualifies multiple joints, contact impulses and automatic tier changes against an always-dynamic run. The motor was checked against analytical acceleration and a native Gazebo DART run at eight matched times. The gripper's reference uses the same dynamic solver. [Motor measurements and source](measurements/local-manipulation/mvp-independent-robot.md) · [Gripper accuracy, p95 and real-time factor](measurements/local-manipulation/mvp-local-performance.md)
@@ -147,7 +161,7 @@ stage=$(mktemp -d "$PWD/target/local-physics-preview.XXXXXXXX")
 package="$stage/package"
 mkdir -p "$package/share/gz-sim" "$stage/recordings"
 RUSTC_WRAPPER= cargo install --locked --path crates/gz-sim-cli --no-default-features \
-  --bin gz-sim-rs --bin gz-sim-control --bin gz-sim-local-replay --example serial_transfer --root "$stage/install"
+  --bin gz-sim-rs --bin gz-sim-control --bin gz-sim-local-replay --example serial_transfer --example serial_switch_soak --root "$stage/install"
 RUSTC_WRAPPER= cargo install --locked --path crates/gz-sim-scene --no-default-features \
   --example loaded_joint_chain --root "$stage/install"
 cp -a "$stage/install/bin" "$package/bin"
@@ -157,6 +171,7 @@ cp examples/worlds/upstream_{joint_force,double_pendulum,diff_drive,joint_positi
 cp examples/multifidelity_{rocking_foot,two_support_foot}.sdf examples/worlds/local_fast_obstacle.sdf \
   examples/replay/{course_foot_edge,course_paused_support,local_fast_obstacle}.json "$package/share/gz-sim/"
 cp examples/worlds/{local_robot_serial_obstacle,loaded_joint_chain}.sdf "$package/share/gz-sim/"
+tar -xJf docs/measurements/local-manipulation/adaptive-arm-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/controlled-arm-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/contact-course-view.tar.xz -C "$package/share/gz-sim"
 tar -xJf docs/measurements/local-manipulation/drive-view.tar.xz -C "$package/share/gz-sim"

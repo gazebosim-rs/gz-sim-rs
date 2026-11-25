@@ -409,6 +409,12 @@ pub fn articulation_root_pose(sim: &Simulation, id: u64) -> Result<WorldPose, Fi
     root_pose(sim.world(), id)
 }
 
+/// Test the normal contact, motion and queued-input gates without changing the representation.
+/// The caller must recheck at the actual transition boundary.
+pub fn validate_model_demotion(sim: &Simulation, id: u64) -> Result<(), FidelityError> {
+    validate_demotion(sim.world(), id, sim.step_duration())
+}
+
 /// Changes the model's representation at the current tick boundary without advancing the clock.
 /// A world-mounted mixed robot can park only at an unloaded stationary equilibrium.
 /// Its native constraints and finite collision masses remain available on the first resumed solve.

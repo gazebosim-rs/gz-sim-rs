@@ -1,6 +1,6 @@
 use crate::alloc_prelude::*;
 use crate::dynamics::{RigidBodyHandle, RigidBodySet};
-use crate::geometry::NarrowPhase;
+use crate::geometry::{ColliderHandle, ColliderSet, NarrowPhase};
 
 use super::{Island, IslandManager};
 
@@ -73,6 +73,190 @@ impl IslandManager {
 
             self.wake_up_island(bodies, island_to_wake_up as usize);
         }
+    }
+
+    fn selected_islands(
+        &self,
+        bodies: &RigidBodySet,
+        handles: &[RigidBodyHandle],
+    ) -> Option<Vec<u32>> {
+        let mut ids = Vec::new();
+        for &h in handles {
+            let id = self.persistent.body_island(bodies, h)?;
+            if !ids.contains(&id) {
+                ids.push(id);
+            }
+        }
+        Some(ids)
+    }
+
+    /// Read-only check that sleeping this group will not strand a connected awake body.
+    pub fn can_sleep_connected_group(
+        &self,
+        bodies: &RigidBodySet,
+        handles: &[RigidBodyHandle],
+    ) -> bool {
+        self.closed_except(bodies, handles, &[])
+    }
+
+    fn closed_except(
+        &self,
+        bodies: &RigidBodySet,
+        handles: &[RigidBodyHandle],
+        retiring: &[u32],
+    ) -> bool {
+        let Some(ids) = self.selected_islands(bodies, handles) else {
+            return false;
+        };
+        ids.into_iter().all(|id| {
+            let island = &self.persistent.islands[id as usize];
+            if !island.sleeping
+                && !island
+                    .bodies
+                    .iter()
+                    .all(|h| Some(bodies[*h].ids.active_island_id as usize) == self.awake_island)
+            {
+                return false;
+            }
+            if island.bodies.iter().all(|h| handles.contains(h)) {
+                return true;
+            }
+            if (retiring.is_empty() && island.constraint_remove_count == 0) || island.sleeping {
+                return false;
+            }
+            // After contact loss the incremental graph can still pack disconnected
+            // components together until its budgeted split. Edges to a fixed
+            // body or removed body do not connect two dynamic components.
+            let closed = |a, b| {
+                self.persistent.body_island(bodies, a) != Some(id)
+                    || self.persistent.body_island(bodies, b) != Some(id)
+                    || handles.contains(&a) == handles.contains(&b)
+            };
+            island
+                .contact_links
+                .iter()
+                .all(|c| retiring.contains(&c.edge_id) || closed(c.body1, c.body2))
+                && island.joint_links.iter().all(|c| closed(c.body1, c.body2))
+        })
+    }
+
+    // Validate the prospective cut before touching the solver graph. Events must
+    // retain their native lifecycle. Only rigid, externally monitored predictions
+    // from an awake member to a distinct non-fixed body can be retired.
+    fn separated_cut(
+        &self,
+        bodies: &RigidBodySet,
+        handles: &[RigidBodyHandle],
+        colliders: &ColliderSet,
+        narrow_phase: &NarrowPhase,
+        pairs: &[(ColliderHandle, ColliderHandle)],
+    ) -> Option<Vec<u32>> {
+        let mut edges = Vec::new();
+        for &(a, b) in pairs {
+            let (left, right) = (colliders.get(a)?, colliders.get(b)?);
+            let from = left.parent()?;
+            let to = right.parent()?;
+            let id = self.persistent.body_island(bodies, from)?;
+            if !handles.contains(&from)
+                || handles.contains(&to)
+                || self.persistent.body_island(bodies, to) != Some(id)
+                || self.persistent.islands[id as usize].sleeping
+                || !(left.active_events() | right.active_events()).is_empty()
+            {
+                return None;
+            }
+            let edge = narrow_phase.unloaded_prediction_edge(a, b)?;
+            if !edges.contains(&edge) {
+                edges.push(edge);
+            }
+        }
+        (!edges.is_empty() && self.closed_except(bodies, handles, &edges)).then_some(edges)
+    }
+
+    /// Read-only eligibility when a caller can monitor and filter specified, strictly
+    /// separated predictive pairs during standby. Live joints and load-bearing
+    /// contact edges continue to connect their bodies.
+    pub fn can_sleep_with_separated_predictions(
+        &self,
+        bodies: &RigidBodySet,
+        handles: &[RigidBodyHandle],
+        colliders: &ColliderSet,
+        narrow_phase: &NarrowPhase,
+        pairs: &[(ColliderHandle, ColliderHandle)],
+    ) -> bool {
+        self.separated_cut(bodies, handles, colliders, narrow_phase, pairs)
+            .is_some()
+    }
+    /// Atomically close and sleep the group by retiring its approved zero-load edges.
+    /// The caller re-enables each pair before the bodies can close its measured gap.
+    pub fn sleep_with_separated_predictions(
+        &mut self,
+        bodies: &mut RigidBodySet,
+        handles: &[RigidBodyHandle],
+        colliders: &ColliderSet,
+        narrow_phase: &mut NarrowPhase,
+        pairs: &[(ColliderHandle, ColliderHandle)],
+    ) -> bool {
+        let Some(edges) = self.separated_cut(bodies, handles, colliders, narrow_phase, pairs)
+        else {
+            return false;
+        };
+        let ids = self.selected_islands(bodies, handles).unwrap();
+        for edge in edges {
+            narrow_phase.clear_unloaded_prediction(edge);
+            self.persistent.unlink_contact(edge);
+        }
+        for id in ids {
+            if !self.persistent.islands[id as usize].sleeping {
+                self.persistent.clear_pending_split_of(id);
+                self.persistent.split_island_now(bodies, id);
+            }
+        }
+        let slept = self.sleep_connected_group(bodies, narrow_phase, handles);
+        assert!(slept, "validated graph cut must close the native group");
+        true
+    }
+
+    /// Sleep a closed group between physics steps using ordinary whole-island
+    /// membership, wake propagation and cache invalidation. A refused request
+    /// leaves the graph untouched. The caller establishes physical eligibility.
+    pub fn sleep_connected_group(
+        &mut self,
+        bodies: &mut RigidBodySet,
+        narrow_phase: &mut NarrowPhase,
+        handles: &[RigidBodyHandle],
+    ) -> bool {
+        if !self.can_sleep_connected_group(bodies, handles) {
+            return false;
+        }
+        let ids = self.selected_islands(bodies, handles).unwrap();
+        for id in ids {
+            let island = &self.persistent.islands[id as usize];
+            if !island.sleeping && island.constraint_remove_count > 0 {
+                self.persistent.clear_pending_split_of(id);
+                self.persistent.split_island_now(bodies, id);
+            }
+        }
+        let mut chunks = Vec::new();
+        for id in self.selected_islands(bodies, handles).unwrap() {
+            let island = &self.persistent.islands[id as usize];
+            debug_assert!(island.bodies.iter().all(|h| handles.contains(h)));
+            if !island.sleeping {
+                chunks.push(island.bodies.clone());
+                self.persistent.mark_island_sleeping(id);
+            }
+        }
+        if !chunks.is_empty() {
+            let awake = self.awake_island.expect("validated awake group");
+            self.commit_sleeping_chunks(
+                bodies,
+                narrow_phase,
+                awake,
+                self.islands[awake].len(),
+                chunks,
+            );
+        }
+        true
     }
 
     /// Puts `chunks` (disjoint subsets of the awake island's bodies, all

@@ -1,0 +1,246 @@
+{
+  "source_world": "examples/worlds/local_robot_serial_obstacle.sdf",
+  "machine": "AMD Ryzen 9 9950X3D",
+  "runs": [
+    {
+      "bevy_threads": 1,
+      "first": {
+        "bevy_step_dynamic": {
+          "elapsed_ns": 2520325931,
+          "p95_ns": 160180,
+          "p99_ns": 193010,
+          "samples": 20000
+        },
+        "bevy_step_switched": {
+          "elapsed_ns": 1577956295,
+          "p95_ns": 153730,
+          "p99_ns": 179700,
+          "samples": 20000
+        },
+        "boundary": {
+          "max_angular_momentum_kg_m2_s": 4.95550608600258e-07,
+          "max_kinetic_energy_j": 1.6113041483032108e-12,
+          "max_linear_momentum_kg_m_s": 8.86517427630953e-07,
+          "max_position_m": 0.0,
+          "max_rotation_rad": 8.470329472543481e-22,
+          "max_support_impulse_ns": 0.0
+        },
+        "cycles": 10000,
+        "first_resumed_mount_impulse_vectors_ns_switched_dynamic": [
+          [
+            -2.3062079979875805e-08,
+            9.744187615874666e-22,
+            0.024132600062224212
+          ],
+          [
+            -2.303957484422378e-08,
+            2.693300074472658e-21,
+            0.02413259999981703
+          ]
+        ],
+        "first_resumed_shelf_impulse_ns_switched_dynamic": [
+          0.00981000251243675,
+          0.00981000251243675
+        ],
+        "matched_trajectory": {
+          "max_angular_momentum_kg_m2_s": 1.7778337706747895e-06,
+          "max_kinetic_energy_j": 1.9143568545793e-11,
+          "max_linear_momentum_kg_m_s": 3.1807705210946007e-06,
+          "max_position_m": 3.2661045444965776e-06,
+          "max_rotation_rad": 1.8215448964325214e-05,
+          "max_support_impulse_ns": 0.0
+        },
+        "max_resumed_mount_impulse_error_ns": 4.660668687449415e-08,
+        "minimum_resumed_shelf_impulse_ns": 0.00981000251243675,
+        "native_tier_changes": 20000,
+        "paired_instrumented_elapsed_s": 4.356428574,
+        "steps_per_lane": 20000,
+        "switch_only": {
+          "elapsed_ns": 117642674,
+          "p95_ns": 11480,
+          "p99_ns": 13170,
+          "samples": 20000
+        }
+      },
+      "per_episode_sha256": "b621fff2040a10d829f31df9a6f0cf5e4cc9fda01f836efa3f2391058a378bf9",
+      "reset": {
+        "bevy_step_dynamic": {
+          "elapsed_ns": 2405080233,
+          "p95_ns": 164880,
+          "p99_ns": 276510,
+          "samples": 20000
+        },
+        "bevy_step_switched": {
+          "elapsed_ns": 1500659011,
+          "p95_ns": 157230,
+          "p99_ns": 206001,
+          "samples": 20000
+        },
+        "boundary": {
+          "max_angular_momentum_kg_m2_s": 4.95550608600258e-07,
+          "max_kinetic_energy_j": 1.6113041483032108e-12,
+          "max_linear_momentum_kg_m_s": 8.86517427630953e-07,
+          "max_position_m": 0.0,
+          "max_rotation_rad": 8.470329472543481e-22,
+          "max_support_impulse_ns": 0.0
+        },
+        "cycles": 10000,
+        "first_resumed_mount_impulse_vectors_ns_switched_dynamic": [
+          [
+            -2.3062079979875805e-08,
+            9.744187615874666e-22,
+            0.024132600062224212
+          ],
+          [
+            -2.303957484422378e-08,
+            2.693300074472658e-21,
+            0.02413259999981703
+          ]
+        ],
+        "first_resumed_shelf_impulse_ns_switched_dynamic": [
+          0.00981000251243675,
+          0.00981000251243675
+        ],
+        "matched_trajectory": {
+          "max_angular_momentum_kg_m2_s": 1.7778337706747895e-06,
+          "max_kinetic_energy_j": 1.9143568545793e-11,
+          "max_linear_momentum_kg_m_s": 3.1807705210946007e-06,
+          "max_position_m": 3.2661045444965776e-06,
+          "max_rotation_rad": 1.8215448964325214e-05,
+          "max_support_impulse_ns": 0.0
+        },
+        "max_resumed_mount_impulse_error_ns": 4.660668687449415e-08,
+        "minimum_resumed_shelf_impulse_ns": 0.00981000251243675,
+        "native_tier_changes": 20000,
+        "paired_instrumented_elapsed_s": 4.143620706,
+        "steps_per_lane": 20000,
+        "switch_only": {
+          "elapsed_ns": 109810200,
+          "p95_ns": 11820,
+          "p99_ns": 16030,
+          "samples": 20000
+        }
+      }
+    },
+    {
+      "bevy_threads": 8,
+      "first": {
+        "bevy_step_dynamic": {
+          "elapsed_ns": 2893130123,
+          "p95_ns": 170100,
+          "p99_ns": 376271,
+          "samples": 20000
+        },
+        "bevy_step_switched": {
+          "elapsed_ns": 1768202469,
+          "p95_ns": 151630,
+          "p99_ns": 284460,
+          "samples": 20000
+        },
+        "boundary": {
+          "max_angular_momentum_kg_m2_s": 4.95550608600258e-07,
+          "max_kinetic_energy_j": 1.6113041483032108e-12,
+          "max_linear_momentum_kg_m_s": 8.86517427630953e-07,
+          "max_position_m": 0.0,
+          "max_rotation_rad": 8.470329472543481e-22,
+          "max_support_impulse_ns": 0.0
+        },
+        "cycles": 10000,
+        "first_resumed_mount_impulse_vectors_ns_switched_dynamic": [
+          [
+            -2.3062079979875805e-08,
+            9.744187615874666e-22,
+            0.024132600062224212
+          ],
+          [
+            -2.303957484422378e-08,
+            2.693300074472658e-21,
+            0.02413259999981703
+          ]
+        ],
+        "first_resumed_shelf_impulse_ns_switched_dynamic": [
+          0.00981000251243675,
+          0.00981000251243675
+        ],
+        "matched_trajectory": {
+          "max_angular_momentum_kg_m2_s": 1.7778337706747895e-06,
+          "max_kinetic_energy_j": 1.9143568545793e-11,
+          "max_linear_momentum_kg_m_s": 3.1807705210946007e-06,
+          "max_position_m": 3.2661045444965776e-06,
+          "max_rotation_rad": 1.8215448964325214e-05,
+          "max_support_impulse_ns": 0.0
+        },
+        "max_resumed_mount_impulse_error_ns": 4.660668687449415e-08,
+        "minimum_resumed_shelf_impulse_ns": 0.00981000251243675,
+        "native_tier_changes": 20000,
+        "paired_instrumented_elapsed_s": 4.96651246,
+        "steps_per_lane": 20000,
+        "switch_only": {
+          "elapsed_ns": 158515932,
+          "p95_ns": 11710,
+          "p99_ns": 27120,
+          "samples": 20000
+        }
+      },
+      "per_episode_sha256": "b621fff2040a10d829f31df9a6f0cf5e4cc9fda01f836efa3f2391058a378bf9",
+      "reset": {
+        "bevy_step_dynamic": {
+          "elapsed_ns": 3659828228,
+          "p95_ns": 229911,
+          "p99_ns": 884211,
+          "samples": 20000
+        },
+        "bevy_step_switched": {
+          "elapsed_ns": 2356232703,
+          "p95_ns": 188901,
+          "p99_ns": 467761,
+          "samples": 20000
+        },
+        "boundary": {
+          "max_angular_momentum_kg_m2_s": 4.95550608600258e-07,
+          "max_kinetic_energy_j": 1.6113041483032108e-12,
+          "max_linear_momentum_kg_m_s": 8.86517427630953e-07,
+          "max_position_m": 0.0,
+          "max_rotation_rad": 8.470329472543481e-22,
+          "max_support_impulse_ns": 0.0
+        },
+        "cycles": 10000,
+        "first_resumed_mount_impulse_vectors_ns_switched_dynamic": [
+          [
+            -2.3062079979875805e-08,
+            9.744187615874666e-22,
+            0.024132600062224212
+          ],
+          [
+            -2.303957484422378e-08,
+            2.693300074472658e-21,
+            0.02413259999981703
+          ]
+        ],
+        "first_resumed_shelf_impulse_ns_switched_dynamic": [
+          0.00981000251243675,
+          0.00981000251243675
+        ],
+        "matched_trajectory": {
+          "max_angular_momentum_kg_m2_s": 1.7778337706747895e-06,
+          "max_kinetic_energy_j": 1.9143568545793e-11,
+          "max_linear_momentum_kg_m_s": 3.1807705210946007e-06,
+          "max_position_m": 3.2661045444965776e-06,
+          "max_rotation_rad": 1.8215448964325214e-05,
+          "max_support_impulse_ns": 0.0
+        },
+        "max_resumed_mount_impulse_error_ns": 4.660668687449415e-08,
+        "minimum_resumed_shelf_impulse_ns": 0.00981000251243675,
+        "native_tier_changes": 20000,
+        "paired_instrumented_elapsed_s": 6.423934009,
+        "steps_per_lane": 20000,
+        "switch_only": {
+          "elapsed_ns": 193603136,
+          "p95_ns": 13060,
+          "p99_ns": 28270,
+          "samples": 20000
+        }
+      }
+    }
+  ]
+}

@@ -16,6 +16,10 @@ use gz_sim_scene::{
 };
 use serde::Serialize;
 
+#[path = "serial_transfer/adaptive.rs"]
+mod adaptive;
+#[path = "serial_transfer/adaptive_support.rs"]
+mod adaptive_support;
 #[path = "serial_transfer/carry.rs"]
 mod carry;
 #[path = "serial_transfer/cycle.rs"]
@@ -85,6 +89,24 @@ struct Args {
     /// Load a self-contained serial-transfer workcell with the same named parts.
     #[arg(long)]
     world: Option<PathBuf>,
+    /// Write wall time and per-physics-step durations to a fresh JSON file.
+    #[arg(long)]
+    timings: Option<PathBuf>,
+    /// Place the parcel, retire the empty pickup tray, return to standby and wake again.
+    #[arg(long, value_enum)]
+    fidelity: Option<adaptive::Mode>,
+    /// Retire the loaded receiver while paused after 250 quiet standby solves.
+    #[arg(long, requires = "fidelity")]
+    remove_receiver_during_standby: bool,
+    /// Emit pose, contact and momentum samples for every standby and recovery solve.
+    #[arg(long, requires = "fidelity")]
+    handoff_trace: Option<PathBuf>,
+    /// Compare each sampled solve and the command digest with a complete dynamic handoff trace.
+    #[arg(long, requires = "fidelity")]
+    handoff_reference: Option<PathBuf>,
+    /// Number of Bevy compute threads in this process.
+    #[arg(long, value_parser=clap::value_parser!(u64).range(1..=256))]
+    threads: Option<u64>,
     /// Parcel mass in kg. Scales the authored inertia tensor at fixed geometry.
     #[arg(long)]
     parcel_kg: Option<f64>,
@@ -136,6 +158,8 @@ impl Part {
 }
 #[derive(Debug, Default, PartialEq, Serialize)]
 struct Outcome {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    standby: Option<adaptive::Report>,
     #[serde(skip_serializing_if = "Option::is_none")]
     obstacle: Option<PassageOutcome>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -196,7 +220,7 @@ fn drive_rail(
         .state;
     let effort =
         (100. * (target - state.position) + 28. * (speed - state.velocity)).clamp(-80., 80.);
-    JointForceCommand::set_batch(sim, [(rail.id, effort)])?;
+    adaptive::forces(sim, [(rail.id, effort)])?;
     Ok(())
 }
 
@@ -300,15 +324,15 @@ fn drive(
     };
     let control_dt = rail_time_unit * control_ms as f64;
     if trial == Trial::OpenJaws {
-        JointForceCommand::set_batch(sim, jaws.map(|id| (id, -20.)))?;
+        adaptive::forces(sim, jaws.map(|id| (id, -20.)))?;
     }
     capture(sim)?;
     for tick in (control_ms..=STEPS).step_by(control_ms) {
         if tick == 2 && matches!(trial, Trial::LowClearance | Trial::ContactStop) {
-            set_joint_controller_command(sim, spindle.id, 0.85)?;
+            adaptive::target(sim, spindle.id, 0.85)?;
         }
         if tick == 3600 {
-            set_joint_controller_command(sim, wrist.id, 0.)?;
+            adaptive::target(sim, wrist.id, 0.)?;
         }
         if tick > 1 {
             let goal = if passage.as_ref().is_some_and(Passage::aborted) {
@@ -324,7 +348,7 @@ fn drive(
         }
         let returning = carry.as_ref().is_some_and(carry::Supervisor::recovering);
         if !returning && tick == LOWER && !passage.as_ref().is_some_and(Passage::aborted) {
-            set_joint_controller_command(sim, spindle.id, -0.018)?;
+            adaptive::target(sim, spindle.id, -0.018)?;
         }
         let reading = cycle.advance(
             sim,
@@ -403,7 +427,7 @@ fn drive(
                 *demand += (0.003 * (target.normal_force_n + source.normal_force_n - weight))
                     .clamp(-0.008, 0.008)
                     * control_dt;
-                set_joint_controller_command(sim, spindle.id, *demand)?;
+                adaptive::target(sim, spindle.id, *demand)?;
             }
             out.pickup_ready_ticks += usize::from(source.ready);
             if target.ready {
@@ -412,8 +436,8 @@ fn drive(
                 out.dwell_ms_at_release = Some(target.sustained.as_millis());
                 out.shelf_mean_at_release_n = target.mean_force_n;
                 out.shelf_relative_speed_at_release_m_s = Some(target.relative_normal_speed_m_s);
-                set_joint_controller_command(sim, spindle.id, q)?;
-                JointForceCommand::set_batch(sim, jaws.map(|id| (id, -20.)))?;
+                adaptive::target(sim, spindle.id, q)?;
+                adaptive::forces(sim, jaws.map(|id| (id, -20.)))?;
             }
         }
         if out.release_tick.is_some() {
@@ -423,7 +447,7 @@ fn drive(
                 .max(1000. * (release_height - p[2]));
         }
         if out.release_tick.is_some_and(|at| tick == at + 250) {
-            set_joint_controller_command(sim, spindle.id, 1.6)?;
+            adaptive::target(sim, spindle.id, 1.6)?;
         }
         if tick > STEPS - 500 {
             out.final_shelf_load_n += target.normal_force_n / (500. / control_ms as f64);
@@ -448,7 +472,16 @@ fn drive(
     Ok(out)
 }
 fn record(args: Args, xml: &str) -> Result<Outcome> {
+    let wall_start = args.timings.as_ref().map(|_| std::time::Instant::now());
     let xml = payload::configure(xml, args.parcel_kg, args.grip_friction)?;
+    let xml = if args.fidelity.is_some() {
+        if args.trial != Trial::ClearObstacle {
+            return Err("standby requires the clear-obstacle placement route".into());
+        }
+        std::borrow::Cow::Owned(adaptive::mark_workcell(&xml)?)
+    } else {
+        xml
+    };
     let sdf = sdformat::load_str(&xml, "serial_transfer.sdf", &sdformat::NoResources)?;
     let mut sim = load_world_with_sdf_step(
         &xml,
@@ -457,38 +490,89 @@ fn record(args: Args, xml: &str) -> Result<Outcome> {
         &sdformat::NoResources,
         PhysicsEngine::MultiFidelity,
     )?;
-    carry::configure_clock(&mut sim, args.trial, args.travel_ms, args.control_ms)?;
-    if let Some(pull) = args.pull {
-        pull.install(&mut sim, args.trial)?;
+    if wall_start.is_some() {
+        sim.world_mut().init_resource::<cycle::StepTimings>();
     }
     let mut frames = Vec::new();
+    let mut capture = |s: &Simulation| -> Result<()> {
+        frames.push(gz_sim_cli::primitive_frame(
+            s,
+            &sdf,
+            "default",
+            frames.len() as u64 + 1,
+        )?);
+        Ok(())
+    };
+    let outcome = run_profile(&mut sim, &sdf, &args, &mut capture)?;
+    gz_sim_cli::export_archive(&args.output, Default::default(), frames)?;
+    if let (Some(path), Some(start)) = (args.timings, wall_start) {
+        let elapsed = start.elapsed();
+        let timing = sim
+            .world()
+            .resource::<cycle::StepTimings>()
+            .report(elapsed, sim.step_duration());
+        serde_json::to_writer(std::fs::File::create_new(path)?, &timing)?;
+    }
+    Ok(outcome)
+}
+fn run_profile(
+    sim: &mut Simulation,
+    sdf: &sdformat::Sdf,
+    args: &Args,
+    capture: &mut impl FnMut(&Simulation) -> Result<()>,
+) -> Result<Outcome> {
+    carry::configure_clock(sim, args.trial, args.travel_ms, args.control_ms)?;
+    if let Some(pull) = args.pull {
+        pull.install(sim, args.trial)?;
+    }
     let passage = args
         .trial
         .obstacle()
-        .then(|| Passage::bind(&sim, &sdf))
+        .then(|| Passage::bind(sim, sdf))
         .transpose()?;
-    let weight = payload::weight(&sdf)?;
-    let outcome = drive(
-        &mut sim,
+    let weight = payload::weight(sdf)?;
+    if args.fidelity.is_some() {
+        sim.world_mut()
+            .insert_resource(adaptive::Commands::default());
+    }
+    let mut outcome = drive(
+        sim,
         args.trial,
         passage,
         weight,
         args.world.is_some() || args.parcel_kg.is_some() || args.grip_friction.is_some(),
-        |s| {
-            frames.push(gz_sim_cli::primitive_frame(
-                s,
-                &sdf,
-                "default",
-                frames.len() as u64 + 1,
-            )?);
-            Ok(())
-        },
+        &mut *capture,
     )?;
-    gz_sim_cli::export_archive(&args.output, Default::default(), frames)?;
+    if let Some(mode) = args.fidelity {
+        outcome.standby = Some(adaptive::run(
+            sim,
+            adaptive::Options {
+                mode,
+                remove: args.remove_receiver_during_standby,
+                trace: args.handoff_trace.as_deref(),
+                reference: args.handoff_reference.as_deref(),
+                gravity: sdf
+                    .worlds
+                    .iter()
+                    .find(|w| w.name == "default")
+                    .unwrap()
+                    .gravity,
+            },
+            outcome.release_tick,
+            capture,
+        )?);
+    }
     Ok(outcome)
 }
 fn main() -> Result<()> {
     let args = Args::parse();
+    if let Some(n) = args.threads {
+        bevy_tasks::ComputeTaskPool::get_or_init(|| {
+            bevy_tasks::TaskPoolBuilder::new()
+                .num_threads(n as usize)
+                .build()
+        });
+    }
     let xml = args
         .world
         .as_ref()
@@ -751,6 +835,12 @@ mod tests {
             trial: Trial::Transfer,
             output: path.clone(),
             world: None,
+            timings: None,
+            fidelity: None,
+            remove_receiver_during_standby: false,
+            handoff_trace: None,
+            handoff_reference: None,
+            threads: None,
             parcel_kg: None,
             grip_friction: None,
             travel_ms: 4000,
@@ -771,3 +861,7 @@ mod tests {
         assert_eq!(std::fs::read(&path).unwrap(), b"existing");
     }
 }
+
+#[cfg(test)]
+#[path = "serial_transfer/record_tests.rs"]
+mod record_tests;

@@ -20,3 +20,16 @@ configuration-space edge. For a cold, separated contact, the narrow phase checks
 the swept path and uses the box witness and radial sphere normal at first touch.
 Each side retains its own force application point. The qualified scenario,
 controls and timing are in the [fast obstacle measurements](../../docs/measurements/local-manipulation/fast-obstacle-course.md).
+
+Mounted robots use the island manager to sleep and wake a complete connected
+group, including its internal speed-limit reference bodies. The read-only
+eligibility check rejects incomplete groups and follows the current joint and
+contact edges when an earlier removal has left a split pending. Committing a
+verified group resolves that split, removes the group from the active solver
+set, and updates Rapier's sleep and cache records. The caller can also monitor
+speculative contact pairs across proven clear gaps. A read-only graph check
+verifies that every crossing edge is an explicitly listed rigid prediction
+with positive separation and zero impulse. The handoff retires these rows,
+updates their solver caches and splits the island before sleeping the robot.
+Independent bodies and their loaded contacts retain their native ownership.
+[Serial arm tests and 10,000-cycle measurements](../../docs/measurements/local-manipulation/serial-switch-soak.md)

@@ -20,7 +20,7 @@ pub mod sole_episodes;
 pub mod support_loss_promotion;
 pub use articulation::{
     ArticulationTier, FidelityError, articulation_root_pose, begin_model_free_coast,
-    model_fidelity, set_model_fidelity,
+    model_fidelity, set_model_fidelity, validate_model_demotion,
 };
 mod contact_material;
 mod joint_controller;
@@ -43,7 +43,7 @@ pub use joint_controller::{
     JointControllerCommandError, JointControllerConfiguration, JointControllerMode,
     held_joint_controller_target, joint_controller_binding_matches,
     joint_controller_binding_matches_configuration, set_joint_controller_command,
-    set_joint_position_response_period,
+    set_joint_position_drives_enabled, set_joint_position_response_period,
 };
 pub use joint_state_publisher::{
     JointStateJointPublication, JointStateKind, JointStatePublication, JointStateSample,

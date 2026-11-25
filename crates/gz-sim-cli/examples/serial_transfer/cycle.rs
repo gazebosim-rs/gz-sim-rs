@@ -4,6 +4,37 @@ use super::*;
 use gz_sim_scene::receiving_support::SupportReading;
 use rigid_tactile::Tactile;
 
+#[derive(Default, bevy_ecs::prelude::Resource)]
+pub(super) struct StepTimings(pub(super) Vec<u64>);
+
+impl StepTimings {
+    pub(super) fn report(&self, elapsed: Duration, step: Duration) -> serde_json::Value {
+        let mut sorted = self.0.clone();
+        sorted.sort_unstable();
+        // A complete route always advances at least once. The nearest rank retains short stalls.
+        let percentile = |p: usize| sorted[(sorted.len() * p).div_ceil(100) - 1];
+        serde_json::json!({
+            "elapsed_ns": elapsed.as_nanos(), "physics_step_ns": step.as_nanos(),
+            "steps": sorted.len(), "p95_ns": percentile(95), "p99_ns": percentile(99),
+            "public_step_wall_ns": self.0,
+        })
+    }
+}
+
+/// Time the public solve only. Support measurements and archive sampling run afterward.
+pub(super) fn step(sim: &mut Simulation) -> Result<()> {
+    let start = sim
+        .world()
+        .contains_resource::<StepTimings>()
+        .then(std::time::Instant::now);
+    sim.step_exact(1)?;
+    if let Some(start) = start {
+        let ns = start.elapsed().as_nanos() as u64;
+        sim.world_mut().resource_mut::<StepTimings>().0.push(ns);
+    }
+    Ok(())
+}
+
 #[derive(Clone, Copy, bevy_ecs::prelude::Resource)]
 pub(super) struct Cadence {
     pub(super) control_ms: usize,
@@ -119,7 +150,7 @@ impl Cycle {
                 let input_ms = sim.elapsed().as_millis() as usize + 1;
                 pulse.before_step(sim, input_ms, self.parcel, self.rail)?;
             }
-            sim.step_exact(1)?;
+            step(sim)?;
             let parcel_position = self.parcel.pose(sim)?.translation;
             let carriage_y = self.car.pose(sim)?.translation[1];
             let source = self.pickup.sample(sim.world())?;

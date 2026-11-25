@@ -28,10 +28,19 @@ pub(super) struct SupportedGroups<'a>(
     pub(super) &'a BTreeMap<BodyId, Vec<articulation_support::SupportHold>>,
     pub(super) &'a [SuppressedRows],
     pub(super) &'a [axial_cap::Impact],
+    pub(super) &'a BTreeMap<BodyId, joints::parked_speed::ParkedSpeed>,
     #[cfg(feature = "landing-audit")] pub(super) Option<&'a landing_row_order::LandingRows>,
 );
 impl PhysicsHooks for SupportedGroups<'_> {
     fn filter_contact_pair(&self, ctx: &PairFilterContext) -> Option<SolverFlags> {
+        if self.3.values().any(|group| {
+            group.separated.iter().any(|&(a, b)| {
+                (ctx.collider1 == a && ctx.collider2 == b)
+                    || (ctx.collider2 == a && ctx.collider1 == b)
+            })
+        }) {
+            return None;
+        }
         for rows in self.1 {
             let opposed = |other| other == rows.pad || Some(other) == rows.second;
             if (ctx.collider1 == rows.foot && opposed(ctx.collider2))
@@ -63,7 +72,7 @@ impl PhysicsHooks for SupportedGroups<'_> {
         }
         axial_cap::Impact::apply_for(self.2, ctx);
         #[cfg(feature = "landing-audit")]
-        if !held && let Some(rows) = self.3 {
+        if !held && let Some(rows) = self.4 {
             rows.apply(ctx);
         }
     }

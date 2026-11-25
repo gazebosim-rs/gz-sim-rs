@@ -463,6 +463,7 @@ impl RapierBackend {
                 &self.held_supports,
                 rows,
                 &caps,
+                &self.parked_speed,
                 #[cfg(feature = "landing-audit")]
                 self.landing_rows.as_ref(),
             ),
