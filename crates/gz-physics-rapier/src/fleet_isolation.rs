@@ -64,6 +64,7 @@ pub(super) struct Isolation {
     coordinates: fleet_coordinates::Coordinates,
     rows: Vec<Row>,
     payloads: Vec<Payload>,
+    largest_deck_radius: f64,
     pub(super) velocity: Vector,
     elapsed: Duration,
     analytic: usize,
@@ -88,6 +89,7 @@ impl Isolation {
         }
         let mut velocity = None;
         let mut payloads = Vec::new();
+        let mut largest_deck_radius = 0_f64;
         let mut rows = Vec::with_capacity(backend.bodies.len());
         let mut leaves = Vec::new();
         let mut coordinates = fleet_coordinates::Coordinates::new(&world.integration_parameters);
@@ -114,6 +116,7 @@ impl Isolation {
             }
             let mut coordinate_keys = fleet_coordinates::Keys::default();
             let start = if spec.kinematic {
+                largest_deck_radius = largest_deck_radius.max(cuboid.half_extents.length());
                 let rotation = *body.rotation();
                 if (Rotation::IDENTITY * rotation)
                     .normalize()
@@ -173,6 +176,7 @@ impl Isolation {
             coordinates,
             rows,
             payloads,
+            largest_deck_radius,
             velocity: velocity?,
             elapsed: Duration::ZERO,
             analytic,
@@ -350,17 +354,45 @@ impl Isolation {
     pub(super) fn visit_ray_bodies(
         &self,
         ray: &ray::SolidRay,
+        world: &PhysicsWorld,
         mut visit: impl FnMut(RigidBodyHandle) -> Result<(), PhysicsError>,
     ) -> Option<Result<(), PhysicsError>> {
         let bounds = ray.moving_bounds(self.velocity * self.elapsed.as_secs_f64())?;
+        if crate::FLEET_BASELINE_BEAM.load(std::sync::atomic::Ordering::Relaxed) {
+            return Some((|| {
+                for p in &self.payloads { visit(p.handle)?; }
+                for &i in &self.native_rows { visit(self.rows[i].handle)?; }
+                for i in self.index.intersect_aabb(&bounds) {
+                    let row = &self.rows[i as usize];
+                    if row.start.is_some() { visit(row.handle)?; }
+                }
+                Ok(())
+            })());
+        }
+        let beam = ray.moving_bounds(Vector::ZERO)?;
         Some((|| {
-            // The index follows the common prescribed velocity. Edited decks and
-            // free payloads can be anywhere, so test their live geometry directly.
+            // The index follows the common deck velocity. A centered native box,
+            // even when edited before the next step, lies inside its live
+            // circumsphere. Keep the exact shape test at the padded boundary.
+            let mut visit_native = |handle, radius| {
+                let body: &RigidBody = &world.bodies[handle];
+                let center = body.translation();
+                if !center.is_finite()
+                    || !body.rotation().is_finite()
+                    || (center - center.clamp(beam.mins, beam.maxs))
+                        .abs()
+                        .max_element()
+                        <= radius
+                {
+                    visit(handle)?;
+                }
+                Ok::<_, PhysicsError>(())
+            };
             for body in &self.payloads {
-                visit(body.handle)?;
+                visit_native(body.handle, body.radius)?;
             }
             for &i in &self.native_rows {
-                visit(self.rows[i].handle)?;
+                visit_native(self.rows[i].handle, self.largest_deck_radius)?;
             }
             for i in self.index.intersect_aabb(&bounds) {
                 let row = &self.rows[i as usize];

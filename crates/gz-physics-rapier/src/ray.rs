@@ -311,7 +311,7 @@ pub(super) fn cast(
         include(&backend.world.colliders[body.colliders()[0]])
     };
     if let fleet_isolation::Dispatch::Active(fleet) = &backend.fleet_dispatch
-        && let Some(result) = fleet.visit_ray_bodies(&beam, &mut visit)
+        && let Some(result) = fleet.visit_ray_bodies(&beam, &backend.world, &mut visit)
     {
         result?;
     } else if let FleetClock::Translating(time) = backend.fleet_clock

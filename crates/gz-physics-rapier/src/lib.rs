@@ -61,6 +61,8 @@ mod fleet;
 mod friction;
 pub use friction::NativeFrictionModel;
 mod fleet_coordinates;
+/// Independently toggle the legacy exhaustive native sensor in the timing executable.
+pub static FLEET_BASELINE_BEAM: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 mod fleet_isolation;
 use fleet::FleetClock;
 pub use fleet_isolation::FleetIsolationStats;
