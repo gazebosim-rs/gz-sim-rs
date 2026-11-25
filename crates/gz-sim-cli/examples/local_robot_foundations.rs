@@ -262,7 +262,8 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
     fs::rename(stage.path(), output)?;
     Ok(())
 }
-fn main() -> Result<()> {
+fn main() -> Result<()> { let result=study_main(); eprintln!("projection passes, distance, bending, self-contact, boundaries, remaining features (ns): {:?}",gz_physics_xpbd::shell_ticks());result }
+fn study_main() -> Result<()> {
     match Args::parse().study {
         Study::FoldRecovery {
             output,

@@ -634,6 +634,7 @@ impl SoftBody {
         let h = ticks as f64 * 1e-9;
         let t0 = elapsed as f64 * 1e-9;
         let t1 = (elapsed + ticks) as f64 * 1e-9;
+        let d0=std::time::Instant::now();
         let mut shell_loads = self
             .surface
             .as_mut()
@@ -658,6 +659,7 @@ impl SoftBody {
                 shell_loads.as_deref_mut(),
             )?;
         }
+        let d1=std::time::Instant::now();
         for (i, (hinge, lambda)) in self
             .bending
             .iter()
@@ -673,6 +675,7 @@ impl SoftBody {
                 shell_loads.as_deref_mut(),
             )?;
         }
+        let d2=std::time::Instant::now();
         if let Some(surface) = &mut self.surface {
             surface.project(
                 &mut self.predicted,
@@ -689,6 +692,7 @@ impl SoftBody {
                 h,
             )?;
         }
+        let d3=std::time::Instant::now();
         let interval = collision::Interval {
             t0,
             t1,
@@ -704,6 +708,7 @@ impl SoftBody {
             interval,
             (self.pads.is_some(), self.capsule_material.is_some()),
         )?;
+        let d4=std::time::Instant::now();
         if let MaterialTopology::Cloth(columns) = self.topology {
             self.box_faces.project(
                 columns,
@@ -740,6 +745,8 @@ impl SoftBody {
                 self.config.friction,
             )?;
         }
+        let d5=std::time::Instant::now();
+        SHELL_TICKS.with(|v|{let mut saved=v.get();saved[0]+=1;for (i,(a,b)) in [(d0,d1),(d1,d2),(d2,d3),(d3,d4),(d4,d5)].into_iter().enumerate(){saved[i+1]+=b.duration_since(a).as_nanos() as u64;}v.set(saved);});
         Ok(())
     }
 
@@ -958,3 +965,6 @@ impl Distance {
 #[cfg(test)]
 #[path = "../tests/private/stiff_pad_endpoint.rs"]
 mod stiff_pad_endpoint;
+
+thread_local!{static SHELL_TICKS: std::cell::Cell<[u64;6]>=const{std::cell::Cell::new([0;6])};}
+pub fn shell_ticks()->[u64;6]{SHELL_TICKS.with(|v|v.get())}
