@@ -7,6 +7,10 @@ The local Rust/Bevy robot carries rigid parcels, weighs a loose cable, and place
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
+## 2026-11-24 — Installed local robot survives a lost step reply
+
+The stock rotor stayed at 0 ms when its checked step was lost and held at exactly 1 ms when only the reply was lost. The controller now explains the uncertain outcome and gives the reconnect command. Reset restored every visual and repeating the two steps reproduced the original poses. The updated Linux preview passed 12 consecutive host trials, a clean Ubuntu 24.04.5 container run, the one/eight-thread journal and WebGPU playback of the bundled gripper. Changed executable control code reached 100% line and 97.06% region coverage in the targeted run. Next, close the integrated coverage gaps with the contact/reset and control workloads and qualify the exact release build. [Test, archive checksum and gripper recording](measurements/local-manipulation/installed-robot-control.md) · [Physics roadmap](PHYSICS_RELEASE_ROADMAP.md)
+
 ## 2026-11-24 — Source publication and runnable release iterations
 
 The integrated simulator contains every one of the 3,382 changed or added paths in the original physics checkout. The original source and historical benchmark variants are preserved on a separate simulator branch. The Rust browser controls for worker recovery are published in the viewer repository. The approved design and the CLI coverage supplement are now readable from a clone. [Integrated simulator](https://github.com/gazebosim-rs/gz-sim-rs/tree/review/local-cpu-mvp-20261124) · [Original physics source and comparisons](https://github.com/gazebosim-rs/gz-sim-rs/tree/review/multifidelity-source-20261124) · [Viewer source](https://github.com/gazebosim-rs/gzweb-rs/tree/review/physics-worker-recovery-ui) · [Supplemental CLI measurements](measurements/local-manipulation/mvp-cli-local-supplement.md)

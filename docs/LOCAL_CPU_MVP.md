@@ -25,6 +25,8 @@ target/cpu-tools/bin/gz-sim-rs examples/worlds/upstream_joint_force.sdf \
 
 The locally packaged Linux preview, `gz-sim-local-cpu-preview.tar.xz`, includes these binaries, the unmodified source world, its command journal, the gripper recording, licenses and a checksum manifest. The archive built from `2e7d155` has SHA-256 `2983b9af0ad1164cf118f0c8b2deca79e0ed5dc65228292ef8d898423e0b7dee`. The review branch includes the source and portable recordings.
 
+The updated package from `0eb0305` includes the reconnect diagnostic and was tested on Ubuntu 24.04.5 and 26.04.1. Its build instructions are below. [Package checksum, tests and measured replay](measurements/local-manipulation/installed-robot-control.md)
+
 ## Watch the recordings
 
 Open the gripper replay and press Play. Both jaws touch at 1.274 s, lift the parcel 126.6 mm and release it onto the plate. Move the pointer into the viewport and press **3** for the side view. In the rotor replay, select the row ending in **rotor::visual**, move the pointer into the viewport and press **F**. The upstream ground is 100 m wide, so framing the rotor makes its rotation visible. [Gripper with tier switching](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11547%2F) · [Always-dynamic gripper](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11548%2F) · [Upstream motor](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A11551%2F)
