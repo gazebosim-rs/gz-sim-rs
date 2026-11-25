@@ -10,9 +10,14 @@ fn native_cut_checks_current_shape_and_pose_before_retiring_a_cached_prediction(
         "moved parent",
         "moved child",
         "increased skin",
+        "negative skin",
+        "NaN skin",
+        "infinite skin",
     ] {
-        let mut w = PhysicsWorld::default();
-        w.gravity = Vector::ZERO;
+        let mut w = PhysicsWorld {
+            gravity: Vector::ZERO,
+            ..PhysicsWorld::default()
+        };
         let robot = w.insert_body(RigidBodyBuilder::dynamic());
         let neighbor = w.insert_body(RigidBodyBuilder::dynamic().translation(Vector::X * 0.1005));
         let a = w.insert_collider(ColliderBuilder::ball(0.05), Some(robot));
@@ -34,6 +39,9 @@ fn native_cut_checks_current_shape_and_pose_before_retiring_a_cached_prediction(
             "moved parent" => w.bodies[neighbor].set_translation(Vector::X * 0.099, true),
             "moved child" => w.colliders[b].set_translation_wrt_parent(Vector::X * -0.002),
             "increased skin" => w.colliders[b].set_contact_skin(0.002),
+            "negative skin" => w.colliders[a].set_contact_skin(-0.001),
+            "NaN skin" => w.colliders[b].set_contact_skin(f64::NAN),
+            "infinite skin" => w.colliders[b].set_contact_skin(f64::INFINITY),
             _ => unreachable!(),
         }
 

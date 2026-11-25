@@ -169,6 +169,10 @@ impl IslandManager {
             // Solver rows describe the previous collision pass. An edit to a shape,
             // skin, body pose, or attached collider pose can consume its gap before
             // another solve. Compose from live parent poses, then check both skins.
+            let skins = [left.contact_skin(), right.contact_skin()];
+            if skins.iter().any(|skin| !skin.is_finite() || *skin < 0.0) {
+                return None;
+            }
             let left_pose = *bodies.get(from)?.position() * *left.position_wrt_parent()?;
             let right_pose = *bodies.get(to)?.position() * *right.position_wrt_parent()?;
             let gap = narrow_phase
@@ -176,7 +180,7 @@ impl IslandManager {
                 .distance(&left_pose.inv_mul(&right_pose), left.shape(), right.shape())
                 .ok()?
                 .distance;
-            if !gap.is_finite() || gap <= left.contact_skin() + right.contact_skin() {
+            if !gap.is_finite() || gap <= skins[0] + skins[1] {
                 return None;
             }
             if !edges.contains(&edge) {
